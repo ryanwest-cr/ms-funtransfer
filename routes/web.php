@@ -43,6 +43,12 @@ $app->put('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@updat
 $app->patch('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@update');
 $app->delete('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@destroy');
 
+// Player Details Request
+$app->post('/api/playerdetailsrequest/', 'PlayerDetailsController@show');
+
+// Fund Transfer Request
+$app->post('/api/fundtransferrequest/', 'FundTransferController@process');
+
 // Request an access token
 $app->post('/oauth/access_token', function() use ($app){
     return response()->json($app->make('oauth2-server.authorizer')->issueAccessToken());
