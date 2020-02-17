@@ -34,60 +34,68 @@ class FundTransferController extends Controller
 		}
 		else
 		{
-			if($request->get("type") != "fundtransferrequest") {
-				$arr_result["fundtransferresponse"]["status"]["message"] = "Invalid request.";
+			$access_token = $request->get("access_token");
+			$api_hashkey = $request->get("apihashkey");
+
+			if($api_hashkey != md5(env('API_KEY').$access_token)) {
+				$arr_result["fundtransferresponse"]["status"]["message"] = "Authentication mismatched.";
 			}
 			else
 			{
-				$token = $request->get("fundtransferrequest")["playerdetails"]["token"];
-				$amount = $request->get("fundtransferrequest")["fundinfo"]["amount"];
-				/*DB::enableQueryLog();*/
-				
-				$player_details = PlayerSessionToken::select("player_id")->where("token", $token)->first();
-
-				if (!$player_details) {
-					$arr_result["fundtransferresponse"]["status"]["message"] = "Player token is expired.";
+				if($request->get("type") != "fundtransferrequest") {
+					$arr_result["fundtransferresponse"]["status"]["message"] = "Invalid request.";
 				}
 				else
 				{
-					$player_id = $player_details->player_id;
-					$player_wallet = PlayerWallet::select("balance")->where("player_id", $player_id)->first();
+					$token = $request->get("fundtransferrequest")["playerdetails"]["token"];
+					$amount = $request->get("fundtransferrequest")["fundinfo"]["amount"];
+					/*DB::enableQueryLog();*/
 					
-					if (!$player_wallet) {
-						$arr_result["fundtransferresponse"]["status"]["message"] = "Player not found..";
+					$player_details = PlayerSessionToken::select("player_id")->where("token", $token)->first();
+
+					if (!$player_details) {
+						$arr_result["fundtransferresponse"]["status"]["message"] = "Player token is expired.";
 					}
 					else
 					{
-						$player_current_balance = $player_wallet->balance;
-						$amount_to_update = number_format((float)$player_current_balance + $amount, 2, '.', '');
-
-						/*$query = DB::getQueryLog();*/
-						/*print_r($query);*/
-						/*DB::enableQueryLog();*/
-						$transactiion_result = DB::table("player_wallet")
-								        ->where("player_id", $player_id) 
-								        ->limit(1)
-								        ->update(array("balance" => $amount_to_update));
-						/*$query = DB::getQueryLog();
-						print_r($query);*/
+						$player_id = $player_details->player_id;
+						$player_wallet = PlayerWallet::select("balance")->where("player_id", $player_id)->first();
 						
-						$arr_result = [
-										"fundtransferresponse" =>  
-										[
-											"status" =>  [
-											"success" =>  true,
-											"message" =>  "Transaction successful."
-										],
-											"balance" =>  $amount_to_update,
-											"currencycode" =>  "USD"
-										]
-									];
+						if (!$player_wallet) {
+							$arr_result["fundtransferresponse"]["status"]["message"] = "Player not found..";
+						}
+						else
+						{
+							$player_current_balance = $player_wallet->balance;
+							$amount_to_update = number_format((float)$player_current_balance + $amount, 2, '.', '');
+
+							/*$query = DB::getQueryLog();*/
+							/*print_r($query);*/
+							/*DB::enableQueryLog();*/
+							$transactiion_result = DB::table("player_wallet")
+									        ->where("player_id", $player_id) 
+									        ->limit(1)
+									        ->update(array("balance" => $amount_to_update));
+							/*$query = DB::getQueryLog();
+							print_r($query);*/
+							
+							$arr_result = [
+											"fundtransferresponse" =>  
+											[
+												"status" =>  [
+												"success" =>  true,
+												"message" =>  "Transaction successful."
+											],
+												"balance" =>  $amount_to_update,
+												"currencycode" =>  "USD"
+											]
+										];
+						}
+						
 					}
 					
 				}
-				
 			}
-			
 		}
 		
 
