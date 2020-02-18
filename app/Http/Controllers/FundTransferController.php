@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PlayerDetail;
 use App\Models\PlayerSessionToken;
 use App\Models\PlayerWallet;
+use App\Helpers\Helper;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use DB;
@@ -30,14 +32,14 @@ class FundTransferController extends Controller
 						];
 
 		if(!$this->hasInput($request)) {
-			$arr_result["fundtransferresponse"]["status"]["message"] = "Request body is empty";
+			$arr_result["fundtransferresponse"]["status"]["message"] = "Request body is empty.";
 		}
 		else
 		{
+			$hash_key = $request->get("hashkey");
 			$access_token = $request->get("access_token");
-			$api_hashkey = $request->get("apihashkey");
-
-			if($api_hashkey != md5(env('API_KEY').$access_token)) {
+			
+			if(!Helper::auth_key($hash_key, $access_token)) {
 				$arr_result["fundtransferresponse"]["status"]["message"] = "Authentication mismatched.";
 			}
 			else
@@ -62,7 +64,7 @@ class FundTransferController extends Controller
 						$player_wallet = PlayerWallet::select("balance")->where("player_id", $player_id)->first();
 						
 						if (!$player_wallet) {
-							$arr_result["fundtransferresponse"]["status"]["message"] = "Player not found..";
+							$arr_result["fundtransferresponse"]["status"]["message"] = "Player not found.";
 						}
 						else
 						{
@@ -72,7 +74,7 @@ class FundTransferController extends Controller
 							/*$query = DB::getQueryLog();*/
 							/*print_r($query);*/
 							/*DB::enableQueryLog();*/
-							$transactiion_result = DB::table("player_wallet")
+							$transactiion_result = DB::table("player_wallets")
 									        ->where("player_id", $player_id) 
 									        ->limit(1)
 									        ->update(array("balance" => $amount_to_update));

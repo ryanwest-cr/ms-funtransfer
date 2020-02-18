@@ -29,6 +29,9 @@
             "database/"
         ]
     },
+    "files": [
+        "app/Helpers/authorize.php"
+    ],
     "scripts": {
         "post-root-package-install": [
             "php -r \"copy('.env.example', '.env');\""

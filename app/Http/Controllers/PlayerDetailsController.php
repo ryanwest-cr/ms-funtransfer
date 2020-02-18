@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\PlayerDetail;
 use App\Models\PlayerSessionToken;
+use App\Helpers\Helper;
+
 use Illuminate\Http\Request;
+
 use DB;
 
 class PlayerDetailsController extends Controller
@@ -16,6 +19,8 @@ class PlayerDetailsController extends Controller
 	}
 
 	public function show(Request $request) {
+		/*echo md5("BDPcX4D8Fp037i5e0ewmvtosagrL3g3g7HQOQJ2i"."YxnDJ6lmakvsQwVZ"); die();*/
+
 		$arr_result = [
 						"playerdetailsresponse" =>  [
 							"status" =>  [
@@ -29,10 +34,10 @@ class PlayerDetailsController extends Controller
 		}
 		else
 		{
-			$access_token = $request->get("access_token");
-			$api_hashkey = $request->get("apihashkey");
+			$hash_key = $request->get("hashkey");
+			$access_token = $request->get("access_token");	
 
-			if($api_hashkey != md5(env('API_KEY').$access_token)) {
+			if(!Helper::auth_key($hash_key, $access_token)) {
 				$arr_result["playerdetailsresponse"]["status"]["message"] = "Authentication mismatched.";
 			}
 			else
