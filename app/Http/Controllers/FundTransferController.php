@@ -20,6 +20,8 @@ class FundTransferController extends Controller
 	}
 
 	public function process(Request $request) {
+		$json_data = json_decode(file_get_contents("php://input"), true);
+
 		$arr_result = [
 						"fundtransferresponse" => [
 							"status" => [
@@ -31,26 +33,26 @@ class FundTransferController extends Controller
 							]
 						];
 
-		if(!$this->hasInput($request)) {
+		if(empty($json_data) || count($json_data) == 0 || sizeof($json_data) == 0) {
 			$arr_result["fundtransferresponse"]["status"]["message"] = "Request body is empty.";
 		}
 		else
 		{
-			$hash_key = $request->get("hashkey");
-			$access_token = $request->get("access_token");
+			$hash_key = $json_data["hashkey"];
+			$access_token = $json_data["access_token"];	
 			
 			if(!Helper::auth_key($hash_key, $access_token)) {
 				$arr_result["fundtransferresponse"]["status"]["message"] = "Authentication mismatched.";
 			}
 			else
 			{
-				if($request->get("type") != "fundtransferrequest") {
+				if($json_data["type"] != "fundtransferrequest") {
 					$arr_result["fundtransferresponse"]["status"]["message"] = "Invalid request.";
 				}
 				else
 				{
-					$token = $request->get("fundtransferrequest")["playerdetails"]["token"];
-					$amount = $request->get("fundtransferrequest")["fundinfo"]["amount"];
+					$token = $json_data["fundtransferrequest"]["playerinfo"]["token"];
+					$amount = $json_data["fundtransferrequest"]["fundinfo"]["amount"];
 					/*DB::enableQueryLog();*/
 					
 					$player_details = PlayerSessionToken::select("player_id")->where("token", $token)->first();
@@ -104,12 +106,5 @@ class FundTransferController extends Controller
 		echo json_encode($arr_result);
 	}
 
-	private function hasInput(Request $request)
-	{
-	    if($request->has('_token')) {
-	        return count($request->all()) > 1;
-	    } else {
-	        return count($request->all()) > 0;
-	    }
-	}
+
 }

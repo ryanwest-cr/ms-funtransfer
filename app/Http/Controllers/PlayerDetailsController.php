@@ -19,7 +19,7 @@ class PlayerDetailsController extends Controller
 	}
 
 	public function show(Request $request) {
-		/*echo md5("BDPcX4D8Fp037i5e0ewmvtosagrL3g3g7HQOQJ2i"."YxnDJ6lmakvsQwVZ"); die();*/
+		$json_data = json_decode(file_get_contents("php://input"), true);
 
 		$arr_result = [
 						"playerdetailsresponse" =>  [
@@ -29,25 +29,25 @@ class PlayerDetailsController extends Controller
 							]
 						]
 					];
-		if(!$this->hasInput($request)) {
+		if(empty($json_data) || count($json_data) == 0 || sizeof($json_data) == 0) {
 			$arr_result["playerdetailsresponse"]["status"]["message"] = "Request body is empty.";
 		}
 		else
 		{
-			$hash_key = $request->get("hashkey");
-			$access_token = $request->get("access_token");	
+			$hash_key = $json_data["hashkey"];
+			$access_token = $json_data["access_token"];	
 
 			if(!Helper::auth_key($hash_key, $access_token)) {
 				$arr_result["playerdetailsresponse"]["status"]["message"] = "Authentication mismatched.";
 			}
 			else
 			{
-				if($request->get("type") != "playerdetailsrequest") {
+				if($json_data["type"] != "playerdetailsrequest") {
 					$arr_result["playerdetailsresponse"]["status"]["message"] = "Invalid request.";
 				}
 				else
 				{
-					$token = $request->get("playerdetailsrequest")["token"];
+					$token = $json_data["playerdetailsrequest"]["token"];
 
 					/*DB::enableQueryLog();*/
 					$player_details = DB::table("players")
@@ -87,12 +87,4 @@ class PlayerDetailsController extends Controller
 		echo json_encode($arr_result);
 	}
 
-	private function hasInput(Request $request)
-	{
-	    if($request->has('_token')) {
-	        return count($request->all()) > 1;
-	    } else {
-	        return count($request->all()) > 0;
-	    }
-	}
 }
