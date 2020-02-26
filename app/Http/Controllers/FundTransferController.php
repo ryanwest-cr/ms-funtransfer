@@ -7,6 +7,9 @@ use App\Models\PlayerSessionToken;
 use App\Models\PlayerWallet;
 use App\Helpers\Helper;
 
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Client;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use DB;
@@ -53,7 +56,6 @@ class FundTransferController extends Controller
 				{
 					$token = $json_data["fundtransferrequest"]["playerinfo"]["token"];
 					$amount = $json_data["fundtransferrequest"]["fundinfo"]["amount"];
-					/*DB::enableQueryLog();*/
 					
 					$player_details = PlayerSessionToken::select("player_id")->where("token", $token)->first();
 
@@ -62,42 +64,54 @@ class FundTransferController extends Controller
 					}
 					else
 					{
-						$player_id = $player_details->player_id;
-						$player_wallet = PlayerWallet::select("balance")->where("player_id", $player_id)->first();
-						
-						if (!$player_wallet) {
-							$arr_result["fundtransferresponse"]["status"]["message"] = "Player not found.";
+						$player_session_token = $json_data["fundtransferrequest"]["playerinfo"]["token"];
+
+						$client_details = DB::table("clients")
+										 ->leftJoin("player_session_tokens", "clients.id", "=", "player_session_tokens.client_id")
+										 ->leftJoin("client_endpoints", "clients.id", "=", "client_endpoints.client_id")
+										 ->leftJoin("client_access_tokens", "clients.id", "=", "client_access_tokens.client_id")
+										 ->where("player_session_tokens.token", $player_session_token)
+										 ->first();
+
+						if (!$client_details) {
+							$arr_result["fundtransferresponse"]["status"]["message"] = "Invalid Endpoint.";
 						}
 						else
 						{
-							$player_current_balance = $player_wallet->balance;
-							$amount_to_update = number_format((float)$player_current_balance + $amount, 2, '.', '');
-
-							/*$query = DB::getQueryLog();*/
-							/*print_r($query);*/
-							/*DB::enableQueryLog();*/
-							$transactiion_result = DB::table("player_wallets")
-									        ->where("player_id", $player_id) 
-									        ->limit(1)
-									        ->update(array("balance" => $amount_to_update));
-							/*$query = DB::getQueryLog();
-							print_r($query);*/
+							$client = new Client([
+							    'headers' => [ 'Content-Type' => 'application/json' ]
+							]);
 							
-							$arr_result = [
-											"fundtransferresponse" =>  
-											[
-												"status" =>  [
-												"success" =>  true,
-												"message" =>  "Transaction successful."
+								$response = $client->post($client_details->fund_transfer_url,
+							    ['body' => json_encode(
+							        	[
+										  "access_token" => $client_details->token,
+										  "hashkey" => md5($client_details->api_key.$client_details->token),
+										  "type" => $json_data["type"],
+										  "datetsent" => $json_data["datesent"],
+										  "gamedetails" => [
+										    "gameid" => $json_data["gamedetails"]["gameid"],
+										    "gamename" => $json_data["gamedetails"]["gamename"]
+										  ],
+										  "fundtransferrequest" => [
+												"playerinfo" => [
+												"token" => $json_data["fundtransferrequest"]["playerinfo"]["token"]
 											],
-												"balance" =>  $amount_to_update,
-												"currencycode" =>  "USD"
+											"fundinfo" => [
+											      "gamesessionid" => $json_data["fundtransferrequest"]["fundinfo"]["gamesessionid"],
+											      "transactiontype" => $json_data["fundtransferrequest"]["fundinfo"]["transactiontype"],
+											      "transferid" => $json_data["fundtransferrequest"]["fundinfo"]["transferid"],
+											      "currencycode" => $json_data["fundtransferrequest"]["fundinfo"]["currencycode"],
+											      "amount" => $json_data["fundtransferrequest"]["fundinfo"]["amount"]
 											]
-										];
+										  ]
+										]
+							    )]
+							);
+
+							return var_export($response->getBody()->getContents(), true);
 						}
-						
 					}
-					
 				}
 			}
 		}

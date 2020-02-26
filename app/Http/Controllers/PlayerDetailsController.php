@@ -8,6 +8,9 @@ use App\Helpers\Helper;
 
 use Illuminate\Http\Request;
 
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Client;
+
 use DB;
 
 class PlayerDetailsController extends Controller
@@ -30,7 +33,7 @@ class PlayerDetailsController extends Controller
 						]
 					];
 		if(empty($json_data) || count($json_data) == 0 || sizeof($json_data) == 0) {
-			$arr_result["playerdetailsresponse"]["status"]["message"] = "Request body is empty.";
+			$arr_result["playerdetailsresponse"]["status"]["message"] = "Request Body is Empty.";
 		}
 		else
 		{
@@ -38,52 +41,54 @@ class PlayerDetailsController extends Controller
 			$access_token = $json_data["access_token"];	
 
 			if(!Helper::auth_key($hash_key, $access_token)) {
-				$arr_result["playerdetailsresponse"]["status"]["message"] = "Authentication mismatched.";
+				$arr_result["playerdetailsresponse"]["status"]["message"] = "Authentication Mismatched.";
 			}
 			else
 			{
 				if($json_data["type"] != "playerdetailsrequest") {
-					$arr_result["playerdetailsresponse"]["status"]["message"] = "Invalid request.";
+					$arr_result["playerdetailsresponse"]["status"]["message"] = "Invalid Request.";
 				}
 				else
 				{
-					$token = $json_data["playerdetailsrequest"]["token"];
+					$player_session_token = $json_data["playerdetailsrequest"]["token"];
 
-					/*DB::enableQueryLog();*/
-					$player_details = DB::table("players")
-									 ->leftJoin("player_details", "players.player_id", "=", "player_details.player_id")
-									 ->leftJoin("player_wallets", "players.player_id", "=", "player_wallets.player_id")
-									 ->leftJoin("player_session_tokens", "players.player_id", "=", "player_session_tokens.player_id")
-									 ->leftJoin("currencies", "players.currency", "=", "currencies.id")
-									 ->where("token", $token)
+					$client_details = DB::table("clients")
+									 ->leftJoin("player_session_tokens", "clients.id", "=", "player_session_tokens.client_id")
+									 ->leftJoin("client_endpoints", "clients.id", "=", "client_endpoints.client_id")
+									 ->leftJoin("client_access_tokens", "clients.id", "=", "client_access_tokens.client_id")
+									 ->where("player_session_tokens.token", $player_session_token)
 									 ->first();
-						/*$query = DB::getQueryLog();
-						print_r($query);*/
-					if (!$player_details) {
-						$arr_result["playerdetailsresponse"]["status"]["message"] = "Player not found.";
+
+					if (!$client_details) {
+						$arr_result["playerdetailsresponse"]["status"]["message"] = "Invalid Endpoint.";
 					}
 					else
 					{
-						$arr_result = [
-									"playerdetailsresponse" =>  [
-										"status" =>  [
-											"success" =>  "true",
-											"message" =>  "Request successful."
-										],
-										"accountid" =>  $player_details->player_id,
-										"accountname" =>  $player_details->first_name,
-										"balance" =>  $player_details->balance,
-										"currencycode" =>  $player_details->code
-									]
-								];
+						$client = new Client([
+						    'headers' => [ 'Content-Type' => 'application/json' ]
+						]);
+						
+						$response = $client->post($client_details->player_details_url,
+						    ['body' => json_encode(
+						        	["access_token" => $client_details->token,
+										"hashkey" => md5($client_details->api_key.$client_details->token),
+										"type" => $json_data["type"],
+										"datesent" => $json_data["datesent"],
+										"gameid" => $json_data["gameid"],
+										"clientid" => $json_data["clientid"],
+										"playerdetailsrequest" => [
+											"token" => $json_data["playerdetailsrequest"]["token"],
+											"gamelaunch" => $json_data["playerdetailsrequest"]["gamelaunch"]
+										]]
+						    )]
+						);
+
+						return var_export($response->getBody()->getContents(), true);
 					}
-					
 				}
 			}
-			
 		}
 		
-
 		echo json_encode($arr_result);
 	}
 
