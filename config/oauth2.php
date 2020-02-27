@@ -31,7 +31,7 @@ return [
         'password' => [
                 'class' => '\League\OAuth2\Server\Grant\PasswordGrant',
                 'callback' => '\App\User@verify',
-                'access_token_ttl' => 3600
+                'access_token_ttl' => 864000
             ]
     ],
 
@@ -103,7 +103,7 @@ return [
     |
     */
 
-    'access_token_ttl' => 3600,
+    'access_token_ttl' => 864000,
 
     /*
     |--------------------------------------------------------------------------
