@@ -49,6 +49,19 @@ $app->post('/api/playerdetailsrequest/', 'PlayerDetailsController@show');
 // Fund Transfer Request
 $app->post('/api/fundtransferrequest/', 'FundTransferController@process');
 
+// Solid Gaming Endpoints
+
+$app->post('/api/v1/solidgaming/authenticate', 'SolidGamingController@authPlayer');
+$app->post('/api/v1/solidgaming/playerdetails', 'SolidGamingController@getPlayerDetails');
+$app->post('/api/v1/solidgaming/balance', 'SolidGamingController@getBalance');
+$app->post('/api/v1/solidgaming/debit', 'SolidGamingController@debitProcess');
+$app->post('/api/v1/solidgaming/credit', 'SolidGamingController@creditProcess');
+$app->post('/api/v1/solidgaming/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
+$app->post('/api/v1/solidgaming/rollback', 'SolidGamingController@rollbackProcess');
+$app->post('/api/v1/solidgaming/endround', 'SolidGamingController@endPlayerRound');
+$app->post('/api/v1/solidgaming/endsession', 'SolidGamingController@endPlayerSession');
+
+
 // Request an access token
 $app->post('/oauth/access_token', function() use ($app){
     return response()->json($app->make('oauth2-server.authorizer')->issueAccessToken());

@@ -38,7 +38,7 @@ class PlayerDetailsController extends Controller
 		else
 		{
 			$hash_key = $json_data["hashkey"];
-			$access_token = $json_data["access_token"];	
+			$access_token = $request->bearerToken();	
 
 			if(!Helper::auth_key($hash_key, $access_token)) {
 				$arr_result["playerdetailsresponse"]["status"]["message"] = "Authentication Mismatched.";
@@ -65,7 +65,10 @@ class PlayerDetailsController extends Controller
 					else
 					{
 						$client = new Client([
-						    'headers' => [ 'Content-Type' => 'application/json' ]
+						    'headers' => [ 
+						    	'Content-Type' => 'application/json',
+						    	'Authorization' => 'Bearer '.$client_details->token
+						    ]
 						]);
 						
 						$response = $client->post($client_details->player_details_url,
