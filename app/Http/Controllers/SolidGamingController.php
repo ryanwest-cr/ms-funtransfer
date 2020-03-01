@@ -20,6 +20,7 @@ class SolidGamingController extends Controller
 		/*$this->middleware('oauth', ['except' => ['index']]);*/
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
 	}
+	public function show(Request $request) { }
 
 	public function authPlayer(Request $request) 
 	{
@@ -69,7 +70,7 @@ class SolidGamingController extends Controller
 			$response = [
 				"status" => "OK",
 				"brand" => "BETRNKMW",
-				"player_id" => "1",
+				"playerid" => "1",
 				"currency" => $client_response->playerdetailsresponse->currencycode,
 				"balance" => $client_response->playerdetailsresponse->balance,
 				"testaccount" => false,

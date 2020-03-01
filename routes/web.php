@@ -50,7 +50,6 @@ $app->post('/api/playerdetailsrequest/', 'PlayerDetailsController@show');
 $app->post('/api/fundtransferrequest/', 'FundTransferController@process');
 
 // Solid Gaming Endpoints
-
 $app->post('/api/solid/authenticate', 'SolidGamingController@authPlayer');
 $app->post('/api/solid/playerdetails', 'SolidGamingController@getPlayerDetails');
 $app->post('/api/solid/balance', 'SolidGamingController@getBalance');
