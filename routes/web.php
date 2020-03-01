@@ -51,15 +51,15 @@ $app->post('/api/fundtransferrequest/', 'FundTransferController@process');
 
 // Solid Gaming Endpoints
 
-$app->post('/api/v1/solidgaming/authenticate', 'SolidGamingController@authPlayer');
-$app->post('/api/v1/solidgaming/playerdetails', 'SolidGamingController@getPlayerDetails');
-$app->post('/api/v1/solidgaming/balance', 'SolidGamingController@getBalance');
-$app->post('/api/v1/solidgaming/debit', 'SolidGamingController@debitProcess');
-$app->post('/api/v1/solidgaming/credit', 'SolidGamingController@creditProcess');
-$app->post('/api/v1/solidgaming/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
-$app->post('/api/v1/solidgaming/rollback', 'SolidGamingController@rollbackProcess');
-$app->post('/api/v1/solidgaming/endround', 'SolidGamingController@endPlayerRound');
-$app->post('/api/v1/solidgaming/endsession', 'SolidGamingController@endPlayerSession');
+$app->post('/api/solid/authenticate', 'SolidGamingController@authPlayer');
+$app->post('/api/solid/playerdetails', 'SolidGamingController@getPlayerDetails');
+$app->post('/api/solid/balance', 'SolidGamingController@getBalance');
+$app->post('/api/solid/debit', 'SolidGamingController@debitProcess');
+$app->post('/api/solid/credit', 'SolidGamingController@creditProcess');
+$app->post('/api/solid/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
+$app->post('/api/solid/rollback', 'SolidGamingController@rollbackProcess');
+$app->post('/api/solid/endround', 'SolidGamingController@endPlayerRound');
+$app->post('/api/solid/endsession', 'SolidGamingController@endPlayerSession');
 
 
 // Request an access token
