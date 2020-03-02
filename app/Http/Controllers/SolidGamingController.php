@@ -213,5 +213,77 @@ class SolidGamingController extends Controller
 
 	}
 
+	public function debitProcess(Request $request) 
+	{
+		$json_data = json_decode(file_get_contents("php://input"), true);
+
+		$response = [
+						"errorcode" =>  "PLAYER_NOT_FOUND",
+						"errormessage" => "Player not found",
+						"httpstatus" => "404"
+					];
+
+		$player_id = $json_data["playerid"];
+
+		$client_details = DB::table("players AS p")
+						 ->select('p.id', 'p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token AS player_token' , 'pst.status_id', 'pd.first_name', 'c.api_key', 'cat.token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+						 ->leftJoin("player_session_tokens AS pst", "p.id", "=", "pst.player_id")
+						 ->leftJoin("player_details AS pd", "p.id", "=", "pd.player_id")
+						 ->leftJoin("clients AS c", "c.id", "=", "p.client_id")
+						 ->leftJoin("client_endpoints AS ce", "c.id", "=", "ce.client_id")
+						 ->leftJoin("client_access_tokens AS cat", "c.id", "=", "cat.client_id")
+						 ->where("p.id", $player_id)
+						 ->where("pst.status_id", 1)
+						 ->first();
+
+						 
+		if ($client_details) {
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			
+			$guzzle_response = $client->post($client_details->player_details_url,
+			    ['body' => json_encode(
+			        	[
+						  "access_token" => $client_details->client_access_token,
+						  "hashkey" => md5($client_details->api_key.$client_details->client_access_token),
+						  "type" => "fundtransferrequest",
+						  "datetsent" => $json_data["datesent"],
+						  "gamedetails" => [
+						    "gameid" => "",
+						    "gamename" => ""
+						  ],
+						  "fundtransferrequest" => [
+								"playerinfo" => [
+								"token" => $client_details->player_token
+							],
+							"fundinfo" => [
+							      "gamesessionid" => "",
+							      "transactiontype" => "debit",
+							      "transferid" => "",
+							      "currencycode" => ,
+							      "amount" => $json_data["fundtransferrequest"]["fundinfo"]["amount"]
+							]
+						  ]
+						]
+			    )]
+			);
+
+			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			
+			$response = [
+				"status" => "OK",
+				"currency" => $client_response->playerdetailsresponse->currencycode,
+				"balance" => $client_response->playerdetailsresponse->balance,
+			];
+		}
+	
+		echo json_encode($response);
+
+	}
+
 
 }
