@@ -37,7 +37,7 @@ class SolidGamingController extends Controller
 		$client_details = DB::table("clients AS c")
 						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 						 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
-						 ->leftJoin("player_session_tokens AS pst", "p.client_id", "=", "pst.player_id")
+						 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 						 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
 						 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
 						 ->where("pst.player_token", $player_token)
