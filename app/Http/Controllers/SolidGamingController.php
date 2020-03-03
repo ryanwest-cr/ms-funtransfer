@@ -16,15 +16,17 @@ use DB;
 class SolidGamingController extends Controller
 {
     public function __construct(){
-
 		/*$this->middleware('oauth', ['except' => ['index']]);*/
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
 	}
+
 	public function show(Request $request) { }
 
-	public function authPlayer(Request $request) 
+	public function authPlayer(Request $request)
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+
+		Helper::saveLog('authentication', 2, file_get_contents("php://input"));
 
 		$response = [
 						"errorcode" =>  "INVALID_TOKEN",
@@ -92,6 +94,8 @@ class SolidGamingController extends Controller
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
+		Helper::saveLog('playerdetails', 2, file_get_contents("php://input"));
+
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
 						"errormessage" => "The provided playerid don’t exist.",
@@ -146,7 +150,7 @@ class SolidGamingController extends Controller
 				"displayname" => $client_response->playerdetailsresponse->accountname,
 			];
 		}
-	
+		
 		echo json_encode($response);
 
 	}
@@ -154,6 +158,8 @@ class SolidGamingController extends Controller
 	public function getBalance(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+
+		Helper::saveLog('balance', 2, file_get_contents("php://input"));
 
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -213,6 +219,8 @@ class SolidGamingController extends Controller
 	public function debitProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+
+		Helper::saveLog('debit', 2, file_get_contents("php://input"));
 
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -284,6 +292,8 @@ class SolidGamingController extends Controller
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
+		Helper::saveLog('credit', 2, file_get_contents("php://input"));
+
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
 						"errormessage" => "Player not found",
@@ -354,6 +364,8 @@ class SolidGamingController extends Controller
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		
+		Helper::saveLog('debitandcredit', 2, file_get_contents("php://input"));
+
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
 						"errormessage" => "Player not found",

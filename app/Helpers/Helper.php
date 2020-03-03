@@ -1,5 +1,6 @@
 <?php
 namespace App\Helpers;
+use DB;
 
 class Helper
 {
@@ -12,6 +13,15 @@ class Helper
 		}
 
 		return $result;
+	}
+
+	public static function saveLog($method, $provider_id = 0, $data) {
+		$data = [
+				"method_name" => $method,
+				"provider_id" => $provider_id,
+				"request_data" => json_encode(json_decode($data))
+				];
+		DB::table('seamless_request_logs')->insert($data);
 	}
 
 }
