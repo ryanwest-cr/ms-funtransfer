@@ -15,11 +15,12 @@ class Helper
 		return $result;
 	}
 
-	public static function saveLog($method, $provider_id = 0, $data) {
+	public static function saveLog($method, $provider_id = 0, $request_data, $response_data) {
 		$data = [
-				"method_name" => $method,
-				"provider_id" => $provider_id,
-				"request_data" => json_encode(json_decode($data))
+					"method_name" => $method,
+					"provider_id" => $provider_id,
+					"request_data" => json_encode(json_decode($request_data))
+					"request_data" => $response_data
 				];
 		DB::table('seamless_request_logs')->insert($data);
 	}

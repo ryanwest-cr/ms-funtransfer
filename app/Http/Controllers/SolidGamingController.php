@@ -26,8 +26,6 @@ class SolidGamingController extends Controller
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
-		Helper::saveLog('authentication', 2, file_get_contents("php://input"));
-
 		$response = [
 						"errorcode" =>  "INVALID_TOKEN",
 						"errormessage" => "The provided token could not be verified/Token already authenticated",
@@ -85,7 +83,8 @@ class SolidGamingController extends Controller
 			];
 
 		}
-	
+
+		Helper::saveLog('authentication', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -93,8 +92,6 @@ class SolidGamingController extends Controller
 	public function getPlayerDetails(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-
-		Helper::saveLog('playerdetails', 2, file_get_contents("php://input"));
 
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -150,7 +147,8 @@ class SolidGamingController extends Controller
 				"displayname" => $client_response->playerdetailsresponse->accountname,
 			];
 		}
-		
+
+		Helper::saveLog('playerdetails', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -158,8 +156,6 @@ class SolidGamingController extends Controller
 	public function getBalance(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-
-		Helper::saveLog('balance', 2, file_get_contents("php://input"));
 
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -211,7 +207,8 @@ class SolidGamingController extends Controller
 				"balance" => $client_response->playerdetailsresponse->balance,
 			];
 		}
-	
+
+		Helper::saveLog('balance', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -219,8 +216,6 @@ class SolidGamingController extends Controller
 	public function debitProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-
-		Helper::saveLog('debit', 2, file_get_contents("php://input"));
 
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -283,7 +278,8 @@ class SolidGamingController extends Controller
 				"balance" => $client_response->fundtransferresponse->balance,
 			];
 		}
-	
+
+		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -291,8 +287,6 @@ class SolidGamingController extends Controller
 	public function creditProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-
-		Helper::saveLog('credit', 2, file_get_contents("php://input"));
 
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -356,6 +350,7 @@ class SolidGamingController extends Controller
 			];
 		}
 	
+		Helper::saveLog('credit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -364,8 +359,6 @@ class SolidGamingController extends Controller
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		
-		Helper::saveLog('debitandcredit', 2, file_get_contents("php://input"));
-
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
 						"errormessage" => "Player not found",
@@ -428,6 +421,7 @@ class SolidGamingController extends Controller
 			];
 		}
 		
+		Helper::saveLog('debitandcredit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 	}
 
