@@ -20,7 +20,7 @@ class Helper
 					"method_name" => $method,
 					"provider_id" => $provider_id,
 					"request_data" => json_encode(json_decode($request_data)),
-					"request_data" => json_encode($response_data)
+					"response_data" => json_encode($response_data)
 				];
 		DB::table('seamless_request_logs')->insert($data);
 	}
