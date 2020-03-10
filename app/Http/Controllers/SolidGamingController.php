@@ -438,7 +438,7 @@ class SolidGamingController extends Controller
 		$player_id = $json_data["playerid"];
 
 		$client_details = DB::table("players AS p")
-						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 						 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 						 ->leftJoin("clients AS c", "c.client_id", "=", "p.client_id")
 						 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")

@@ -46,18 +46,20 @@ class PlayerDetailsController extends Controller
 			else
 			{
 				if($json_data["type"] != "playerdetailsrequest") {
-					$arr_result["playerdetailsresponse"]["status"]["message"] = "Invalid Request.";
+					$arr_result["playerdetailsresponse"]["status"]["message"]  = "Invalid Request.";
 				}
 				else
 				{
 					$player_session_token = $json_data["playerdetailsrequest"]["token"];
 
-					$client_details = DB::table("clients")
-									 ->leftJoin("player_session_tokens", "clients.id", "=", "player_session_tokens.client_id")
-									 ->leftJoin("client_endpoints", "clients.id", "=", "client_endpoints.client_id")
-									 ->leftJoin("client_access_tokens", "clients.id", "=", "client_access_tokens.client_id")
-									 ->where("player_session_tokens.token", $player_session_token)
+					$client_details = DB::table("players")
+									 ->leftJoin("clients", "clients.client_id", "=", "players.client_id")
+									 ->leftJoin("player_session_tokens", "players.player_id", "=", "player_session_tokens.player_id")
+									 ->leftJoin("client_endpoints", "clients.client_id", "=", "client_endpoints.client_id")
+									 ->leftJoin("client_access_tokens", "clients.client_id", "=", "client_access_tokens.client_id")
+									 ->where("player_session_tokens.player_token", $player_session_token)
 									 ->first();
+
 
 					if (!$client_details) {
 						$arr_result["playerdetailsresponse"]["status"]["message"] = "Invalid Endpoint.";
@@ -67,14 +69,14 @@ class PlayerDetailsController extends Controller
 						$client = new Client([
 						    'headers' => [ 
 						    	'Content-Type' => 'application/json',
-						    	'Authorization' => 'Bearer '.$client_details->token
+						    	'Authorization' => 'Bearer '.$client_details->client_token
 						    ]
 						]);
 						
 						$response = $client->post($client_details->player_details_url,
 						    ['body' => json_encode(
-						        	["access_token" => $client_details->token,
-										"hashkey" => md5($client_details->api_key.$client_details->token),
+						        	["access_token" => $client_details->client_token,
+										"hashkey" => md5($client_details->client_api_key.$client_details->client_token),
 										"type" => $json_data["type"],
 										"datesent" => $json_data["datesent"],
 										"gameid" => $json_data["gameid"],

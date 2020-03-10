@@ -42,7 +42,7 @@ class FundTransferController extends Controller
 		else
 		{
 			$hash_key = $json_data["hashkey"];
-			$access_token = $json_data["access_token"];	
+			$access_token = $request->bearerToken();	
 			
 			if(!Helper::auth_key($hash_key, $access_token)) {
 				$arr_result["fundtransferresponse"]["status"]["message"] = "Authentication mismatched.";
@@ -54,24 +54,23 @@ class FundTransferController extends Controller
 				}
 				else
 				{
-					$token = $json_data["fundtransferrequest"]["playerinfo"]["token"];
+					$player_session_token = $json_data["fundtransferrequest"]["playerinfo"]["token"];
 					$amount = $json_data["fundtransferrequest"]["fundinfo"]["amount"];
 					
-					$player_details = PlayerSessionToken::select("player_id")->where("token", $token)->first();
+					$player_details = PlayerSessionToken::select("player_id")->where("player_token", $player_session_token)->first();
 
 					if (!$player_details) {
 						$arr_result["fundtransferresponse"]["status"]["message"] = "Player token is expired.";
 					}
 					else
 					{
-						$player_session_token = $json_data["fundtransferrequest"]["playerinfo"]["token"];
-
-						$client_details = DB::table("clients")
-										 ->leftJoin("player_session_tokens", "clients.id", "=", "player_session_tokens.client_id")
-										 ->leftJoin("client_endpoints", "clients.id", "=", "client_endpoints.client_id")
-										 ->leftJoin("client_access_tokens", "clients.id", "=", "client_access_tokens.client_id")
-										 ->where("player_session_tokens.token", $player_session_token)
-										 ->first();
+						$client_details = DB::table("players")
+									 ->leftJoin("clients", "clients.client_id", "=", "players.client_id")
+									 ->leftJoin("player_session_tokens", "players.player_id", "=", "player_session_tokens.player_id")
+									 ->leftJoin("client_endpoints", "clients.client_id", "=", "client_endpoints.client_id")
+									 ->leftJoin("client_access_tokens", "clients.client_id", "=", "client_access_tokens.client_id")
+									 ->where("player_session_tokens.player_token", $player_session_token)
+									 ->first();
 
 						if (!$client_details) {
 							$arr_result["fundtransferresponse"]["status"]["message"] = "Invalid Endpoint.";
@@ -85,8 +84,8 @@ class FundTransferController extends Controller
 								$response = $client->post($client_details->fund_transfer_url,
 							    ['body' => json_encode(
 							        	[
-										  "access_token" => $client_details->token,
-										  "hashkey" => md5($client_details->api_key.$client_details->token),
+										  "access_token" => $client_details->client_token,
+										  "hashkey" => md5($client_details->client_api_key.$client_details->client_token),
 										  "type" => $json_data["type"],
 										  "datetsent" => $json_data["datesent"],
 										  "gamedetails" => [
