@@ -61,7 +61,59 @@ $app->post('/api/solid/endround', 'SolidGamingController@endPlayerRound');
 $app->post('/api/solid/endsession', 'SolidGamingController@endPlayerSession');
 
 
+
+// Lottery Gaming Endpoints
+$app->post('/api/lottery/authenticate', 'LotteryController@authPlayer');
+$app->post('/api/lottery/balance', 'LotteryController@getBalance'); #/
+$app->post('/api/lottery/debit', 'LotteryController@debitProcess'); #/
+// $app->post('/api/lottery/credit', 'LotteryController@creditProcess');
+// $app->post('/api/lottery/debitandcredit', 'LotteryController@debitAndCreditProcess');
+// $app->post('/api/lottery/endsession', 'LotteryController@endPlayerSession');
+
+
+// Mariott Gaming Endpoints
+$app->post('/api/marriott/authenticate', 'MarriottController@authPlayer');
+$app->post('/api/marriott/balance', 'MarriottController@getBalance'); #/
+$app->post('/api/marriott/debit', 'MarriottController@debitProcess'); #/
+
+
+
+
+
+
+// EPOINT CONTROLLER
+// $app->post('/api/epoint', 'EpointController@epointAuth'); #/
+// $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
+
+
+// EBANCO
+// $app->post('/api/ebancobanks', 'EbancoController@getAvailableBank'); #/
+// $app->post('/api/ebancodeposit', 'EbancoController@deposit'); #/
+// $app->post('/api/ebancodeposithistory', 'EbancoController@deposithistory'); #/
+// $app->post('/api/ebancodepositinfobyid', 'EbancoController@depositinfo'); #/
+// $app->post('/api/ebancodepositinfobyselectedid', 'EbancoController@depositinfobyselectedid'); #/
+// $app->post('/api/ebancodepositreceipt', 'EbancoController@depositReceipt'); #/
+
+$app->post('/api/ebancoauth', 'EbancoController@connectTo'); #/
+$app->post('/api/ebancogetbanklist', 'EbancoController@getBankList'); #/
+$app->post('/api/ebancodeposit', 'EbancoController@makeDeposit'); #/
+$app->post('/api/ebancosenddepositreceipt', 'EbancoController@sendReceipt'); #/
+$app->post('/api/ebancodeposittransaction', 'EbancoController@depositInfo'); #/
+$app->post('/api/ebancodeposittransactions', 'EbancoController@depositHistory'); #/
+$app->post('/api/ebancoupdatedeposit', 'EbancoController@updateDeposit'); #/
+
+
 // Request an access token
 $app->post('/oauth/access_token', function() use ($app){
     return response()->json($app->make('oauth2-server.authorizer')->issueAccessToken());
 });
+
+
+//paymentgateway routes
+
+$app->get('/paymentgateways','Payments\PaymentGatewayController@index');
+$app->post('/payment','Payments\PaymentGatewayController@paymentPortal');
+$app->get('/coinpaymentscurrencies','Payments\PaymentGatewayController@getCoinspaymentRate');
+$app->get('/currencyconversion','CurrencyController@currency');
+$app->post('/updatetransaction','Payments\PaymentGatewayController@updatetransaction');
+///CoinsPayment Controller
