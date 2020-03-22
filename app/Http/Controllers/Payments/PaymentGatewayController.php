@@ -71,19 +71,19 @@ class PaymentGatewayController extends Controller
 
                         if($payment_method == "coinspayment"){
 
-                            if($request->has("amount")&&$request->has("currency")){
-
-                                $cointransaction = PaymentHelper::coinspayment($request->input("amount"),$request->input("currency"));
-
+                            if($request->has("amount")&&$request->has("currency")&&$request->has("dgcurrency")){
+                                $dgcurrencyrate = $this->getCoinspaymentSingleRate($request->input("dgcurrency"));
+                                $currency = (float)$this->getCurrencyConvertion($request->input("currency"));
+                                $finalcurrency =((float)$request->input("amount")*$currency)/(float)$dgcurrencyrate;
+                                $cointransaction = PaymentHelper::coinspayment($finalcurrency,$request->input("dgcurrency"));
                                 if($cointransaction){
-
-                                    $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,$cointransaction["purchase_amount"],1,2,$request->input("trans_update_url"),6);
-
+                                    $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),1,2,$request->input("trans_update_url"),6);
                                     $trans_msg = array("pay_transaction_id"=>$transaction->id,
-                                                        "purchase_id"=>$cointransaction["purchaseid"],
                                                         "txn_id"=> $cointransaction["txn_id"],
+                                                        "digi_currency" =>$request->input("dgcurrency"),
+                                                        "digi_currency_value"=>$finalcurrency,
                                                         "wallt_address"=>$cointransaction["wallet_address"],
-                                                        "purchase_amount"=>$cointransaction["purchase_amount"],
+                                                        "purchase_amount"=>number_format($cointransaction["purchase_amount"], 2, '.', ''),
                                                         "checkout_url"=>$cointransaction["checkout_url"],);
                                     return $trans_msg;
                                 }
@@ -169,17 +169,19 @@ class PaymentGatewayController extends Controller
                     if($request->has("payment_method")&&$token_player_id != ''){
                     $payment_method = $request->input("payment_method");
                     if($payment_method == "coinspayment"){
-                        if($request->has("amount")&&$request->has("currency")){
-                            $cointransaction = PaymentHelper::coinspayment($request->input("amount"),$request->input("currency"));
+                        if($request->has("amount")&&$request->has("currency")&&$request->has("dgcurrency")){
+                            $dgcurrencyrate = $this->getCoinspaymentSingleRate($request->input("dgcurrency"));//okiey
+                            $currency = (float)$this->getCurrencyConvertion($request->input("currency"));
+                            $finalcurrency =((float)$request->input("amount")*$currency)/(float)$dgcurrencyrate;
+                            $cointransaction = PaymentHelper::coinspayment($finalcurrency,$request->input("dgcurrency"));
                             if($cointransaction){
-
-                                $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchase_id"],1,$cointransaction["purchase_amount"],1,2,$request->input("trans_update_url"),6);
-
+                                $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),1,2,$request->input("trans_update_url"),6);
                                 $trans_msg = array("pay_transaction_id"=>$transaction->id,
-                                "purchase_id"=>$cointransaction["purchase_id"],
                                                     "txn_id"=> $cointransaction["txn_id"],
+                                                    "digi_currency" =>$request->input("dgcurrency"),
+                                                    "digi_currency_value"=>$finalcurrency,
                                                     "wallt_address"=>$cointransaction["wallet_address"],
-                                                    "purchase_amount"=>$cointransaction["purchase_amount"],
+                                                    "purchase_amount"=>number_format($cointransaction["purchase_amount"], 2, '.', ''),
                                                     "checkout_url"=>$cointransaction["checkout_url"],);
                                 return $trans_msg;
                             }
@@ -253,6 +255,22 @@ class PaymentGatewayController extends Controller
 
     public function getCoinspaymentRate(){
         return PaymentHelper::getCoinspaymentRate();
+    }
+    public function getCoinspaymentSingleRate($dgcurrency){
+        $currencies = PaymentHelper::getCoinspaymentRate();
+        foreach($currencies as $currency){
+            if($dgcurrency == $currency["currency"]){
+                return $currency["rate"];
+            }
+         }
+    }
+    public function getCurrencyConvertion($input_currency){
+        $currency = PaymentHelper::currency();
+        foreach($currency["rates"] as $currency){
+            if($currency["currency"] == $input_currency){
+                return $currency["rate"];
+            }
+        }
     }
 
     public function updatetransaction(Request $request){
