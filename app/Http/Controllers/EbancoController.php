@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 use App\Helpers\Helper as Helper;
 use Carbon\Carbon;
+use App\Helpers\PaymentHelper;
 use DB;
 
 
@@ -50,6 +51,16 @@ class EbancoController extends Controller
     } 
 
 
+    public function getCurrencyConvertion($input_currency){
+        $currency = PaymentHelper::currency();
+        foreach($currency["rates"] as $currency){
+            if($currency["currency"] == $input_currency){
+                return $currency["rate"];
+            }
+        }
+    }
+
+
   public function updateDeposit(Request $request){
 
 		 $identification_id = $request->deposit_id;
@@ -91,6 +102,11 @@ class EbancoController extends Controller
 				->where('client_url', $request->site_url)
 				->first();
 
+			$currencyType = $request->input("currency_type");	
+			$currency = (float)$this->getCurrencyConvertion($currencyType);
+			$finalcurrency =((float)$request->input("amount")*$currency);	
+
+			// dd($finalcurrency);
 
 			if($client_check){
 				$player_check = DB::table('players')
@@ -127,18 +143,20 @@ class EbancoController extends Controller
 				                'Accept'     => 'application/json' 
 				            ],
 				            'form_params' => [
-							           'amount' => $request->amount,
-							            'bankname' => $request->bankname
-								        ],
+							           'amount' => $finalcurrency,
+							           'bankname' => $request->bankname
+								    ],
 				         ]);
 
 				        $res = json_decode($response->getBody(), true);
 
+
 						DB::table('pay_transactions')->insert(
-						        array('token_id' => $token_id, 'payment_id' =>  4, 'identification_id' =>  $res['deposit_id'], 'status_id' => 6, 'amount' => $request->amount, 'entry_id' => 2, 'trans_type_id' => 1, 'trans_update_url' => $request->trans_update_url, 'created_at' => Carbon::now())
+						        array('token_id' => $token_id, 'payment_id' =>  4, 'identification_id' =>  $res['deposit_id'], 'status_id' => 6, 'amount' => $res["deposit_amount"], 'entry_id' => 2, 'trans_type_id' => 1, 'trans_update_url' => $request->trans_update_url, 'created_at' => Carbon::now())
 				    	);
 
 						$transaction_id = DB::getPDO()->lastInsertId();
+
 
 				    	$trans_msg = array("pay_transaction_id"=>$transaction_id,
 	                                       "deposit_id"=>$res["deposit_id"],
@@ -149,10 +167,13 @@ class EbancoController extends Controller
 	                                       "deposit_amount"=>$res["deposit_amount"],
 	                                       "status"=>$res["status"],
 	                                   );
+
+				        // dd($trans_msg);
+
 	                    return $trans_msg;
 
 					}else{
-						dd(2);
+						// dd(2);
 						DB::table('players')->insert(
 						        array('client_id' => $client_check->client_id, 'client_player_id' =>  $request->merchant_user_id, 'username' => $request->merchant_user, 'email' => $request->merchant_user_email,'display_name' => $request->merchant_user_display_name)
 						);
@@ -174,7 +195,7 @@ class EbancoController extends Controller
 				                'Accept'     => 'application/json' 
 				            ],
 				            'form_params' => [
-										           'amount' => $request->amount,
+										           'amount' => $finalcurrency,
 										           'bankname' => $request->bankname
 										       ],
 				         ]);
@@ -182,7 +203,7 @@ class EbancoController extends Controller
 				        $res = json_decode($response->getBody(), true);
 
 						DB::table('pay_transactions')->insert(
-						        array('token_id' => $token_id, 'payment_id' =>  4, 'identification_id' =>  $res['deposit_id'], 'status_id' => 6, 'amount' => $request->amount, 'entry_id' => 2, 'trans_type_id' => 1, 'trans_update_url' => $request->trans_update_url, 'created_at' => Carbon::now())
+						        array('token_id' => $token_id, 'payment_id' =>  4, 'identification_id' =>  $res['deposit_id'], 'status_id' => 6, 'amount' => $res["deposit_amount"], 'entry_id' => 2, 'trans_type_id' => 1, 'trans_update_url' => $request->trans_update_url, 'created_at' => Carbon::now())
 				    	);
 
 						$transaction_id = DB::getPDO()->lastInsertId();
