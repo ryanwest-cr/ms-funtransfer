@@ -6,6 +6,7 @@ use App\Models\PlayerDetail;
 use App\Models\PlayerSessionToken;
 use App\Models\PlayerWallet;
 use App\Helpers\Helper;
+use App\Helpers\GameTransaction;
 
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
@@ -108,14 +109,19 @@ class FundTransferController extends Controller
 							    )]
 							);
 
-							return var_export($response->getBody()->getContents(), true);
+							$client_response = json_decode($response->getBody()->getContents());
+
+							if($client_response->fundtransferresponse->status->success) {
+								GameTransaction::save($json_data);
+							}
+
+							$arr_result = $client_response;
 						}
 					}
 				}
 			}
 		}
 		
-
 		echo json_encode($arr_result);
 	}
 
