@@ -35,6 +35,7 @@ class EbancoController extends Controller
 
 
 
+
    	public function getBankList(){
    		// return 1;
     	$http = new Client();
@@ -75,7 +76,7 @@ class EbancoController extends Controller
 
 
 		$transaction_track = DB::table("pay_transactions AS pt")
-						 ->select('pt.token_id', 'pt.payment_id', 'pt.entry_id', 'pt.id as trans_id', 'pt.identification_id', 'pst.player_id', 'pst.token_id', 'p.player_id', 'p.client_id', 'p.client_player_id')
+						 ->select('pt.token_id', 'pt.payment_id', 'pt.entry_id', 'pt.id as trans_id', 'pt.identification_id', 'pst.player_id', 'pst.token_id', 'p.player_id', 'p.client_id', 'p.client_player_id', 'pt.trans_update_url')
 						 ->leftJoin("player_session_tokens AS pst", "pt.token_id", "=", "pst.token_id")
 						 ->leftJoin("players AS p", "p.player_id", "=", "pst.player_id")
 						 ->where("pt.payment_id", 4)
@@ -83,8 +84,9 @@ class EbancoController extends Controller
 						 ->first();		
 		
 		 $http = new Client();
-         // $response = $http->post('127.0.0.1:8000/api/depositupdate', [
-         $response = $http->post('http://demo.freebetrnk.com/depositupdate', [
+         // $response = $http->post('127.0.0.1:8000/depositupdate', [
+         // $response = $http->post('http://demo.freebetrnk.com/depositupdate', [
+         $response = $http->post($transaction_track->trans_update_url, [
             'form_params' => [
 		           'transaction_id' => $transaction_track->trans_id,
 		           'client_player_id' => $transaction_track->client_player_id
@@ -106,7 +108,6 @@ class EbancoController extends Controller
 			$currency = (float)$this->getCurrencyConvertion($currencyType);
 			$finalcurrency =((float)$request->input("amount")*$currency);	
 
-			// dd($finalcurrency);
 
 			if($client_check){
 				$player_check = DB::table('players')
@@ -149,6 +150,7 @@ class EbancoController extends Controller
 				         ]);
 
 				        $res = json_decode($response->getBody(), true);
+	       			    // dd($res);
 
 
 						DB::table('pay_transactions')->insert(
