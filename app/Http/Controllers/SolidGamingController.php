@@ -269,6 +269,8 @@ class SolidGamingController extends Controller
 
 			$client_details = $this->_getClientDetails('player_id', $json_data["playerid"]);
 			
+			GameRound::create($json_data['roundid'], $client_details->token_id);
+				
 			if ($client_details) {
 				// Check if the game is available for the client
 				$subscription = new GameSubscription();
