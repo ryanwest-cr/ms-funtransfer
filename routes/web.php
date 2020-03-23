@@ -56,7 +56,7 @@ $app->post('/api/solid/balance', 'SolidGamingController@getBalance');
 $app->post('/api/solid/debit', 'SolidGamingController@debitProcess');
 $app->post('/api/solid/credit', 'SolidGamingController@creditProcess');
 $app->post('/api/solid/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
-$app->post('/api/solid/rollback', 'SolidGamingController@rollbackProcess');
+$app->post('/api/solid/rollback', 'SolidGamingController@rollbackTransaction');
 $app->post('/api/solid/endround', 'SolidGamingController@endPlayerRound');
 $app->post('/api/solid/endsession', 'SolidGamingController@endPlayerSession');
 
