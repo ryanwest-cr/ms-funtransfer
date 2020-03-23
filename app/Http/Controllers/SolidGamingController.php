@@ -72,14 +72,14 @@ class SolidGamingController extends Controller
 				);
 
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
-
+				
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
 					$response = [
 						"status" => "OK",
 						"brand" => "BETRNKMW",
-						"playerid" => "1",
+						"playerid" => $client_details->player_id,
 						"currency" => $client_response->playerdetailsresponse->currencycode,
 						"balance" => $client_response->playerdetailsresponse->balance,
 						"testaccount" => false,
