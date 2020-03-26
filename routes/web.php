@@ -116,4 +116,6 @@ $app->post('/payment','Payments\PaymentGatewayController@paymentPortal');
 $app->get('/coinpaymentscurrencies','Payments\PaymentGatewayController@getCoinspaymentRate');
 $app->get('/currencyconversion','CurrencyController@currency');
 $app->post('/updatetransaction','Payments\PaymentGatewayController@updatetransaction');
+$app->post('qaicash/depositmethods','Payments\PaymentGatewayController@getQAICASHDepositMethod');
+$app->post('qaicash/deposit','Payments\PaymentGatewayController@makeDepositQAICASH');
 ///CoinsPayment Controller

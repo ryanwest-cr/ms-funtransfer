@@ -115,13 +115,14 @@ class PaymentGatewayController extends Controller
                             if($request->has("cardnumber")&&$request->has("currency")&&$request->has("exp_month")&&$request->has("exp_year")&&$request->has("amount")&&$request->has("cvc")){
 
                             // dd($request->input("pmcurrency"));
-
+                                $currency = (float)$this->getCurrencyConvertion($request->input("currency"));
+                                $amount = $currency * (float)$request->input("amount");
                                 $paymongo_trans = PaymentHelper::paymongo($request->input("cardnumber"),
                                 $request->input("exp_year"),
                                 $request->input("exp_month"),
                                 $request->input("cvc"),
-                                $request->input("amount"),
-                                $request->input("currency"));
+                                $amount,
+                                "USD");
                                 if(!empty($paymongo_trans)&&isset($paymongo_trans["purchase_id"])){
                                     return PaymentHelper::payTransactions($token_player_id,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],1,2,$request->input("trans_update_url"),5);
 
@@ -209,12 +210,14 @@ class PaymentGatewayController extends Controller
                     }
                     else if($payment_method == "paymongo"){
                         if($request->has("cardnumber")&&$request->has("currency")&&$request->has("exp_month")&&$request->has("exp_year")&&$request->has("amount")&&$request->has("cvc")){
+                            $currency = (float)$this->getCurrencyConvertion($request->input("currency"));
+                            $amount = $currency * (float)$request->input("amount");
                             $paymongo_trans = PaymentHelper::paymongo($request->input("cardnumber"),
                             $request->input("exp_year"),
                             $request->input("exp_month"),
                             $request->input("cvc"),
-                            $request->input("amount"),
-                            $request->input("currency"));
+                            $amount,
+                            "USD");
                             if(!empty($paymongo_trans)&&isset($paymongo_trans["purchase_id"])){
                                 return PaymentHelper::payTransactions($token_player_id,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],1,2,$request->input("trans_update_url"),5);
                             }
@@ -272,7 +275,122 @@ class PaymentGatewayController extends Controller
             }
         }
     }
+    //New Code for QAICASH
+    public function getQAICASHDepositMethod(Request $request){
+        if($request->has("currency")){
+            return PaymentHelper::QAICASHDepositMethod($request->input("currency"));
+        }
+        else{
+            return array("error"=>"need to provide input currency");
+        }
+        
+    }
+    public function makeDepositQAICASH(Request $request){
 
+        // return 1;
+
+        $client_check = DB::table('clients')
+                ->where('client_url', $request->site_url)
+                ->first();
+
+        if($client_check){  
+
+            $player_check = DB::table('players')
+                    ->where('client_id', $client_check->client_id)
+                    ->where('username', $request->merchant_user)
+                    ->first();
+
+            if($player_check){  
+                 DB::table('player_session_tokens')->insert(
+                            array('player_id' => $player_check->player_id, 'player_token' =>  $request->player_token, 'status_id' => '1')
+                 );
+                 $token_player_id = $this->getPlayerTokenId($player_check->player_id);
+
+
+                 /* QAICASH DEPOSIT */
+                if($request->has("amount")&&
+                   $request->has("currency")&&
+                   $request->has("deposit_method")&&
+                   $request->has("depositor_UId")&&
+                   $request->has("depositor_email")&&
+                   $request->has("depositor_name")&&
+                   $request->has("redirectUrl")){
+                   $token_player_id = $token_player_id; ///please change here the @alyer token id
+                   $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$request->input("depositor_UId")
+                                                                ,$request->input("depositor_email"),$request->input("depositor_name"),$request->input("redirectUrl"));
+
+                    $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],2,$qaicash_transaction["purchase_amount"],1,2,$request->input("trans_update_url"),6);
+                    if($payment_trans){
+                        return array(
+                            "transaction_id"=>$payment_trans["id"],
+                            "identification_id"=>$qaicash_transaction["purchase_id"],
+                            "purchase_amount" =>$qaicash_transaction["purchase_amount"],
+                            "purchase_date" =>$qaicash_transaction["purchase_date"],
+                            "payment_page_url"=>$qaicash_transaction["payment_page_url"],
+                            "status"=>$qaicash_transaction["status"],
+                            "currency"=>$qaicash_transaction["currency"],
+                        );
+                    }
+                    else{
+                        return array("error"=> "Something Went Wrong");
+                    }
+                }
+                else{
+                    return array("error"=>"Please Provide the Required Input");
+                }/* QAICASH DEPOSIT */
+
+            }else{   //player not existing
+
+                DB::table('players')->insert(
+                            array('client_id' => $client_check->client_id, 'client_player_id' =>  $request->depositor_UId, 'username' => $request->merchant_user, 'email' => $request->depositor_email,'display_name' => $request->depositor_name)
+                    );
+
+                $last_player_id = DB::getPDO()->lastInsertId();
+                $token_player_id = $this->getPlayerTokenId($last_player_id);
+                DB::table('player_session_tokens')->insert(
+                        array('player_id' => $last_player_id, 'player_token' =>  $request->player_token, 'status_id' => '1')
+                );
+           
+                /* QAICASH DEPOSIT */
+                if($request->has("amount")&&
+                   $request->has("currency")&&
+                   $request->has("deposit_method")&&
+                   $request->has("depositor_UId")&&
+                   $request->has("depositor_email")&&
+                   $request->has("depositor_name")&&
+                   $request->has("redirectUrl")){
+                   $token_player_id = $token_player_id; ///please change here the @alyer token id
+                   $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$request->input("depositor_UId")
+                                                                ,$request->input("depositor_email"),$request->input("depositor_name"),$request->input("redirectUrl"));
+
+                   $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],2,$qaicash_transaction["purchase_amount"],1,2,$request->input("trans_update_url"),6);
+                   if($payment_trans){
+                    return array(
+                        "transaction_id"=>$payment_trans["id"],
+                        "identification_id"=>$qaicash_transaction["purchase_id"],
+                        "purchase_amount" =>$qaicash_transaction["purchase_amount"],
+                        "purchase_date" =>$qaicash_transaction["purchase_date"],
+                        "payment_page_url"=>$qaicash_transaction["payment_page_url"],
+                        "status"=>$qaicash_transaction["status"],
+                        "currency"=>$qaicash_transaction["currency"],
+                    );
+                   }
+                   else{
+                       return array("error"=> "Something Went Wrong");
+                   }
+                }
+                else{
+                    return array("error"=>"Please Provide the Required Input");
+                }/* QAICASH DEPOSIT */
+
+
+            }
+        } /* END CLIENT CHECK */
+            else{
+             return array("error"=>"Your Not Subscribed!");
+        }        
+    }
+    //end of QAICASH
     public function updatetransaction(Request $request){
         $secret = "mwapimiddleware";
         $key = "thisisapisecret";

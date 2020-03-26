@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -37,7 +36,7 @@ class EbancoController extends Controller
 
 
    	public function getBankList(){
-   		// return 1;
+
     	$http = new Client();
         $response = $http->get('https://e-banco.net/api/v1/banklist', [
         // $response = $http->get('127.0.0.1:8880/api/v1/banklist', [
@@ -292,6 +291,18 @@ class EbancoController extends Controller
 
 
 
+
+     // public function test(){
+     // 	     // return array("deposit_amount" =>  123);
+
+	   	// 	$deposit_info = array(
+	    //                "deposit_amount" =>  123,
+	    //                "bank_name" =>  1233
+     //              ); 
+
+	   	// 	return $deposit_info;
+
+     // }
 
 
 	/****************************************************************/

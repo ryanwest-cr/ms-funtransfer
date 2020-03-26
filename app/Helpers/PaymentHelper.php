@@ -122,6 +122,42 @@ class PaymentHelper
     }
 
     ///endcoinspayment
+
+
+    //03-24-20
+    public static function QAICASHDepositMethod($currency){
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/qaicash/depositmethods',[
+            'form_params' => [
+                'currency' => $currency,
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+        return json_decode((string) $response->getBody(), true);
+    }
+    public static function QAICASHMakeDeposit($amount,$currency,$deposit_method,$depositor_UId,$depositor_email,$depositor_name,$redirectUrl){
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/qaicash/makedeposit',[
+            'form_params' => [
+                'amount'=>$amount,
+                'currency' => $currency,
+                'deposit_method'=>$deposit_method,
+                'depositor_UId'=>$depositor_UId,
+                'depositor_email'=> $depositor_email,
+                'depositor_name'=> $depositor_name,
+                'redirectUrl'=>$redirectUrl
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+        return json_decode((string) $response->getBody(), true);
+    }
+    //end
     public static function payTransactions($token_id,$purchase_id,$payment_id,$amount,$entry_id,$trans_type_id,$trans_update_url,$status_id){
         $pay_transaction = new PayTransaction();
         $pay_transaction->token_id = $token_id;
