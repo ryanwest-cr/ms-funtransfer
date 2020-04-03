@@ -10,7 +10,7 @@ use DB;
 
 class LotteryController extends Controller
 {
-    //
+    //UPDATE TRACK
 
 	public function authPlayer(Request $request){
 
@@ -118,18 +118,40 @@ class LotteryController extends Controller
 		// $hashkey = 6f1190df5414d22490583434fe3622fe;
 						 
 		if ($client_details) {
-			      // dd(md5($client_details->client_api_key.$client_details->client_access_token));
-			 	  $http = new Client();
-		          $response = $http->post($client_details->player_details_url, [ // 127.0.0.1:8000/getuserbalance
+			 	$http = new Client();
+		        $response = $http->post($client_details->player_details_url, [ 
 		            'form_params' => [
 		                'merchant_user'=> $request->merchant_user,
 		                'hashkey' => md5($client_details->client_api_key.$client_details->client_access_token),
 		            ],
-		         ]);
+		        ]);
+				$balance = json_decode((string) $response->getBody(), true);
+				return $balance['playerdetailsresponse']['balance'];
 
-				 $balance = json_decode((string) $response->getBody(), true);
+				// $client = new Client([
+				//     'headers' => [ 
+				//     	'Content-Type' => 'application/json',
+				//     	'Authorization' => 'Bearer '.$client_details->client_access_token
+				//     ]
+				// ]);
+				
+				// $guzzle_response = $client->post($client_details->player_details_url,
+				//     ['body' => json_encode(
+				//         	["access_token" => $client_details->client_access_token,
+				// 				"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				// 				"type" => "playerdetailsrequest",
+				// 				"clientid" => $client_details->client_id,
+				// 				"playerdetailsrequest" => [
+				// 					"currencyId" => $json_data["currencyId"],
+				// 					"gamelaunch" => true
+				// 				]
+				// 			]
+				//     )]
+				// );
 
-				 return $balance['playerdetailsresponse']['balance'];
+				// $client_response = json_decode($guzzle_response->getBody()->getContents());
+
+				// return $client_response->playerdetailsresponse->balance;
 		}
 
 

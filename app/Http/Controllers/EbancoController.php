@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -18,8 +17,8 @@ class EbancoController extends Controller
 	public static function connectTo(){
         $http = new Client();
 
-         $response = $http->post('https://e-banco.net/oauth/token', [
-         // $response = $http->post('127.0.0.1:8880/oauth/token', [
+         // $response = $http->post('https://e-banco.net/oauth/token', [
+         $response = $http->post('127.0.0.1:8880/oauth/token', [
             'form_params' => [
                 'grant_type' => 'password',
                 'client_id' => '5',
@@ -34,18 +33,18 @@ class EbancoController extends Controller
     }
 
 
-
    	public function getBankList(){
-   		// return 1;
+
     	$http = new Client();
-        $response = $http->get('https://e-banco.net/api/v1/banklist', [
-        // $response = $http->get('127.0.0.1:8880/api/v1/banklist', [
+        // $response = $http->get('https://e-banco.net/api/v1/banklist', [
+        $response = $http->get('127.0.0.1:8880/api/v1/banklist', [
             'headers' =>[
                 'Authorization' => 'Bearer '.$this->connectTo(),
                 'Accept'     => 'application/json' 
             ]
         ]);
-
+ 
+ 
         return  $response->getBody();
          
     } 
@@ -75,7 +74,7 @@ class EbancoController extends Controller
 
 
 		$transaction_track = DB::table("pay_transactions AS pt")
-						 ->select('pt.token_id', 'pt.payment_id', 'pt.entry_id', 'pt.id as trans_id', 'pt.identification_id', 'pst.player_id', 'pst.token_id', 'p.player_id', 'p.client_id', 'p.client_player_id')
+						 ->select('pt.token_id', 'pt.payment_id', 'pt.entry_id', 'pt.id as trans_id', 'pt.identification_id', 'pst.player_id', 'pst.token_id', 'p.player_id', 'p.client_id', 'p.client_player_id', 'pt.trans_update_url')
 						 ->leftJoin("player_session_tokens AS pst", "pt.token_id", "=", "pst.token_id")
 						 ->leftJoin("players AS p", "p.player_id", "=", "pst.player_id")
 						 ->where("pt.payment_id", 4)
@@ -83,8 +82,9 @@ class EbancoController extends Controller
 						 ->first();		
 		
 		 $http = new Client();
-         // $response = $http->post('127.0.0.1:8000/api/depositupdate', [
-         $response = $http->post('http://demo.freebetrnk.com/depositupdate', [
+         // $response = $http->post('127.0.0.1:8000/depositupdate', [
+         // $response = $http->post('http://demo.freebetrnk.com/depositupdate', [
+         $response = $http->post($transaction_track->trans_update_url, [
             'form_params' => [
 		           'transaction_id' => $transaction_track->trans_id,
 		           'client_player_id' => $transaction_track->client_player_id
@@ -98,6 +98,7 @@ class EbancoController extends Controller
 
 
   public function makeDeposit(Request $request){
+
     	   $client_check = DB::table('clients')
 				->where('client_url', $request->site_url)
 				->first();
@@ -106,7 +107,6 @@ class EbancoController extends Controller
 			$currency = (float)$this->getCurrencyConvertion($currencyType);
 			$finalcurrency =((float)$request->input("amount")*$currency);	
 
-			// dd($finalcurrency);
 
 			if($client_check){
 				$player_check = DB::table('players')
@@ -136,8 +136,8 @@ class EbancoController extends Controller
 
 					     /* REQUEST TO EBANCO */
 				         $http = new Client();
-				         // $response = $http->post('127.0.0.1:8880/api/v1/makedeposit', [
-				         $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
+				         $response = $http->post('127.0.0.1:8880/api/v1/makedeposit', [
+				         // $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
 				            'headers' =>[
 				                'Authorization' => 'Bearer '.$this->connectTo(),
 				                'Accept'     => 'application/json' 
@@ -188,8 +188,8 @@ class EbancoController extends Controller
 
 						/* REQUEST TO EBANCO */
 			            $http = new Client();
-				         $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
-				        // $response = $http->post('127.0.0.1:8880/api/v1/makedeposit', [
+				         // $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
+				        $response = $http->post('127.0.0.1:8880/api/v1/makedeposit', [
 				            'headers' =>[
 				                'Authorization' => 'Bearer '.$this->connectTo(),
 				                'Accept'     => 'application/json' 
@@ -231,8 +231,8 @@ class EbancoController extends Controller
     public function sendReceipt(Request $request){
 
      	 $http = new Client();
-	     // $response = $http->post('127.0.0.1:8880/api/v1/senddepositreceipt', [
-	     $response = $http->post('https://e-banco.net/api/v1/senddepositreceipt', [
+	     $response = $http->post('127.0.0.1:8880/api/v1/senddepositreceipt', [
+	     // $response = $http->post('https://e-banco.net/api/v1/senddepositreceipt', [
 	        'headers' =>[
 	            'Authorization' => 'Bearer '.$this->connectTo(),
 	            'Accept'     => 'application/json',
@@ -252,8 +252,8 @@ class EbancoController extends Controller
     public function depositInfo(Request $request){
 
      	 $http = new Client();
-	     // $response = $http->post('127.0.0.1:8880/api/v1/deposittransaction', [
-	     $response = $http->post('https://e-banco.net/api/v1/deposittransaction', [
+	     $response = $http->post('127.0.0.1:8880/api/v1/deposittransaction', [
+	     // $response = $http->post('https://e-banco.net/api/v1/deposittransaction', [
 	        'headers' =>[
 	            'Authorization' => 'Bearer '.$this->connectTo(),
 	            'Accept'     => 'application/json', 
@@ -273,8 +273,8 @@ class EbancoController extends Controller
      	 return 'Not Available!';	
 
      	 $http = new Client();
-	     // $response = $http->post('127.0.0.1:8880/api/v1/deposittransactions', [
-	     $response = $http->post('https://e-banco.net/api/v1/deposittransactions', [
+	     $response = $http->post('127.0.0.1:8880/api/v1/deposittransactions', [
+	     // $response = $http->post('https://e-banco.net/api/v1/deposittransactions', [
 	        'headers' =>[
 	            'Authorization' => 'Bearer '.$this->connectTo(),
 	            'Accept'     => 'application/json', 
@@ -290,6 +290,18 @@ class EbancoController extends Controller
 
 
 
+
+     // public function test(){
+     // 	     // return array("deposit_amount" =>  123);
+
+	   	// 	$deposit_info = array(
+	    //                "deposit_amount" =>  123,
+	    //                "bank_name" =>  1233
+     //              ); 
+
+	   	// 	return $deposit_info;
+
+     // }
 
 
 	/****************************************************************/
