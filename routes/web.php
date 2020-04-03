@@ -116,6 +116,11 @@ $app->post('/payment','Payments\PaymentGatewayController@paymentPortal');
 $app->get('/coinpaymentscurrencies','Payments\PaymentGatewayController@getCoinspaymentRate');
 $app->get('/currencyconversion','CurrencyController@currency');
 $app->post('/updatetransaction','Payments\PaymentGatewayController@updatetransaction');
+$app->post('/updatepayouttransaction','Payments\PaymentGatewayController@updatePayoutTransaction');
 $app->post('qaicash/depositmethods','Payments\PaymentGatewayController@getQAICASHDepositMethod');
 $app->post('qaicash/deposit','Payments\PaymentGatewayController@makeDepositQAICASH');
+$app->post('qaicash/payoutmethods','Payments\PaymentGatewayController@getQAICASHPayoutMethod');
+$app->post('qaicash/payout','Payments\PaymentGatewayController@makePayoutQAICASH');
+$app->post('qaicash/payout/approve','Payments\PaymentGatewayController@approvedPayoutQAICASH');
+$app->post('qaicash/payout/reject','Payments\PaymentGatewayController@rejectPayoutQAICASH');
 ///CoinsPayment Controller

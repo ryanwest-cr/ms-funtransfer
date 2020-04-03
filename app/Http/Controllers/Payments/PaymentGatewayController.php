@@ -77,7 +77,7 @@ class PaymentGatewayController extends Controller
                                 $finalcurrency =((float)$request->input("amount")*$currency)/(float)$dgcurrencyrate;
                                 $cointransaction = PaymentHelper::coinspayment($finalcurrency,$request->input("dgcurrency"));
                                 if($cointransaction){
-                                    $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),1,2,$request->input("trans_update_url"),6);
+                                    $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),2,1,$request->input("trans_update_url"),6);
                                     $trans_msg = array("pay_transaction_id"=>$transaction->id,
                                                         "txn_id"=> $cointransaction["txn_id"],
                                                         "digi_currency" =>$request->input("dgcurrency"),
@@ -96,7 +96,7 @@ class PaymentGatewayController extends Controller
                             if($request->has("cardnumber")&&$request->has("amount")){
                                 $vprica_trans = PaymentHelper::vprica($request->input("cardnumber"),$request->input("amount"));
                                 if($vprica_trans){
-                                    return PaymentHelper::payTransactions($token_player_id,$vprica_trans["purchase_id"],3,$vprica_trans["purchase_amount"],1,2,$request->input("trans_update_url"),6);
+                                    return PaymentHelper::payTransactions($token_player_id,$vprica_trans["purchase_id"],3,$vprica_trans["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                                 }
                                 else{
                                     return array("error"=>"Transaction Cannot be made");
@@ -124,7 +124,7 @@ class PaymentGatewayController extends Controller
                                 $amount,
                                 "USD");
                                 if(!empty($paymongo_trans)&&isset($paymongo_trans["purchase_id"])){
-                                    return PaymentHelper::payTransactions($token_player_id,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],1,2,$request->input("trans_update_url"),5);
+                                    return PaymentHelper::payTransactions($token_player_id,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],2,1,$request->input("trans_update_url"),5);
 
                                     // return 'Success';
                                 }
@@ -176,7 +176,7 @@ class PaymentGatewayController extends Controller
                             $finalcurrency =((float)$request->input("amount")*$currency)/(float)$dgcurrencyrate;
                             $cointransaction = PaymentHelper::coinspayment($finalcurrency,$request->input("dgcurrency"));
                             if($cointransaction){
-                                $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),1,2,$request->input("trans_update_url"),6);
+                                $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),2,1,$request->input("trans_update_url"),6);
                                 $trans_msg = array("pay_transaction_id"=>$transaction->id,
                                                     "txn_id"=> $cointransaction["txn_id"],
                                                     "digi_currency" =>$request->input("dgcurrency"),
@@ -195,7 +195,7 @@ class PaymentGatewayController extends Controller
                         if($request->has("cardnumber")&&$request->has("amount")){
                             $vprica_trans = PaymentHelper::vprica($request->input("cardnumber"),$request->input("amount"));
                             if($vprica_trans){
-                                return PaymentHelper::payTransactions($token_player_id,$vprica_trans["purchase_id"],3,$vprica_trans["purchase_amount"],1,2,$request->input("trans_update_url"),6);
+                                return PaymentHelper::payTransactions($token_player_id,$vprica_trans["purchase_id"],3,$vprica_trans["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                             }
                             else{
                                 return array("error"=>"Transaction Cannot be made");
@@ -219,7 +219,7 @@ class PaymentGatewayController extends Controller
                             $amount,
                             "USD");
                             if(!empty($paymongo_trans)&&isset($paymongo_trans["purchase_id"])){
-                                return PaymentHelper::payTransactions($token_player_id,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],1,2,$request->input("trans_update_url"),5);
+                                return PaymentHelper::payTransactions($token_player_id,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],2,1,$request->input("trans_update_url"),5);
                             }
                             else{
                                 return array("error"=>"Card is invalid please check the input");
@@ -285,6 +285,144 @@ class PaymentGatewayController extends Controller
         }
         
     }
+    public function getQAICASHPayoutMethod(Request $request){
+        if($request->has("currency")){
+            return PaymentHelper::QAICASHPayoutMethod($request->input("currency"));
+        }
+        else{
+            return array("error"=>"need to provide input currency");
+        }
+        
+    }
+    //new approved payout transaction
+    public function approvedPayoutQAICASH(Request $request){
+        if($request->has("transaction_id")&&$request->has("approved_by")){
+            $qaicash_transaction = PaymentHelper::QAICASHPayoutApproved($request->input("transaction_id"),$request->input("approved_by"));
+            return $qaicash_transaction;
+        }
+        else{
+            return array("error"=>"Please Provide the Required Input");
+        }
+    }
+    public function rejectPayoutQAICASH(Request $request){
+        if($request->has("transaction_id")&&$request->has("rejected_by")){
+            $qaicash_transaction = PaymentHelper::QAICASHPayoutReject($request->input("transaction_id"),$request->input("rejected_by"));
+            return $qaicash_transaction;
+            
+        }
+        else{
+            return array("error"=>"Please Provide the Required Input");
+        }
+    }
+    //new need to update makePayoutWAICASH
+    public function makePayoutQAICASH(Request $request){
+        $client_check = DB::table('clients')
+                ->where('client_url', $request->site_url)
+                ->first();
+
+
+        if($client_check){  
+
+                $player_check = DB::table('players')
+                    ->where('client_id', $client_check->client_id)
+                    ->where('username', $request->merchant_user)
+                    ->first();
+
+
+                    if($player_check){
+
+
+                    DB::table('player_session_tokens')->insert(
+                            array('player_id' => $player_check->player_id, 'player_token' =>  $request->player_token, 'status_id' => '1')
+                     );
+
+                    $token_player_id = $this->getPlayerTokenId($player_check->player_id);   
+
+
+                      if($request->has("amount")&&
+                           $request->has("currency")&&
+                           $request->has("payout_method")&&
+                           $request->has("witdrawer_UId")&&
+                           $request->has("witdrawer_email")&&
+                           $request->has("witdrawer_name")&&
+                           $request->has("redirectUrl")){
+                           $token_player_id = $token_player_id; ///please change here the @alyer token id
+                           $qaicash_transaction = PaymentHelper::QAICASHMakePayout($request->input("amount"),$request->input("currency"),$request->input("payout_method"),$request->input("witdrawer_UId")
+                                                                        ,$request->input("witdrawer_email"),$request->input("witdrawer_name"),$request->input("redirectUrl"));
+                            $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["withdrawal_id"],2,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
+                            if($payment_trans){
+                                return array(
+                                    "transaction_id"=>$payment_trans["id"],
+                                    "identification_id"=>$qaicash_transaction["withdrawal_id"],
+                                    "purchase_amount" =>$qaicash_transaction["withdrawal_amount"],
+                                    "purchase_date" =>$qaicash_transaction["withdrawal_date"],
+                                    "payment_page_url"=>$qaicash_transaction["payment_page_url"],
+                                    "status"=>$qaicash_transaction["status"],
+                                    "currency"=>$qaicash_transaction["currency"],
+                                );
+                            }
+                            else{
+                                return array("error"=> "Something Went Wrong");
+                            }
+                        }
+                        else{
+                            return array("error"=>"Please Provide the Required Input");
+                        }
+
+
+                    }else{
+
+                        DB::table('players')->insert(
+                                array('client_id' => $client_check->client_id, 'client_player_id' =>  $request->merchant_user_id, 'username' => $request->merchant_user, 'email' => $request->merchant_user_email,'display_name' => $request->merchant_user_display_name)
+                        );
+
+                        $last_player_id = DB::getPDO()->lastInsertId();
+
+
+                        $token_player_id = $this->getPlayerTokenId($last_player_id);
+
+                        DB::table('player_session_tokens')->insert(
+                                array('player_id' => $last_player_id, 'player_token' =>  $request->player_token, 'status_id' => '1')
+                        );
+
+
+                             if($request->has("amount")&&
+                               $request->has("currency")&&
+                               $request->has("payout_method")&&
+                               $request->has("witdrawer_UId")&&
+                               $request->has("witdrawer_email")&&
+                               $request->has("witdrawer_name")&&
+                               $request->has("redirectUrl")){
+                               $token_player_id = $last_player_id; ///please change here the @alyer token id
+                               $qaicash_transaction = PaymentHelper::QAICASHMakePayout($request->input("amount"),$request->input("currency"),$request->input("payout_method"),$request->input("witdrawer_UId")
+                                                                            ,$request->input("witdrawer_email"),$request->input("witdrawer_name"),$request->input("redirectUrl"));
+                                $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["withdrawal_id"],2,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
+                                if($payment_trans){
+                                    return array(
+                                        "transaction_id"=>$payment_trans["id"],
+                                        "identification_id"=>$qaicash_transaction["withdrawal_id"],
+                                        "purchase_amount" =>$qaicash_transaction["withdrawal_amount"],
+                                        "purchase_date" =>$qaicash_transaction["withdrawal_date"],
+                                        "payment_page_url"=>$qaicash_transaction["payment_page_url"],
+                                        "status"=>$qaicash_transaction["status"],
+                                        "currency"=>$qaicash_transaction["currency"],
+                                    );
+                                }
+                                else{
+                                    return array("error"=> "Something Went Wrong");
+                                }
+                            }
+                            else{
+                                return array("error"=>"Please Provide the Required Input");
+                            }
+                        }
+                    
+
+        } /* END CLIENT CHECK */
+            else{
+             return array("error"=>"Your Not Subscribed!");
+        }                   
+    }
     public function makeDepositQAICASH(Request $request){
 
         // return 1;
@@ -319,7 +457,7 @@ class PaymentGatewayController extends Controller
                    $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$request->input("depositor_UId")
                                                                 ,$request->input("depositor_email"),$request->input("depositor_name"),$request->input("redirectUrl"));
 
-                    $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],2,$qaicash_transaction["purchase_amount"],1,2,$request->input("trans_update_url"),6);
+                    $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],2,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                     if($payment_trans){
                         return array(
                             "transaction_id"=>$payment_trans["id"],
@@ -363,7 +501,7 @@ class PaymentGatewayController extends Controller
                    $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$request->input("depositor_UId")
                                                                 ,$request->input("depositor_email"),$request->input("depositor_name"),$request->input("redirectUrl"));
 
-                   $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],2,$qaicash_transaction["purchase_amount"],1,2,$request->input("trans_update_url"),6);
+                   $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],2,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                    if($payment_trans){
                     return array(
                         "transaction_id"=>$payment_trans["id"],
@@ -401,15 +539,61 @@ class PaymentGatewayController extends Controller
                 $transaction->status_id=5;
                 $transaction->save();
                 $client_player_id = DB::table('player_session_tokens as pst')
-                                    ->select("p.client_player_id")
+                                    ->select("p.client_player_id","p.client_id")
                                     ->leftJoin("players as p","pst.player_id","=","p.player_id")
                                     ->where("pst.token_id",$transaction->token_id)
                                     ->first();
+                $key = $transaction->id.'|'.$client_player_id->client_player_id.'|'.$request->status;
+                $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
                 $http = new Client();
                 $response = $http->post($transaction->trans_update_url,[
                     'form_params' => [
                         'transaction_id' => $transaction->id,
                         'client_player_id' => $client_player_id->client_player_id,
+                        'status' => $request->status,
+                        'message' => 'Your Transaction Order '.$transaction->id.'has been updated to '.$request->status,
+                        'AuthenticationCode' => $authenticationCode
+                    ],
+                ]); 
+                return json_decode((string) $response->getBody(), true);
+            }
+            else{
+                return array("error"=>"Transaction Did not exist");
+            }
+        }
+        return array("error"=>"invalid authentication message");
+    }
+    public function updatePayoutTransaction(Request $request){
+        $secret = "mwapimiddleware";
+        $key = "thisisapisecret";
+        $hmac = hash_hmac("sha256",$secret,$key);
+        if($hmac == $request->hmac){
+            $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",2)->where("entry_id",1)->where("trans_type_id",2)->first();
+            if($transaction){
+                if($request->status == "SUCCESS"){
+                    $transaction->status_id=5;
+                    $transaction->save();
+                }
+                elseif($request->status == "HELD"){
+                    $transaction->status_id=7;
+                    $transaction->save();
+                }
+                $client_player_id = DB::table('player_session_tokens as pst')
+                                    ->select("p.client_player_id","p.client_id")
+                                    ->leftJoin("players as p","pst.player_id","=","p.player_id")
+                                    ->where("pst.token_id",$transaction->token_id)
+                                    ->first();
+                $key = $transaction->id.'|'.$client_player_id->client_player_id.'|'.$request->status;
+                $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+                $http = new Client();
+                $response = $http->post($transaction->trans_update_url,[
+                    'form_params' => [
+                        'transaction_id' => $transaction->id,
+                        'client_player_id' => $client_player_id->client_player_id,
+                        'client_id' =>$client_player_id->client_id,
+                        'status' => $request->status,
+                        'message'=> 'Your Transaction Order '.$transaction->id.'has been updated to '.$request->status,
+                        'AuthenticationCode' => $authenticationCode
                     ],
                 ]); 
                 return json_decode((string) $response->getBody(), true);

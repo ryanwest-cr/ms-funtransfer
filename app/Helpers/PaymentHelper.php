@@ -138,6 +138,52 @@ class PaymentHelper
         ]);
         return json_decode((string) $response->getBody(), true);
     }
+    //04-01-20
+    public static function QAICASHPayoutMethod($currency){
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/qaicash/payoutmethods',[
+            'form_params' => [
+                'currency' => $currency,
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+        return json_decode((string) $response->getBody(), true);
+    }
+
+    public static function QAICASHPayoutApproved($order_id,$approved_by){
+        $transaction = PayTransaction::find($order_id);
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/qaicash/approvewithdraw',[
+            'form_params' => [
+                'order_id' => $transaction->identification_id,
+                'approved_by' => $approved_by
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+        return json_decode((string) $response->getBody(), true);
+    }
+    public static function QAICASHPayoutReject($order_id,$rejected_by){
+        $transaction = PayTransaction::find($order_id);
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/qaicash/rejectwithdraw',[
+            'form_params' => [
+                'order_id' => $transaction->identification_id,
+                'rejected_by' => $rejected_by
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+        return json_decode((string) $response->getBody(), true);
+    }
+    //04-01-20
     public static function QAICASHMakeDeposit($amount,$currency,$deposit_method,$depositor_UId,$depositor_email,$depositor_name,$redirectUrl){
         $http = new Client();
         $response = $http->post('https://epointexchange.com/api/qaicash/makedeposit',[
@@ -157,6 +203,26 @@ class PaymentHelper
         ]);
         return json_decode((string) $response->getBody(), true);
     }
+    public static function QAICASHMakePayout($amount,$currency,$payout_method,$withdrawer_UId,$withdrawer_email,$withdrawer_name,$redirectUrl){
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/qaicash/makewithdraw',[
+            'form_params' => [
+                'amount'=>$amount,
+                'currency' => $currency,
+                'payout_method'=>$payout_method,
+                'withdrawer_UId'=>$withdrawer_UId,
+                'withdrawer_email'=> $withdrawer_email,
+                'withdrawer_name'=> $withdrawer_name,
+                'redirectUrl'=>$redirectUrl
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+        return json_decode((string) $response->getBody(), true);
+    }
+
     //end
     public static function payTransactions($token_id,$purchase_id,$payment_id,$amount,$entry_id,$trans_type_id,$trans_update_url,$status_id){
         $pay_transaction = new PayTransaction();
@@ -164,8 +230,8 @@ class PaymentHelper
         $pay_transaction->identification_id=$purchase_id;
         $pay_transaction->payment_id=$payment_id;
         $pay_transaction->amount=$amount;
-        $pay_transaction->entry_id=2;
-        $pay_transaction->trans_type_id=1;
+        $pay_transaction->entry_id=$entry_id;
+        $pay_transaction->trans_type_id=$trans_type_id;
         $pay_transaction->status_id=$status_id;
         $pay_transaction->trans_update_url=$trans_update_url;
         $pay_transaction->save();
