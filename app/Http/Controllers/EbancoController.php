@@ -14,37 +14,38 @@ class EbancoController extends Controller
 {
 
 
-	public static function connectTo(){
-        $http = new Client();
+    public function connectTo(){
+       $http = new Client();
 
-         // $response = $http->post('https://e-banco.net/oauth/token', [
-         $response = $http->post('127.0.0.1:8880/oauth/token', [
-            'form_params' => [
-                'grant_type' => 'password',
-                'client_id' => '5',
-                'client_secret' => 'o6xxbH3bYbTcZOIcrLqRx0YVLDxhUHD28G03cfcr',
-                'username' => 'mychan@ash.gg',
-                'password' => 'charoot1223',
-                'scope' => '*',
+         $response = $http->post('https://e-banco.net/oauth/token', [
+           'form_params' => [
+             'grant_type' => 'password',
+              'client_id' => '5',
+              'client_secret' => 'o6xxbH3bYbTcZOIcrLqRx0YVLDxhUHD28G03cfcr',
+              'username' => 'mychan@ash.gg',
+              'password' => 'charoot1223',
+              'scope' => '*',
             ],
-        ]);
+	   ]);
 
-        return json_decode((string) $response->getBody(), true)["access_token"];
+       return json_decode((string) $response->getBody(), true)["access_token"];
+
     }
+
+
 
 
    	public function getBankList(){
 
     	$http = new Client();
-        // $response = $http->get('https://e-banco.net/api/v1/banklist', [
-        $response = $http->get('127.0.0.1:8880/api/v1/banklist', [
+        $response = $http->get('https://e-banco.net/api/v1/banklist', [
+        // $response = $http->get('127.0.0.1:8880/api/v1/banklist', [
             'headers' =>[
                 'Authorization' => 'Bearer '.$this->connectTo(),
                 'Accept'     => 'application/json' 
             ]
         ]);
- 
- 
+
         return  $response->getBody();
          
     } 
@@ -136,8 +137,8 @@ class EbancoController extends Controller
 
 					     /* REQUEST TO EBANCO */
 				         $http = new Client();
-				         $response = $http->post('127.0.0.1:8880/api/v1/makedeposit', [
-				         // $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
+				         // $response = $http->post('127.0.0.1:8880/api/v1/makedeposit', [
+				         $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
 				            'headers' =>[
 				                'Authorization' => 'Bearer '.$this->connectTo(),
 				                'Accept'     => 'application/json' 
@@ -188,8 +189,8 @@ class EbancoController extends Controller
 
 						/* REQUEST TO EBANCO */
 			            $http = new Client();
-				         // $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
-				        $response = $http->post('127.0.0.1:8880/api/v1/makedeposit', [
+				         $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
+				        // $response = $http->post('127.0.0.1:8880/api/v1/makedeposit', [
 				            'headers' =>[
 				                'Authorization' => 'Bearer '.$this->connectTo(),
 				                'Accept'     => 'application/json' 
@@ -231,8 +232,8 @@ class EbancoController extends Controller
     public function sendReceipt(Request $request){
 
      	 $http = new Client();
-	     $response = $http->post('127.0.0.1:8880/api/v1/senddepositreceipt', [
-	     // $response = $http->post('https://e-banco.net/api/v1/senddepositreceipt', [
+	     // $response = $http->post('127.0.0.1:8880/api/v1/senddepositreceipt', [
+	     $response = $http->post('https://e-banco.net/api/v1/senddepositreceipt', [
 	        'headers' =>[
 	            'Authorization' => 'Bearer '.$this->connectTo(),
 	            'Accept'     => 'application/json',
@@ -252,8 +253,8 @@ class EbancoController extends Controller
     public function depositInfo(Request $request){
 
      	 $http = new Client();
-	     $response = $http->post('127.0.0.1:8880/api/v1/deposittransaction', [
-	     // $response = $http->post('https://e-banco.net/api/v1/deposittransaction', [
+	     // $response = $http->post('127.0.0.1:8880/api/v1/deposittransaction', [
+	     $response = $http->post('https://e-banco.net/api/v1/deposittransaction', [
 	        'headers' =>[
 	            'Authorization' => 'Bearer '.$this->connectTo(),
 	            'Accept'     => 'application/json', 
@@ -273,8 +274,8 @@ class EbancoController extends Controller
      	 return 'Not Available!';	
 
      	 $http = new Client();
-	     $response = $http->post('127.0.0.1:8880/api/v1/deposittransactions', [
-	     // $response = $http->post('https://e-banco.net/api/v1/deposittransactions', [
+	     // $response = $http->post('127.0.0.1:8880/api/v1/deposittransactions', [
+	     $response = $http->post('https://e-banco.net/api/v1/deposittransactions', [
 	        'headers' =>[
 	            'Authorization' => 'Bearer '.$this->connectTo(),
 	            'Accept'     => 'application/json', 
@@ -307,5 +308,8 @@ class EbancoController extends Controller
 	/****************************************************************/
 
 
-
+	public function testrequest(){
+		return array("message"=>"success request");
+	}
 }
+

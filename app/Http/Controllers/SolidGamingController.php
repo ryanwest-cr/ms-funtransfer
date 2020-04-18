@@ -47,7 +47,7 @@ class SolidGamingController extends Controller
 						];
 
 			$client_details = $this->_getClientDetails('token', $json_data["token"]);
-
+			
 			if ($client_details) {
 				$client = new Client([
 				    'headers' => [ 

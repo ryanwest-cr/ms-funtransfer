@@ -23,8 +23,8 @@ class PaymentHelper
                 'grant_type' => 'password',
                 'client_id' => '3',
                 'client_secret' => 'uAthPzJR6lk9hrgPljMUjzGHjnPvtT2Ps6eLHRv7',
-                'username' => 'd10627627@urhen.com',
-                'password' => 'w34KM)!$#',
+                'username' => 'stagingmiddleware@betrnk.games',
+                'password' => 'staging123',
                 'scope' => '*',
             ],
         ]);
