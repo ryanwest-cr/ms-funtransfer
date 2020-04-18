@@ -29,11 +29,12 @@ class FundTransferController extends Controller
 		$arr_result = [
 						"fundtransferresponse" => [
 							"status" => [
-								"success" => false,
+								"code" => "402",
+								"status" => "Failed",
 								"message" => "Insufficient balance.",
 							],
-								"balance" => false,
-								"currencycode" => false
+								"balance" => "false",
+								"currencycode" => "false"
 							]
 						];
 
@@ -111,9 +112,9 @@ class FundTransferController extends Controller
 
 							$client_response = json_decode($response->getBody()->getContents());
 
-							if($client_response->fundtransferresponse->status->success) {
+							/* if($client_response->fundtransferresponse->status->success) {
 								GameTransaction::save($json_data);
-							}
+							} */
 
 							$arr_result = $client_response;
 						}

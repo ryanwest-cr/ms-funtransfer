@@ -11,7 +11,12 @@ use DB;
 use GuzzleHttp\Client;
 class PaymentGatewayController extends Controller
 {
-    //
+	//
+    public function __construct(){
+
+		$this->middleware('oauth', ['except' => ['updatetransaction','updatePayoutTransaction']]);
+		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
+	}
     public function index(){
         $payment_gateway = PaymentGateway::all();
         return $payment_gateway;
@@ -349,7 +354,7 @@ class PaymentGatewayController extends Controller
                            $token_player_id = $token_player_id; ///please change here the @alyer token id
                            $qaicash_transaction = PaymentHelper::QAICASHMakePayout($request->input("amount"),$request->input("currency"),$request->input("payout_method"),$request->input("witdrawer_UId")
                                                                         ,$request->input("witdrawer_email"),$request->input("witdrawer_name"),$request->input("redirectUrl"));
-                            $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["withdrawal_id"],2,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
+                            $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["withdrawal_id"],9,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
                             if($payment_trans){
                                 return array(
                                     "transaction_id"=>$payment_trans["id"],
@@ -396,7 +401,7 @@ class PaymentGatewayController extends Controller
                                $token_player_id = $last_player_id; ///please change here the @alyer token id
                                $qaicash_transaction = PaymentHelper::QAICASHMakePayout($request->input("amount"),$request->input("currency"),$request->input("payout_method"),$request->input("witdrawer_UId")
                                                                             ,$request->input("witdrawer_email"),$request->input("witdrawer_name"),$request->input("redirectUrl"));
-                                $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["withdrawal_id"],2,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
+                                $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["withdrawal_id"],9,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
                                 if($payment_trans){
                                     return array(
                                         "transaction_id"=>$payment_trans["id"],
@@ -457,7 +462,7 @@ class PaymentGatewayController extends Controller
                    $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$request->input("depositor_UId")
                                                                 ,$request->input("depositor_email"),$request->input("depositor_name"),$request->input("redirectUrl"));
 
-                    $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],2,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
+                    $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],9,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                     if($payment_trans){
                         return array(
                             "transaction_id"=>$payment_trans["id"],
@@ -501,7 +506,7 @@ class PaymentGatewayController extends Controller
                    $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$request->input("depositor_UId")
                                                                 ,$request->input("depositor_email"),$request->input("depositor_name"),$request->input("redirectUrl"));
 
-                   $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],2,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
+                   $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],9,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                    if($payment_trans){
                     return array(
                         "transaction_id"=>$payment_trans["id"],
@@ -568,7 +573,7 @@ class PaymentGatewayController extends Controller
         $key = "thisisapisecret";
         $hmac = hash_hmac("sha256",$secret,$key);
         if($hmac == $request->hmac){
-            $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",2)->where("entry_id",1)->where("trans_type_id",2)->first();
+            $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",9)->where("entry_id",1)->where("trans_type_id",2)->first();
             if($transaction){
                 if($request->status == "SUCCESS"){
                     $transaction->status_id=5;
