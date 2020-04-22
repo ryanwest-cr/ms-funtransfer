@@ -44,7 +44,11 @@ class PaymentGatewayController extends Controller
 
     public function paymentPortal(Request $request){
 
-
+        if($request->has("payment_method")){
+            if(!PaymentHelper::paymentAvailabilityChecker($request->input("payment_method"))){
+                return array("error"=>"Payment Method is not Available as of the moment");
+            }
+        }
         /* REQUEST HAS PLAYER */
         $client_check = DB::table('clients')
                 ->where('client_url', $request->site_url)

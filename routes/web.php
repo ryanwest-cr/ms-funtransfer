@@ -60,7 +60,15 @@ $app->post('/api/solid/rollback', 'SolidGamingController@rollbackTransaction');
 $app->post('/api/solid/endround', 'SolidGamingController@endPlayerRound');
 $app->post('/api/solid/endsession', 'SolidGamingController@endPlayerSession');
 
-
+// EDP Gaming Endpoints
+$app->post('/api/edp/gamelunch','EDPController@gameLaunchUrl');
+$app->get('/api/edp/check','EDPController@index');
+$app->get('/api/edp/session','EDPController@playerSession');
+$app->get('/api/edp/balance','EDPController@getBalance');
+$app->post('/api/edp/bet','EDPController@betGame');
+$app->post('/api/edp/win','EDPController@winGame');
+$app->post('/api/edp/refund','EDPController@refundGame');
+$app->post('/api/edp/endSession','EDPController@endGameSession');
 
 // Lottery Gaming Endpoints
 $app->post('/api/lottery/authenticate', 'LotteryController@authPlayer');

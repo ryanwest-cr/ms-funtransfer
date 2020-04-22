@@ -39,7 +39,7 @@ class GameTransaction
 		    default:
 		}
 		/*var_dump($trans_data); die();*/
-		DB::table('game_transactions')->insert($trans_data);
+		return DB::table('game_transactions')->insertGetId($trans_data);
 	}
 
 	public static function find($original_trans_id) {
