@@ -102,14 +102,14 @@ $app->post('/api/marriott/debit', 'MarriottController@debitProcess'); #/
 // $app->post('/api/ebancodepositinfobyselectedid', 'EbancoController@depositinfobyselectedid'); #/
 // $app->post('/api/ebancodepositreceipt', 'EbancoController@depositReceipt'); #/
 
-$app->post('/api/ebancoauth', 'EbancoController@connectTo'); #/
-$app->post('/api/ebancogetbanklist', 'EbancoController@getBankList'); #/
-$app->post('/api/ebancodeposit', 'EbancoController@makeDeposit'); #/
-$app->post('/api/ebancosenddepositreceipt', 'EbancoController@sendReceipt'); #/
-$app->post('/api/ebancodeposittransaction', 'EbancoController@depositInfo'); #/
-$app->post('/api/ebancodeposittransactions', 'EbancoController@depositHistory'); #/
-$app->post('/api/ebancoupdatedeposit', 'EbancoController@updateDeposit'); #/
-
+$app->post('/api/ebancoauth', 'EbancoController@connectTo'); 
+$app->post('/api/ebancogetbanklist', 'EbancoController@getBankList'); 
+$app->post('/api/ebancodeposit', 'EbancoController@makeDeposit'); 
+$app->post('/api/ebancosenddepositreceipt', 'EbancoController@sendReceipt'); 
+$app->post('/api/ebancodeposittransaction', 'EbancoController@depositInfo'); 
+$app->post('/api/ebancodeposittransactions', 'EbancoController@depositHistory'); 
+$app->post('/api/ebancoupdatedeposit', 'EbancoController@updateDeposit'); 
+$app->post('/api/ebancotest','EbancoController@testrequest');
 
 // Request an access token
 $app->post('/oauth/access_token', function() use ($app){

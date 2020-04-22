@@ -27,7 +27,8 @@ class PlayerDetailsController extends Controller
 		$arr_result = [
 						"playerdetailsresponse" =>  [
 							"status" =>  [
-								"success" =>  "false",
+								"code" => "404",
+								"status" =>  "Failed",
 								"message" =>  "Invalid Request."
 							]
 						]
@@ -87,8 +88,9 @@ class PlayerDetailsController extends Controller
 										]]
 						    )]
 						);
-
-						return var_export($response->getBody()->getContents(), true);
+						
+						return $response->getBody()->getContents();
+						
 					}
 				}
 			}
