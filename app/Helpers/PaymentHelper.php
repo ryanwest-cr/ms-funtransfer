@@ -23,8 +23,8 @@ class PaymentHelper
                 'grant_type' => 'password',
                 'client_id' => '3',
                 'client_secret' => 'uAthPzJR6lk9hrgPljMUjzGHjnPvtT2Ps6eLHRv7',
-                'username' => 'stagingmiddleware@betrnk.games',
-                'password' => 'staging123',
+                'username' => 'd10627627@urhen.com',
+                'password' => 'w34KM)!$#',
                 'scope' => '*',
             ],
         ]);
@@ -236,9 +236,5 @@ class PaymentHelper
         $pay_transaction->trans_update_url=$trans_update_url;
         $pay_transaction->save();
         return $pay_transaction;
-    }
-    public static function paymentAvailabilityChecker($payment_method){
-        $payment_availability = DB::table("payment_gateway")->where("payment_method_code",$payment_method)->where("availability",1)->first();
-        return $payment_availability?true:false;
     }
 }

@@ -27,7 +27,7 @@ class Helper
 
 
     /* ERAIN */		
-    public static function saveGame_transaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $round_id=1, $win=0 ) {
+    public static function saveGame_transaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null ,$round_id=1) {
 		$data = [
 					"token_id" => $token_id,
 					"game_id" => $game_id,
@@ -35,9 +35,21 @@ class Helper
 					"bet_amount" => $bet_amount,
 					"pay_amount" => $payout,
 					"entry_id" => $entry_id,
-					"win" => $win
+					"win" => $win,
+					"transaction_reason" => $transaction_reason,
+					"payout_reason" => $payout_reason
 				];
-		DB::table('game_transactions')->insert($data);
+		$data_saved = DB::table('game_transactions')->insertGetId($data);
+		return $data_saved;
+	}
+
+	public static function saveGame_trans_ext($trans_id, $transaction_detail) {
+		$data = [
+					"game_trans_id" => $trans_id,
+					"transaction_detail" => $transaction_detail
+				];
+		$transaction_saved = DB::table('game_transaction_ext')->insertGetId($data);
+		return $transaction_saved;
 	}
 
 
@@ -49,7 +61,7 @@ class Helper
 					"email" => $email,
 					"display_name" => $display_name
 				];
-		DB::table('players')->insert($data);
+		return DB::table('players')->insertGetId($data);
 	}
 	public static function checkPlayerExist($client_id, $client_player_id, $username,  $email, $display_name,$token){
 		$player = DB::table('players')
@@ -58,11 +70,11 @@ class Helper
 					->where('username',$username)
 					->first();
 		if($player){
-			return Helper::createPlayerSessionToken($client_player_id,$token);
+			return Helper::createPlayerSessionToken($player->player_id,$token);
 		}
 		else{
-			Helper::save_player($client_id,$client_player_id,$username,$email,$display_name);
-			return Helper::createPlayerSessionToken($client_player_id,$token);
+			$player_id=Helper::save_player($client_id,$client_player_id,$username,$email,$display_name);
+			return Helper::createPlayerSessionToken($player_id,$token);
 		}
 	}
 	public static function createPlayerSessionToken($player_id,$token){
@@ -153,5 +165,4 @@ class Helper
 		}
 		return $game ? true :false;
 	}
-
 }
