@@ -237,4 +237,8 @@ class PaymentHelper
         $pay_transaction->save();
         return $pay_transaction;
     }
+    public static function paymentAvailabilityChecker($payment_method){
+        $payment_availability = DB::table("payment_gateway")->where("payment_method_code",$payment_method)->where("availability",1)->first();
+        return $payment_availability?true:false;
+    }
 }

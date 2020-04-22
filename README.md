@@ -1,4 +1,4 @@
-<p align="center">
+<:qp align="center">
   <img src="https://raw.githubusercontent.com/OmarElGabry/lumen-api-oauth/master/public/lumen-api-oauth.png" alt="Lumen API OAuth" />
 </p>
 
