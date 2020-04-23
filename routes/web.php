@@ -85,7 +85,14 @@ $app->post('/api/marriott/balance', 'MarriottController@getBalance'); #/
 $app->post('/api/marriott/debit', 'MarriottController@debitProcess'); #/
 
 
+// RGS Gaming Endpoints
+$app->post('rsg/authenticate', 'DigitainController@authenticate');
 
+// Bole Gaming Endpoints
+$app->post('/api/bole/register', 'BoleGamingController@playerRegister');
+$app->post('/api/bole/logout', 'BoleGamingController@playerLogout');
+$app->post('/api/bole/wallet/player/cost', 'BoleGamingController@playerWalletCost');
+$app->post('/api/bole/wallet/player/balance', 'BoleGamingController@playerWalletBalance');
 
 
 
