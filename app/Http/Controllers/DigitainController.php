@@ -25,7 +25,7 @@ class DigitainController extends Controller
 		// "signature":"ba328e6d2358f6d77804e3d342cdee06c2afeba96baada218794abfd3b0ac926",
 		// "token":"90dbbb443c9b4b3fbcfc59643206a123"
 
-		$digitain_key = "sampledigitainkey";
+		$digitain_key = "P5rWDliAmIYWKq6HsIPbyx33v2pkZq7l";
 	    $operator_id = $operatorId;
 	    $time_stamp = $timestamp;
 	    $message = $digitain_key.$operator_id.$time_stamp;
@@ -43,8 +43,8 @@ class DigitainController extends Controller
 
 
 	public function createSignature($timestamp){
-		$digitain_key = "sampledigitainkey";
-	    $operator_id = 111; /* STATIC FOR NOW */
+		$digitain_key = "P5rWDliAmIYWKq6HsIPbyx33v2pkZq7l";
+	    $operator_id = 'D233911A'; /* STATIC FOR NOW */
 	    $time_stamp = $timestamp;
 	    $message = $digitain_key.$operator_id.$time_stamp;
 	    $hmac = hash_hmac("sha256", $message, $digitain_key);
@@ -62,10 +62,12 @@ class DigitainController extends Controller
 
 
 
-    public function authPlayer(Request $request)
+    public function authenticate(Request $request)
     {
 
 		$json_data = json_decode(file_get_contents("php://input"), true);
+
+		Helper::saveLog('authentication', 2, file_get_contents("php://input"), 'RiANDRAFT');
 
 		$response = [
 						"errorcode" =>  "INVALID_TOKEN",
@@ -74,7 +76,7 @@ class DigitainController extends Controller
 					];
 		
 		if ($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])) {
-			
+
 		$player_token = $json_data["token"];
 
 		$client_details = DB::table("clients AS c")
@@ -85,6 +87,7 @@ class DigitainController extends Controller
 						 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
 						 ->where("pst.player_token", $player_token)
 						 ->first();
+
 
 		if ($client_details) {
 			$client = new Client([
@@ -114,21 +117,28 @@ class DigitainController extends Controller
 
 			// $time_formatted = $this->getTimestamp($client_response->playerdetailsresponse->daterequest);
 
-			$response = [
-				"timestamp" => date('YmdHisms'),
-				"signature" => $this->createSignature(date('YmdHisms')),
-				"errorCode" => 1,
-				"playerId" => $client_response->playerdetailsresponse->accountid,
-				"userName" => $client_response->playerdetailsresponse->accountname,
-				"currencyId" => $client_response->playerdetailsresponse->currencycode,
-				"balance" => $client_response->playerdetailsresponse->balance,
-				"birthDate" => $client_response->playerdetailsresponse->birthday,
-				"firstName" => $client_response->playerdetailsresponse->firstname,
-				"lastName" => $client_response->playerdetailsresponse->lastname,
-				"gender" => $client_response->playerdetailsresponse->gender,
-				"email" => $client_response->playerdetailsresponse->email,
-				"isReal" => false
-			];
+			// dd($client_response->playerdetailsresponse->status->code);
+
+			if(isset($client_response->playerdetailsresponse->status->code) &&
+				     $client_response->playerdetailsresponse->status->code == "200"){
+
+				$response = [
+					"timestamp" => date('YmdHisms'),
+					"signature" => $this->createSignature(date('YmdHisms')),
+					"errorCode" => 1,
+					"playerId" => $client_response->playerdetailsresponse->accountid,
+					"userName" => $client_response->playerdetailsresponse->accountname,
+					"currencyId" => $client_response->playerdetailsresponse->currencycode,
+					"balance" => $client_response->playerdetailsresponse->balance,
+					"birthDate" => $client_response->playerdetailsresponse->birthday,
+					"firstName" => $client_response->playerdetailsresponse->firstname,
+					"lastName" => $client_response->playerdetailsresponse->lastname,
+					"gender" => $client_response->playerdetailsresponse->gender,
+					"email" => $client_response->playerdetailsresponse->email,
+					"isReal" => false
+				];
+
+			}
 
 		}
 
@@ -217,10 +227,10 @@ class DigitainController extends Controller
 
 		}
 
-		echo json_encode($response);
+			echo json_encode($response);
 
 		}else{
-			return $response;
+			echo json_encode($response);
 		}
 	}
 
