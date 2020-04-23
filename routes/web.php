@@ -139,3 +139,5 @@ $app->post('qaicash/payout','Payments\PaymentGatewayController@makePayoutQAICASH
 $app->post('qaicash/payout/approve','Payments\PaymentGatewayController@approvedPayoutQAICASH');
 $app->post('qaicash/payout/reject','Payments\PaymentGatewayController@rejectPayoutQAICASH');
 ///CoinsPayment Controller
+///new payment gateways api
+$app->post('payment/launchurl','Payments\PaymentLobbyController@paymentLobbyLaunchUrl');
