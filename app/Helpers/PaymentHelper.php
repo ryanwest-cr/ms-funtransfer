@@ -224,9 +224,10 @@ class PaymentHelper
     }
 
     //end
-    public static function payTransactions($token_id,$purchase_id,$payment_id,$amount,$entry_id,$trans_type_id,$trans_update_url,$status_id){
+    public static function payTransactions($token_id,$order_id,$purchase_id,$payment_id,$amount,$entry_id,$trans_type_id,$trans_update_url,$status_id){
         $pay_transaction = new PayTransaction();
         $pay_transaction->token_id = $token_id;
+        $pay_transaction->orderId = $order_id;
         $pay_transaction->identification_id=$purchase_id;
         $pay_transaction->payment_id=$payment_id;
         $pay_transaction->amount=$amount;
@@ -234,6 +235,13 @@ class PaymentHelper
         $pay_transaction->trans_type_id=$trans_type_id;
         $pay_transaction->status_id=$status_id;
         $pay_transaction->trans_update_url=$trans_update_url;
+        $pay_transaction->save();
+        return $pay_transaction;
+    }
+    public static function updateTransaction($data){
+        $pay_transaction = PayTransaction::where("token_id",$data["token_id"])->first();
+        $pay_transaction->identification_id=$data["purchase_id"];
+        $pay_transaction->status_id = $data["status_id"];
         $pay_transaction->save();
         return $pay_transaction;
     }

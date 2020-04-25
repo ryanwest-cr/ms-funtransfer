@@ -86,7 +86,7 @@ class PaymentGatewayController extends Controller
                                 $finalcurrency =((float)$request->input("amount")*$currency)/(float)$dgcurrencyrate;
                                 $cointransaction = PaymentHelper::coinspayment($finalcurrency,$request->input("dgcurrency"));
                                 if($cointransaction){
-                                    $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),2,1,$request->input("trans_update_url"),6);
+                                    $transaction = PaymentHelper::payTransactions($token_player_id,null,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),2,1,$request->input("trans_update_url"),6);
                                     $trans_msg = array("pay_transaction_id"=>$transaction->id,
                                                         "txn_id"=> $cointransaction["txn_id"],
                                                         "digi_currency" =>$request->input("dgcurrency"),
@@ -105,7 +105,7 @@ class PaymentGatewayController extends Controller
                             if($request->has("cardnumber")&&$request->has("amount")){
                                 $vprica_trans = PaymentHelper::vprica($request->input("cardnumber"),$request->input("amount"));
                                 if($vprica_trans){
-                                    return PaymentHelper::payTransactions($token_player_id,$vprica_trans["purchase_id"],3,$vprica_trans["purchase_amount"],2,1,$request->input("trans_update_url"),6);
+                                    return PaymentHelper::payTransactions($token_player_id,null,$vprica_trans["purchase_id"],3,$vprica_trans["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                                 }
                                 else{
                                     return array("error"=>"Transaction Cannot be made");
@@ -133,7 +133,7 @@ class PaymentGatewayController extends Controller
                                 $amount,
                                 "USD");
                                 if(!empty($paymongo_trans)&&isset($paymongo_trans["purchase_id"])){
-                                    return PaymentHelper::payTransactions($token_player_id,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],2,1,$request->input("trans_update_url"),5);
+                                    return PaymentHelper::payTransactions($token_player_id,null,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],2,1,$request->input("trans_update_url"),5);
 
                                     // return 'Success';
                                 }
@@ -185,7 +185,7 @@ class PaymentGatewayController extends Controller
                             $finalcurrency =((float)$request->input("amount")*$currency)/(float)$dgcurrencyrate;
                             $cointransaction = PaymentHelper::coinspayment($finalcurrency,$request->input("dgcurrency"));
                             if($cointransaction){
-                                $transaction = PaymentHelper::payTransactions($token_player_id,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),2,1,$request->input("trans_update_url"),6);
+                                $transaction = PaymentHelper::payTransactions($token_player_id,null,$cointransaction["purchaseid"],1,number_format($cointransaction["purchase_amount"], 2, '.', ''),2,1,$request->input("trans_update_url"),6);
                                 $trans_msg = array("pay_transaction_id"=>$transaction->id,
                                                     "txn_id"=> $cointransaction["txn_id"],
                                                     "digi_currency" =>$request->input("dgcurrency"),
@@ -204,7 +204,7 @@ class PaymentGatewayController extends Controller
                         if($request->has("cardnumber")&&$request->has("amount")){
                             $vprica_trans = PaymentHelper::vprica($request->input("cardnumber"),$request->input("amount"));
                             if($vprica_trans){
-                                return PaymentHelper::payTransactions($token_player_id,$vprica_trans["purchase_id"],3,$vprica_trans["purchase_amount"],2,1,$request->input("trans_update_url"),6);
+                                return PaymentHelper::payTransactions($token_player_id,null,$vprica_trans["purchase_id"],3,$vprica_trans["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                             }
                             else{
                                 return array("error"=>"Transaction Cannot be made");
@@ -228,7 +228,7 @@ class PaymentGatewayController extends Controller
                             $amount,
                             "USD");
                             if(!empty($paymongo_trans)&&isset($paymongo_trans["purchase_id"])){
-                                return PaymentHelper::payTransactions($token_player_id,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],2,1,$request->input("trans_update_url"),5);
+                                return PaymentHelper::payTransactions($token_player_id,null,$paymongo_trans["purchase_id"],2,$paymongo_trans["equivalent_point"],2,1,$request->input("trans_update_url"),5);
                             }
                             else{
                                 return array("error"=>"Card is invalid please check the input");
@@ -358,7 +358,7 @@ class PaymentGatewayController extends Controller
                            $token_player_id = $token_player_id; ///please change here the @alyer token id
                            $qaicash_transaction = PaymentHelper::QAICASHMakePayout($request->input("amount"),$request->input("currency"),$request->input("payout_method"),$request->input("witdrawer_UId")
                                                                         ,$request->input("witdrawer_email"),$request->input("witdrawer_name"),$request->input("redirectUrl"));
-                            $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["withdrawal_id"],9,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
+                            $payment_trans = PaymentHelper::payTransactions($token_player_id,null,$qaicash_transaction["withdrawal_id"],9,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
                             if($payment_trans){
                                 return array(
                                     "transaction_id"=>$payment_trans["id"],
@@ -405,7 +405,7 @@ class PaymentGatewayController extends Controller
                                $token_player_id = $last_player_id; ///please change here the @alyer token id
                                $qaicash_transaction = PaymentHelper::QAICASHMakePayout($request->input("amount"),$request->input("currency"),$request->input("payout_method"),$request->input("witdrawer_UId")
                                                                             ,$request->input("witdrawer_email"),$request->input("witdrawer_name"),$request->input("redirectUrl"));
-                                $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["withdrawal_id"],9,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
+                                $payment_trans = PaymentHelper::payTransactions($token_player_id,null,$qaicash_transaction["withdrawal_id"],9,$qaicash_transaction["withdrawal_amount"],1,2,$request->input("trans_update_url"),6);
                                 if($payment_trans){
                                     return array(
                                         "transaction_id"=>$payment_trans["id"],
@@ -466,7 +466,7 @@ class PaymentGatewayController extends Controller
                    $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$request->input("depositor_UId")
                                                                 ,$request->input("depositor_email"),$request->input("depositor_name"),$request->input("redirectUrl"));
 
-                    $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],9,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
+                    $payment_trans = PaymentHelper::payTransactions($token_player_id,null,$qaicash_transaction["purchase_id"],9,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                     if($payment_trans){
                         return array(
                             "transaction_id"=>$payment_trans["id"],
@@ -510,7 +510,7 @@ class PaymentGatewayController extends Controller
                    $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$request->input("depositor_UId")
                                                                 ,$request->input("depositor_email"),$request->input("depositor_name"),$request->input("redirectUrl"));
 
-                   $payment_trans = PaymentHelper::payTransactions($token_player_id,$qaicash_transaction["purchase_id"],9,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
+                   $payment_trans = PaymentHelper::payTransactions($token_player_id,null,$qaicash_transaction["purchase_id"],9,$qaicash_transaction["purchase_amount"],2,1,$request->input("trans_update_url"),6);
                    if($payment_trans){
                     return array(
                         "transaction_id"=>$payment_trans["id"],
