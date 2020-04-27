@@ -23,14 +23,31 @@ class PaymentHelper
                 'grant_type' => 'password',
                 'client_id' => '3',
                 'client_secret' => 'uAthPzJR6lk9hrgPljMUjzGHjnPvtT2Ps6eLHRv7',
-                'username' => 'stagingmiddleware@betrnk.games',
-                'password' => 'staging123',
+                'username' => 'd10627627@urhen.com',
+                'password' => 'w34KM)!$#',
                 'scope' => '*',
             ],
         ]);
 
         return json_decode((string) $response->getBody(), true)["access_token"];
     }
+    public static function ebancoConnectTo(){
+        $http = new Client();
+ 
+          $response = $http->post('https://e-banco.net/oauth/token', [
+            'form_params' => [
+              'grant_type' => 'password',
+               'client_id' => '5',
+               'client_secret' => 'o6xxbH3bYbTcZOIcrLqRx0YVLDxhUHD28G03cfcr',
+               'username' => 'mychan@ash.gg',
+               'password' => 'charoot1223',
+               'scope' => '*',
+             ],
+        ]);
+ 
+        return json_decode((string) $response->getBody(), true)["access_token"];
+ 
+     }
     public static function paymongo($cardnumber,$exp_year,$exp_month,$cvc,$amount,$currency){
 
         $http = new Client();
@@ -95,6 +112,21 @@ class PaymentHelper
             ]
         ]);
         return json_decode((string) $response->getBody(), true);
+    }
+    public static function ebanco($amount,$bankname){
+            $http = new Client();
+            $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
+               'headers' =>[
+                   'Authorization' => 'Bearer '.PaymentHelper::ebancoConnectTo(),
+                   'Accept'     => 'application/json' 
+               ],
+               'form_params' => [
+                          'amount' => $amount,
+                          'bankname' => $bankname
+                       ],
+            ]);
+
+            return json_decode((string) $response->getBody(), true);
     }
     public static function currency(){
         $client = new Client([
