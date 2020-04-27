@@ -23,14 +23,31 @@ class PaymentHelper
                 'grant_type' => 'password',
                 'client_id' => '3',
                 'client_secret' => 'uAthPzJR6lk9hrgPljMUjzGHjnPvtT2Ps6eLHRv7',
-                'username' => 'stagingmiddleware@betrnk.games',
-                'password' => 'staging123',
+                'username' => 'd10627627@urhen.com',
+                'password' => 'w34KM)!$#',
                 'scope' => '*',
             ],
         ]);
 
         return json_decode((string) $response->getBody(), true)["access_token"];
     }
+    public static function ebancoConnectTo(){
+        $http = new Client();
+ 
+          $response = $http->post('https://e-banco.net/oauth/token', [
+            'form_params' => [
+              'grant_type' => 'password',
+               'client_id' => '5',
+               'client_secret' => 'o6xxbH3bYbTcZOIcrLqRx0YVLDxhUHD28G03cfcr',
+               'username' => 'mychan@ash.gg',
+               'password' => 'charoot1223',
+               'scope' => '*',
+             ],
+        ]);
+ 
+        return json_decode((string) $response->getBody(), true)["access_token"];
+ 
+     }
     public static function paymongo($cardnumber,$exp_year,$exp_month,$cvc,$amount,$currency){
 
         $http = new Client();
@@ -95,6 +112,21 @@ class PaymentHelper
             ]
         ]);
         return json_decode((string) $response->getBody(), true);
+    }
+    public static function ebanco($amount,$bankname){
+            $http = new Client();
+            $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
+               'headers' =>[
+                   'Authorization' => 'Bearer '.PaymentHelper::ebancoConnectTo(),
+                   'Accept'     => 'application/json' 
+               ],
+               'form_params' => [
+                          'amount' => $amount,
+                          'bankname' => $bankname
+                       ],
+            ]);
+
+            return json_decode((string) $response->getBody(), true);
     }
     public static function currency(){
         $client = new Client([
@@ -224,9 +256,10 @@ class PaymentHelper
     }
 
     //end
-    public static function payTransactions($token_id,$purchase_id,$payment_id,$amount,$entry_id,$trans_type_id,$trans_update_url,$status_id){
+    public static function payTransactions($token_id,$order_id,$purchase_id,$payment_id,$amount,$entry_id,$trans_type_id,$trans_update_url,$status_id){
         $pay_transaction = new PayTransaction();
         $pay_transaction->token_id = $token_id;
+        $pay_transaction->orderId = $order_id;
         $pay_transaction->identification_id=$purchase_id;
         $pay_transaction->payment_id=$payment_id;
         $pay_transaction->amount=$amount;
@@ -234,6 +267,13 @@ class PaymentHelper
         $pay_transaction->trans_type_id=$trans_type_id;
         $pay_transaction->status_id=$status_id;
         $pay_transaction->trans_update_url=$trans_update_url;
+        $pay_transaction->save();
+        return $pay_transaction;
+    }
+    public static function updateTransaction($data){
+        $pay_transaction = PayTransaction::where("token_id",$data["token_id"])->first();
+        $pay_transaction->identification_id=$data["purchase_id"];
+        $pay_transaction->status_id = $data["status_id"];
         $pay_transaction->save();
         return $pay_transaction;
     }
