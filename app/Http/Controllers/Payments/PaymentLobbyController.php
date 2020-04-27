@@ -13,8 +13,8 @@ use DB;
 class PaymentLobbyController extends Controller
 {
     //
-    //private $payment_lobby_url = "https://pay-test.betrnk.games";
-    private $payment_lobby_url = "http://localhost:8000";
+    private $payment_lobby_url = "https://pay-test.betrnk.games";
+    //private $payment_lobby_url = "http://localhost:8000";
     public function paymentLobbyLaunchUrl(Request $request){
         if($request->has("callBackUrl")
             &&$request->has("exitUrl")
