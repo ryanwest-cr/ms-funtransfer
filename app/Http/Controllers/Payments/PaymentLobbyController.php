@@ -416,5 +416,48 @@ class PaymentLobbyController extends Controller
 		return $result;
 
     }
+    public function getPaymentMethod(Request $request){
+        $data = array();
+        if($request->has("client_id")){
+            if($this->clientExist($request->client_id)){
+                $payment_methods = DB::table("payment_gateway")->get();  
+                foreach($payment_methods as $payment_method){
+                    $disabled = DB::table("client_disabled_payment")->where("client_id",$request->client_id)->where("payment_id",$payment_method->id)->first();
+                    if(!$disabled){
+                        $payment_method_to_add = array(
+                            "id" => $payment_method->id,
+                            "payment_method_name" => $payment_method->name,
+                            "payment_method_code" => $payment_method->payment_method_code,
+                        );
+                        array_push($data,$payment_method_to_add);
+                    }
+                }
+            }
+            else{
+                $response = array(
+                    "error" => "UNAUTHORIZED_CLIENT",
+                    "message" => "Invalid credential/client does not exist"
+                );
+                return response($response,403)->header('Content-Type', 'application/json');
+            }
+        }
+        else{
+            $response = array(
+                "error" => "INVALID_REQUEST",
+                "message" => "Invalid input / missing input"
+            );
+            return response($response,401)->header('Content-Type', 'application/json');
+        }
+        return $data;
+    }
+    private function clientExist($client_id){
+        $client = DB::table("clients")->where("client_id",$client_id)->first();
+        if($client){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
     
 }

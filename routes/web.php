@@ -152,3 +152,4 @@ $app->post('qaicash/payout/reject','Payments\PaymentGatewayController@rejectPayo
 $app->post('payment/launchurl','Payments\PaymentLobbyController@paymentLobbyLaunchUrl');
 $app->post('payment/portal','Payments\PaymentLobbyController@payment');
 $app->post('payment/tokencheck','Payments\PaymentLobbyController@checkTokenExist');
+$app->get('payment/list','Payments\PaymentLobbyController@getPaymentMethod');
