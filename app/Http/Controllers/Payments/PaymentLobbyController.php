@@ -450,6 +450,117 @@ class PaymentLobbyController extends Controller
         }
         return $data;
     }
+    public function payoutLobbyLaunchUrl(Request $request){
+        if($request->has("callBackUrl")
+            &&$request->has("exitUrl")
+            &&$request->has("client_id")
+            &&$request->has("player_id")
+            &&$request->has("player_username")
+            &&$request->has("amount")
+            &&$request->has("payout_method")
+            &&$request->has("payoutId")
+            &&$request->has("email")){
+                $token = substr("abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 25), 1).substr(md5(time()), 1);
+                if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token)){
+                    $payout_method_code = "";
+                    
+                    if($request->payout_method == "QAICASHPAYOUT")
+                    {
+                        /*
+                        entry type 1 = debit
+                        transaction type 2 = withdraw
+                        status 6 = pending
+                        method_id = 9 qaicash
+                        */
+                        $payout_method = "qaicashpayout";
+                        $payout_method_code = "QAICASHPAYOUT";
+                        $player_details = $this->_getClientDetails("token",$token);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("payoutId"),null,9,$request->input("amount"),1,2,$request->input("callBackUrl"),6);
+                    }
+                    else{
+                        $response = array(
+                            "error" => "INVALID_METHOD",
+                            "message" => "Invalid payout method / payout method doesnt exist"
+                        );
+                        return response($response,402)->header('Content-Type', 'application/json');
+                    }
+                    $response = array(
+                        "transaction_id" => $transaction->id,
+                        "orderId" => $transaction->orderId,
+                        "payment_method" => $payout_method_code,
+                        "url" => $this->payment_lobby_url."/".$payout_method."?payout_method=".$request->payout_method."&amount=".$request->amount."&token=".$token."&exitUrl=".$request->input("exitUrl"),
+                        "status" => "PENDING"
+                    ); 
+                    return response($response,200)->header('Content-Type', 'application/json');
+                }
+        }
+        else{
+            $response = array(
+                "error" => "INVALID_REQUEST",
+                "message" => "Invalid input / missing input"
+            );
+            return response($response,401)->header('Content-Type', 'application/json');
+        }
+    }
+    public function payout(Request $request){
+        if($request->has("payout_method")
+           &&$request->has("amount")
+           &&$request->has("token")){
+            $player_details = $this->_getClientDetails("token",$request->input("token"));
+            if($player_details){
+                if($request->input("payout_method") == "QAICASHPAYOUT"){
+                    if($request->has("amount")&&$request->has("currency")&&$request->has("qaicashpayout_method")&&$request->has("exitUrl")){
+                        $qaicash_transaction = PaymentHelper::QAICASHMakePayout($request->input("amount"),$request->input("currency"),$request->input("qaicashpayout_method"),$player_details->player_id
+                                                                ,$player_details->email,$player_details->display_name,$request->input("exitUrl"));
+                        if($qaicash_transaction){
+                            $data = array(
+                                "token_id" => $player_details->token_id,
+                                "purchase_id" => $qaicash_transaction["withdrawal_id"],
+                                "status_id" => 6
+                                );
+                            $transaction = PaymentHelper::updateTransaction($data);
+                            return array(
+                                "transaction_id"=>$transaction->id,
+                                "order_id" => $transaction->orderId,
+                                "payout_page_url"=>$qaicash_transaction["payment_page_url"],
+                                "status"=>$qaicash_transaction["status"],
+                                "currency"=>$qaicash_transaction["currency"],
+                            );
+                        }
+                    }
+                    else{
+                        $response = array(
+                            "error" => "INVALID_REQUEST",
+                            "message" => "Invalid input / missing input in qaicash"
+                        );
+                        return response($response,401)->header('Content-Type', 'application/json');
+                    }
+                }
+                else{
+                    $response = array(
+                        "error" => "INVALID_REQUEST",
+                        "message" => "Invalid Payout Method"
+                    );
+                    return response($response,401)->header('Content-Type', 'application/json');
+                }
+
+            }
+            else{
+                $response = array(
+                    "error" => "TOKEN_INVALID",
+                    "message" => "Invalid request token"
+                );
+                return response($response,401)->header('Content-Type', 'application/json');
+            }
+        }
+        else{
+            $response = array(
+                "error" => "INVALID_REQUEST",
+                "message" => "Invalid input / missing input"
+            );
+            return response($response,401)->header('Content-Type', 'application/json');
+        }
+    }
     private function clientExist($client_id){
         $client = DB::table("clients")->where("client_id",$client_id)->first();
         if($client){
