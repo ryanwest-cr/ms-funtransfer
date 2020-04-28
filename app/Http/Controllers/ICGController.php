@@ -37,29 +37,29 @@ class ICGController extends Controller
                 'Accept'     => 'application/json' 
             ]
         ]);
-        // $data = array();
-        // $games = json_decode((string) $response->getBody(), true);
-        // foreach($games["data"] as $game){
-        //     if($game["type"]=="fish"){
-        //         $type_id = 9;
-        //     }
-        //     elseif($game["type"]=="slot"){
-        //         $type_id = 1;
-        //     }
-        //     elseif($game["type"]=="card"){
-        //         $type_id = 4;
-        //     }
-        //     $game_data = array(
-        //         "game_type_id" => $type_id,
-        //         "provider_id" => 12,
-        //         "sub_provider_id" => 1,
-        //         "game_name" => $game["name"],
-        //         "icon" => $game["src"]["image_s"],
-        //         "game_code" => $game["productId"]
-        //     );
-        //     array_push($data,$game_data);
-        // }
-        // DB::table('games')->insert($data);
+       //  $data = array();
+       //  $games = json_decode((string) $response->getBody(), true);
+       //  foreach($games["data"] as $game){
+       //      if($game["type"]=="fish"){
+       //          $type_id = 9;
+       //      }
+       //      elseif($game["type"]=="slot"){
+       //          $type_id = 1;
+       //      }
+       //      elseif($game["type"]=="card"){
+       //          $type_id = 4;
+       //      }
+       //      $game_data = array(
+       //          "game_type_id" => $type_id,
+       //          "provider_id" => 12,
+       //          "sub_provider_id" => 1,
+       //     "game_name" => $game["name"],
+       //      "icon" => $game["src"]["image_s"],
+       //       "game_code" => $game["productId"]
+       //   );
+       //    array_push($data,$game_data);
+       // }
+       // DB::table('games')->insert($data);
         return json_decode((string) $response->getBody(), true);
     }
     public function gameLaunchURL(Request $request){

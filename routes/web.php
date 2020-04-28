@@ -51,6 +51,7 @@ $app->post('/api/solid/debitandcredit', 'SolidGamingController@debitAndCreditPro
 $app->post('/api/solid/rollback', 'SolidGamingController@rollbackTransaction');
 $app->post('/api/solid/endround', 'SolidGamingController@endPlayerRound');
 $app->post('/api/solid/endsession', 'SolidGamingController@endPlayerSession');
+
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
 $app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');
@@ -59,6 +60,7 @@ $app->get('/api/icgaming/playerDetails','ICGController@playerDetails');
 $app->post('/api/icgaming/bet','ICGController@betGame');
 $app->delete('/api/icgaming/bet','ICGController@cancelBetGame');
 $app->post('/api/icgaming/win','ICGController@winGame');
+
 // EDP Gaming Endpoints
 $app->post('/api/edp/gamelunch','EDPController@gameLaunchUrl');
 $app->get('/api/edp/check','EDPController@index');
