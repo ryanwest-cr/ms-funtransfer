@@ -129,3 +129,5 @@ $app->post('payment/portal','Payments\PaymentLobbyController@payment');
 $app->post('payout/portal','Payments\PaymentLobbyController@payout');
 $app->post('payment/tokencheck','Payments\PaymentLobbyController@checkTokenExist');
 $app->get('payment/list','Payments\PaymentLobbyController@getPaymentMethod');
+$app->get('payout/list','Payments\PaymentLobbyController@getPayoutMethod');
+$app->post('payment/check','Payments\PaymentLobbyController@minMaxAmountChecker');

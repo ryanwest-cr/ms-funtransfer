@@ -25,6 +25,13 @@ class PaymentLobbyController extends Controller
             &&$request->has("payment_method")
             &&$request->has("orderId")
             &&$request->has("email")){
+                if(!$this->minMaxAmountChecker($request->amount,$request->payment_method)){
+                    $response = array(
+                        "error" => "INVALID_AMOUNT",
+                        "message" => "Amount Value is Invalid"
+                    );
+                    return response($response,401)->header('Content-Type', 'application/json');
+                }
                 $token = substr("abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 25), 1).substr(md5(time()), 1);
                 if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token)){
                     $payment_method_code = "";
@@ -420,7 +427,7 @@ class PaymentLobbyController extends Controller
         $data = array();
         if($request->has("client_id")){
             if($this->clientExist($request->client_id)){
-                $payment_methods = DB::table("payment_gateway")->get();  
+                $payment_methods = DB::table("payment_gateway")->where("transaction_id",1)->get();  
                 foreach($payment_methods as $payment_method){
                     $disabled = DB::table("client_disabled_payment")->where("client_id",$request->client_id)->where("payment_id",$payment_method->id)->first();
                     if(!$disabled){
@@ -428,6 +435,40 @@ class PaymentLobbyController extends Controller
                             "id" => $payment_method->id,
                             "payment_method_name" => $payment_method->name,
                             "payment_method_code" => $payment_method->payment_method_code,
+                        );
+                        array_push($data,$payment_method_to_add);
+                    }
+                }
+            }
+            else{
+                $response = array(
+                    "error" => "UNAUTHORIZED_CLIENT",
+                    "message" => "Invalid credential/client does not exist"
+                );
+                return response($response,403)->header('Content-Type', 'application/json');
+            }
+        }
+        else{
+            $response = array(
+                "error" => "INVALID_REQUEST",
+                "message" => "Invalid input / missing input"
+            );
+            return response($response,401)->header('Content-Type', 'application/json');
+        }
+        return $data;
+    }
+    public function getPayoutMethod(Request $request){
+        $data = array();
+        if($request->has("client_id")){
+            if($this->clientExist($request->client_id)){
+                $payment_methods = DB::table("payment_gateway")->where("transaction_id",2)->get();  
+                foreach($payment_methods as $payment_method){
+                    $disabled = DB::table("client_disabled_payment")->where("client_id",$request->client_id)->where("payment_id",$payment_method->id)->first();
+                    if(!$disabled){
+                        $payment_method_to_add = array(
+                            "id" => $payment_method->id,
+                            "payout_method_name" => $payment_method->name,
+                            "payout_method_code" => $payment_method->payment_method_code,
                         );
                         array_push($data,$payment_method_to_add);
                     }
@@ -569,6 +610,13 @@ class PaymentLobbyController extends Controller
         else{
             return false;
         }
+    }
+    private function minMaxAmountChecker($amount,$method){
+        $min_max = DB::table("payment_gateway")->where("payment_method_code",$method)->first();
+        if($amount >= $min_max->min_amount && $amount <= $min_max->max_amount){
+            return true;
+        }
+        return  false;
     }
     
 }
