@@ -14,7 +14,8 @@ class PaymentLobbyController extends Controller
 {
     //
     private $payment_lobby_url = "https://pay-test.betrnk.games";
-    //private $payment_lobby_url = "http://localhost:8000";
+    // private $payment_lobby_url = 'http://middleware.freebetrnk.com/public';
+    // private $payment_lobby_url = "http://localhost:8001";
     public function paymentLobbyLaunchUrl(Request $request){
         if($request->has("callBackUrl")
             &&$request->has("exitUrl")
@@ -109,6 +110,19 @@ class PaymentLobbyController extends Controller
                         $payment_method_code = "EBANCO";
                         $player_details = $this->_getClientDetails("token",$token);
                         $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,4,$request->input("amount"),2,1,$request->input("callBackUrl"),6);
+                    }
+                    elseif($request->payment_method == "IWALLET")
+                    {
+                        /*
+                        entry type 2 = credit
+                        transaction type 1 = deposit
+                        status 6 = pending
+                        method_id = 10 IWALLET
+                        */
+                        $payment_method = "iwallet";
+                        $payment_method_code = "IWALLET";
+                        $player_details = $this->_getClientDetails("token",$token);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,10,$request->input("amount"),2,1,$request->input("callBackUrl"),6);
                     }
                     else{
                         $response = array(
@@ -303,9 +317,9 @@ class PaymentLobbyController extends Controller
                 }
                 elseif($request->input("payment_method") == "EBANCO"){
                     if($request->has("amount")&&$request->has("bank_name")&&$request->has("currency")){
-                        $currencyType = $request->input("currency");	
-			            $currency = (float)$this->getCurrencyConvertion($currencyType);
-			            $amount =((float)$request->input("amount")*$currency);                           
+                        $currencyType = $request->input("currency");    
+                        $currency = (float)$this->getCurrencyConvertion($currencyType);
+                        $amount =((float)$request->input("amount")*$currency);                           
                         $ebanco_trans = PaymentHelper::ebanco($amount,$request->input("bank_name"));
                         if($ebanco_trans){
                             $data = array(
@@ -397,30 +411,30 @@ class PaymentLobbyController extends Controller
     }
     private function _getClientDetails($type = "", $value = "") {
 
-		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
-				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
-				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
-				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
-				 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id");
-				 
-				if ($type == 'token') {
-					$query->where([
-				 		["pst.player_token", "=", $value],
-				 		["pst.status_id", "=", 1]
-				 	]);
-				}
+        $query = DB::table("clients AS c")
+                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+                 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
+                 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
+                 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
+                 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id");
+                 
+                if ($type == 'token') {
+                    $query->where([
+                        ["pst.player_token", "=", $value],
+                        ["pst.status_id", "=", 1]
+                    ]);
+                }
 
-				if ($type == 'player_id') {
-					$query->where([
-				 		["p.player_id", "=", $value],
-				 		["pst.status_id", "=", 1]
-				 	]);
-				}
+                if ($type == 'player_id') {
+                    $query->where([
+                        ["p.player_id", "=", $value],
+                        ["pst.status_id", "=", 1]
+                    ]);
+                }
 
-				 $result= $query->first();
+                 $result= $query->first();
 
-		return $result;
+        return $result;
 
     }
     public function getPaymentMethod(Request $request){
@@ -435,8 +449,6 @@ class PaymentLobbyController extends Controller
                             "id" => $payment_method->id,
                             "payment_method_name" => $payment_method->name,
                             "payment_method_code" => $payment_method->payment_method_code,
-                            "min_amount"=>$payment_method->min_amount,
-                            "max_amount"=>$payment_method->max_amount,
                         );
                         array_push($data,$payment_method_to_add);
                     }
@@ -471,8 +483,6 @@ class PaymentLobbyController extends Controller
                             "id" => $payment_method->id,
                             "payout_method_name" => $payment_method->name,
                             "payout_method_code" => $payment_method->payment_method_code,
-                            "min_amount"=>$payment_method->min_amount,
-                            "max_amount"=>$payment_method->max_amount,
                         );
                         array_push($data,$payment_method_to_add);
                     }
@@ -505,13 +515,6 @@ class PaymentLobbyController extends Controller
             &&$request->has("payout_method")
             &&$request->has("payoutId")
             &&$request->has("email")){
-                if(!$this->minMaxAmountChecker($request->amount,$request->payout_method)){
-                    $response = array(
-                        "error" => "INVALID_AMOUNT",
-                        "message" => "Amount Value is Invalid"
-                    );
-                    return response($response,401)->header('Content-Type', 'application/json');
-                }
                 $token = substr("abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 25), 1).substr(md5(time()), 1);
                 if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token)){
                     $payout_method_code = "";
