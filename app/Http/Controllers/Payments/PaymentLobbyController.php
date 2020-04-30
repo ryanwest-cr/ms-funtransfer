@@ -501,6 +501,13 @@ class PaymentLobbyController extends Controller
             &&$request->has("payout_method")
             &&$request->has("payoutId")
             &&$request->has("email")){
+                if(!$this->minMaxAmountChecker($request->amount,$request->payment_method)){
+                    $response = array(
+                        "error" => "INVALID_AMOUNT",
+                        "message" => "Amount Value is Invalid"
+                    );
+                    return response($response,401)->header('Content-Type', 'application/json');
+                }
                 $token = substr("abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 25), 1).substr(md5(time()), 1);
                 if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token)){
                     $payout_method_code = "";
