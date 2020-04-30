@@ -501,7 +501,7 @@ class PaymentLobbyController extends Controller
             &&$request->has("payout_method")
             &&$request->has("payoutId")
             &&$request->has("email")){
-                if(!$this->minMaxAmountChecker($request->amount,$request->payment_method)){
+                if(!$this->minMaxAmountChecker($request->amount,$request->payout_method)){
                     $response = array(
                         "error" => "INVALID_AMOUNT",
                         "message" => "Amount Value is Invalid"
