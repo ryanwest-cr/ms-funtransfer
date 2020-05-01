@@ -558,6 +558,7 @@ class PaymentGatewayController extends Controller
                 $response = $http->post($transaction->trans_update_url,[
                     'form_params' => [
                         'transaction_id' => $transaction->id,
+                        'orderId' => $transaction->orderId,
                         'client_player_id' => $client_player_id->client_player_id,
                         'status' => $request->status,
                         'message' => 'Your Transaction Order '.$transaction->id.'has been updated to '.$request->status,
@@ -592,12 +593,22 @@ class PaymentGatewayController extends Controller
                                     ->leftJoin("players as p","pst.player_id","=","p.player_id")
                                     ->where("pst.token_id",$transaction->token_id)
                                     ->first();
+                if($request->status == "HELD"){
+                    $data = array(
+                        "user_id" => $client_player_id->client_player_id,
+                        "order_id" => $transaction->id,
+                        "amount" => $transaction->amount,
+                        "status_id" => 7
+                    );
+                    DB::table("witdraw")->insert($data);
+                }
                 $key = $transaction->id.'|'.$client_player_id->client_player_id.'|'.$request->status;
                 $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
                 $http = new Client();
                 $response = $http->post($transaction->trans_update_url,[
                     'form_params' => [
                         'transaction_id' => $transaction->id,
+                        'payoutId' => $transaction->orderId,
                         'client_player_id' => $client_player_id->client_player_id,
                         'client_id' =>$client_player_id->client_id,
                         'status' => $request->status,
