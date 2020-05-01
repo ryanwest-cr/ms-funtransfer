@@ -131,3 +131,10 @@ $app->post('payment/tokencheck','Payments\PaymentLobbyController@checkTokenExist
 $app->get('payment/list','Payments\PaymentLobbyController@getPaymentMethod');
 $app->get('payout/list','Payments\PaymentLobbyController@getPayoutMethod');
 $app->post('payment/check','Payments\PaymentLobbyController@minMaxAmountChecker');
+
+
+// IWallet
+// $app->post('api/iwallet/makedeposit','IWalletController@makeDeposit');
+$app->post('api/iwallet/makesettlement','IWalletController@makeSettlement');
+// $app->post('api/iwallet/makepayment','IWalletController@makePayment');
+// $app->post('api/iwallet/makeremittance','IWalletController@makeRemittance');
