@@ -449,6 +449,8 @@ class PaymentLobbyController extends Controller
                             "id" => $payment_method->id,
                             "payment_method_name" => $payment_method->name,
                             "payment_method_code" => $payment_method->payment_method_code,
+                            "min_amount" => $payment_method->min_amount,
+                            "max_amount" => $payment_method->max_amount
                         );
                         array_push($data,$payment_method_to_add);
                     }
@@ -483,6 +485,8 @@ class PaymentLobbyController extends Controller
                             "id" => $payment_method->id,
                             "payout_method_name" => $payment_method->name,
                             "payout_method_code" => $payment_method->payment_method_code,
+                            "min_amount" => $payment_method->min_amount,
+                            "max_amount" => $payment_method->max_amount
                         );
                         array_push($data,$payment_method_to_add);
                     }
