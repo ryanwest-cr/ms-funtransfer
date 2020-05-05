@@ -543,10 +543,34 @@ class PaymentGatewayController extends Controller
         $key = "thisisapisecret";
         $hmac = hash_hmac("sha256",$secret,$key);
         if($hmac == $request->hmac){
-            $transaction = PayTransaction::where("identification_id",$request->identification_id)->first();
+            $payment_method_id = 0;
+            if($request->payment_method_code == "VPRICA"){
+                $payment_method_id = 3;
+            }
+            elseif($request->payment_method_code == "COINSPAYMENT"){
+                $payment_method_id = 1;
+            }
+            elseif($request->payment_method_code == "EBANCO"){
+                $payment_method_id = 4;
+            }
+            elseif($request->payment_method_code == "QAICASH"){
+                $payment_method_id = 9;
+            }
+            $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",$payment_method_id)->first();
             if($transaction){
-                $transaction->status_id=5;
-                $transaction->save();
+                if($request->status == "SUCCESS"){
+                    $transaction->status_id=5;
+                    $transaction->save();
+                }
+                elseif($request->status == "FAILED"){
+                    $transaction->status_id=3;
+                    $transaction->save();
+                }
+                elseif($request->status == "HELD"){
+                    $transaction->status_id=7;
+                    $transaction->save();
+                }
+                
                 $client_player_id = DB::table('player_session_tokens as pst')
                                     ->select("p.client_player_id","p.client_id")
                                     ->leftJoin("players as p","pst.player_id","=","p.player_id")
@@ -578,7 +602,7 @@ class PaymentGatewayController extends Controller
         $key = "thisisapisecret";
         $hmac = hash_hmac("sha256",$secret,$key);
         if($hmac == $request->hmac){
-            $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",9)->where("entry_id",1)->where("trans_type_id",2)->first();
+            $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",11)->where("entry_id",1)->where("trans_type_id",2)->first();
             if($transaction){
                 if($request->status == "SUCCESS"){
                     $transaction->status_id=5;
@@ -586,6 +610,10 @@ class PaymentGatewayController extends Controller
                 }
                 elseif($request->status == "HELD"){
                     $transaction->status_id=7;
+                    $transaction->save();
+                }
+                elseif($request->status == "FAILED"){
+                    $transaction->status_id=3;
                     $transaction->save();
                 }
                 $client_player_id = DB::table('player_session_tokens as pst')
@@ -600,7 +628,7 @@ class PaymentGatewayController extends Controller
                         "amount" => $transaction->amount,
                         "status_id" => 7
                     );
-                    DB::table("witdraw")->insert($data);
+                    DB::table("withdraw")->insert($data);
                 }
                 $key = $transaction->id.'|'.$client_player_id->client_player_id.'|'.$request->status;
                 $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
