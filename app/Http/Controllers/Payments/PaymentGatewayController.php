@@ -616,6 +616,7 @@ class PaymentGatewayController extends Controller
                     'form_params' => [
                         'transaction_id' => $transaction->id,
                         'orderId' => $transaction->orderId,
+                        'amount'=> $transaction->amount,
                         'client_player_id' => $client_player_id->client_player_id,
                         'status' => $request->status,
                         'message' => $message,
@@ -670,6 +671,7 @@ class PaymentGatewayController extends Controller
                     'form_params' => [
                         'transaction_id' => $transaction->id,
                         'payoutId' => $transaction->orderId,
+                        'amount'=> $transaction->amount,
                         'client_player_id' => $client_player_id->client_player_id,
                         'client_id' =>$client_player_id->client_id,
                         'status' => $request->status,
