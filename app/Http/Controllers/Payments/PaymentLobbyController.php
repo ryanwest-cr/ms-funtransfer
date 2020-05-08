@@ -575,6 +575,7 @@ class PaymentLobbyController extends Controller
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $qaicash_transaction["withdrawal_id"],
+                                "amount" => $qaicash_transaction["withdrawal_amount"],
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
