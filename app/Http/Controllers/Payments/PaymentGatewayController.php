@@ -651,7 +651,7 @@ class PaymentGatewayController extends Controller
                 elseif($request->status == "FAILED"){
                     $transaction->status_id=3;
                     $transaction->save();
-                    $message = "Hi! Your Qaicash Payout request with transaction number ".$transaction->id." has rejected. Maybe your account has insufficient balance. For any inconvenience, please call our Customer Service."
+                    $message = "Hi! Your Qaicash Payout request with transaction number ".$transaction->id." has rejected. Maybe your account has insufficient balance. For any inconvenience, please call our Customer Service.";
                 }
                 $client_player_id = DB::table('player_session_tokens as pst')
                                     ->select("p.client_player_id","p.client_id")
