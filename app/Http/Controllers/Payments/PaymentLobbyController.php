@@ -166,6 +166,7 @@ class PaymentLobbyController extends Controller
                             $data = array(
                             "token_id" => $player_details->token_id,
                             "purchase_id" => $paymongo_transaction["purchase_id"],
+                            "amount" => $paymongo_transaction["equivalent_point"],
                             "status_id" => 5
                             );
                             $transaction = PaymentHelper::updateTransaction($data);
@@ -236,6 +237,7 @@ class PaymentLobbyController extends Controller
                                 $data = array(
                                     "token_id" => $player_details->token_id,
                                     "purchase_id" => $cointransaction["purchaseid"],
+                                    "amount" => $cointransaction["purchase_amount"],
                                     "status_id" => 6
                                     );
                                 $transaction = PaymentHelper::updateTransaction($data);
@@ -269,6 +271,7 @@ class PaymentLobbyController extends Controller
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $qaicash_transaction["purchase_id"],
+                                "amount" => $qaicash_transaction["purchase_amount"],
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
@@ -296,6 +299,7 @@ class PaymentLobbyController extends Controller
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $vprica_trans["purchase_id"],
+                                "amount" => $vprica_trans["purchase_amount"],
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
@@ -325,6 +329,7 @@ class PaymentLobbyController extends Controller
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $ebanco_trans["deposit_id"],
+                                "amount" => $amount,
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);

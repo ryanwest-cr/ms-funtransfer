@@ -557,6 +557,39 @@ class PaymentGatewayController extends Controller
                 $payment_method_id = 9;
             }
             $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",$payment_method_id)->first();
+            $message = "";
+            if($request->payment_method_code == "VPRICA"){
+                if($request->status == "SUCCESS"){
+                    $message = "Thank you! Your Payment using VPRICA has successfully completed.";
+                }
+                elseif($request->status == "FAILED"){
+                    $message = "Hi! Your VPRICA with transaction number ".$transaction->id." has failed. Your VPRICA code number cannot be verified.";
+                }
+            }
+            elseif($request->payment_method_code == "COINSPAYMENT"){
+                if($request->status == "SUCCESS"){
+                    $message = "Thank you! Your Payment using COINPAYMENT has successfully completed.";
+                }
+                elseif($request->status == "FAILED"){
+                    $message = "Hi! Your COINPAYMENT with transaction number ".$transaction->id." has failed. The amount you deposit might not the same or you entered the wrong address.";
+                }
+            }
+            elseif($request->payment_method_code == "EBANCO"){
+                if($request->status == "SUCCESS"){
+                    $message = "Thank you! Your Payment using EBANCO has successfully completed.";
+                }
+                elseif($request->status == "FAILED"){
+                    $message = "Hi! Your e-Banco.net with transaction number ".$transaction->id." has rejected. The amount you entered and the card do not match. Please settle this problem to our Customer Service.";
+                }
+            }
+            elseif($request->payment_method_code == "QAICASH"){
+                if($request->status == "SUCCESS"){
+                    $message = "Thank you! Your Payment using QAICASH has successfully completed.";
+                }
+                elseif($request->status == "FAILED"){
+                    $message = "Hi! Your QAICASH with transaction number ".$transaction->id." has failed.";
+                }
+            }
             if($transaction){
                 if($request->status == "SUCCESS"){
                     $transaction->status_id=5;
@@ -583,9 +616,10 @@ class PaymentGatewayController extends Controller
                     'form_params' => [
                         'transaction_id' => $transaction->id,
                         'orderId' => $transaction->orderId,
+                        'amount'=> $transaction->amount,
                         'client_player_id' => $client_player_id->client_player_id,
                         'status' => $request->status,
-                        'message' => 'Your Transaction Order '.$transaction->id.'has been updated to '.$request->status,
+                        'message' => $message,
                         'AuthenticationCode' => $authenticationCode
                     ],
                 ]); 
@@ -637,6 +671,7 @@ class PaymentGatewayController extends Controller
                     'form_params' => [
                         'transaction_id' => $transaction->id,
                         'payoutId' => $transaction->orderId,
+                        'amount'=> $transaction->amount,
                         'client_player_id' => $client_player_id->client_player_id,
                         'client_id' =>$client_player_id->client_id,
                         'status' => $request->status,
