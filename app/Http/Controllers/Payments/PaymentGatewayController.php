@@ -641,14 +641,17 @@ class PaymentGatewayController extends Controller
                 if($request->status == "SUCCESS"){
                     $transaction->status_id=5;
                     $transaction->save();
+                    $message = "Thank you! Your Payout using QAICASH has successfully completed.";
                 }
                 elseif($request->status == "HELD"){
                     $transaction->status_id=7;
                     $transaction->save();
+                    $message = "Hi! Thank you for choosing Qaicash for Payout. Your request will be approved first by the management. We will notify and email you once it is approved.";
                 }
                 elseif($request->status == "FAILED"){
                     $transaction->status_id=3;
                     $transaction->save();
+                    $message = "Hi! Your Qaicash Payout request with transaction number ".$transaction->id." has rejected. Maybe your account has insufficient balance. For any inconvenience, please call our Customer Service."
                 }
                 $client_player_id = DB::table('player_session_tokens as pst')
                                     ->select("p.client_player_id","p.client_id")
@@ -675,7 +678,7 @@ class PaymentGatewayController extends Controller
                         'client_player_id' => $client_player_id->client_player_id,
                         'client_id' =>$client_player_id->client_id,
                         'status' => $request->status,
-                        'message'=> 'Your Transaction Order '.$transaction->id.'has been updated to '.$request->status,
+                        'message'=> $message,
                         'AuthenticationCode' => $authenticationCode
                     ],
                 ]); 
