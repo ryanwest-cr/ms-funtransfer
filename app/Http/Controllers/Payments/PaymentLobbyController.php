@@ -376,7 +376,7 @@ class PaymentLobbyController extends Controller
                             $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
                             $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
                             $http = new Client();
-                            $response = $http->post($transaction->trans_update_url,[
+                            $responsefromclient = $http->post($transaction->trans_update_url,[
                                 'form_params' => [
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
@@ -396,7 +396,7 @@ class PaymentLobbyController extends Controller
                                     'message' => "Hi! Thank you for choosing VPRICA. The code number and the amount you filled in will be verified first. We will send notification and email once we verify and approve your payment.",
                                     'AuthenticationCode' => $authenticationCode
                             );
-                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($response->getBody()),"VPRICA Payment Transaction");
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($responsefromclient->getBody()),"VPRICA Payment Transaction");
                             return array(
                                 "transaction_id"=>$transaction->id,
                                 "payment_method" => "VPRICA",
@@ -442,7 +442,7 @@ class PaymentLobbyController extends Controller
                             $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
                             $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
                             $http = new Client();
-                            $response = $http->post($transaction->trans_update_url,[
+                            $responsefromclient = $http->post($transaction->trans_update_url,[
                                 'form_params' => [
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
@@ -462,7 +462,7 @@ class PaymentLobbyController extends Controller
                                     'message' => "Hi! Thank you for choosing e-Banco.net. We will verify first your transaction from the bank you are choosing. We will send notification and email once we verify and approve your payment.",
                                     'AuthenticationCode' => $authenticationCode
                             );
-                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"EBANCO Payment Transaction");
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($responsefromclient->getBody()),"EBANCO Payment Transaction");
                             return array(
                                 "transaction_id"=>$transaction->id,
                                 "payment_method" => "EBANCO",
