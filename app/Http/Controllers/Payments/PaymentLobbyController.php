@@ -89,7 +89,10 @@ class PaymentLobbyController extends Controller
                         $amount_usd = $request->amount * $this->getCurrencyConvertion("JPY");
                         $player_details = $this->_getClientDetails("token",$token);
                         $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,3,$amount_usd,2,1,$request->input("callBackUrl"),6);
-                        $lang=$request->lang?$request->lang:"";
+                        $lang = "";
+                        if($request->has("lang")){
+                            $lang= $request->lang;
+                        }
                         $response = array(
                             "transaction_id" => $transaction->id,
                             "orderId" => $transaction->orderId,
@@ -134,7 +137,10 @@ class PaymentLobbyController extends Controller
                         );
                         return response($response,402)->header('Content-Type', 'application/json');
                     }
-                    $lang=$request->lang?$request->lang:"";
+                    $lang = "";
+                    if($request->has("lang")){
+                        $lang= $request->lang;
+                    }
                     $response = array(
                         "transaction_id" => $transaction->id,
                         "orderId" => $transaction->orderId,
