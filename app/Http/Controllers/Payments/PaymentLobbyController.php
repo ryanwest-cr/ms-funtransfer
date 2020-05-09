@@ -156,6 +156,13 @@ class PaymentLobbyController extends Controller
            &&$request->has("amount")
            &&$request->has("token")){
             $player_details = $this->_getClientDetails("token",$request->input("token"));
+            if($this->checkPayTransaction($player_details->token_id)){
+                $response = array(
+                    "error" => "INVALID_REQUEST",
+                    "message" => "Transaction are no longer in Payment Mode / Payment has been sent."
+                );
+                return response($response,401)->header('Content-Type', 'application/json');
+            }
             if($player_details){
                 if($request->input("payment_method")== "PAYMONGO"){
                     if($request->has("cardnumber")
@@ -699,6 +706,12 @@ class PaymentLobbyController extends Controller
     public function cancelPayTransaction(Request $request){
         $get_token_id = $this->_getClientDetails("token",$request->token);
         $deleted = PayTransaction::where("token_id",$get_token_id->token_id)->delete();
+    }
+    private function checkPayTransaction($token_id){
+        $transaction = PayTransaction::where("token_id",$token_id)->first();
+        if($transaction->identification_id){
+            return true;
+        }
     }
     
 }
