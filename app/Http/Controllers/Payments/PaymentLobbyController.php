@@ -671,6 +671,20 @@ class PaymentLobbyController extends Controller
                         $player_details = $this->_getClientDetails("token",$token);
                         $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("payoutId"),null,11,$request->input("amount"),1,2,$request->input("callBackUrl"),6);
                     }
+                    elseif($request->payout_method  == "IWALLETPAYOUT"){
+                        
+                        /*
+                        entry type 1 = debit
+                        transaction type 2 = withdraw
+                        status 6 = pending
+                        method_id = 12 iwallet payout
+                        */
+                        $payout_method = "iwalletpayout";
+                        $payout_method_code = "IWALLETPAYOUT";
+                        $player_details = $this->_getClientDetails("token",$token);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("payoutId"),null,12,$request->input("amount"),1,2,$request->input("callBackUrl"),6);           
+                        
+                    }
                     else{
                         $response = array(
                             "error" => "INVALID_METHOD",
@@ -736,6 +750,61 @@ class PaymentLobbyController extends Controller
                         $response = array(
                             "error" => "INVALID_REQUEST",
                             "message" => "Invalid input / missing input in qaicash"
+                        );
+                        return response($response,401)->header('Content-Type', 'application/json');
+                    }
+                }
+                elseif($request->input("payout_method") == "IWALLETPAYOUT"){
+
+                    if($request->has("amount")&&$request->has("currency")){
+
+                        $player_details = $this->_getClientDetails("token",$request->input("token"));
+
+                        $transaction =   DB::table('pay_transactions as pt')
+                        ->where("pt.token_id",$player_details->token_id)
+                        ->first();
+
+                        // UPDATE THE STATUS TO HELD AND ADD THE ACCOUNT_NUMBER
+                        // status_id = 7 #HELD
+                        $update_deposit = DB::table('pay_transactions')
+                            ->where('orderId', $transaction->orderId)
+                            ->where('token_id', $transaction->token_id)
+                            ->where('id', $transaction->id)
+                            ->update(
+                                array(
+                                     'status_id'=> 7,
+                                     'to_acc_number'=> $request->input("to_account")
+                        ));
+
+                        $widthdraw_table = [
+                            "user_id" => $player_details->player_id,
+                            "order_id" => $transaction->orderId,
+                            "payment_id" => $transaction->payment_id,
+                            "amount" => $transaction->amount,
+                            "status_id" => 7, 
+                        ];
+                        $data_saved = DB::table('withdraw')->insertGetId($widthdraw_table);  
+
+                        // STORE THE REQUEST TO PAY_TRANS_EXT other data for the iwallet request
+                        $pay_ext = [
+                            "pay_trans_id" => $transaction->id,
+                            "pay_body" => json_encode($request->all(), true),
+                        ];
+                        $data_saved = DB::table('pay_trans_ext')->insertGetId($pay_ext);
+
+                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->all(), true),'PENDING',"IWALLET Payout Transaction");
+
+                        return array(
+                                "transaction_id"=> $transaction->id,
+                                "order_id" => $transaction->orderId,
+                                "status"=> 'PENDING'
+                        );
+
+                    }
+                    else{
+                        $response = array(
+                            "error" => "INVALID_REQUEST",
+                            "message" => "Invalid input / missing input in iwallet"
                         );
                         return response($response,401)->header('Content-Type', 'application/json');
                     }
