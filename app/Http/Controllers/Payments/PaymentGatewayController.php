@@ -576,7 +576,7 @@ class PaymentGatewayController extends Controller
                     $message = "Hi! Your COINPAYMENT with transaction number ".$transaction->id." has failed. The amount you deposit might not the same or you entered the wrong address.";
                 }
                 elseif($request->status == "HELD"){
-                    $message = "Hi! Thank you for choosing Coinpayment.";
+                    $message = "Your Coinpayments transaction still on process.. The process will be completed for at least 10 minutes. Thank you";
                 }
             }
             elseif($request->payment_method_code == "EBANCO"){

@@ -202,18 +202,20 @@ class PaymentLobbyController extends Controller
                                     'form_params' => [
                                         'transaction_id' => $transaction->id,
                                         'order_id' => $transaction->orderId,
+                                        "amount" => $paymongo_transaction["equivalent_point"],
                                         'client_player_id' => $client_player_id->client_player_id,
                                         'status' => "SUCCESS",
-                                        'message' => 'Your Transaction Order '.$transaction->id.'has been updated to SUCCESS',
+                                        'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
                                         'AuthenticationCode' => $authenticationCode
                                     ],
                                 ]);
                                 $datatorequest = array(
                                         'transaction_id' => $transaction->id,
                                         'order_id' => $transaction->orderId,
+                                        "amount" => $paymongo_transaction["equivalent_point"],
                                         'client_player_id' => $client_player_id->client_player_id,
                                         'status' => "SUCCESS",
-                                        'message' => 'Your Transaction Order '.$transaction->id.'has been updated to SUCCESS',
+                                        'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
                                         'AuthenticationCode' => $authenticationCode
                                 );
                                 PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction"); 
@@ -311,7 +313,31 @@ class PaymentLobbyController extends Controller
                                 "status"=>$qaicash_transaction["status"],
                                 "currency"=>$qaicash_transaction["currency"],
                             );
-                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"QAICASH Payment Transaction");
+                            $status="HELD";
+                            $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
+                            $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
+                            $http = new Client();
+                            $responsefromclient = $http->post($transaction->trans_update_url,[
+                                'form_params' => [
+                                    'transaction_id' => $transaction->id,
+                                    'orderId' => $transaction->orderId,
+                                    'amount'=> $transaction->amount,
+                                    'client_player_id' => $player_details->player_id,
+                                    'status' => $status,
+                                    'message' => "Hi! Thank you for choosing Qaicash for Payment. Your request will be approved first by the management. We will notify and email you once it is approved.",
+                                    'AuthenticationCode' => $authenticationCode
+                                ],
+                            ]);
+                            $requesttoclient = array(
+                                    'transaction_id' => $transaction->id,
+                                    'orderId' => $transaction->orderId,
+                                    'amount'=> $transaction->amount,
+                                    'client_player_id' => $player_details->player_id,
+                                    'status' => $status,
+                                    'message' => "Hi! Thank you for choosing Qaicash for Payment. Your request will be approved first by the management. We will notify and email you once it is approved.",
+                                    'AuthenticationCode' => $authenticationCode
+                            );
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($responsefromclient->getBody()),"QAICASH Payment Transaction");
                             return array(
                                 "transaction_id"=>$transaction->id,
                                 "order_id" => $transaction->orderId,
@@ -411,6 +437,30 @@ class PaymentLobbyController extends Controller
                                 "bank_branch_name"=>$ebanco_trans["bank_branch_name"],
                                 "deposit_amount"=>$ebanco_trans["deposit_amount"],
                                 "status"=>$ebanco_trans["status"],
+                            );
+                            $status="HELD";
+                            $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
+                            $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
+                            $http = new Client();
+                            $response = $http->post($transaction->trans_update_url,[
+                                'form_params' => [
+                                    'transaction_id' => $transaction->id,
+                                    'orderId' => $transaction->orderId,
+                                    'amount'=> $transaction->amount,
+                                    'client_player_id' => $player_details->player_id,
+                                    'status' => $status,
+                                    'message' => "Hi! Thank you for choosing e-Banco.net. We will verify first your transaction from the bank you are choosing. We will send notification and email once we verify and approve your payment.",
+                                    'AuthenticationCode' => $authenticationCode
+                                ],
+                            ]);
+                            $requesttoclient = array(
+                                    'transaction_id' => $transaction->id,
+                                    'orderId' => $transaction->orderId,
+                                    'amount'=> $transaction->amount,
+                                    'client_player_id' => $player_details->player_id,
+                                    'status' => $status,
+                                    'message' => "Hi! Thank you for choosing e-Banco.net. We will verify first your transaction from the bank you are choosing. We will send notification and email once we verify and approve your payment.",
+                                    'AuthenticationCode' => $authenticationCode
                             );
                             PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"EBANCO Payment Transaction");
                             return array(
