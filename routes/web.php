@@ -138,4 +138,4 @@ $app->post('payment/cancel','Payments\PaymentLobbyController@cancelPayTransactio
 // $app->post('api/iwallet/makedeposit','IWalletController@makeDeposit');
 $app->post('api/iwallet/makesettlement','IWalletController@makeSettlement');
 // $app->post('api/iwallet/makepayment','IWalletController@makePayment');
-// $app->post('api/iwallet/makeremittance','IWalletController@makeRemittance');
+$app->post('api/iwallet/makeremittance','IWalletController@makeRemittance');
