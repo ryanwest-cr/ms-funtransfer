@@ -201,7 +201,7 @@ class PaymentLobbyController extends Controller
                                 $response_client = $http->post($transaction->trans_update_url,[
                                     'form_params' => [
                                         'transaction_id' => $transaction->id,
-                                        'order_id' => $transaction->orderId,
+                                        'orderId' => $transaction->orderId,
                                         "amount" => $paymongo_transaction["equivalent_point"],
                                         'client_player_id' => $client_player_id->client_player_id,
                                         'status' => "SUCCESS",
@@ -211,7 +211,7 @@ class PaymentLobbyController extends Controller
                                 ]);
                                 $datatorequest = array(
                                         'transaction_id' => $transaction->id,
-                                        'order_id' => $transaction->orderId,
+                                        'orderId' => $transaction->orderId,
                                         "amount" => $paymongo_transaction["equivalent_point"],
                                         'client_player_id' => $client_player_id->client_player_id,
                                         'status' => "SUCCESS",
