@@ -339,7 +339,7 @@ class PaymentLobbyController extends Controller
                                 "status" => "HELD"
                             );
                             $status="HELD";
-                            $key = $transaction->id.'|'.$player_details->client_player_id.'|'.$status;
+                            $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
                             $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
                             $http = new Client();
                             $response = $http->post($transaction->trans_update_url,[
@@ -347,7 +347,7 @@ class PaymentLobbyController extends Controller
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
                                     'amount'=> $transaction->amount,
-                                    'client_player_id' => $player_details->client_player_id,
+                                    'client_player_id' => $player_details->player_id,
                                     'status' => $status,
                                     'message' => "Hi! Thank you for choosing VPRICA. The code number and the amount you filled in will be verified first. We will send notification and email once we verify and approve your payment.",
                                     'AuthenticationCode' => $authenticationCode
@@ -357,7 +357,7 @@ class PaymentLobbyController extends Controller
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
                                     'amount'=> $transaction->amount,
-                                    'client_player_id' => $player_details->client_player_id,
+                                    'client_player_id' => $player_details->player_id,
                                     'status' => $status,
                                     'message' => "Hi! Thank you for choosing VPRICA. The code number and the amount you filled in will be verified first. We will send notification and email once we verify and approve your payment.",
                                     'AuthenticationCode' => $authenticationCode
