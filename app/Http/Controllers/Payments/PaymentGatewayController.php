@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use App\PaymentGateway;
 use App\Helpers\PaymentHelper;
 use App\PayTransaction;
+use App\PayTransactionLogs;
 use DB;
 use GuzzleHttp\Client;
+
 class PaymentGatewayController extends Controller
 {
 	//
@@ -622,7 +624,17 @@ class PaymentGatewayController extends Controller
                         'message' => $message,
                         'AuthenticationCode' => $authenticationCode
                     ],
-                ]); 
+                ]);
+                $request_to_client = array(
+                        'transaction_id' => $transaction->id,
+                        'orderId' => $transaction->orderId,
+                        'amount'=> $transaction->amount,
+                        'client_player_id' => $client_player_id->client_player_id,
+                        'status' => $request->status,
+                        'message' => $message,
+                        'AuthenticationCode' => $authenticationCode
+                );
+                PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request_to_client),json_encode($response->getBody()),"Payment Update Transaction"); 
                 return json_decode((string) $response->getBody(), true);
             }
             else{
@@ -681,7 +693,18 @@ class PaymentGatewayController extends Controller
                         'message'=> $message,
                         'AuthenticationCode' => $authenticationCode
                     ],
-                ]); 
+                ]);
+                $request_to_client = array(
+                        'transaction_id' => $transaction->id,
+                        'payoutId' => $transaction->orderId,
+                        'amount'=> $transaction->amount,
+                        'client_player_id' => $client_player_id->client_player_id,
+                        'client_id' =>$client_player_id->client_id,
+                        'status' => $request->status,
+                        'message'=> $message,
+                        'AuthenticationCode' => $authenticationCode
+                );
+                PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request),json_encode($response->getBody()),"Payout Update Transaction"); 
                 return json_decode((string) $response->getBody(), true);
             }
             else{
@@ -690,8 +713,4 @@ class PaymentGatewayController extends Controller
         }
         return array("error"=>"invalid authentication message");
     }
-
-
-
-
 }

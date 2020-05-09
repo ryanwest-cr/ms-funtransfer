@@ -3,6 +3,7 @@ namespace App\Helpers;
 use DB;
 use GuzzleHttp\Client;
 use App\PayTransaction;
+use App\PayTransactionLogs;
 class PaymentHelper
 {
     public static function connectTo(){
@@ -277,5 +278,13 @@ class PaymentHelper
         $pay_transaction->amount=$data["amount"];
         $pay_transaction->save();
         return $pay_transaction;
+    }
+    public static function savePayTransactionLogs($transaction_id,$request,$response,$transaction_log_type){
+        $pay_trasaction_log = new PayTransactionLogs();
+        $pay_trasaction_log->transaction_id = $transaction_id;
+        $pay_trasaction_log->request = $request;
+        $pay_trasaction_log->response = $response;
+        $pay_trasaction_log->transaction_log_type = $transaction_log_type;
+        $pay_trasaction_log->save();
     }
 }
