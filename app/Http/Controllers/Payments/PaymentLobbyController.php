@@ -340,7 +340,7 @@ class PaymentLobbyController extends Controller
                             );
                             $status="HELD";
                             $key = $transaction->id.'|'.$player_details->client_player_id.'|'.$status;
-                            $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+                            $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
                             $http = new Client();
                             $response = $http->post($transaction->trans_update_url,[
                                 'form_params' => [
