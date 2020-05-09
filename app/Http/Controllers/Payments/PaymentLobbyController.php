@@ -669,7 +669,7 @@ class PaymentLobbyController extends Controller
                         $payout_method = "qaicashpayout";
                         $payout_method_code = "QAICASHPAYOUT";
                         $player_details = $this->_getClientDetails("token",$token);
-                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("payoutId"),null,9,$request->input("amount"),1,2,$request->input("callBackUrl"),6);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("payoutId"),null,11,$request->input("amount"),1,2,$request->input("callBackUrl"),6);
                     }
                     else{
                         $response = array(
