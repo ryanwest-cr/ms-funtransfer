@@ -132,7 +132,8 @@ $app->get('payment/list','Payments\PaymentLobbyController@getPaymentMethod');
 $app->get('payout/list','Payments\PaymentLobbyController@getPayoutMethod');
 $app->post('payment/check','Payments\PaymentLobbyController@minMaxAmountChecker');
 
-
+$app->post('payment/transaction','Payments\PaymentLobbyController@getPayTransactionDetails');
+$app->post('payment/cancel','Payments\PaymentLobbyController@cancelPayTransaction');
 // IWallet
 // $app->post('api/iwallet/makedeposit','IWalletController@makeDeposit');
 $app->post('api/iwallet/makesettlement','IWalletController@makeSettlement');

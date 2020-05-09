@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
+use App\PayTransaction;
 use DB;
 class PaymentLobbyController extends Controller
 {
@@ -137,7 +138,8 @@ class PaymentLobbyController extends Controller
                         "payment_method" => $payment_method_code,
                         "url" => $this->payment_lobby_url."/".$payment_method."?payment_method=".$request->payment_method."&amount=".$request->amount."&token=".$token."&exitUrl=".$request->input("exitUrl"),
                         "status" => "PENDING"
-                    ); 
+                    );
+                    PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"PaymentUrl"); 
                     return response($response,200)->header('Content-Type', 'application/json');
                 }
         }
@@ -154,6 +156,13 @@ class PaymentLobbyController extends Controller
            &&$request->has("amount")
            &&$request->has("token")){
             $player_details = $this->_getClientDetails("token",$request->input("token"));
+            if($this->checkPayTransaction($player_details->token_id)){
+                $response = array(
+                    "error" => "INVALID_REQUEST",
+                    "message" => "Transaction are no longer in Payment Mode / Payment has been sent."
+                );
+                return response($response,401)->header('Content-Type', 'application/json');
+            }
             if($player_details){
                 if($request->input("payment_method")== "PAYMONGO"){
                     if($request->has("cardnumber")
@@ -170,6 +179,7 @@ class PaymentLobbyController extends Controller
                             "status_id" => 5
                             );
                             $transaction = PaymentHelper::updateTransaction($data);
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($transaction),"PayMongo Payment Transaction");
                             try{
                                 $client_player_id = DB::table('player_session_tokens as pst')
                                     ->select("p.client_player_id","p.client_id")
@@ -188,7 +198,16 @@ class PaymentLobbyController extends Controller
                                         'message' => 'Your Transaction Order '.$transaction->id.'has been updated to SUCCESS',
                                         'AuthenticationCode' => $authenticationCode
                                     ],
-                                ]); 
+                                ]);
+                                $datatorequest = array(
+                                        'transaction_id' => $transaction->id,
+                                        'order_id' => $transaction->orderId,
+                                        'client_player_id' => $client_player_id->client_player_id,
+                                        'status' => "SUCCESS",
+                                        'message' => 'Your Transaction Order '.$transaction->id.'has been updated to SUCCESS',
+                                        'AuthenticationCode' => $authenticationCode
+                                );
+                                PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction"); 
                             }
                             catch(ClientException $e){
                                 $client_response = $e->getResponse();
@@ -251,6 +270,7 @@ class PaymentLobbyController extends Controller
                                     "httpcode" => "SUCCESS",
                                     "message" => "Coinspayment Transaction is successful"
                                 );
+                                PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"Coinpayment Payment Transaction");
                                 return response($response,200)->header('Content-Type', 'application/json');
                             }
                     }
@@ -275,6 +295,14 @@ class PaymentLobbyController extends Controller
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
+                            $response = array(
+                                "transaction_id"=>$transaction->id,
+                                "order_id" => $transaction->orderId,
+                                "payment_page_url"=>$qaicash_transaction["payment_page_url"],
+                                "status"=>$qaicash_transaction["status"],
+                                "currency"=>$qaicash_transaction["currency"],
+                            );
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"QAICASH Payment Transaction");
                             return array(
                                 "transaction_id"=>$transaction->id,
                                 "order_id" => $transaction->orderId,
@@ -303,6 +331,13 @@ class PaymentLobbyController extends Controller
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
+                            $response = array(
+                                "transaction_id"=>$transaction->id,
+                                "payment_method" => "VPRICA",
+                                "order_id" => $transaction->orderId,
+                                "status" => "PENDING"
+                            );
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"VPRICA Payment Transaction");
                             return array(
                                 "transaction_id"=>$transaction->id,
                                 "payment_method" => "VPRICA",
@@ -333,6 +368,18 @@ class PaymentLobbyController extends Controller
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
+                            $response = array(
+                                "transaction_id"=>$transaction->id,
+                                "payment_method" => "EBANCO",
+                                "deposit_id"=>$ebanco_trans["deposit_id"],
+                                "bank_name"=> $ebanco_trans["bank_name"],
+                                "bank_account_no"=>$ebanco_trans["bank_account_no"],
+                                "bank_account_name"=>$ebanco_trans["bank_account_name"],
+                                "bank_branch_name"=>$ebanco_trans["bank_branch_name"],
+                                "deposit_amount"=>$ebanco_trans["deposit_amount"],
+                                "status"=>$ebanco_trans["status"],
+                            );
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"EBANCO Payment Transaction");
                             return array(
                                 "transaction_id"=>$transaction->id,
                                 "payment_method" => "EBANCO",
@@ -554,7 +601,8 @@ class PaymentLobbyController extends Controller
                         "payment_method" => $payout_method_code,
                         "url" => $this->payment_lobby_url."/".$payout_method."?payout_method=".$request->payout_method."&amount=".$request->amount."&token=".$token."&exitUrl=".$request->input("exitUrl"),
                         "status" => "PENDING"
-                    ); 
+                    );
+                    PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"PayoutUrl"); 
                     return response($response,200)->header('Content-Type', 'application/json');
                 }
         }
@@ -584,6 +632,14 @@ class PaymentLobbyController extends Controller
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
+                            $response = array(
+                                "transaction_id"=>$transaction->id,
+                                "order_id" => $transaction->orderId,
+                                "payout_page_url"=>$qaicash_transaction["payment_page_url"],
+                                "status"=>$qaicash_transaction["status"],
+                                "currency"=>$qaicash_transaction["currency"],
+                            );
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"QAICASH Payout Transaction");
                             return array(
                                 "transaction_id"=>$transaction->id,
                                 "order_id" => $transaction->orderId,
@@ -641,6 +697,21 @@ class PaymentLobbyController extends Controller
             return true;
         }
         return  false;
+    }
+    public function getPayTransactionDetails(Request $request){
+        $get_token_id = $this->_getClientDetails("token",$request->token);
+        $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
+        return $transaction;
+    }
+    public function cancelPayTransaction(Request $request){
+        $get_token_id = $this->_getClientDetails("token",$request->token);
+        $deleted = PayTransaction::where("token_id",$get_token_id->token_id)->delete();
+    }
+    private function checkPayTransaction($token_id){
+        $transaction = PayTransaction::where("token_id",$token_id)->first();
+        if($transaction->identification_id){
+            return true;
+        }
     }
     
 }
