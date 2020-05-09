@@ -96,7 +96,8 @@ class PaymentLobbyController extends Controller
                             "usd_val" => round($amount_usd,2),
                             "url" => $this->payment_lobby_url."/".$payment_method."?payment_method=".$request->payment_method."&amount=".$request->amount."&token=".$token."&exitUrl=".$request->input("exitUrl")."&VAL=".$amount_usd,
                             "status" => "PENDING"
-                        ); 
+                        );
+                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"PaymentUrl"); 
                         return response($response,200)->header('Content-Type', 'application/json');
                     }
                     elseif($request->payment_method == "EBANCO")
@@ -335,9 +336,33 @@ class PaymentLobbyController extends Controller
                                 "transaction_id"=>$transaction->id,
                                 "payment_method" => "VPRICA",
                                 "order_id" => $transaction->orderId,
-                                "status" => "PENDING"
+                                "status" => "HELD"
                             );
-                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"VPRICA Payment Transaction");
+                            $status="HELD";
+                            $key = $transaction->id.'|'.$player_details->client_player_id.'|'.$status;
+                            $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+                            $http = new Client();
+                            $response = $http->post($transaction->trans_update_url,[
+                                'form_params' => [
+                                    'transaction_id' => $transaction->id,
+                                    'orderId' => $transaction->orderId,
+                                    'amount'=> $transaction->amount,
+                                    'client_player_id' => $player_details->client_player_id,
+                                    'status' => $status,
+                                    'message' => "Hi! Thank you for choosing VPRICA. The code number and the amount you filled in will be verified first. We will send notification and email once we verify and approve your payment.",
+                                    'AuthenticationCode' => $authenticationCode
+                                ],
+                            ]);
+                            $requesttoclient = array(
+                                    'transaction_id' => $transaction->id,
+                                    'orderId' => $transaction->orderId,
+                                    'amount'=> $transaction->amount,
+                                    'client_player_id' => $player_details->client_player_id,
+                                    'status' => $status,
+                                    'message' => "Hi! Thank you for choosing VPRICA. The code number and the amount you filled in will be verified first. We will send notification and email once we verify and approve your payment.",
+                                    'AuthenticationCode' => $authenticationCode
+                            );
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($response->getBody()),"VPRICA Payment Transaction");
                             return array(
                                 "transaction_id"=>$transaction->id,
                                 "payment_method" => "VPRICA",
