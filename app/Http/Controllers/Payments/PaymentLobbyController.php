@@ -89,12 +89,13 @@ class PaymentLobbyController extends Controller
                         $amount_usd = $request->amount * $this->getCurrencyConvertion("JPY");
                         $player_details = $this->_getClientDetails("token",$token);
                         $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,3,$amount_usd,2,1,$request->input("callBackUrl"),6);
+                        $lang=$request->lang?$request->lang:"";
                         $response = array(
                             "transaction_id" => $transaction->id,
                             "orderId" => $transaction->orderId,
                             "payment_method" => $payment_method_code,
                             "usd_val" => round($amount_usd,2),
-                            "url" => $this->payment_lobby_url."/".$payment_method."?payment_method=".$request->payment_method."&amount=".$request->amount."&token=".$token."&exitUrl=".$request->input("exitUrl")."&VAL=".$amount_usd,
+                            "url" => $this->payment_lobby_url."/".$payment_method."?payment_method=".$request->payment_method."&amount=".$request->amount."&token=".$token."&exitUrl=".$request->input("exitUrl")."&VAL=".$amount_usd."&lang=".$lang,
                             "status" => "PENDING"
                         );
                         PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"PaymentUrl"); 
@@ -133,11 +134,12 @@ class PaymentLobbyController extends Controller
                         );
                         return response($response,402)->header('Content-Type', 'application/json');
                     }
+                    $lang=$request->lang?$request->lang:"";
                     $response = array(
                         "transaction_id" => $transaction->id,
                         "orderId" => $transaction->orderId,
                         "payment_method" => $payment_method_code,
-                        "url" => $this->payment_lobby_url."/".$payment_method."?payment_method=".$request->payment_method."&amount=".$request->amount."&token=".$token."&exitUrl=".$request->input("exitUrl"),
+                        "url" => $this->payment_lobby_url."/".$payment_method."?payment_method=".$request->payment_method."&amount=".$request->amount."&token=".$token."&exitUrl=".$request->input("exitUrl")."&lang=".$lang,
                         "status" => "PENDING"
                     );
                     PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"PaymentUrl"); 
