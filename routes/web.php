@@ -37,20 +37,29 @@ $app->post('/posts/{post_id}/comments', 'PostCommentController@store');
 $app->put('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@update');
 $app->patch('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@update');
 $app->delete('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@destroy');
+
+// Request an access token
+$app->post('/oauth/access_token', function() use ($app){
+    return response()->json($app->make('oauth2-server.authorizer')->issueAccessToken());
+});
+
 // Player Details Request
 $app->post('/api/playerdetailsrequest/', 'PlayerDetailsController@show');
+
 // Fund Transfer Request
 $app->post('/api/fundtransferrequest/', 'FundTransferController@process');
+
 // Solid Gaming Endpoints
-$app->post('/api/solid/authenticate', 'SolidGamingController@authPlayer');
-$app->post('/api/solid/playerdetails', 'SolidGamingController@getPlayerDetails');
-$app->post('/api/solid/balance', 'SolidGamingController@getBalance');
-$app->post('/api/solid/debit', 'SolidGamingController@debitProcess');
-$app->post('/api/solid/credit', 'SolidGamingController@creditProcess');
-$app->post('/api/solid/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
-$app->post('/api/solid/rollback', 'SolidGamingController@rollbackTransaction');
-$app->post('/api/solid/endround', 'SolidGamingController@endPlayerRound');
-$app->post('/api/solid/endsession', 'SolidGamingController@endPlayerSession');
+$app->post('/api/solid/{brand_code}/authenticate', 'SolidGamingController@authPlayer');
+$app->post('/api/solid/{brand_code}/playerdetails', 'SolidGamingController@getPlayerDetails');
+$app->post('/api/solid/{brand_code}/balance', 'SolidGamingController@getBalance');
+$app->post('/api/solid/{brand_code}/debit', 'SolidGamingController@debitProcess');
+$app->post('/api/solid/{brand_code}/credit', 'SolidGamingController@creditProcess');
+$app->post('/api/solid/{brand_code}/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
+$app->post('/api/solid/{brand_code}/rollback', 'SolidGamingController@rollbackTransaction');
+$app->post('/api/solid/{brand_code}/endround', 'SolidGamingController@endPlayerRound');
+$app->post('/api/solid/{brand_code}/endsession', 'SolidGamingController@endPlayerSession');
+
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
 $app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');
@@ -59,6 +68,7 @@ $app->get('/api/icgaming/playerDetails','ICGController@playerDetails');
 $app->post('/api/icgaming/bet','ICGController@betGame');
 $app->delete('/api/icgaming/bet','ICGController@cancelBetGame');
 $app->post('/api/icgaming/win','ICGController@winGame');
+
 // EDP Gaming Endpoints
 $app->post('/api/edp/gamelunch','EDPController@gameLaunchUrl');
 $app->get('/api/edp/check','EDPController@index');
@@ -68,6 +78,7 @@ $app->post('/api/edp/bet','EDPController@betGame');
 $app->post('/api/edp/win','EDPController@winGame');
 $app->post('/api/edp/refund','EDPController@refundGame');
 $app->post('/api/edp/endSession','EDPController@endGameSession');
+
 // Lottery Gaming Endpoints
 $app->post('/api/lottery/authenticate', 'LotteryController@authPlayer');
 $app->post('/api/lottery/balance', 'LotteryController@getBalance'); #/
@@ -79,13 +90,16 @@ $app->post('/api/lottery/debit', 'LotteryController@debitProcess'); #/
 $app->post('/api/marriott/authenticate', 'MarriottController@authPlayer');
 $app->post('/api/marriott/balance', 'MarriottController@getBalance'); #/
 $app->post('/api/marriott/debit', 'MarriottController@debitProcess'); #/
+
 // RGS Gaming Endpoints
 $app->post('rsg/authenticate', 'DigitainController@authenticate');
+
 // Bole Gaming Endpoints
 $app->post('/api/bole/register', 'BoleGamingController@playerRegister');
 $app->post('/api/bole/logout', 'BoleGamingController@playerLogout');
 $app->post('/api/bole/wallet/player/cost', 'BoleGamingController@playerWalletCost');
 $app->post('/api/bole/wallet/player/balance', 'BoleGamingController@playerWalletBalance');
+
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
@@ -104,10 +118,7 @@ $app->post('/api/ebancodeposittransaction', 'EbancoController@depositInfo');
 $app->post('/api/ebancodeposittransactions', 'EbancoController@depositHistory'); 
 $app->post('/api/ebancoupdatedeposit', 'EbancoController@updateDeposit'); 
 $app->post('/api/ebancotest','EbancoController@testrequest');
-// Request an access token
-$app->post('/oauth/access_token', function() use ($app){
-    return response()->json($app->make('oauth2-server.authorizer')->issueAccessToken());
-});
+
 //paymentgateway routes
 $app->get('/paymentgateways','Payments\PaymentGatewayController@index');
 $app->post('/payment','Payments\PaymentGatewayController@paymentPortal');

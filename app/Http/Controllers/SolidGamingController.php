@@ -10,6 +10,10 @@ use App\Helpers\GameSubscription;
 use App\Helpers\GameRound;
 use App\Helpers\Game;
 use App\Helpers\CallParameters;
+use App\Helpers\PlayerHelper;
+use App\Helpers\TokenHelper;
+
+use App\Support\RouteParam;
 
 use Illuminate\Http\Request;
 
@@ -30,6 +34,7 @@ class SolidGamingController extends Controller
 	public function authPlayer(Request $request)
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		$client_code = RouteParam::get($request, 'brand_code');
 
 		if(!CallParameters::check_keys($json_data, 'token')) {
 				$response = [
@@ -45,8 +50,8 @@ class SolidGamingController extends Controller
 							"errormessage" => "The provided token could not be verified/Token already authenticated",
 							"httpstatus" => "404"
 						];
-
-			$client_details = $this->_getClientDetails('token', $json_data["token"]);
+			
+			$client_details = $this->_getClientDetails($client_code);
 			
 			if ($client_details) {
 				$client = new Client([
@@ -72,14 +77,20 @@ class SolidGamingController extends Controller
 				);
 
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
-				
+			
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
+					// save player details if not exist
+					$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
+
+					// save token to system if not exist
+					TokenHelper::saveIfNotExist($player_id, $json_data["token"]);
+
 					$response = [
 						"status" => "OK",
-						"brand" => "BETRNKMW",
-						"playerid" => $client_details->player_id,
+						"brand" => $client_code,
+						"playerid" => "$player_id",
 						"currency" => $client_response->playerdetailsresponse->currencycode,
 						"balance" => $client_response->playerdetailsresponse->balance,
 						"testaccount" => false,
@@ -88,6 +99,11 @@ class SolidGamingController extends Controller
 						"affiliatecode" => "",
 						"displayname" => $client_response->playerdetailsresponse->accountname,
 					];
+				}
+				else
+				{
+					// change token status to expired
+					// TokenHelper::changeStatus($player_id, 'expired');
 				}
 			}
 		}
@@ -100,6 +116,7 @@ class SolidGamingController extends Controller
 	public function getPlayerDetails(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		$client_code = RouteParam::get($request, 'brand_code');
 
 		if(!CallParameters::check_keys($json_data, 'playerid')) {
 				$response = [
@@ -116,7 +133,8 @@ class SolidGamingController extends Controller
 							"httpstatus" => "404"
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data["playerid"]);
+			$client_details = $this->_getClientDetails($client_code);
+			$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
 
 			if ($client_details) {
 				$client = new Client([
@@ -136,20 +154,20 @@ class SolidGamingController extends Controller
 								"gameid" => "",
 								"clientid" => $client_details->client_id,
 								"playerdetailsrequest" => [
-									"token" => $client_details->player_token,
+									"token" => $player_details->player_token,
 									"gamelaunch" => "true"
 								]]
 				    )]
 				);
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());			
+				$client_response = json_decode($guzzle_response->getBody()->getContents());		
 
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
 					$response = [
 						"status" => "OK",
-						"brand" => "BETRNKMW",
+						"brand" => $client_code,
 						"currency" => $client_response->playerdetailsresponse->currencycode,
 						"testaccount" => false,
 						"country" => "",
@@ -168,6 +186,7 @@ class SolidGamingController extends Controller
 	public function getBalance(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		$client_code = RouteParam::get($request, 'brand_code');
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'gamecode', 'platform')) {
 				$response = [
@@ -184,10 +203,9 @@ class SolidGamingController extends Controller
 							"httpstatus" => "404"
 						];
 
-			$player_id = $json_data["playerid"];
-
 			// Find the player and client details
-			$client_details = $this->_getClientDetails('player_id', $json_data["playerid"]);
+			$client_details = $this->_getClientDetails($client_code);
+			$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
 
 			if ($client_details) {
 
@@ -221,7 +239,7 @@ class SolidGamingController extends Controller
 									"gameid" => "",
 									"clientid" => $client_details->client_id,
 									"playerdetailsrequest" => [
-										"token" => $client_details->player_token,
+										"token" => $player_details->player_token,
 										"gamelaunch" => "false"
 									]]
 					    )]
@@ -250,7 +268,8 @@ class SolidGamingController extends Controller
 	public function debitProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		
+		$client_code = RouteParam::get($request, 'brand_code');
+
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 
 				$response = [
@@ -267,11 +286,12 @@ class SolidGamingController extends Controller
 							"httpstatus" => "404"
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data["playerid"]);
-			
-			GameRound::create($json_data['roundid'], $client_details->token_id);
-				
-			if ($client_details) {
+			$client_details = $this->_getClientDetails($client_code);
+			$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
+
+			if ($client_details && $player_details != NULL) {
+				GameRound::create($json_data['roundid'], $player_details->token_id);
+
 				// Check if the game is available for the client
 				$subscription = new GameSubscription();
 				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
@@ -314,14 +334,14 @@ class SolidGamingController extends Controller
 									  ],
 									  "fundtransferrequest" => [
 											"playerinfo" => [
-											"token" => $client_details->player_token
+											"token" => $player_details->player_token
 										],
 										"fundinfo" => [
 										      "gamesessionid" => "",
 										      "transactiontype" => "debit",
 										      "transferid" => "",
 										      "rollback" => "false",
-										      "currencycode" => $client_details->currency,
+										      "currencycode" => $player_details->currency,
 										      "amount" => "-".$json_data["amount"]
 										]
 									  ]
@@ -330,6 +350,8 @@ class SolidGamingController extends Controller
 						);
 
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
+
+						/*var_dump($client_response); die();*/
 
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "402") {
@@ -351,7 +373,7 @@ class SolidGamingController extends Controller
 								}
 
 								$game_details = Game::find($json_data["gamecode"]);
-								GameTransaction::save('debit', $json_data, $game_details, $client_details);
+								GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
 
 								$response = [
 									"status" => "OK",
@@ -373,6 +395,7 @@ class SolidGamingController extends Controller
 	public function creditProcess(Request $request)
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		$client_code = RouteParam::get($request, 'brand_code');
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 
@@ -390,9 +413,10 @@ class SolidGamingController extends Controller
 							"httpstatus" => "404"
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data["playerid"]);
-				 
-			if ($client_details) {
+			$client_details = $this->_getClientDetails($client_code);
+			$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
+
+			if ($client_details && $player_details != NULL) {
 
 				// Check if the game is available for the client
 				$subscription = new GameSubscription();
@@ -436,14 +460,14 @@ class SolidGamingController extends Controller
 									  ],
 									  "fundtransferrequest" => [
 											"playerinfo" => [
-											"token" => $client_details->player_token
+											"token" => $player_details->player_token
 										],
 										"fundinfo" => [
 										      "gamesessionid" => "",
 										      "transactiontype" => "debit",
 										      "transferid" => "",
 										      "rollback" => "false",
-										      "currencycode" => $client_details->currency,
+										      "currencycode" => $player_details->currency,
 										      "amount" => $json_data["amount"]
 										]
 									  ]
@@ -452,7 +476,7 @@ class SolidGamingController extends Controller
 						);
 
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
-						
+
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "200") {
 
@@ -463,7 +487,7 @@ class SolidGamingController extends Controller
 							}
 							
 							$game_details = Game::find($json_data["gamecode"]);
-							GameTransaction::save('credit', $json_data, $game_details, $client_details);
+							GameTransaction::save('credit', $json_data, $game_details, $client_details, $player_details);
 
 							$response = [
 								"status" => "OK",
@@ -484,7 +508,8 @@ class SolidGamingController extends Controller
 	public function debitAndCreditProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		
+		$client_code = RouteParam::get($request, 'brand_code');
+
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'betamount', 'winamount', 'roundended')) {
 
 				$response = [
@@ -501,9 +526,10 @@ class SolidGamingController extends Controller
 							"httpstatus" => "404"
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data["playerid"]);
+			$client_details = $this->_getClientDetails($client_code);
+			$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
 
-			if ($client_details) {
+			if ($client_details && $player_details != NULL) {
 				// Check if the game is available for the client
 				$subscription = new GameSubscription();
 				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
@@ -557,14 +583,14 @@ class SolidGamingController extends Controller
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $client_details->player_token
+												"token" => $player_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
 											      "transactiontype" => "debit",
 											      "transferid" => "",
 											      "rollback" => "false",
-											      "currencycode" => $client_details->currency,
+											      "currencycode" => $player_details->currency,
 											      "amount" => "-".$json_data["betamount"]
 											]
 										  ]
@@ -586,14 +612,14 @@ class SolidGamingController extends Controller
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $client_details->player_token
+												"token" => $player_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
 											      "transactiontype" => "credit",
 											      "transferid" => "",
 											      "rollback" => "false",
-											      "currencycode" => $client_details->currency,
+											      "currencycode" => $player_details->currency,
 											      "amount" => $json_data["winamount"]
 											]
 										  ]
@@ -624,11 +650,11 @@ class SolidGamingController extends Controller
 
 									$game_details = Game::find($json_data["gamecode"]);
 									$json_data["amount"] = $json_data["betamount"];
-									GameTransaction::save('debit', $json_data, $game_details, $client_details);
+									GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
 
 									$json_data["amount"] = $json_data["winamount"];
 									$json_data["reason"] = "";
-									GameTransaction::save('credit', $json_data, $game_details, $client_details);
+									GameTransaction::save('credit', $json_data, $game_details, $client_details, $player_details);
 
 									$response = [
 										"status" => "OK",
@@ -650,8 +676,9 @@ class SolidGamingController extends Controller
 	public function rollBackTransaction(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		$client_code = RouteParam::get($request, 'brand_code');
 
-		if(!CallParameters::check_keys($json_data, 'playerid', 'wallettoken', 'roundid')) {
+		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid')) {
 				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
@@ -666,9 +693,10 @@ class SolidGamingController extends Controller
 						"httpstatus" => "404"
 					];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data["playerid"]);
+			$client_details = $this->_getClientDetails($client_code);
+			$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
 
-			if ($client_details) {
+			if ($client_details && $player_details != NULL) {
 				// Check if round exist
 				if(!GameRound::find($json_data['roundid'])) {
 					
@@ -719,14 +747,14 @@ class SolidGamingController extends Controller
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $client_details->player_token
+												"token" => $player_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
 											      "transactiontype" => "credit",
 											      "transferid" => "",
 											      "rollback" => "true",
-											      "currencycode" => $client_details->currency,
+											      "currencycode" => $player_details->currency,
 											      "amount" => $game_transaction->bet_amount
 											]
 										  ]
@@ -738,7 +766,7 @@ class SolidGamingController extends Controller
 
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
-								GameTransaction::save('rollback', $json_data, $game_transaction);
+								GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $player_details);
 								
 								$response = [
 									"status" => "OK",
@@ -794,14 +822,14 @@ class SolidGamingController extends Controller
 												  ],
 												  "fundtransferrequest" => [
 														"playerinfo" => [
-														"token" => $client_details->player_token
+														"token" => $player_details->player_token
 													],
 													"fundinfo" => [
 													      "gamesessionid" => $value->round_id,
 													      "transactiontype" => "credit",
 													      "transferid" => $value->game_trans_id,
 													      "rollback" => "true",
-													      "currencycode" => $client_details->currency,
+													      "currencycode" => $player_details->currency,
 													      "amount" => $value->bet_amount
 													]
 												  ]
@@ -813,7 +841,7 @@ class SolidGamingController extends Controller
 
 									// If client returned a success response
 									if($client_response->fundtransferresponse->status->code == "200") {
-										GameTransaction::save('rollback', $json_data, $value);
+										GameTransaction::save('rollback', $json_data, $value, $client_details, $player_details);
 									}
 
 								}
@@ -841,6 +869,7 @@ class SolidGamingController extends Controller
 	public function endPlayerRound(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		$client_code = RouteParam::get($request, 'brand_code');
 
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -848,9 +877,10 @@ class SolidGamingController extends Controller
 						"httpstatus" => "404"
 					];
 
-		$client_details = $this->_getClientDetails('player_id', $json_data["playerid"]);
+		$client_details = $this->_getClientDetails($client_code);
+		$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
 
-		if ($client_details) {
+		if ($client_details && $player_details != NULL) {
 			if(!GameRound::check($json_data['roundid'])) {
 				$response = [
 					"errorcode" =>  "ROUND_ENDED",
@@ -882,7 +912,20 @@ class SolidGamingController extends Controller
 
 	}
 
-	private function _getClientDetails($type = "", $value = "") {
+	private function _getClientDetails($client_code) {
+
+		$query = DB::table("clients AS c")
+				 ->select('c.client_id', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
+				 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
+				 ->where('client_code', $client_code);
+
+				 $result= $query->first();
+
+		return $result;
+	}
+
+	/*private function _getClientDetails($type = "", $value = "") {
 
 		$query = DB::table("clients AS c")
 				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
@@ -909,7 +952,7 @@ class SolidGamingController extends Controller
 
 		return $result;
 
-	}
+	}*/
 
 
 }
