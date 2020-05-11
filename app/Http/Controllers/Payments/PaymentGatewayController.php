@@ -584,7 +584,7 @@ class PaymentGatewayController extends Controller
                     $message = "Thank you! Your Payment using EBANCO has successfully completed.";
                 }
                 elseif($request->status == "FAILED"){
-                    $message = "Hi! Your e-Banco.net with transaction number ".$transaction->id." has rejected. The amount you entered and the card do not match. Please settle this problem to our Customer Service.";
+                    $message = "Hi! Your e-Banco.net with transaction number ".$transaction->id." has rejected. We cannot verify your bank transaction. Please settle this problem to our Customer Service.";
                 }
             }
             elseif($request->payment_method_code == "QAICASH"){
