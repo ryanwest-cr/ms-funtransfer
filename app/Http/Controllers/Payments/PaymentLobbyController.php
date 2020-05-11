@@ -357,6 +357,13 @@ class PaymentLobbyController extends Controller
                 }
                 elseif($request->input("payment_method") == "VPRICA"){
                     if($request->has("cardnumber")&&$request->has("amount")){
+                        if(PaymentHelper::vpricaCardnumberExist($request->input("cardnumber"))){
+                            $response = array(
+                                "error" => "INVALID_REQUEST",
+                                "message" => "Card code already exist. "
+                            );
+                            return response($response,401)->header('Content-Type', 'application/json');
+                        }
                         $vprica_trans = PaymentHelper::vprica($request->input("cardnumber"),$request->input("amount"));
                         if($vprica_trans){
                             $data = array(
