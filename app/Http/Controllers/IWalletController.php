@@ -150,17 +150,17 @@ class IWalletController extends Controller
      * 
 	 */
 	public function makeRemittance(Request $request){
-
 	    if($request->has("user_id")
            &&$request->has("order_id")
            &&$request->has("payment_id")
            &&$request->has("status_id")){
 
 			$order_details = $this->_getOrderID($request->order_id, $request->payment_id);
-	        $transaction_ext = DB::table('pay_trans_ext')
-	        ->where("pay_trans_id", $order_details->id)
+	        $transaction_ext = DB::table('pay_transaction_logs')
+	        ->where("transaction_id", $order_details->id)
+	        ->latest()
 	        ->first();
-	        $pay_body = json_decode($transaction_ext->pay_body);
+	        $pay_body = json_decode($transaction_ext->request);
 
 			if ($transaction_ext){
 
@@ -188,28 +188,55 @@ class IWalletController extends Controller
 					        ]
 					    ]);
 
-					    // MAKE DEPOSIT TO THE ACCOUNT OWNER IWALLET
-					    $make_remittance = $this->account_number.$this->password.$this->p_num.$pay_body->amount;
-						$remi_cha1 = hash('sha256', $make_remittance);
-						$http = new Client();
-						$response = $http->post('https://test.iwl.world/api/MoneyRequest', [
-					        'form_params' => [
-					            'p_num' => $this->p_num,
-					            'signature' => $remi_cha1, 
-					            'from_account' => $this->account_number, 
-					            'to_account' => $pay_body->to_account, 
-					            'currency' => $pay_body->currency,
-					            'amount' =>  $pay_body->amount,
-					            'debit_currency' => $pay_body->currency,
-					        ]
-					    ]);
-
-						$this->_updateTransaction($order_details->orderId, $order_details->id, 5);
-                        $this->_updateWithdraw($order_details->orderId, $request->user_id, 5);
-
 					    $client_response = json_decode($response->getBody()->getContents(), true);
-					    Helper::saveLog('iwalletRemitance', 2, json_encode($response->getBody()->getContents()), 'Settled');
-					    return $client_response;
+					    if($client_response['STATUS']== 'SUCCESS'){
+
+					    	// MAKE DEPOSIT TO THE ACCOUNT OWNER IWALLET
+						    $make_remittance = $this->account_number.$this->password.$this->p_num.$pay_body->amount;
+							$remi_cha1 = hash('sha256', $make_remittance);
+							$http = new Client();
+							$response = $http->post('https://test.iwl.world/api/MoneyRequest', [
+						        'form_params' => [
+						            'p_num' => $this->p_num,
+						            'signature' => $remi_cha1, 
+						            'from_account' => $this->account_number, 
+						            'to_account' => $pay_body->to_account, 
+						            'currency' => $pay_body->currency,
+						            'amount' =>  $pay_body->amount,
+						            'debit_currency' => $pay_body->currency,
+						        ]
+						    ]);
+
+							$this->_updateTransaction($order_details->orderId, $order_details->id, 5);
+	                        $this->_updateWithdraw($order_details->orderId, $request->user_id, 5);
+
+	                        $remittance_request = [
+	                        	'p_num' => $this->p_num,
+						        'signature' => $remi_cha1, 
+						        'from_account' => $this->account_number, 
+						        'to_account' => $pay_body->to_account, 
+						        'currency' => $pay_body->currency,
+						        'amount' =>  $pay_body->amount,
+						        'debit_currency' => $pay_body->currency
+	                        ];
+
+						    $client_response = json_decode($response->getBody()->getContents(), true);
+						    Helper::saveLog('iwalletRemitance', 2, json_encode($response->getBody()->getContents()), 'Settled');
+						    PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($remittance_request, true), $response->getBody(),"IWALLET REQUEST REMITANCE");
+
+						     $message = [
+						            'STATUS' => 'SUCCESS'
+						     ];     
+						     return $message;
+
+					    }else{
+
+					    	 $message = [
+						            'STATUS' => 'FAILED'
+						     ];     
+						     return $message;
+					    }
+					    
 
 					}
 					elseif($request->status_id == 9){
@@ -226,17 +253,56 @@ class IWalletController extends Controller
 					        ]
 					    ]);
 
-                        $this->_updateTransaction($order_details->orderId, $order_details->id, 9);
-                        $this->_updateWithdraw($order_details->orderId, $request->user_id, 9);
+				        $client_response = json_decode($response->getBody()->getContents(), true);
+					    if($client_response['STATUS']== 'SUCCESS'){
+					    	 $this->_updateTransaction($order_details->orderId, $order_details->id, 9);
+                     	     $this->_updateWithdraw($order_details->orderId, $request->user_id, 9);
 
-					    $client_response = json_decode($response->getBody()->getContents(), true);
-					    return $client_response;
+						     $message = [
+						            'STATUS' => 'SUCCESS'
+						     ];     
+						     return $message;
+					    }else{
+
+					    	 $message = [
+						            'STATUS' => 'FAILED'
+						     ];     
+						     return $message;
+					    }
+
 
 					}
 					elseif($request->status_id == 6){
 
-                        $this->_updateTransaction($order_details->orderId, $order_details->id, 6);
-                        $this->_updateWithdraw($order_details->orderId, $request->user_id, 6);
+						$http = new Client();
+						$response = $http->post($order_details->trans_update_url, [
+					        'form_params' => [
+					            'transaction_id' => $order_details->id,
+                                'order_id' => $order_details->orderId,
+	                            'client_player_id' => $client_player_id->client_player_id,
+	                            'status' => "HELD",
+	                            'message' => 'Your Transaction Order '.$order_details->id.'has been updated to HELD',
+	                            'AuthenticationCode' => $authenticationCode
+					        ]
+					    ]);
+
+				        $client_response = json_decode($response->getBody()->getContents(), true);
+					    if($client_response['STATUS']== 'SUCCESS'){
+					    	 $this->_updateTransaction($order_details->orderId, $order_details->id, 6);
+                     	     $this->_updateWithdraw($order_details->orderId, $request->user_id, 6);
+                     	     
+						     $message = [
+						            'STATUS' => 'SUCCESS'
+						     ];     
+						     return $message;
+					    }else{
+
+					    	 $message = [
+						            'STATUS' => 'FAILED'
+						     ];     
+						     return $message;
+					    }
+
 
 					}
 

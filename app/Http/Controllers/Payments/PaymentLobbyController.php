@@ -16,7 +16,7 @@ class PaymentLobbyController extends Controller
     //
     private $payment_lobby_url = "https://pay-test.betrnk.games";
     // private $payment_lobby_url = 'http://middleware.freebetrnk.com/public';
-    // private $payment_lobby_url = "http://localhost:8001";
+    // private $payment_lobby_url = "http://127.0.0.1:8002";
     public function paymentLobbyLaunchUrl(Request $request){
         if($request->has("callBackUrl")
             &&$request->has("exitUrl")
@@ -660,7 +660,20 @@ class PaymentLobbyController extends Controller
             &&$request->has("amount")
             &&$request->has("payout_method")
             &&$request->has("payoutId")
+            &&$request->has("balance")
             &&$request->has("email")){
+
+                // IF REQUEST IS BIGGIR THAN AMOUNT
+                if($request->balance < $request->amount){
+                    $response = array(
+                        "status" => "FAILED",
+                        "transaction_id" => 00,
+                        "url" => $this->payment_lobby_url."/".$request->payout_method."_FAILED"."?payout_method=".$request->payout_method."&amount=".$request->amount."&exitUrl=".$request->input("exitUrl"),
+                    );
+                    return response($response,200)->header('Content-Type', 'application/json');
+                }
+
+
                 $token = substr("abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 25), 1).substr(md5(time()), 1);
                 if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token)){
                     $payout_method_code = "";
@@ -792,14 +805,7 @@ class PaymentLobbyController extends Controller
                         ];
                         $data_saved = DB::table('withdraw')->insertGetId($widthdraw_table);  
 
-                        // STORE THE REQUEST TO PAY_TRANS_EXT other data for the iwallet request
-                        $pay_ext = [
-                            "pay_trans_id" => $transaction->id,
-                            "pay_body" => json_encode($request->all(), true),
-                        ];
-                        $data_saved = DB::table('pay_trans_ext')->insertGetId($pay_ext);
-
-                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->all(), true),'PENDING',"IWALLET Payout Transaction");
+                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->all(), true),'NO RESPONSE EXPECTED',"IWALLET Payout Request");
 
                         return array(
                                 "transaction_id"=> $transaction->id,
