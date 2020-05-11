@@ -84,6 +84,21 @@ class PaymentHelper
         ]);
         return json_decode($response->getBody(),TRUE);
     }
+    public static function vpricaCardnumberExist($cardnumber){
+        $http = new Client();
+        // $response = $http->post('http://localhost:8000/api/v1/paymentportal/vprica', [
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/vprica_check_exist', [
+            'form_params' => [
+                'cardnumber' => $cardnumber,
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+        return json_decode($response->getBody(),TRUE);
+    }
+
     //coinspayment
     public static function getCoinspaymentRate(){
         $http = new Client();
