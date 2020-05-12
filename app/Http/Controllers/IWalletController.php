@@ -138,7 +138,7 @@ class IWalletController extends Controller
 
 	
 	/*	
-	 * 
+	 * # DEPRECATED / USED PAYMENTGATEWAYCONTROLLER
 	 * # FOR WITHDRAWAL/REMITTANCE
 	 * # Waiting For Approval From The Back Office
 	 * @params requests order_id,payment_id,status_id

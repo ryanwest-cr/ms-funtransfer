@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Payments;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\PaymentGateway;
+use App\Helpers\Helper;
 use App\Helpers\PaymentHelper;
 use App\PayTransaction;
 use App\PayTransactionLogs;
@@ -651,69 +652,280 @@ class PaymentGatewayController extends Controller
         $key = "thisisapisecret";
         $hmac = hash_hmac("sha256",$secret,$key);
         if($hmac == $request->hmac){
-            $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",11)->where("entry_id",1)->where("trans_type_id",2)->first();
-            if($transaction){
-                if($request->status == "SUCCESS"){
-                    $transaction->status_id=5;
-                    $transaction->save();
-                    $message = "Thank you! Your Payout using QAICASH has successfully completed.";
-                }
-                elseif($request->status == "HELD"){
-                    $transaction->status_id=7;
-                    $transaction->save();
-                    $message = "Hi! Thank you for choosing Qaicash for Payout. Your request will be approved first by the management. We will notify and email you once it is approved.";
-                }
-                elseif($request->status == "FAILED"){
-                    $transaction->status_id=3;
-                    $transaction->save();
-                    $message = "Hi! Your Qaicash Payout request with transaction number ".$transaction->id." has rejected. Maybe your account has insufficient balance. For any inconvenience, please call our Customer Service.";
-                }
-                $client_player_id = DB::table('player_session_tokens as pst')
-                                    ->select("p.client_player_id","p.client_id")
-                                    ->leftJoin("players as p","pst.player_id","=","p.player_id")
-                                    ->where("pst.token_id",$transaction->token_id)
-                                    ->first();
-                if($request->status == "HELD"){
-                    $data = array(
-                        "user_id" => $client_player_id->client_player_id,
-                        "order_id" => $transaction->id,
-                        "amount" => $transaction->amount,
-                        "status_id" => 7
+
+            if($request->payout_method_code == 'QAICASHPAYOUT')
+            {  
+
+                $transaction = PayTransaction::where("identification_id",$request->identification_id)->where("payment_id",11)->where("entry_id",1)->where("trans_type_id",2)->first();
+                if($transaction){
+                    if($request->status == "SUCCESS"){
+                        $transaction->status_id=5;
+                        $transaction->save();
+                        $message = "Thank you! Your Payout using QAICASH has successfully completed.";
+                    }
+                    elseif($request->status == "HELD"){
+                        $transaction->status_id=7;
+                        $transaction->save();
+                        $message = "Hi! Thank you for choosing Qaicash for Payout. Your request will be approved first by the management. We will notify and email you once it is approved.";
+                    }
+                    elseif($request->status == "FAILED"){
+                        $transaction->status_id=3;
+                        $transaction->save();
+                        $message = "Hi! Your Qaicash Payout request with transaction number ".$transaction->id." has rejected. Maybe your account has insufficient balance. For any inconvenience, please call our Customer Service.";
+                    }
+                    $client_player_id = DB::table('player_session_tokens as pst')
+                                        ->select("p.client_player_id","p.client_id")
+                                        ->leftJoin("players as p","pst.player_id","=","p.player_id")
+                                        ->where("pst.token_id",$transaction->token_id)
+                                        ->first();
+                    if($request->status == "HELD"){
+                        $data = array(
+                            "user_id" => $client_player_id->client_player_id,
+                            "order_id" => $transaction->id,
+                            "amount" => $transaction->amount,
+                            "status_id" => 7
+                        );
+                        DB::table("withdraw")->insert($data);
+                    }
+                    $key = $transaction->id.'|'.$client_player_id->client_player_id.'|'.$request->status;
+                    $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+                    $http = new Client();
+                    $response = $http->post($transaction->trans_update_url,[
+                        'form_params' => [
+                            'transaction_id' => $transaction->id,
+                            'payoutId' => $transaction->orderId,
+                            'amount'=> $transaction->amount,
+                            'client_player_id' => $client_player_id->client_player_id,
+                            'client_id' =>$client_player_id->client_id,
+                            'status' => $request->status,
+                            'message'=> $message,
+                            'AuthenticationCode' => $authenticationCode
+                        ],
+                    ]);
+                    $request_to_client = array(
+                            'transaction_id' => $transaction->id,
+                            'payoutId' => $transaction->orderId,
+                            'amount'=> $transaction->amount,
+                            'client_player_id' => $client_player_id->client_player_id,
+                            'client_id' =>$client_player_id->client_id,
+                            'status' => $request->status,
+                            'message'=> $message,
+                            'AuthenticationCode' => $authenticationCode
                     );
-                    DB::table("withdraw")->insert($data);
+                    PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request),json_encode($response->getBody()),"Payout Update Transaction"); 
+                    return json_decode((string) $response->getBody(), true);
                 }
-                $key = $transaction->id.'|'.$client_player_id->client_player_id.'|'.$request->status;
-                $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
-                $http = new Client();
-                $response = $http->post($transaction->trans_update_url,[
-                    'form_params' => [
-                        'transaction_id' => $transaction->id,
-                        'payoutId' => $transaction->orderId,
-                        'amount'=> $transaction->amount,
-                        'client_player_id' => $client_player_id->client_player_id,
-                        'client_id' =>$client_player_id->client_id,
-                        'status' => $request->status,
-                        'message'=> $message,
-                        'AuthenticationCode' => $authenticationCode
-                    ],
-                ]);
-                $request_to_client = array(
-                        'transaction_id' => $transaction->id,
-                        'payoutId' => $transaction->orderId,
-                        'amount'=> $transaction->amount,
-                        'client_player_id' => $client_player_id->client_player_id,
-                        'client_id' =>$client_player_id->client_id,
-                        'status' => $request->status,
-                        'message'=> $message,
-                        'AuthenticationCode' => $authenticationCode
-                );
-                PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request),json_encode($response->getBody()),"Payout Update Transaction"); 
-                return json_decode((string) $response->getBody(), true);
+                else{
+                    return array("error"=>"Transaction Did not exist");
+                }
+
             }
-            else{
-                return array("error"=>"Transaction Did not exist");
+            elseif($request->payout_method_code == 'IWALLETPAYOUT')
+            {
+                 $p_num = '10107'; // P Number
+                 $user_name = 'wellTreasureTech'; // Username
+                 $password = '06uf5z7HtQX'; // Iwallet Password
+                 $account_number = '49425435'; // Account Number Sa 
+                 $to_account = '65933077'; // Player Account No.
+
+                // dd('yourhere');
+                if($request->has("user_id")
+                   &&$request->has("order_id")
+                   &&$request->has("payment_id")
+                   &&$request->has("status_id")){
+
+                        $order_details = $this->_getOrderID($request->order_id, $request->payment_id);
+                        $transaction_ext = DB::table('pay_transaction_logs')
+                             ->where("transaction_id", $order_details->id)
+                             ->latest()
+                             ->first();
+                        $pay_body = json_decode($transaction_ext->request);
+
+                        if ($transaction_ext){
+                            $client_player_id = DB::table('player_session_tokens as pst')
+                            ->select("p.client_player_id","p.client_id")
+                            ->leftJoin("players as p","pst.player_id","=","p.player_id")
+                            ->where("p.player_id",$request->user_id)
+                            ->first();
+
+                            $key = $order_details->id.'|'.$client_player_id->client_player_id.'|SUCCESS';
+                            $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+
+
+                            if($request->status_id == 5){
+
+                                $http = new Client();
+                                $response = $http->post($order_details->trans_update_url, [
+                                    'form_params' => [
+                                        'transaction_id' => $order_details->id,
+                                        'order_id' => $order_details->orderId,
+                                        'client_player_id' => $client_player_id->client_player_id,
+                                        'status' => "SUCCESS",
+                                        'message' => 'Your Transaction Order '.$order_details->id.'has been updated to SUCCESS',
+                                        'AuthenticationCode' => $authenticationCode
+                                    ]
+                                ]);
+
+                                $client_response = json_decode($response->getBody()->getContents(), true);
+                                if($client_response['STATUS'] == 'SUCCESS'){
+
+                                    // MAKE DEPOSIT TO THE ACCOUNT OWNER IWALLET
+                                    $make_remittance = $account_number.$password.$p_num.$pay_body->amount;
+                                    $remi_cha1 = hash('sha256', $make_remittance);
+                                    $http = new Client();
+                                    $response = $http->post('https://test.iwl.world/api/MoneyRequest', [
+                                        'form_params' => [
+                                            'p_num' => $p_num,
+                                            'signature' => $remi_cha1, 
+                                            'from_account' => $account_number, 
+                                            'to_account' => $pay_body->to_account, 
+                                            'currency' => $pay_body->currency,
+                                            'amount' =>  $pay_body->amount,
+                                            'debit_currency' => $pay_body->currency,
+                                        ]
+                                    ]);
+
+                                    $this->_updateTransaction($order_details->orderId, $order_details->id, 5);
+                                    $this->_updateWithdraw($order_details->orderId, $request->user_id, 5);
+
+                                    $remittance_request = [
+                                        'p_num' => $p_num,
+                                        'signature' => $remi_cha1, 
+                                        'from_account' => $account_number, 
+                                        'to_account' => $pay_body->to_account, 
+                                        'currency' => $pay_body->currency,
+                                        'amount' =>  $pay_body->amount,
+                                        'debit_currency' => $pay_body->currency
+                                    ];
+
+                                    $client_response = json_decode($response->getBody()->getContents(), true);
+                                    Helper::saveLog('iwalletRemitance', 2, json_encode($response->getBody()->getContents()), 'Settled');
+                                    PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($remittance_request, true), $response->getBody(),"IWALLET REQUEST REMITANCE");
+
+                                     $message = [
+                                            'STATUS' => 'SUCCESS'
+                                     ];     
+                                     return $message;
+
+                                }else{
+
+                                     $message = [
+                                            'STATUS' => 'FAILED'
+                                     ];     
+                                     return $message;
+                                }
+                                
+
+                            }
+                            elseif($request->status_id == 9 || $request->status_id == 6){
+
+
+                                $failed_msg = 'Your Transaction Order '.$order_details->id.'has been updated to FAILED';
+                                $held_msg = 'Your Transaction Order '.$order_details->id.'has been updated to HELD';
+
+                                $status = $request->status_id == 9 ? 'FAILED' : 'HELD';
+                                $message = $request->status_id == 9 ? $failed_msg : $held_msg;
+                                $status_type = $request->status_id == 9 ? 9 : 6;
+
+                                $http = new Client();
+                                $response = $http->post($order_details->trans_update_url, [
+                                    'form_params' => [
+                                        'transaction_id' => $order_details->id,
+                                        'order_id' => $order_details->orderId,
+                                        'client_player_id' => $client_player_id->client_player_id,
+                                        'status' => $status,
+                                        'message' => $message,
+                                        'AuthenticationCode' => $authenticationCode
+                                    ]
+                                ]);
+
+                                $client_response = json_decode($response->getBody()->getContents(), true);
+                                if($client_response['STATUS'] == 'SUCCESS'){
+                                     $this->_updateTransaction($order_details->orderId, $order_details->id, $status_type);
+                                     $this->_updateWithdraw($order_details->orderId, $request->user_id, $status_type);
+                                     
+                                     $message = [
+                                            'STATUS' => 'SUCCESS'
+                                     ];     
+                                     return $message;
+                                }else{
+
+                                     $message = [
+                                            'STATUS' => 'FAILED'
+                                     ];     
+                                     return $message;
+                                }
+
+                            }
+
+
+                        }
+
+
+                }
+                 else{
+                    $response = array(
+                        "error" => "INVALID_REQUEST",
+                        "message" => "Invalid Iwallet input/missing input"
+                    );
+                    return response($response,401)->header('Content-Type', 'application/json');
+                }
+
+            }    
+            else
+            {
+                return array("error"=>"invalid payout");
             }
+
         }
         return array("error"=>"invalid authentication message");
     }
+
+
+
+    /*
+     * Get order_id details
+     */
+    public function _getOrderID($order_id, $payment_id)
+    {
+
+        $order_check = DB::table('pay_transactions')
+                     ->where('orderId', $order_id)
+                     ->where('payment_id', $payment_id)
+                     ->first();
+
+        return $order_check;             
+    }
+
+    /*
+     * Update Transaction Status
+     */
+    public function _updateTransaction($orderId, $id, $status)
+    {
+        $update_transaction = DB::table('pay_transactions')
+            ->where('orderId', $orderId)
+            ->where('id', $id)
+            ->update(
+            array(
+                'status_id'=> $status,
+        ));
+
+        return $update_transaction;    
+    }
+
+    /*
+     * Update Withdraw Status
+     */
+    public function _updateWithdraw($orderId, $user_id, $status)
+    {
+        $update_withdraw = DB::table('withdraw')
+            ->where('order_id', $orderId)
+            ->where('user_id', $user_id)
+            ->update(
+            array(
+                'status_id' => $status,
+        ));
+
+        return $update_withdraw;    
+    }   
 }
