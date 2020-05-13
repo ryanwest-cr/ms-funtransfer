@@ -822,8 +822,6 @@ class PaymentGatewayController extends Controller
                                 PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"IWALLETPAYOUT UPDATE TRANSACTION");
                             }
                         }
-
-
                 }
                  else{
                     $response = array(
