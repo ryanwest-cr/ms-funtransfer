@@ -828,8 +828,8 @@ class PaymentLobbyController extends Controller
                                 'AuthenticationCode' => $authenticationCode
                         );
                         $data_saved = DB::table('withdraw')->insertGetId($widthdraw_table);  
-
                         PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),$responsefromclient->getBody(),"IWALLET Payout Request");
+                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->all(), true),'NO RESPONSE EXPECTED',"IWALLET Payout Request");
 
                         return array(
                                 "transaction_id"=> $transaction->id,
