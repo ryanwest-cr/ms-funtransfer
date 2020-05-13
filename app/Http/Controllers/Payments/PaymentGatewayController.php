@@ -753,22 +753,6 @@ class PaymentGatewayController extends Controller
 
 
                             if($request->status_id == 5){
-
-                                $http = new Client();
-                                $response = $http->post($order_details->trans_update_url, [
-                                    'form_params' => [
-                                        'transaction_id' => $order_details->id,
-                                        'order_id' => $order_details->orderId,
-                                        'client_player_id' => $client_player_id->client_player_id,
-                                        'status' => "SUCCESS",
-                                        'message' => 'Your Transaction Order '.$order_details->id.'has been updated to SUCCESS',
-                                        'AuthenticationCode' => $authenticationCode
-                                    ]
-                                ]);
-
-                                $client_response = json_decode($response->getBody()->getContents(), true);
-                                if($client_response['STATUS'] == 'SUCCESS'){
-
                                     // MAKE DEPOSIT TO THE ACCOUNT OWNER IWALLET
                                     $make_remittance = $account_number.$password.$p_num.$pay_body->amount;
                                     $remi_cha1 = hash('sha256', $make_remittance);
@@ -784,81 +768,59 @@ class PaymentGatewayController extends Controller
                                             'debit_currency' => $pay_body->currency,
                                         ]
                                     ]);
-
+                                    $provider_response = json_decode($response->getBody()->getContents(), true);
+                                    Helper::saveLog('iwalletRemitance', 2, json_encode($provider_response), 'Settled');
                                     $this->_updateTransaction($order_details->orderId, $order_details->id, 5);
                                     $this->_updateWithdraw($order_details->orderId, $request->user_id, 5);
-
-                                    $remittance_request = [
-                                        'p_num' => $p_num,
-                                        'signature' => $remi_cha1, 
-                                        'from_account' => $account_number, 
-                                        'to_account' => $pay_body->to_account, 
-                                        'currency' => $pay_body->currency,
-                                        'amount' =>  $pay_body->amount,
-                                        'debit_currency' => $pay_body->currency
-                                    ];
-
-                                    $client_response = json_decode($response->getBody()->getContents(), true);
-                                    Helper::saveLog('iwalletRemitance', 2, json_encode($response->getBody()->getContents()), 'Settled');
-                                    PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($remittance_request, true), $response->getBody(),"IWALLET REQUEST REMITANCE");
-
-                                     $message = [
-                                            'STATUS' => 'SUCCESS'
-                                     ];     
-                                     return $message;
-
-                                }else{
-
-                                     $message = [
-                                            'STATUS' => 'FAILED'
-                                     ];     
-                                     return $message;
-                                }
-                                
-
+                                    $http = new Client();
+                                    $responsefromclient = $http->post($order_details->trans_update_url, [
+                                        'form_params' => [
+                                            'transaction_id' => $order_details->id,
+                                            'payoutId' => $order_details->orderId,
+                                            'amount' => $order_details->amount,
+                                            'client_player_id' => $client_player_id->client_player_id,
+                                            'status' => "SUCCESS",
+                                            'message' => 'Your iWallet withdrawal request with transaction number '.$order_details->id.'  has been approved. The payment has been tranferred to your account. Thank you!',
+                                            'AuthenticationCode' => $authenticationCode
+                                        ]
+                                    ]);
+                                    $requesttoclient = array(
+                                        'transaction_id' => $order_details->id,
+                                        'payoutId' => $order_details->orderId,
+                                        'amount' => $order_details->amount,
+                                        'client_player_id' => $client_player_id->client_player_id,
+                                        'status' => "SUCCESS",
+                                        'message' => 'Your iWallet withdrawal request with transaction number '.$order_details->id.'  has been approved. The payment has been tranferred to your account. Thank you!',
+                                        'AuthenticationCode' => $authenticationCode
+                                    );
+                                    PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"IWALLETPAYOUT UPDATE TRANSACTION");
                             }
-                            elseif($request->status_id == 9 || $request->status_id == 6){
-
-
-                                $failed_msg = 'Your Transaction Order '.$order_details->id.'has been updated to FAILED';
-                                $held_msg = 'Your Transaction Order '.$order_details->id.'has been updated to HELD';
-
-                                $status = $request->status_id == 9 ? 'FAILED' : 'HELD';
-                                $message = $request->status_id == 9 ? $failed_msg : $held_msg;
-                                $status_type = $request->status_id == 9 ? 9 : 6;
-
+                            elseif($request->status_id == 3){
                                 $http = new Client();
-                                $response = $http->post($order_details->trans_update_url, [
+                                $responsefromclient = $http->post($order_details->trans_update_url, [
                                     'form_params' => [
                                         'transaction_id' => $order_details->id,
-                                        'order_id' => $order_details->orderId,
+                                        'payoutId' => $order_details->orderId,
+                                        'amount' => $order_details->amount,
                                         'client_player_id' => $client_player_id->client_player_id,
-                                        'status' => $status,
-                                        'message' => $message,
+                                        'status' => "FAILED",
+                                        'message' => "Your iWallet withdrawal request with transaction number ".$order_details->id." has been disapproved. Please call Customer Service if you have trouble on this.",
                                         'AuthenticationCode' => $authenticationCode
                                     ]
                                 ]);
-
-                                $client_response = json_decode($response->getBody()->getContents(), true);
-                                if($client_response['STATUS'] == 'SUCCESS'){
-                                     $this->_updateTransaction($order_details->orderId, $order_details->id, $status_type);
-                                     $this->_updateWithdraw($order_details->orderId, $request->user_id, $status_type);
-                                     
-                                     $message = [
-                                            'STATUS' => 'SUCCESS'
-                                     ];     
-                                     return $message;
-                                }else{
-
-                                     $message = [
-                                            'STATUS' => 'FAILED'
-                                     ];     
-                                     return $message;
-                                }
-
+                                $requesttoclient = array(
+                                    'transaction_id' => $order_details->id,
+                                    'payoutId' => $order_details->orderId,
+                                    'amount' => $order_details->amount,
+                                    'client_player_id' => $client_player_id->client_player_id,
+                                    'status' => "FAILED",
+                                    'message' => "Your iWallet withdrawal request with transaction number ".$order_details->id." has been disapproved. Please call Customer Service if you have trouble on this.",
+                                    'AuthenticationCode' => $authenticationCode
+                                );
+                                $this->_updateTransaction($order_details->orderId, $order_details->id, 3);
+                                $this->_updateWithdraw($order_details->orderId, $request->user_id, 3);
+                                PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"IWALLETPAYOUT UPDATE TRANSACTION");
                             }
-
-
                         }
 
 
