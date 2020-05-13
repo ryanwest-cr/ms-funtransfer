@@ -803,6 +803,30 @@ class PaymentLobbyController extends Controller
                             "amount" => $transaction->amount,
                             "status_id" => 7, 
                         ];
+                        $status="HELD";
+                        $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
+                        $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
+                        $http = new Client();
+                        $responsefromclient = $http->post($transaction->trans_update_url,[
+                            'form_params' => [
+                                'transaction_id' => $transaction->id,
+                                'payoutId' => $transaction->orderId,
+                                'amount'=> $transaction->amount,
+                                'client_player_id' => $player_details->player_id,
+                                'status' => $status,
+                                'message' => "Hi! Thank you for choosing iWallet. We will check and verify first you request. And then we will send you notification and email about the status of your request. Have a good day!",
+                                'AuthenticationCode' => $authenticationCode
+                            ],
+                        ]);
+                        $requesttoclient = array(
+                                'transaction_id' => $transaction->id,
+                                'orderId' => $transaction->orderId,
+                                'amount'=> $transaction->amount,
+                                'client_player_id' => $player_details->player_id,
+                                'status' => $status,
+                                'message' => "Hi! Thank you for choosing iWallet. We will check and verify first you request. And then we will send you notification and email about the status of your request. Have a good day!",
+                                'AuthenticationCode' => $authenticationCode
+                        );
                         $data_saved = DB::table('withdraw')->insertGetId($widthdraw_table);  
 
                         PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->all(), true),'NO RESPONSE EXPECTED',"IWALLET Payout Request");
