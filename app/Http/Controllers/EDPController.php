@@ -173,7 +173,8 @@ class EDPController extends Controller
                     "roundid" => $request->gameId
                 );
                 if(!$game_transaction){
-                    Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
+                    $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
+                    Helper::saveGame_trans_ext($gametransactionid,json_encode(array("provider_request"=>$request->getContent(),"type"=>"BET")));
                 }
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
@@ -239,7 +240,6 @@ class EDPController extends Controller
                     $win_amount = 0;
                     $win = 0;
                     $trans_id = $getgametransaction->provider_trans_id;
-                    Helper::saveLog("credit",9,json_encode($request->getContent()),$getgametransaction);
                 }
                 
                 
@@ -290,7 +290,8 @@ class EDPController extends Controller
                     "win" => $win
                 );
                 if(!$game_transaction){
-                    Helper::createGameTransaction('credit', $json_data, $game_details, $client_details);
+                    $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details);
+                    Helper::saveGame_trans_ext($gametransactionid,json_encode(array("provider_request"=>$request->getContent(),"type"=>"WIN")));
                 }
                 
                 $sessions =array(
@@ -370,7 +371,8 @@ class EDPController extends Controller
                     "roundid" => $request->gameId
                 );
                 if($game_transaction){
-                    Helper::createGameTransaction('refund', $json_data, $game_details, $client_details);
+                    $gametransactionid=Helper::createGameTransaction('refund', $json_data, $game_details, $client_details);
+                    Helper::saveGame_trans_ext($gametransactionid,json_encode(array("provider_request"=>$request->getContent(),"type"=>"REFUND")));
                 }
                 
                 
