@@ -49,10 +49,10 @@ class PaymentHelper
         return json_decode((string) $response->getBody(), true)["access_token"];
  
      }
-    public static function paymongo($cardnumber,$exp_year,$exp_month,$cvc,$amount,$currency){
+    public static function paymongo($cardnumber,$exp_year,$exp_month,$cvc,$amount,$currency,$returnUrl){
 
         $http = new Client();
-        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/paymongo', [
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/paymongo2', [
             'form_params' => [
                 'pmcurrency' => $currency,
                 'amount' => $amount,
@@ -60,6 +60,22 @@ class PaymentHelper
                 'expmonth' => $exp_month,
                 'expyear' => $exp_year,
                 'cvc' => $cvc,
+                'returnUrl'=>$returnUrl,
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
+    }
+    public static function paymongoUpdate($orderId){
+
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/paymongo_checkupdate', [
+            'form_params' => [
+                'orderId' => $orderId,
             ],
             'headers' =>[
                 'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
