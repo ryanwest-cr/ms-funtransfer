@@ -14,9 +14,9 @@ use DB;
 class PaymentLobbyController extends Controller
 {
     //
-    private $payment_lobby_url = "https://pay-test.betrnk.games";
+    //private $payment_lobby_url = "https://pay-test.betrnk.games";
     // private $payment_lobby_url = 'http://middleware.freebetrnk.com/public';
-    // private $payment_lobby_url = "http://127.0.0.1:8003";
+     private $payment_lobby_url = "http://127.0.0.1:8002";
     public function paymentLobbyLaunchUrl(Request $request){
         if($request->has("callBackUrl")
             &&$request->has("exitUrl")
@@ -178,68 +178,83 @@ class PaymentLobbyController extends Controller
                     &&$request->has("exp_month")
                     &&$request->has("exp_year")
                     &&$request->has("cvc")
-                    &&$request->has("currency")){
-                        $paymongo_transaction = PaymentHelper::paymongo($request->input("cardnumber"),$request->input("exp_year"),$request->input("exp_month"),$request->input("cvc"),$request->input("amount"),$request->input("currency"));
+                    &&$request->has("currency")
+                    &&$request->has("exitUrl")){
+                        $returnUrl="https://pay-test.betrnk.games/paymongo/request?token=".$request->token."&exitUrl=".$request->exitUrl;
+                        $paymongo_transaction = PaymentHelper::paymongo($request->input("cardnumber"),$request->input("exp_year"),$request->input("exp_month"),$request->input("cvc"),$request->input("amount"),$request->input("currency"),$returnUrl);
                         if($paymongo_transaction){
-                            $data = array(
-                            "token_id" => $player_details->token_id,
-                            "purchase_id" => $paymongo_transaction["purchase_id"],
-                            "amount" => $paymongo_transaction["equivalent_point"],
-                            "status_id" => 5
-                            );
-                            $transaction = PaymentHelper::updateTransaction($data);
-                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($transaction),"PayMongo Payment Transaction");
-                            try{
-                                $client_player_id = DB::table('player_session_tokens as pst')
-                                    ->select("p.client_player_id","p.client_id")
-                                    ->leftJoin("players as p","pst.player_id","=","p.player_id")
-                                    ->where("pst.token_id",$transaction->token_id)
-                                    ->first();
-                                $key = $transaction->id.'|'.$client_player_id->client_player_id.'|SUCCESS';
-                                $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
-                                $http = new Client();
-                                $response_client = $http->post($transaction->trans_update_url,[
-                                    'form_params' => [
-                                        'transaction_id' => $transaction->id,
-                                        'orderId' => $transaction->orderId,
+                            if(array_key_exists("message",$paymongo_transaction)){
+                                if($paymongo_transaction["status"]=="awaiting_next_action"){
+                                        $data = array(
+                                        "token_id" => $player_details->token_id,
+                                        "purchase_id" => $paymongo_transaction["purchase_id"],
                                         "amount" => $paymongo_transaction["equivalent_point"],
-                                        'client_player_id' => $client_player_id->client_player_id,
-                                        'status' => "SUCCESS",
-                                        'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
-                                        'AuthenticationCode' => $authenticationCode
-                                    ],
-                                ]);
-                                $datatorequest = array(
-                                        'transaction_id' => $transaction->id,
-                                        'orderId' => $transaction->orderId,
-                                        "amount" => $paymongo_transaction["equivalent_point"],
-                                        'client_player_id' => $client_player_id->client_player_id,
-                                        'status' => "SUCCESS",
-                                        'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
-                                        'AuthenticationCode' => $authenticationCode
-                                );
-                                PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction"); 
+                                        "status_id" => 6
+                                        );
+                                        $transaction = PaymentHelper::updateTransaction($data);
+                                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($transaction),"PayMongo Payment Transaction");
+                                        return $paymongo_transaction;
+                                }
+                                elseif($paymongo_transaction["status"]=="succeeded"){
+                                    try{
+                                        $data = array(
+                                            "token_id" => $player_details->token_id,
+                                            "purchase_id" => $paymongo_transaction["purchase_id"],
+                                            "amount" => $paymongo_transaction["equivalent_point"],
+                                            "status_id" => 5
+                                            );
+                                        $transaction = PaymentHelper::updateTransaction($data);
+                                        $client_player_id = DB::table('player_session_tokens as pst')
+                                            ->select("p.client_player_id","p.client_id")
+                                            ->leftJoin("players as p","pst.player_id","=","p.player_id")
+                                            ->where("pst.token_id",$transaction->token_id)
+                                            ->first();
+                                        $key = $transaction->id.'|'.$client_player_id->client_player_id.'|SUCCESS';
+                                        $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+                                        $http = new Client();
+                                        $response_client = $http->post($transaction->trans_update_url,[
+                                            'form_params' => [
+                                                'transaction_id' => $transaction->id,
+                                                'orderId' => $transaction->orderId,
+                                                "amount" => $paymongo_transaction["equivalent_point"],
+                                                'client_player_id' => $client_player_id->client_player_id,
+                                                'status' => "SUCCESS",
+                                                'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
+                                                'AuthenticationCode' => $authenticationCode
+                                            ],
+                                        ]);
+                                        $datatorequest = array(
+                                                'transaction_id' => $transaction->id,
+                                                'orderId' => $transaction->orderId,
+                                                "amount" => $paymongo_transaction["equivalent_point"],
+                                                'client_player_id' => $client_player_id->client_player_id,
+                                                'status' => "SUCCESS",
+                                                'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
+                                                'AuthenticationCode' => $authenticationCode
+                                        );
+                                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction");
+                                        return $paymongo_transaction; 
+                                    }
+                                    catch(ClientException $e){
+                                        $client_response = $e->getResponse();
+                                        $response = json_decode($client_response->getBody()->getContents(),True);
+                                        return response($response,200)
+                                        ->header('Content-Type', 'application/json');
+                                    }
+                                    catch(ConnectException $e){
+                                        $response = array(
+                                            "error" => "CONNECT_ERROR",
+                                            "message" => "Incorrect callBackUrl/callBackUrl is not found"
+                                        );
+                                        return response($response,200)
+                                        ->header('Content-Type', 'application/json');
+                                    }
+                                    
+                                }
                             }
-                            catch(ClientException $e){
-                                $client_response = $e->getResponse();
-                                $response = json_decode($client_response->getBody()->getContents(),True);
-                                return response($response,200)
-                                ->header('Content-Type', 'application/json');
+                            elseif(array_key_exists("errors",$paymongo_transaction)){
+                                return $paymongo_transaction;
                             }
-                            catch(ConnectException $e){
-                                $response = array(
-                                    "error" => "CONNECT_ERROR",
-                                    "message" => "Incorrect callBackUrl/callBackUrl is not found"
-                                );
-                                return response($response,200)
-                                ->header('Content-Type', 'application/json');
-                            }
-                            $response = array(
-                                "transaction_number" => $transaction->id,
-                                "httpcode" => "SUCCESS",
-                                "message" => "Paymongo Transaction is successful"
-                            );
-                            return response($response,200)->header('Content-Type', 'application/json');
                         }
                         else{
                             $response = array(
@@ -370,7 +385,7 @@ class PaymentLobbyController extends Controller
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $vprica_trans["purchase_id"],
                                 "amount" => $vprica_trans["purchase_amount"],
-                                "status_id" => 6
+                                "status_id" => 7
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
                             $response = array(
@@ -431,7 +446,7 @@ class PaymentLobbyController extends Controller
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $ebanco_trans["deposit_id"],
                                 "amount" => $amount,
-                                "status_id" => 6
+                                "status_id" => 7
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
                             $response = array(
@@ -877,6 +892,66 @@ class PaymentLobbyController extends Controller
         if($transaction->identification_id){
             return true;
         }
+    }
+    public function paymongoUpdateTransaction(Request $request){
+        $get_token_id = $this->_getClientDetails("token",$request->token);
+        $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
+        $paymongo_transaction = PaymentHelper::paymongoUpdate($transaction->identification_id);
+        if(count($paymongo_transaction["data"]["attributes"]["payments"])!=0){
+            if($paymongo_transaction["data"]["attributes"]["payments"][0]["attributes"]["status"]=="paid"){
+                 //"PAYMONGO PAYMENTS EMPTY AND UPDATE TO SUCCESS";
+                 $status = "SUCCESS";
+                 $status_id = 5;
+                 $message = 'Thank you! Your Payment using PAYMONGO has successfully completed.';
+                 
+            }
+            elseif($paymongo_transaction["data"]["attributes"]["payments"][0]["attributes"]["status"]=="failed"){
+                $status = "FAILED";
+                $status_id = 3;
+                $message = "Hi! Your Paymongo Payment transaction has failed.";
+            }
+        }
+        else{
+            $status = "FAILED";
+            $status_id = 3;
+            $message = "Hi! Your Paymongo Payment transaction has failed.";
+        }
+        $client_player_id = DB::table('player_session_tokens as pst')
+            ->select("p.client_player_id","p.client_id")
+            ->leftJoin("players as p","pst.player_id","=","p.player_id")
+            ->where("pst.token_id",$transaction->token_id)
+            ->first();
+        $data = array(
+            "token_id" => $get_token_id->token_id,
+            "purchase_id" => $transaction->orderId,
+            "amount" => $transaction->amount,
+            "status_id" => $status_id
+            );
+        $transaction = PaymentHelper::updateTransaction($data);
+        $key = $transaction->id.'|'.$client_player_id->client_player_id.'|'.$status;
+        $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+        $http = new Client();
+        $response_client = $http->post($transaction->trans_update_url,[
+            'form_params' => [
+                'transaction_id' => $transaction->id,
+                'orderId' => $transaction->orderId,
+                "amount" => $transaction->amount,
+                'client_player_id' => $client_player_id->client_player_id,
+                'status' => $status,
+                'message' => $message,
+                'AuthenticationCode' => $authenticationCode
+            ],
+        ]);
+        $datatorequest = array(
+                'transaction_id' => $transaction->id,
+                'orderId' => $transaction->orderId,
+                "amount" => $transaction->amount,
+                'client_player_id' => $client_player_id->client_player_id,
+                'status' => $status,
+                'message' => $message,
+                'AuthenticationCode' => $authenticationCode
+        );
+        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction"); 
     }
     
 }
