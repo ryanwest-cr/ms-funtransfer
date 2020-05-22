@@ -929,6 +929,17 @@ class PaymentLobbyController extends Controller
                     'AuthenticationCode' => $authenticationCode
                 ],
             ]);
+            $requesttoclient = 
+            [
+                'transaction_id' => $transaction->id,
+                'orderId' => $transaction->orderId,
+                'amount'=> $transaction->amount,
+                'client_player_id' => $get_token_id->player_id,
+                'status' => $status,
+                'message' => "TRANSACTION HAS BEEN CANCELLED BY THE CLIENT!",
+                'AuthenticationCode' => $authenticationCode
+            ];
+            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"CANCEL TRANSACTION");
         }
     }
     private function checkPayTransaction($token_id){
