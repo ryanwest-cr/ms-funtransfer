@@ -196,10 +196,6 @@ class PaymentLobbyController extends Controller
                                         return $paymongo_transaction;
                                 }
                                 elseif($paymongo_transaction["status"]=="succeeded"){
-<<<<<<< HEAD
-                                    return $paymongo_transaction;
-                                    try{
-=======
                                     try{
                                         $data = array(
                                             "token_id" => $player_details->token_id,
@@ -208,7 +204,6 @@ class PaymentLobbyController extends Controller
                                             "status_id" => 5
                                             );
                                         $transaction = PaymentHelper::updateTransaction($data);
->>>>>>> 4f1d45156873be6ccd9fe02f4c026b01509d38bc
                                         $client_player_id = DB::table('player_session_tokens as pst')
                                             ->select("p.client_player_id","p.client_id")
                                             ->leftJoin("players as p","pst.player_id","=","p.player_id")
@@ -237,12 +232,9 @@ class PaymentLobbyController extends Controller
                                                 'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
                                                 'AuthenticationCode' => $authenticationCode
                                         );
-<<<<<<< HEAD
                                         PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction"); 
-=======
                                         PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction");
                                         return $paymongo_transaction; 
->>>>>>> 4f1d45156873be6ccd9fe02f4c026b01509d38bc
                                     }
                                     catch(ClientException $e){
                                         $client_response = $e->getResponse();
@@ -258,21 +250,11 @@ class PaymentLobbyController extends Controller
                                         return response($response,200)
                                         ->header('Content-Type', 'application/json');
                                     }
-<<<<<<< HEAD
-                                    $response = array(
-                                        "transaction_number" => $transaction->id,
-                                        "httpcode" => "SUCCESS",
-                                        "message" => "Paymongo Transaction is successful"
-                                    );
-                                    return response($response,200)->header('Content-Type', 'application/json');
-                                }
-=======
                                     
                                 }
                             }
                             elseif(array_key_exists("errors",$paymongo_transaction)){
                                 return $paymongo_transaction;
->>>>>>> 4f1d45156873be6ccd9fe02f4c026b01509d38bc
                             }
                         }
                         else{
