@@ -232,7 +232,7 @@ class PaymentLobbyController extends Controller
                                                 'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
                                                 'AuthenticationCode' => $authenticationCode
                                         );
-                                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction");
+                                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction"); 
                                         return $paymongo_transaction; 
                                     }
                                     catch(ClientException $e){
@@ -912,7 +912,7 @@ class PaymentLobbyController extends Controller
         $get_token_id = $this->_getClientDetails("token",$request->token);
         $deleted = PayTransaction::where("token_id",$get_token_id->token_id)->delete();
         if($deleted){
-            $transaction = Paytransaction::where("token_id",$get_token_id->token_id)->first();
+            $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
             $status="CANCELLED";
             $key = $transaction->id.'|'.$get_token_id->player_id.'|'.$status;
             $authenticationCode = hash_hmac("sha256",$get_token_id->client_id,$key);
@@ -928,6 +928,17 @@ class PaymentLobbyController extends Controller
                     'AuthenticationCode' => $authenticationCode
                 ],
             ]);
+            $requesttoclient = 
+            [
+                'transaction_id' => $transaction->id,
+                'orderId' => $transaction->orderId,
+                'amount'=> $transaction->amount,
+                'client_player_id' => $get_token_id->player_id,
+                'status' => $status,
+                'message' => "TRANSACTION HAS BEEN CANCELLED BY THE CLIENT!",
+                'AuthenticationCode' => $authenticationCode
+            ];
+            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"CANCEL TRANSACTION");
         }
     }
     private function checkPayTransaction($token_id){
