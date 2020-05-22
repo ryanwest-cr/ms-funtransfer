@@ -233,7 +233,6 @@ class PaymentLobbyController extends Controller
                                                 'AuthenticationCode' => $authenticationCode
                                         );
                                         PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction"); 
-                                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction");
                                         return $paymongo_transaction; 
                                     }
                                     catch(ClientException $e){
