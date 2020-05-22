@@ -40,7 +40,7 @@ class DigitainController extends Controller
 		$digitain_key = "BetRNK3184223";
 	    $operator_id = $operatorId;
 	    $time_stamp = $timestamp;
-	    $message = $digitain_key.$operator_id.$time_stamp;
+	    $message = $time_stamp.$operator_id;
 
 	    $hmac = hash_hmac("sha256", $message, $digitain_key);
 		$result = false;
@@ -64,7 +64,7 @@ class DigitainController extends Controller
 	    $digitain_key = $this->digitain_key;
 	    $operator_id = $this->operator_id;
 	    $time_stamp = $timestamp;
-	    $message = $digitain_key.$operator_id.$time_stamp;
+	    $message = $time_stamp.$operator_id;
 	    $hmac = hash_hmac("sha256", $message, $digitain_key);
 	    return $hmac;
 	}

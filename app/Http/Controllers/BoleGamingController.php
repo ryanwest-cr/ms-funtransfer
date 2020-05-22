@@ -270,34 +270,123 @@ class BoleGamingController extends Controller
 							    $game_details = Game::find($json_data->game_code);
 								$token_id = $client_details->token_id;
 				                $bet_amount = abs($json_data->cost_info->bet_num);
+				                // $bet_amount = abs($json_data->cost_info->gain_gold); // TEST
 				                // $played_amount = $transaction_type == 'debit' ? $bet_amount : abs($json_data->amount);
 
 				                if($json_data->game_code == 'slot'){
 
-				                	if($json_data->amount <= 0){ //lost
-				                		// $played_amount = abs($json_data->cost_info->gain_gold);
-				                		$played_amount = abs($json_data->amount);
+				                	if($json_data->cost_info->gain_gold <= 0){ //lost
+				                		$played_amount = abs($json_data->cost_info->gain_gold); //TEST
+				                		// $played_amount = abs($json_data->amount);
 				                		$transaction_type = 'debit';
 				                	}else{
-				                		$played_amount = abs($json_data->amount);
+				                		$played_amount = abs($json_data->cost_info->gain_gold); //TEST
+				                		// $played_amount = abs($json_data->amount);
 				                		$transaction_type = 'credit';
 				                	}
-				             	 
+				                }elseif($json_data->game_code == 'blackjack' || 
+									    $json_data->game_code == 'ermj' || 
+									    $json_data->game_code == 'gyzjmj' || 
+									    $json_data->game_code == 'hbmj' || 
+									    $json_data->game_code == 'hzmj' || 
+									    $json_data->game_code == 'hnmj' || 
+									    $json_data->game_code == 'gdmj' || 
+									    $json_data->game_code == 'dzmj' || 
+									    $json_data->game_code == 'zjh' || 
+									    $json_data->game_code == 'sangong' || 
+									    $json_data->game_code == 'blnn' || 
+									    $json_data->game_code == 'mjxzdd' || 
+									    $json_data->game_code == 'mjxlch'){  
+				                    // LOG ONLY THE WIN AMOUNT SPECIFIC FOR BLACKJACK/TABLE GAMES
+				                	$played_amount = abs($json_data->cost_info->gain_gold);
+
+				                	if($json_data->cost_info->gain_gold <= 0){
+				                		$transaction_type = 'debit';
+				                	}else{
+				                		$transaction_type = 'credit';
+				                	}
+				                }elseif($json_data->game_code == 'baccarat' || $json_data->game_code == 'rbwar'){  
+				                    // LOG ONLY THE WIN AMOUNT SPECIFIC FOR BLACKJACK/TABLE GAMES
+				                	$played_amount = abs($json_data->cost_info->gain_gold);
+
+				                	if($json_data->cost_info->gain_gold < 0){
+				                		$transaction_type = 'debit';
+				                	}elseif($json_data->cost_info->gain_gold  == 0){
+				                		$transaction_type = 'credit'; //For draw!
+				                	}else{
+				                		$transaction_type = 'credit';
+				                	}	
+
+				                // }
+
+				                // elseif($json_data->game_code == 'mjxlch'){  
+				                // 	$played_amount = abs($json_data->cost_info->gain_gold);
+
+				                // 	if($json_data->cost_info->gain_gold < 0){
+				                // 		$transaction_type = 'debit';
+				                // 	}elseif($json_data->cost_info->gain_gold  == 0){
+				                // 		$transaction_type = 'credit'; //For draw!
+				                // 	}else{
+				                // 		$transaction_type = 'credit';
+				                // 	}	
+
 				                }else{
-				                   // $played_amount = abs($json_data->cost_info->gain_gold);
 				                   $played_amount = abs($json_data->amount);
 				                }
 
-
 				                $method = $transaction_type == 'debit' ? 1 : 2;
-				                $win_or_lost = $transaction_type == 'debit' ? 0 : 1;
-				                $payout_reason = $json_data->cost_info->taxes > 0 ? 'with tax deduction' : null;
 
+				                // WIN LOST OR DRAW FOR BACCARAT ONLY
+				                if($json_data->game_code == 'baccarat' || $json_data->game_code == 'rbwar'){  
+
+				                	if($json_data->cost_info->gain_gold < 0){
+				                		$win_or_lost = 0;
+				                	}elseif($json_data->cost_info->gain_gold  == 0){
+				                		$win_or_lost = 3; //For draw!
+				                	}else{
+				                		$win_or_lost = 1;
+				                	}
+
+				                }else{
+				                  $win_or_lost = $transaction_type == 'debit' ? 0 : 1;
+				                }
+
+				                // dd($win_or_lost);
+
+				                $payout_reason = $json_data->cost_info->taxes > 0 ? 'with tax deduction' : null;
 								$gamerecord = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount,  $played_amount, $method, $win_or_lost, null, $payout_reason);
 
+
+								// dd($win_or_lost);
 								// if($payout_reason != null){
 									$game_transextension = Helper::saveGame_trans_ext($gamerecord, $request->getContent());
 								// }
+
+
+
+								// CHANGE THE AMOUNT BACK TO ORIGINAL AMOUNT
+								if($json_data->game_code == 'blackjack' || 
+								   $json_data->game_code == 'ermj' || 
+								   $json_data->game_code == 'gyzjmj' || 
+								   $json_data->game_code == 'hbmj' || 
+								   $json_data->game_code == 'hzmj' || 
+								   $json_data->game_code == 'hnmj' || 
+								   $json_data->game_code == 'gdmj' || 
+								   $json_data->game_code == 'dzmj' || 
+								   $json_data->game_code == 'zjh' || 
+								   $json_data->game_code == 'sangong' || 
+								   $json_data->game_code == 'blnn' || 
+								   $json_data->game_code == 'mjxzdd' || 
+								   $json_data->game_code == 'mjxlch'){  // Table Games
+										$played_amount = abs($json_data->amount);
+										$transaction_type = 'credit';
+								}elseif($json_data->game_code == 'slot'){
+										$played_amount = abs($json_data->amount);
+										$transaction_type = 'credit';
+								}elseif($json_data->game_code == 'baccarat' || $json_data->game_code == 'rbwar'){ 
+										$played_amount = abs($json_data->amount);
+										$transaction_type = 'credit';
+								}
 
 
 					            try
