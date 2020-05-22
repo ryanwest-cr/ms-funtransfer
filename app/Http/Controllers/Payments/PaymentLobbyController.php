@@ -910,7 +910,6 @@ class PaymentLobbyController extends Controller
     }
     public function cancelPayTransaction(Request $request){
         $get_token_id = $this->_getClientDetails("token",$request->token);
-        $deleted = PayTransaction::where("token_id",$get_token_id->token_id)->delete();
         $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
         $status="CANCELLED";
         $key = $transaction->id.'|'.$get_token_id->player_id.'|'.$status;
@@ -928,7 +927,7 @@ class PaymentLobbyController extends Controller
             ],
         ]);
         $requesttoclient = 
-        [
+        array(
             'transaction_id' => $transaction->id,
             'orderId' => $transaction->orderId,
             'amount'=> $transaction->amount,
@@ -936,8 +935,9 @@ class PaymentLobbyController extends Controller
             'status' => $status,
             'message' => "TRANSACTION HAS BEEN CANCELLED BY THE CLIENT!",
             'AuthenticationCode' => $authenticationCode
-        ];
+        );
         PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"CANCEL TRANSACTION");
+        $deleted = PayTransaction::where("token_id",$get_token_id->token_id)->delete();
         
     }
     private function checkPayTransaction($token_id){
