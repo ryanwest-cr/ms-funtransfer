@@ -16,7 +16,7 @@ class PaymentLobbyController extends Controller
     //
     private $payment_lobby_url = "https://pay-test.betrnk.games";
     // private $payment_lobby_url = 'http://middleware.freebetrnk.com/public';
-     //private $payment_lobby_url = "http://127.0.0.1:8002";
+     // private $payment_lobby_url = "http://127.0.0.1:8003";
     public function paymentLobbyLaunchUrl(Request $request){
         if($request->has("callBackUrl")
             &&$request->has("exitUrl")
@@ -912,7 +912,7 @@ class PaymentLobbyController extends Controller
         $get_token_id = $this->_getClientDetails("token",$request->token);
         $deleted = PayTransaction::where("token_id",$get_token_id->token_id)->delete();
         if($deleted){
-            $transaction = Paytransaction::where("token_id",$get_token_id->token_id)->first()
+            $transaction = Paytransaction::where("token_id",$get_token_id->token_id)->first();
             $status="CANCELLED";
             $key = $transaction->id.'|'.$get_token_id->player_id.'|'.$status;
             $authenticationCode = hash_hmac("sha256",$get_token_id->client_id,$key);
