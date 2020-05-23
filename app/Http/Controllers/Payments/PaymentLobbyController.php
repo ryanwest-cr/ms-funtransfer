@@ -88,7 +88,7 @@ class PaymentLobbyController extends Controller
                         $payment_method_code = "VPRICA";
                         $amount_usd = $request->amount * $this->getCurrencyConvertion("JPY");
                         $player_details = $this->_getClientDetails("token",$token);
-                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,3,$amount_usd,2,1,$request->input("callBackUrl"),6);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,3,$request->amount,2,1,$request->input("callBackUrl"),6);
                         $lang = "";
                         if($request->has("lang")){
                             $lang= $request->lang;
@@ -952,9 +952,6 @@ class PaymentLobbyController extends Controller
         if($get_token_id){
             $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
             if($transaction){
-                if($transaction->payment_id == 3){
-                    $transaction->amount = number_format($transaction->amount/$this->getCurrencyConvertion("JPY"),2, '.', '');
-                }
                 return $transaction;
             }
             else{
