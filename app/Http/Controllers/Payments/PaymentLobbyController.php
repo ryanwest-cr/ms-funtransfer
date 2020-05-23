@@ -952,7 +952,7 @@ class PaymentLobbyController extends Controller
         $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
         if($transaction){
             if($transaction->payment_id == 3){
-                $transaction->amount = number_format($transaction->amount/$this->getCurrencyConvertion("JPY"),2);
+                $transaction->amount = number_format($transaction->amount/$this->getCurrencyConvertion("JPY"),2, '.', '');
             }
             return $transaction;
         }
