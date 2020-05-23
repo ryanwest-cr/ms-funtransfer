@@ -947,6 +947,18 @@ class PaymentLobbyController extends Controller
             return true;
         }
     }
+    public function checkPayTransactionContent(Request $request){
+        $transaction = PayTransaction::where("token_id",$request->token_id)->first();
+        if($transaction){
+            return $transaction;
+        }
+        else{
+            $transaction = array(
+                "message" => "Error Transaction does not exist or token is invalid"
+            );
+            return $transaction;
+        }
+    }
     public function paymongoUpdateTransaction(Request $request){
         $get_token_id = $this->_getClientDetails("token",$request->token);
         $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();

@@ -143,6 +143,7 @@ $app->get('payment/list','Payments\PaymentLobbyController@getPaymentMethod');
 $app->get('payout/list','Payments\PaymentLobbyController@getPayoutMethod');
 $app->post('payment/check','Payments\PaymentLobbyController@minMaxAmountChecker');
 $app->post('payment/paymongoupdate','Payments\PaymentLobbyController@paymongoUpdateTransaction');
+$app->post('payment/checktransaction','Payments\PaymentLobbyController@checkPayTransactionContent');
 
 $app->post('payment/transaction','Payments\PaymentLobbyController@getPayTransactionDetails');
 $app->post('payment/cancel','Payments\PaymentLobbyController@cancelPayTransaction');
