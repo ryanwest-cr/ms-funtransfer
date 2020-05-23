@@ -949,12 +949,20 @@ class PaymentLobbyController extends Controller
     }
     public function checkPayTransactionContent(Request $request){
         $get_token_id = $this->_getClientDetails("token",$request->token);
-        $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
-        if($transaction){
-            if($transaction->payment_id == 3){
-                $transaction->amount = number_format($transaction->amount/$this->getCurrencyConvertion("JPY"),2, '.', '');
+        if($get_token_id){
+            $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
+            if($transaction){
+                if($transaction->payment_id == 3){
+                    $transaction->amount = number_format($transaction->amount/$this->getCurrencyConvertion("JPY"),2, '.', '');
+                }
+                return $transaction;
             }
-            return $transaction;
+            else{
+                $transaction = array(
+                    "message" => "Error Transaction does not exist or token is invalid"
+                );
+                return $transaction;
+            }
         }
         else{
             $transaction = array(
