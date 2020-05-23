@@ -951,6 +951,9 @@ class PaymentLobbyController extends Controller
         $get_token_id = $this->_getClientDetails("token",$request->token);
         $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
         if($transaction){
+            if($transaction->payment_id == 3){
+                $transaction->amount = $transaction->amount/$this->getCurrencyConvertion("JPY");
+            }
             return $transaction;
         }
         else{
