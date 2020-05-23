@@ -948,7 +948,8 @@ class PaymentLobbyController extends Controller
         }
     }
     public function checkPayTransactionContent(Request $request){
-        $transaction = PayTransaction::where("token_id",$request->token_id)->first();
+        $get_token_id = $this->_getClientDetails("token",$request->token);
+        $transaction = PayTransaction::where("token_id",$get_token_id->token_id)->first();
         if($transaction){
             return $transaction;
         }
