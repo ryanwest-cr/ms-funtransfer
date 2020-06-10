@@ -8,7 +8,7 @@ class GameSubscription
 		$result = false;
 
 		$game_id = $this->_getGameId($provider_id, $game_code);
-		
+
 		if($game_id) {
 			$client_subscription = DB::table('client_game_subscribe')->where('client_id', $client_id)->first();
 
