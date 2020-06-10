@@ -89,7 +89,7 @@ class OryxGamingController extends Controller
 					TokenHelper::saveIfNotExist($player_id, $token);
 
 					$response = [
-						"playerid" => "$player_id",
+						"playerId" => "$player_id",
 						"currencyCode" => "USD",
 						"languageCode" => "ENG",
 						"balance" => $this->to_pennies($client_response->playerdetailsresponse->balance),
