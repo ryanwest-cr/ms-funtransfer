@@ -92,7 +92,7 @@ class OryxGamingController extends Controller
 						"playerid" => "$player_id",
 						"currencyCode" => "USD",
 						"languageCode" => "ENG",
-						"balance" => (float) $client_response->playerdetailsresponse->balance,
+						"balance" => $this->to_pennies($client_response->playerdetailsresponse->balance),
 						"sessionToken" => $token
 					];
 				}
@@ -574,6 +574,15 @@ class OryxGamingController extends Controller
 				 $result= $query->first();
 
 		return $result;
+	}
+
+	private function to_pennies($value)
+	{
+	    return intval(
+	        strval(floatval(
+	            preg_replace("/[^0-9.]/", "", $value)
+	        ) * 100)
+	    );
 	}
 
 }
