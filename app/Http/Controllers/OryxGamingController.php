@@ -179,7 +179,7 @@ class OryxGamingController extends Controller
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
 						$response = [
-							"balance" => $client_response->playerdetailsresponse->balance
+							"balance" => $this->to_pennies($client_response->playerdetailsresponse->balance)
 						];
 					}
 				}
@@ -310,7 +310,7 @@ class OryxGamingController extends Controller
 
 								$response = [
 									"responseCode" => "OK",
-									"balance" => $client_response->fundtransferresponse->balance,
+									"balance" => $this->to_pennies($client_response->fundtransferresponse->balance),
 								];
 							}
 						}
