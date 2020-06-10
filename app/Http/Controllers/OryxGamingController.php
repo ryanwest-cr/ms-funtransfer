@@ -48,8 +48,7 @@ class OryxGamingController extends Controller
 		{
 			$response = [
 							"responseCode" =>  "TOKEN_NOT_FOUND",
-							"errorDescription" => "Token provided in request not found in
-Wallet."
+							"errorDescription" => "Token provided in request not found in Wallet."
 						];
 			
 			$client_details = $this->_getClientDetails($client_code);
@@ -93,7 +92,7 @@ Wallet."
 						"playerid" => "$player_id",
 						"currencyCode" => "USD",
 						"languageCode" => "ENG",
-						"balance" => $client_response->playerdetailsresponse->balance,
+						"balance" => (float) $client_response->playerdetailsresponse->balance,
 						"sessionToken" => $token
 					];
 				}
