@@ -293,13 +293,11 @@ class OryxGamingController extends Controller
 							if(isset($client_response->fundtransferresponse->status->code) 
 						&& $client_response->fundtransferresponse->status->code == "200") {
 
-								if(array_key_exists("roundended", $json_data)) {
-									if ($json_data["roundended"] == "true") {
+								if(array_key_exists("roundAction", $json_data)) {
+									if ($json_data["roundAction"] == "CLOSE") {
 										GameRound::end($json_data['roundId']);
 									}
 								}
-
-								
 
 								$json_data['roundid'] = $json_data['roundId'];
 								$json_data['transid'] = $json_data[$key]['transactionId'];
@@ -308,7 +306,6 @@ class OryxGamingController extends Controller
 
 								$game_details = Game::find($json_data["gameCode"]);
 								GameTransaction::save($transactiontype, $json_data, $game_details, $client_details, $player_details);
-
 
 								$response = [
 									"responseCode" => "OK",
