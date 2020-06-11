@@ -186,7 +186,7 @@ class OryxGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('balance', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('balance', 3, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -304,9 +304,11 @@ class OryxGamingController extends Controller
 								$json_data['roundid'] = $json_data['roundId'];
 								$json_data['transid'] = $json_data[$key]['transactionId'];
 								$json_data['amount'] = $json_data[$key]['amount'];
+								$json_data['reason'] = NULL;
 
 								$game_details = Game::find($json_data["gameCode"]);
-								GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
+								GameTransaction::save($transactiontype, $json_data, $game_details, $client_details, $player_details);
+
 
 								$response = [
 									"responseCode" => "OK",
@@ -319,7 +321,7 @@ class OryxGamingController extends Controller
 			}
 		}
 		
-		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog($transactiontype, 3, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
