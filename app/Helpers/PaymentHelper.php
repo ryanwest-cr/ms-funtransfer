@@ -70,6 +70,26 @@ class PaymentHelper
 
         return json_decode($response->getBody()->getContents(), true);
     }
+    public static function stripePayment($cardnumber,$exp_year,$exp_month,$cvc,$amount,$currency,$returnUrl){
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/paymenintent', [
+            'form_params' => [
+                'currency' => $currency,
+                'amount' => $amount,
+                'cardnumber' => $cardnumber,
+                'exp_month' => $exp_month,
+                'exp_year' => $exp_year,
+                'cvc' => $cvc,
+                'returnUrl'=>$returnUrl,
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
+    }
     public static function paymongoUpdate($orderId){
 
         $http = new Client();
