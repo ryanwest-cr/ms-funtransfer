@@ -61,7 +61,8 @@ $app->singleton(
 
 $app->middleware([
     //    App\Http\Middleware\ExampleMiddleware::class
-	\LucaDegasperi\OAuth2Server\Middleware\OAuthExceptionHandlerMiddleware::class
+    \LucaDegasperi\OAuth2Server\Middleware\OAuthExceptionHandlerMiddleware::class,
+    App\Http\Middleware\CorsMiddleware::class
 ]);
 
 $app->routeMiddleware([
@@ -98,6 +99,7 @@ $app->register(\LucaDegasperi\OAuth2Server\OAuth2ServerServiceProvider::class);
 | can respond to, as well as the controllers that may handle them.
 |
 */
+$app->configure("providerlinks");
 
 $app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
     require __DIR__.'/../routes/web.php';
