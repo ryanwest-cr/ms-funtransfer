@@ -324,6 +324,7 @@ class PaymentHelper
     }
     public static function updateTransaction($data){
         $pay_transaction = PayTransaction::where("token_id",$data["token_id"])->first();
+        $pay_transaction->reference_number = $data["reference_number"];
         $pay_transaction->identification_id=$data["purchase_id"];
         $pay_transaction->status_id = $data["status_id"];
         $pay_transaction->amount=$data["amount"];

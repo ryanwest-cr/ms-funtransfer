@@ -200,6 +200,7 @@ class PaymentLobbyController extends Controller
                                 if($paymongo_transaction["status"]=="awaiting_next_action"){
                                         $data = array(
                                         "token_id" => $player_details->token_id,
+                                        "reference_number" => $paymongo_transaction["provider_transaction_id"],
                                         "purchase_id" => $paymongo_transaction["purchase_id"],
                                         "amount" => $paymongo_transaction["equivalent_point"],
                                         "status_id" => 6
@@ -213,6 +214,7 @@ class PaymentLobbyController extends Controller
                                         $data = array(
                                             "token_id" => $player_details->token_id,
                                             "purchase_id" => $paymongo_transaction["purchase_id"],
+                                            "reference_number" => $paymongo_transaction["provider_transaction_id"],
                                             "amount" => $paymongo_transaction["equivalent_point"],
                                             "status_id" => 5
                                             );
@@ -300,6 +302,7 @@ class PaymentLobbyController extends Controller
                                     if($stripe_transaction["status"]=="requires_action"){
                                         $data = array(
                                         "token_id" => $player_details->token_id,
+                                        "reference_number" => $stripe_transaction["provider_transaction_id"],
                                         "purchase_id" => $stripe_transaction["purchase_id"],
                                         "amount" => $stripe_transaction["equivalent_point"],
                                         "status_id" => 6
@@ -312,6 +315,7 @@ class PaymentLobbyController extends Controller
                                         try{
                                             $data = array(
                                                 "token_id" => $player_details->token_id,
+                                                "reference_number" => $stripe_transaction["provider_transaction_id"],
                                                 "purchase_id" => $stripe_transaction["purchase_id"],
                                                 "amount" => $stripe_transaction["equivalent_point"],
                                                 "status_id" => 5
@@ -398,6 +402,7 @@ class PaymentLobbyController extends Controller
                                 $data = array(
                                     "token_id" => $player_details->token_id,
                                     "purchase_id" => $cointransaction["purchaseid"],
+                                    "reference_number" =>$cointransaction["txn_id"],
                                     "amount" => $cointransaction["purchase_amount"],
                                     "status_id" => 6
                                     );
@@ -433,6 +438,7 @@ class PaymentLobbyController extends Controller
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $qaicash_transaction["purchase_id"],
+                                "reference_number" => $qaicash_transaction["provider_transaction_id"],
                                 "amount" => $qaicash_transaction["purchase_amount"],
                                 "status_id" => 6
                                 );
@@ -499,6 +505,7 @@ class PaymentLobbyController extends Controller
                         if($vprica_trans){
                             $data = array(
                                 "token_id" => $player_details->token_id,
+                                "reference_number" =>$vprica_trans["purchase_id"],
                                 "purchase_id" => $vprica_trans["purchase_id"],
                                 "amount" => $vprica_trans["purchase_amount"],
                                 "status_id" => 7
@@ -560,6 +567,7 @@ class PaymentLobbyController extends Controller
                         if($ebanco_trans){
                             $data = array(
                                 "token_id" => $player_details->token_id,
+                                "reference_number" =>$ebanco_trans["deposit_id"],
                                 "purchase_id" => $ebanco_trans["deposit_id"],
                                 "amount" => $amount,
                                 "status_id" => 7
@@ -875,6 +883,7 @@ class PaymentLobbyController extends Controller
                         if($qaicash_transaction){
                             $data = array(
                                 "token_id" => $player_details->token_id,
+                                "reference_number" => $qaicash_transaction["provider_transaction_id"],
                                 "purchase_id" => $qaicash_transaction["withdrawal_id"],
                                 "amount" => $qaicash_transaction["withdrawal_amount"],
                                 "status_id" => 6
