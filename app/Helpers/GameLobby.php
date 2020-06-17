@@ -23,6 +23,16 @@ class GameLobby{
         return config("providerlinks.endorphina.url").'?exit='.$exitUrl.'&nodeId='.config("providerlinks.endorphina.nodeId").'&profile='.$profile.'&token='.$token.'&sign='.$sign;
     }
     public static function boleLaunchUrl($game_code,$token,$exitUrl, $country_code){
+
+        $scene_id = '';
+        if(strpos($game_code, 'slot') !== false) {
+            $game_code = explode("_", $game_code);
+            $scene_id = $game_code[1];
+            $game_code = 'slot';
+        }else{
+            $game_code = $game_code;
+        }
+
         $nonce = rand();
         $timestamp = time();
         $key = config('providerlinks.bolegaming.access_key_secret').$nonce.$timestamp;
@@ -37,7 +47,7 @@ class GameLobby{
         $response = $http->post(config('providerlinks.bolegaming.login_url'), [
             'form_params' => [
                'game_code' => $game_code,
-                'scene' => '',
+                'scene' => $scene_id,
                 'player_account' => $client_player_details->player_id,
                 'country'=> $country_code,
                 'ip'=> $_SERVER['REMOTE_ADDR'],

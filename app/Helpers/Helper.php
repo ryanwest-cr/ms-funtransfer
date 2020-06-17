@@ -25,6 +25,20 @@ class Helper
 		DB::table('seamless_request_logs')->insert($data);
 	}
 
+	/* NEW 061620 */
+	public static function findGameDetails($type, $provider_id, $identification) {
+		    $game_details = DB::table("games as g")
+				->leftJoin("providers as p","g.provider_id","=","p.provider_id");
+				
+		    if ($type == 'game_code') {
+				$game_details->where([
+			 		["g.provider_id", "=", $provider_id],
+			 		["g.game_code",'=', $identification],
+			 	]);
+			}
+			$result= $game_details->first();
+	 		return $result;
+	}
 
     /* ERAIN 
  	 * Added new $income 05-08-20
@@ -234,6 +248,12 @@ class Helper
 	}
 	public static function updateGameTransaction($existingdata,$request_data,$type){
 		switch ($type) {
+			case "debit":
+					$trans_data["bet_amount"] = $existingdata->bet_amount + $request_data["amount"];
+					$trans_data["win"] = 0;
+					$trans_data["pay_amount"] = 0;
+					$trans_data["entry_id"] = 1;
+				break;
 			case "credit":
 					$trans_data["win"] = $request_data["win"];
 					$trans_data["pay_amount"] = abs($request_data["amount"]);

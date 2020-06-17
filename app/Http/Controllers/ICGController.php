@@ -642,6 +642,10 @@ class ICGController extends Controller
                         // Helper::saveLog('betGame(ICG)', 12, json_encode($json), $response);
                     }
                     else{
+                        $json_data = array(
+                            "amount" => round($json["amount"]/100,2),
+                        );
+                        $gameupdate = Helper::updateGameTransaction($game,$json_data,"debit");
                         $gametransactionid = $game->game_trans_id;
                     }
                     
