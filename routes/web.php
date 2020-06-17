@@ -72,6 +72,18 @@ $app->post('/api/simpleplay/{brand_code}/PlayerWin', 'SimplePlayController@credi
 $app->post('/api/simpleplay/{brand_code}/PlayerLost', 'SimplePlayController@lostTransaction');
 $app->post('/api/simpleplay/{brand_code}/PlaceBetCancel', 'SimplePlayController@rollBackTransaction');
 
+// QTech Ganes Endpoints
+$app->get('/api/qtech/{brand_code}/accounts/{player_id}/session?gameId={game_id}', 'QTechController@authPlayer');
+$app->post('/api/qtech/{brand_code}/accounts/{player_id}/balance?gameId={game_id}', 'QTechController@getBalance');
+$app->post('/api/qtech/{brand_code}/transactions', 'QTechController@gameTransaction');
+$app->post('/api/qtech/{brand_code}/transactions/rollback', 'QTechController@rollbackTransaction');
+$app->post('/api/qtech/{brand_code}/bonus/status', 'QTechController@bonusStatus');
+
+// Vivo Gaming Endpoints
+$app->get('/api/vivo/{brand_code}/authenticate', 'VivoController@authPlayer');
+$app->get('/api/vivo/{brand_code}/changebalance', 'VivoController@gameTransaction');
+$app->post('/api/vivo/{brand_code}/status.do', 'VivoController@gameTransaction');
+$app->post('/api/vivo/{brand_code}/getbalance.do', 'VivoController@rollbackTransaction');
 
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
