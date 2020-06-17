@@ -16,8 +16,8 @@ use DB;
 
 
 
-/*
- *	
+/**
+ *  
  *	Api Documentation v3 -> v3.7.0-1
  *	Current State : v3 updating to v3.7.0-1    
  *  ## Authors Note : You cannot win if you dont bet! xD Bet comes first!
@@ -88,7 +88,7 @@ class DigitainController extends Controller
 		return $date3;
 	}
 
-	/*
+	/**
      * DEPRECATED! Centralized!
      * 
      * # Request , token, username, email, site_url, gamecode
@@ -131,7 +131,7 @@ class DigitainController extends Controller
 	         return $response;
 	}
 
-	/*
+	/**
 	 *
 	 *	Player Detail Request
 	 *
@@ -215,7 +215,7 @@ class DigitainController extends Controller
 		}
 	}
 
-	/*
+	/**
 	 * Get the player balance
 	 */
 	public function getBalance()
@@ -430,31 +430,32 @@ class DigitainController extends Controller
 	                        'Authorization' => 'Bearer '.$client_details->client_access_token
 	                    ]
 	                ]);
-			 		$guzzle_response = $client->post($client_details->fund_transfer_url,
-					['body' => json_encode(
-						        	[
-									  "access_token" => $client_details->client_access_token,
-									  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-									  "type" => "fundtransferrequest",
-									  "datetsent" => "",
-									  "gamedetails" => [
-									    "gameid" =>  $key['gameId'],
-									    "gamename" => ""
-									  ],
-									  "fundtransferrequest" => [
-											"playerinfo" => [
-											"token" => $key['token'],
-											// "playerId" => $key['playerId']
-										],
-										"fundinfo" => [
-										      "gamesessionid" => "",
-										      "transactiontype" => 'debit',
-										      "currencycode" => $client_details->currency,
-										      "amount" => $key['betAmount']
-										]
-									  ]
-									]
-					    )]
+
+	                $requesttosend = [
+					  "access_token" => $client_details->client_access_token,
+					  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+					  "type" => "fundtransferrequest",
+					  "datetsent" => "",
+					  "gamedetails" => [
+					    "gameid" =>  $key['gameId'],
+					    "gamename" => ""
+					  ],
+					  "fundtransferrequest" => [
+							"playerinfo" => [
+							"token" => $key['token'],
+							// "playerId" => $key['playerId']
+						],
+						"fundinfo" => [
+						      "gamesessionid" => "",
+						      "transactiontype" => 'debit',
+						      "currencycode" => $client_details->currency,
+						      "amount" => $key['betAmount']
+						]
+					  ]
+					];
+
+					$guzzle_response = $client->post($client_details->fund_transfer_url,
+						['body' => json_encode($requesttosend)]
 					);
 
 			 		$client_response = json_decode($guzzle_response->getBody()->getContents());
@@ -479,8 +480,11 @@ class DigitainController extends Controller
 			 	    $bet_payout = 0; // Bet always 0 payout!
 			 		$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $key['betAmount'],  $bet_payout, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 			 		// $game_trans = Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
-			 		$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
-			   		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+			 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
+			   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+
+			   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, $json_data, 1, $key['betAmount']);
+
 	        	    $items_array[] = [
 	        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 						 "balance" => $client_response->fundtransferresponse->balance,
@@ -545,6 +549,31 @@ class DigitainController extends Controller
 	   			return $response;
 			}
 
+
+			// OUTSIDE FILTER
+			$item_filter = array();
+			foreach ($json_data['items'] as $key):
+					$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
+			 		if($checkLog):
+			 			// dd('hahah double entry ka!');
+			 			$item_filter[] = [
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 8, //already exist
+							 "metadata" => "" // Optional but must be here!
+		        	    ]; 
+
+		        	    $response = array(
+							 "timestamp" => date('YmdHisms'),
+						     "signature" => $this->createSignature(date('YmdHisms')),
+							 "errorCode" => 1,
+							 "Items" => $item_filter,
+			   			);	
+						Helper::saveLog('RSG WIN GAME REQUEST', 14, file_get_contents("php://input"), $response);
+						return $response;
+			 		endif;
+			endforeach;
+
+
 			$items_array = array();
 			foreach ($json_data['items'] as $key):
 				$client_details = $this->_getClientDetails('player_id', $key['playerId']);
@@ -571,16 +600,6 @@ class DigitainController extends Controller
 		 		$check_win_exist = $this->findGameTransaction($key['txId']); // if transaction id exist bypass it
 	 			if(!$check_win_exist):
 	 		
-	 				$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
-			 		if($checkLog):
-			 			// dd('hahah double entry ka!');
-			 			$items_array[] = [
-							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-							 "errorCode" => 8, //already exist
-							 "metadata" => "" // Optional but must be here!
-		        	    ]; 
-			 		else:	
-			 			// WALA LAMAN
 				 		$client = new Client([
 		                    'headers' => [ 
 		                        'Content-Type' => 'application/json',
@@ -652,7 +671,7 @@ class DigitainController extends Controller
 				 			
 				 	  	// 	$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 				   		// DB::table('game_transaction_ext')->insert($game_trans_ext);	
-				 			$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,2);
+				 			$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount']);
 
 			        	    $items_array[] = [
 			        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
@@ -677,7 +696,6 @@ class DigitainController extends Controller
 				        	    $items_array[0]['betsAmount'] = array_sum($total_bets);
 			        	    endif;
 
-					endif;
 	        	else:
 	        		// dd('hahah double entry ka!');
 	        		$items_array[] = [
@@ -700,7 +718,7 @@ class DigitainController extends Controller
 	}
 
 
-	/*
+	/**
 	 *	
 	 * NOTE
 	 * Accept Bet and Win At The Same Time!
@@ -773,31 +791,30 @@ class DigitainController extends Controller
                     ]
                 ]);
 		 		// First Call For The Bet
-		 		$guzzle_response = $client->post($client_details->fund_transfer_url,
-				['body' => json_encode(
-					        	[
-								  "access_token" => $client_details->client_access_token,
-								  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-								  "type" => "fundtransferrequest",
-								  "datetsent" => "",
-								  "gamedetails" => [
-								    "gameid" =>  $key['gameId'],
-								    "gamename" => ""
-								  ],
-								  "fundtransferrequest" => [
-										"playerinfo" => [
-										"token" => $client_details->player_token,
-										"playerId" => $key['playerId']
-									],
-									"fundinfo" => [
-									      "gamesessionid" => "",
-									      "transactiontype" => 'debit',
-									      "currencycode" => $client_details->currency, // This data was pulled from the client
-									      "amount" => $key['betAmount']
-									]
-								  ]
-								]
-				    )]
+				$requesttosend = [
+				  "access_token" => $client_details->client_access_token,
+				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				  "type" => "fundtransferrequest",
+				  "datetsent" => "",
+				  "gamedetails" => [
+				    "gameid" =>  $key['gameId'],
+				    "gamename" => ""
+				  ],
+				  "fundtransferrequest" => [
+						"playerinfo" => [
+						"token" => $client_details->player_token,
+						"playerId" => $key['playerId']
+					],
+					"fundinfo" => [
+					      "gamesessionid" => "",
+					      "transactiontype" => 'debit',
+					      "currencycode" => $client_details->currency, // This data was pulled from the client
+					      "amount" => $key['betAmount']
+					]
+				  ]
+				];
+				$guzzle_response = $client->post($client_details->fund_transfer_url,
+					['body' => json_encode($requesttosend)]
 				);
 
 		 		$client_response = json_decode($guzzle_response->getBody()->getContents());
@@ -830,35 +847,36 @@ class DigitainController extends Controller
      //            );
 		 		// $game_trans = Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
 
-		 		$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
-		   		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+		 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
+		   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+
+		   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 1, $key['betAmount']);
 
 		   		// For The Win
-		 		$guzzle_response = $client->post($client_details->fund_transfer_url,
-				['body' => json_encode(
-					        	[
-								  "access_token" => $client_details->client_access_token,
-								  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-								  "type" => "fundtransferrequest",
-								  "datetsent" => "",
-								  "gamedetails" => [
-								    "gameid" =>  $key['gameId'],
-								    "gamename" => ""
-								  ],
-								  "fundtransferrequest" => [
-										"playerinfo" => [
-										"token" => $client_details->player_token,
-										"playerId" => $key['playerId']
-									],
-									"fundinfo" => [
-									      "gamesessionid" => "",
-									      "transactiontype" => 'credit',
-									      "currencycode" => $client_details->currency, // This data was pulled from the client
-									      "amount" => $key['winAmount']
-									]
-								  ]
-								]
-				    )]
+				$requesttosend = [
+				  "access_token" => $client_details->client_access_token,
+				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				  "type" => "fundtransferrequest",
+				  "datetsent" => "",
+				  "gamedetails" => [
+				    "gameid" =>  $key['gameId'],
+				    "gamename" => ""
+				  ],
+				  "fundtransferrequest" => [
+						"playerinfo" => [
+						"token" => $client_details->player_token,
+						"playerId" => $key['playerId']
+					],
+					"fundinfo" => [
+					      "gamesessionid" => "",
+					      "transactiontype" => 'credit',
+					      "currencycode" => $client_details->currency, // This data was pulled from the client
+					      "amount" => $key['winAmount']
+					]
+				  ]
+				];
+				$guzzle_response = $client->post($client_details->fund_transfer_url,
+					['body' => json_encode($requesttosend)]
 				);
 
 		 		$client_response_ii = json_decode($guzzle_response->getBody()->getContents());
@@ -881,8 +899,9 @@ class DigitainController extends Controller
 		 	    }
 
 		 		$game_trans = Helper::saveGame_transaction($token_id, $key['gameId'], $key['winAmount'],  $key['winAmount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-		 		$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
-		   		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+		 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
+		   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+		   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount']);
         	    $items_array[] = [
         	    	 "externalTxId" => $game_trans, // MW Game Transaction Only Save The Last Game Transaction Which is the credit!
 					 "balance" => $client_response_ii->fundtransferresponse->balance,
@@ -904,7 +923,7 @@ class DigitainController extends Controller
 	}
 
 
-	/*
+	/**
 	 * Refund Find Logs According to gameround, or TransactionID and refund whether it  a bet or win
 	 *
 	 * refundOriginalBet (No proper explanation on the doc!)	
@@ -952,9 +971,8 @@ class DigitainController extends Controller
  		    // 	}
 			$items_array = array();
 		 	foreach ($json_data['items'] as $key):
-
 		 		// We dont want early refund xD
-		 		if($key['holdEarlyRefund'] == false){
+		 		if($key['holdEarlyRefund'] == false):
  						$items_array[] = [
 							 "info" => $key['info'], // IWininfo
 							 "errorCode" => 7,
@@ -968,7 +986,7 @@ class DigitainController extends Controller
 			   			);
 						Helper::saveLog('RSG REFUND GAME REQUEST DENIED', 14, file_get_contents("php://input"), $response);
 			   			return $response;
-		 		}
+		 		endif;
 		 		// Trapping Data PlayerId is Null Use The Transaction Data and Pull PlayerId Based On The TransactionID
 		 		if(isset($key['roundId']) && $key['roundId'] != ''):// if both playerid and roundid is missing
 		 		 	$client_details = $this->_getClientDetails('player_id', $key['playerId']);
@@ -1055,7 +1073,6 @@ class DigitainController extends Controller
 					
    					    // Refund The Game
 						$gg = json_decode($datatrans->transaction_detail);
-						// dd($gg);
 						$amounts_array = array();
 			 			foreach ($gg->items as $gg_tem) :
 			 				if(isset($gg_tem->betAmount)):
@@ -1076,37 +1093,38 @@ class DigitainController extends Controller
 					   				$transactiontype = 'debit'; // Win Amount should be returned as debit to player
 					   			endif;	
 					   			$amount = abs($amnts);
-					   			$guzzle_response = $client->post($client_details->fund_transfer_url,
-								['body' => json_encode(
-							        	[
-										  "access_token" => $client_details->client_access_token,
-										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-										  "type" => "fundtransferrequest",
-										  "datetsent" => "",
-										  "gamedetails" => [
-										    "gameid" =>  "",
-										    "gamename" => ""
-										  ],
-										  "fundtransferrequest" => [
-												"playerinfo" => [
-												"token" => $client_details->player_token,
-											],
-											"fundinfo" => [
-											      "gamesessionid" => "",
-											      "transactiontype" => $transactiontype,
-											      "currencycode" => $client_details->currency, // This data was pulled from the client
-											      "amount" => $amount
-											]
-										  ]
-										]
-								    )]
+					   			$requesttosend = [
+								  "access_token" => $client_details->client_access_token,
+								  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+								  "type" => "fundtransferrequest",
+								  "datetsent" => "",
+								  "gamedetails" => [
+								    "gameid" =>  "",
+								    "gamename" => ""
+								  ],
+								  "fundtransferrequest" => [
+										"playerinfo" => [
+										"token" => $client_details->player_token,
+									],
+									"fundinfo" => [
+									      "gamesessionid" => "",
+									      "transactiontype" => $transactiontype,
+									      "currencycode" => $client_details->currency, // This data was pulled from the client
+									      "amount" => $amount
+									]
+								  ]
+								];
+
+								$guzzle_response = $client->post($client_details->fund_transfer_url,
+									['body' => json_encode($requesttosend)]
 								);
 								$client_response = json_decode($guzzle_response->getBody()->getContents());
 								$balance_reply = $client_response->fundtransferresponse->balance;
 								$game_details = Helper::findGameDetails('game_code', 14, $datatrans->game_id);
-								$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-						 		$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
-						   		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+								$game_trans = Helper::saveGame_transaction($token_id, $gg_tem->gameId, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+						 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
+						   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+						   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount);	
 						   		$items_array[] = [
 				        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 									 "balance" => $balance_reply,
@@ -1142,38 +1160,41 @@ class DigitainController extends Controller
 			   			$amount = abs($amount);
 			   			$check_win_exist = $this->findGameTransaction($key['txId']); // if transaction id exist bypass it
  						if(!$check_win_exist):
+
+ 							$requesttosend = [
+							  "access_token" => $client_details->client_access_token,
+							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+							  "type" => "fundtransferrequest",
+							  "datetsent" => "",
+							  "gamedetails" => [
+							    "gameid" =>  "",
+							    "gamename" => ""
+							  ],
+							  "fundtransferrequest" => [
+									"playerinfo" => [
+									"token" => $client_details->player_token,
+								],
+								"fundinfo" => [
+								      "gamesessionid" => "",
+								      "transactiontype" => $transactiontype,
+								      "currencycode" => $client_details->currency, // This data was pulled from the client
+								      "amount" => $amount
+								]
+							  ]
+							];
+
 							$guzzle_response = $client->post($client_details->fund_transfer_url,
-							['body' => json_encode(
-						        	[
-									  "access_token" => $client_details->client_access_token,
-									  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-									  "type" => "fundtransferrequest",
-									  "datetsent" => "",
-									  "gamedetails" => [
-									    "gameid" =>  "",
-									    "gamename" => ""
-									  ],
-									  "fundtransferrequest" => [
-											"playerinfo" => [
-											"token" => $client_details->player_token,
-										],
-										"fundinfo" => [
-										      "gamesessionid" => "",
-										      "transactiontype" => $transactiontype,
-										      "currencycode" => $client_details->currency, // This data was pulled from the client
-										      "amount" => $amount
-										]
-									  ]
-									]
-							    )]
+								['body' => json_encode($requesttosend)]
 							);
+
 							$method = $transactiontype == 'credit' ? 2 : 1; 
 							$client_response = json_decode($guzzle_response->getBody()->getContents());
 							$balance_reply = $client_response->fundtransferresponse->balance;
-							$game_details = Helper::findGameDetails('game_code', 14, $datatrans->game_id);
+							$game_details = Helper::findGameDetails('game_code', 14, $gg_tem->gameId);
 							$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-					 		$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
-					   		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+					 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
+					   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+					   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount);
 					   		$items_array[] = [
 			        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 								 "balance" => $balance_reply,
@@ -1240,15 +1261,16 @@ class DigitainController extends Controller
 		 		$client_details = $this->_getClientDetails('player_id', $key['playerId']);
 		 		$datatrans = $this->findTransactionRefund($key['winTxId'], 'transaction_id');
 	 			$jsonify = json_decode($datatrans->transaction_detail, true);
-	 			// dd($datatrans);
 	 			if(isset($jsonify['items'][0]['winAmount'])){
 	 				// return 'its a win';
 	 				$transactiontype = 'debit';
 	 				$amount = $jsonify['items'][0]['winAmount'];
+	 				$gameId = $jsonify['items'][0]['gameId'];
 	 			}else{
 	 				// return 'its a bet';
 	 				$transactiontype = 'credit';
 	 				$amount = $jsonify['items'][0]['betAmount'];
+	 				$gameId = $jsonify['items'][0]['gameId'];
 	 			}
 	 			// return 'ditokalang!';
 		 		if(!$client_details){
@@ -1279,31 +1301,30 @@ class DigitainController extends Controller
                     ]
                 ]);
 		 		// Send Amend Correction!		
-		 		$guzzle_response = $client->post($client_details->fund_transfer_url,
-				['body' => json_encode(
-					        	[
-								  "access_token" => $client_details->client_access_token,
-								  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-								  "type" => "fundtransferrequest",
-								  "datetsent" => "",
-								  "gamedetails" => [
-								    "gameid" =>  $key['gameId'],
-								    "gamename" => ""
-								  ],
-								  "fundtransferrequest" => [
-										"playerinfo" => [
-										"token" => $client_details->player_token,
-										// "playerId" => $key['playerId']
-									],
-									"fundinfo" => [
-									      "gamesessionid" => "",
-									      "transactiontype" => $transaction_type,
-									      "currencycode" => $client_details->currency,
-									      "amount" => $amount // Amount of ammend,
-									]
-								  ]
-								]
-				    )]
+				$requesttosend = [
+				  "access_token" => $client_details->client_access_token,
+				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				  "type" => "fundtransferrequest",
+				  "datetsent" => "",
+				  "gamedetails" => [
+				    "gameid" =>  $key['gameId'],
+				    "gamename" => ""
+				  ],
+				  "fundtransferrequest" => [
+						"playerinfo" => [
+						"token" => $client_details->player_token,
+						// "playerId" => $key['playerId']
+					],
+					"fundinfo" => [
+					      "gamesessionid" => "",
+					      "transactiontype" => $transaction_type,
+					      "currencycode" => $client_details->currency,
+					      "amount" => $amount // Amount of ammend,
+					]
+				  ]
+				];
+				$guzzle_response = $client->post($client_details->fund_transfer_url,
+					['body' => json_encode($requesttosend)]
 				);
 
 	 			$client_response = json_decode($guzzle_response->getBody()->getContents());
@@ -1325,9 +1346,10 @@ class DigitainController extends Controller
 		 	    	$provider_trans_id = null;
 		 	    }
 		 	    $game_details = Helper::findGameDetails('game_code', 14, $datatrans->game_id);
-		 		$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-		 		$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
-		   		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+		 		$game_trans = Helper::saveGame_transaction($token_id, $gameId, $amount, $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+		 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
+		   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
+		 		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, $json_data, 3, $amount);
         	    $items_array[] = [
         	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 					 "balance" => $client_response->fundtransferresponse->balance,
@@ -1365,7 +1387,7 @@ class DigitainController extends Controller
 	}
 
 
-	public  function createRSGTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type, $refund_amount=null){
+	public  function createRSGTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response, $transaction_detail,$game_transaction_type, $amount=null){
 
 		$provider_request_details = array();
 		// $provider_request['items'][0]['winAmount']
@@ -1375,11 +1397,13 @@ class DigitainController extends Controller
 
 		// game_transaction_type = 1=bet,2=win,3=refund	
 		if($game_transaction_type == 1){
-			$amount = $provider_request_details['bet'];
+			// $amount = $provider_request_details['bet'];
+			$amount = $amount;
 		}elseif($game_transaction_type == 2){
-			$amount = $provider_request_details['winAmount'];
+			// $amount = $provider_request_details['winAmount'];
+			$amount = $amount;
 		}elseif($game_transaction_type == 3){
-			$amount = $refund_amount;
+			$amount = $amount;
 		}
 
 		$gametransactionext = array(
@@ -1392,13 +1416,14 @@ class DigitainController extends Controller
 			"mw_request"=>json_encode($mw_request),
 			"mw_response" =>json_encode($mw_response),
 			"client_response" =>json_encode($client_response),
+			"transaction_detail" =>json_encode($transaction_detail),
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
 		return $gametransactionext;
 	}
 
 
-   /**
+    /**
 	 * Find The Transactions For Refund, Providers Transaction ID
 	 */
     public  function findTransactionRefund($transaction_id, $type) {
