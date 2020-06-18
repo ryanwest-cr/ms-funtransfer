@@ -55,6 +55,11 @@ $app->post('/api/solid/{brand_code}/rollback', 'SolidGamingController@rollbackTr
 $app->post('/api/solid/{brand_code}/endround', 'SolidGamingController@endPlayerRound');
 $app->post('/api/solid/{brand_code}/endsession', 'SolidGamingController@endPlayerSession');
 
+// Oryx Gaming Endpoints
+$app->post('/api/oryx/{brand_code}/tokens/{token}/authenticate', 'OryxGamingController@authPlayer');
+$app->post('/api/oryx/{brand_code}/players/{player_id}/balance', 'OryxGamingController@getBalance');
+$app->post('/api/oryx/{brand_code}/game-transaction', 'OryxGamingController@gameTransaction');
+
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
 $app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');
