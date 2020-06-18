@@ -14,7 +14,7 @@ use DB;
 class PaymentLobbyController extends Controller
 {
     //
-    private $payment_lobby_url = "https://pay-staging.betrnk.games";
+    private $payment_lobby_url = "https://pay-test.betrnk.games";
     // private $payment_lobby_url = 'http://middleware.freebetrnk.com/public';
     // private $payment_lobby_url = "http://127.0.0.1:8001";
     public function paymentLobbyLaunchUrl(Request $request){
@@ -294,7 +294,7 @@ class PaymentLobbyController extends Controller
                     &&$request->has("cvc")
                     &&$request->has("currency")
                     &&$request->has("exitUrl")){
-                        $returnUrl="https://pay-staging.betrnk.games/stripe/request?token=".$request->token."&exitUrl=".$request->exitUrl;
+                        $returnUrl="https://pay-test.betrnk.games/stripe/request?token=".$request->token."&exitUrl=".$request->exitUrl;
                         $stripe_transaction = PaymentHelper::stripePayment($request->input("cardnumber"),$request->input("exp_year"),$request->input("exp_month"),$request->input("cvc"),$request->input("amount"),$request->input("currency"),$returnUrl);
                         
                         if($stripe_transaction){
