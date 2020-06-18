@@ -42,8 +42,8 @@ $app->delete('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@de
 $app->post('/api/playerdetailsrequest/', 'PlayerDetailsController@show');
 
 // Fund Transfer Request
-$app->post('/api/fundtransferrequest/', 'FundTransferController@process')
-;
+$app->post('/api/fundtransferrequest/', 'FundTransferController@process');
+
 // Solid Gaming Endpoints
 $app->post('/api/solid/{brand_code}/authenticate', 'SolidGamingController@authPlayer');
 $app->post('/api/solid/{brand_code}/playerdetails', 'SolidGamingController@getPlayerDetails');
