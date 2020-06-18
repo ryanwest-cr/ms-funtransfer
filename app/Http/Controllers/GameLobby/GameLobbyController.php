@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Game;
 use App\Models\GameType;
 use App\Models\GameProvider;
+use App\Models\GameSubProvider;
 use App\Helpers\Helper;
 use App\Helpers\GameLobby;
 use Stripe\Balance;
@@ -37,6 +38,30 @@ class GameLobbyController extends Controller
                     "games_list" => array(),
                 );
                 foreach($provider->games as $game){
+                    if($game->sub_provider_id == 0){
+                        $game = array(
+                            "game_id" => $game->game_id,
+                            "game_name"=>$game->game_name,
+                            "game_code"=>$game->game_code,
+                            "game_type" => $game->game_type->game_type_name,
+                            "subpro" =>$game->sub_provider_id,
+                            "game_provider"=> $game->provider->provider_name,
+                            "game_icon" => $game->icon,
+                        );
+                        array_push($providerdata["games_list"],$game);
+                    }
+                }
+                array_push($data,$providerdata);
+            }
+            $sub_providers = GameSubProvider::with("games.game_type")->get(["sub_provider_id","sub_provider_name", "icon"]);
+            foreach($sub_providers as $sub_provider){
+                $subproviderdata = array(
+                    "provider_id" => "sp".$sub_provider->sub_provider_id,
+                    "provider_name" => $sub_provider->sub_provider_name,
+                    "icon" => $this->image_url.$sub_provider->icon,
+                    "games_list" => array(),
+                );
+                foreach($sub_provider->games as $game){
                     $game = array(
                         "game_id" => $game->game_id,
                         "game_name"=>$game->game_name,
@@ -45,9 +70,9 @@ class GameLobbyController extends Controller
                         "game_provider"=> $game->provider->provider_name,
                         "game_icon" => $game->icon,
                     );
-                    array_push($providerdata["games_list"],$game);
+                    array_push($subproviderdata["games_list"],$game);
                 }
-                array_push($data,$providerdata);
+                array_push($data,$subproviderdata);
             }
             return $data;
         }
