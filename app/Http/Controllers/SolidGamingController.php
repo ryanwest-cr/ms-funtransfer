@@ -45,14 +45,14 @@ class SolidGamingController extends Controller
 		}
 		else
 		{
-				$response = [
-						"errorcode" =>  "INVALID_TOKEN",
-						"errormessage" => "The provided token could not be verified/Token already authenticated",
-						"httpstatus" => "404"
+			$response = [
+							"errorcode" =>  "INVALID_TOKEN",
+							"errormessage" => "The provided token could not be verified/Token already authenticated",
+							"httpstatus" => "404"
 						];
-
+			
 			$client_details = $this->_getClientDetails($client_code);
-
+			
 			if ($client_details) {
 				$client = new Client([
 				    'headers' => [ 
@@ -77,7 +77,7 @@ class SolidGamingController extends Controller
 				);
 
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
-
+			
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
@@ -124,19 +124,17 @@ class SolidGamingController extends Controller
 						"errormessage" => "The request was invalid.",
 						"httpstatus" => "400"
 					];
-
 		}
 		else
 		{
-
-				$response = [	
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "The provided playerid don’t exist.",
-						"httpstatus" => "404"
+			$response = [
+							"errorcode" =>  "PLAYER_NOT_FOUND",
+							"errormessage" => "The provided playerid don’t exist.",
+							"httpstatus" => "404"
 						];
 
 			$client_details = $this->_getClientDetails($client_code);
-			$player_details = PlayerHelper::getPlayerDetails($json_data['playerid'])
+			$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
 
 			if ($client_details) {
 				$client = new Client([
@@ -162,7 +160,7 @@ class SolidGamingController extends Controller
 				    )]
 				);
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());			
+				$client_response = json_decode($guzzle_response->getBody()->getContents());		
 
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
@@ -178,7 +176,6 @@ class SolidGamingController extends Controller
 					];
 				}
 			}
-
 		}
 
 		Helper::saveLog('playerdetails', 2, file_get_contents("php://input"), $response);
@@ -197,12 +194,11 @@ class SolidGamingController extends Controller
 						"errormessage" => "The request was invalid.",
 						"httpstatus" => "400"
 					];
-
-
 		}
 		else
 		{
-			"errorcode" =>  "PLAYER_NOT_FOUND",
+			$response = [
+							"errorcode" =>  "PLAYER_NOT_FOUND",
 							"errormessage" => "Player not found",
 							"httpstatus" => "404"
 						];
@@ -262,7 +258,6 @@ class SolidGamingController extends Controller
 					}
 				}
 			}
-
 		}
 
 		Helper::saveLog('balance', 2, file_get_contents("php://input"), $response);
@@ -277,7 +272,7 @@ class SolidGamingController extends Controller
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 
-			$response = [
+				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
 						"httpstatus" => "400"
@@ -356,6 +351,8 @@ class SolidGamingController extends Controller
 
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
 
+						/*var_dump($client_response); die();*/
+
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "402") {
 							$response = [
@@ -389,7 +386,7 @@ class SolidGamingController extends Controller
 				}
 			}
 		}
-
+		
 		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
@@ -402,7 +399,7 @@ class SolidGamingController extends Controller
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 
-			$response = [
+				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
 						"httpstatus" => "400"
@@ -411,9 +408,9 @@ class SolidGamingController extends Controller
 		else
 		{
 			$response = [
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "Player not found",
-						"httpstatus" => "404"
+							"errorcode" =>  "PLAYER_NOT_FOUND",
+							"errormessage" => "Player not found",
+							"httpstatus" => "404"
 						];
 
 			$client_details = $this->_getClientDetails($client_code);
@@ -479,7 +476,7 @@ class SolidGamingController extends Controller
 						);
 
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
-						
+
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "200") {
 
@@ -502,7 +499,7 @@ class SolidGamingController extends Controller
 				}
 			}
 		}
-	
+		
 		Helper::saveLog('credit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
@@ -515,7 +512,7 @@ class SolidGamingController extends Controller
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'betamount', 'winamount', 'roundended')) {
 
-			$response = [
+				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
 						"httpstatus" => "400"
@@ -523,9 +520,8 @@ class SolidGamingController extends Controller
 		}
 		else
 		{
-
 			$response = [
-				"errorcode" =>  "PLAYER_NOT_FOUND",
+							"errorcode" =>  "PLAYER_NOT_FOUND",
 							"errormessage" => "Player not found",
 							"httpstatus" => "404"
 						];
@@ -916,7 +912,6 @@ class SolidGamingController extends Controller
 
 	}
 
-
 	private function _getClientDetails($client_code) {
 
 		$query = DB::table("clients AS c")
@@ -930,7 +925,6 @@ class SolidGamingController extends Controller
 		return $result;
 	}
 
-	
 	/*private function _getClientDetails($type = "", $value = "") {
 
 		$query = DB::table("clients AS c")
