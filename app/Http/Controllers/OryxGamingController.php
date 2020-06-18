@@ -89,10 +89,10 @@ class OryxGamingController extends Controller
 					TokenHelper::saveIfNotExist($player_id, $token);
 
 					$response = [
-						"playerid" => "$player_id",
+						"playerId" => "$player_id",
 						"currencyCode" => "USD",
 						"languageCode" => "ENG",
-						"balance" => $client_response->playerdetailsresponse->balance,
+						"balance" => $this->to_pennies($client_response->playerdetailsresponse->balance),
 						"sessionToken" => $token
 					];
 				}
@@ -179,14 +179,14 @@ class OryxGamingController extends Controller
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
 						$response = [
-							"balance" => $client_response->playerdetailsresponse->balance
+							"balance" => $this->to_pennies($client_response->playerdetailsresponse->balance)
 						];
 					}
 				}
 			}
 		}
 
-		Helper::saveLog('balance', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('balance', 3, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -246,72 +246,136 @@ class OryxGamingController extends Controller
 						    	'Authorization' => 'Bearer '.$client_details->client_access_token
 						    ]
 						]);
-						
-						$transactiontype = (array_key_exists('bet', $json_data) == true ? 'debit' : 'credit');
-						$key = ($transactiontype == 'debit' ? "bet" : "win");
 
-						$guzzle_response = $client->post($client_details->fund_transfer_url,
-						    ['body' => json_encode(
-						        	[
-									  "access_token" => $client_details->client_access_token,
-									  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-									  "type" => "fundtransferrequest",
-									  "datetsent" => "",
-									  "gamedetails" => [
-									    "gameid" => "",
-									    "gamename" => ""
-									  ],
-									  "fundtransferrequest" => [
-											"playerinfo" => [
-											"token" => $player_details->player_token
-										],
-										"fundinfo" => [
-										      "gamesessionid" => "",
-										      "transactiontype" => $transactiontype,
-										      "transferid" => "",
-										      "rollback" => "false",
-										      "currencycode" => $player_details->currency,
-										      "amount" => ($transactiontype == 'debit' ? "-" : "").$json_data[$key]["amount"]
-										]
-									  ]
-									]
-						    )]
-						);
+						if(!array_key_exists('bet', $json_data) && !array_key_exists('win', $json_data)) {
+							
+							if(array_key_exists("roundAction", $json_data)) {
+								if ($json_data["roundAction"] == "CLOSE") {
+									GameRound::end($json_data['roundId']);
+								}
 
-						$client_response = json_decode($guzzle_response->getBody()->getContents());
+								$transactiontype = 'close_round';
 
-						if(isset($client_response->fundtransferresponse->status->code) 
-					&& $client_response->fundtransferresponse->status->code == "402") {
-							$response = [
-								"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
-								"errormessage" => "Not sufficient funds",
-								"httpstatus" => "402"
-							];
+								$guzzle_response = $client->post($client_details->fund_transfer_url,
+								    ['body' => json_encode(
+								        	[
+											  "access_token" => $client_details->client_access_token,
+											  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+											  "type" => "fundtransferrequest",
+											  "datetsent" => "",
+											  "gamedetails" => [
+											    "gameid" => "",
+											    "gamename" => ""
+											  ],
+											  "fundtransferrequest" => [
+													"playerinfo" => [
+													"token" => $player_details->player_token
+												],
+												"fundinfo" => [
+												      "gamesessionid" => "",
+												      "transactiontype" => 'debit',
+												      "transferid" => "",
+												      "rollback" => "false",
+												      "currencycode" => $player_details->currency,
+												      "amount" => 0
+												]
+											  ]
+											]
+								    )]
+								);
+
+								$client_response = json_decode($guzzle_response->getBody()->getContents());
+
+								if(isset($client_response->fundtransferresponse->status->code) 
+							&& $client_response->fundtransferresponse->status->code == "200") {
+
+									if(array_key_exists("roundAction", $json_data)) {
+										if ($json_data["roundAction"] == "CLOSE") {
+											GameRound::end($json_data['roundId']);
+										}
+									}
+
+									$json_data['roundid'] = $json_data['roundId'];
+									$json_data['transid'] = '';
+									$json_data['amount'] = 0;
+									$json_data['reason'] = NULL;
+
+									$game_details = Game::find($json_data["gameCode"]);
+
+									$response = [
+										"responseCode" => "OK",
+										"balance" => $this->to_pennies($client_response->fundtransferresponse->balance),
+									];
+								}
+							}
 						}
 						else
 						{
+							$transactiontype = (array_key_exists('bet', $json_data) == true ? 'debit' : 'credit');
+							$key = ($transactiontype == 'debit' ? "bet" : "win");
+
+							$guzzle_response = $client->post($client_details->fund_transfer_url,
+							    ['body' => json_encode(
+							        	[
+										  "access_token" => $client_details->client_access_token,
+										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+										  "type" => "fundtransferrequest",
+										  "datetsent" => "",
+										  "gamedetails" => [
+										    "gameid" => "",
+										    "gamename" => ""
+										  ],
+										  "fundtransferrequest" => [
+												"playerinfo" => [
+												"token" => $player_details->player_token
+											],
+											"fundinfo" => [
+											      "gamesessionid" => "",
+											      "transactiontype" => $transactiontype,
+											      "transferid" => "",
+											      "rollback" => "false",
+											      "currencycode" => $player_details->currency,
+											      "amount" => ($transactiontype == 'debit' ? "-" : "").$json_data[$key]["amount"]
+											]
+										  ]
+										]
+							    )]
+							);
+
+							$client_response = json_decode($guzzle_response->getBody()->getContents());
+
 							if(isset($client_response->fundtransferresponse->status->code) 
-						&& $client_response->fundtransferresponse->status->code == "200") {
-
-								if(array_key_exists("roundended", $json_data)) {
-									if ($json_data["roundended"] == "true") {
-										GameRound::end($json_data['roundId']);
-									}
-								}
-
-								
-
-								$json_data['roundid'] = $json_data['roundId'];
-								$json_data['transid'] = $json_data[$key]['transactionId'];
-								$json_data['amount'] = $json_data[$key]['amount'];
-
-								$game_details = Game::find($json_data["gameCode"]);
-								GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
-
+						&& $client_response->fundtransferresponse->status->code == "402") {
 								$response = [
-									"responseCode" => "OK",
-									"balance" => $client_response->fundtransferresponse->balance,
+									"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
+									"errormessage" => "Not sufficient funds",
+									"httpstatus" => "402"
 								];
+							}
+							else
+							{
+								if(isset($client_response->fundtransferresponse->status->code) 
+							&& $client_response->fundtransferresponse->status->code == "200") {
+
+									if(array_key_exists("roundAction", $json_data)) {
+										if ($json_data["roundAction"] == "CLOSE") {
+											GameRound::end($json_data['roundId']);
+										}
+									}
+
+									$json_data['roundid'] = $json_data['roundId'];
+									$json_data['transid'] = $json_data[$key]['transactionId'];
+									$json_data['amount'] = $json_data[$key]['amount'];
+									$json_data['reason'] = NULL;
+
+									$game_details = Game::find($json_data["gameCode"]);
+									GameTransaction::save($transactiontype, $json_data, $game_details, $client_details, $player_details);
+
+									$response = [
+										"responseCode" => "OK",
+										"balance" => $this->to_pennies($client_response->fundtransferresponse->balance),
+									];
+								}
 							}
 						}
 					}
@@ -319,7 +383,7 @@ class OryxGamingController extends Controller
 			}
 		}
 		
-		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog($transactiontype, 3, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -574,6 +638,15 @@ class OryxGamingController extends Controller
 				 $result= $query->first();
 
 		return $result;
+	}
+
+	private function to_pennies($value)
+	{
+	    return intval(
+	        strval(floatval(
+	            preg_replace("/[^0-9.]/", "", $value)
+	        ) * 100)
+	    );
 	}
 
 }

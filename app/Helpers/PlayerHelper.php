@@ -53,9 +53,26 @@ class PlayerHelper
 				 	]);
 				}
 
-				 $result= $query->first();
+				if ($type == 'username') {
+					$query->where([
+				 		["p.username", "=", $player_id],
+				 		["pst.status_id", "=", 1]
+				 	]);
+				}
+
+				$result= $query->first();
 
 		return $result;
+	}
+
+	public static function getPlayerIdByUsername($username) {
+		$query = DB::table("players AS p")
+				 ->select('p.player_id')
+				 ->where('p.username', $username);
+				 
+				 $result = $query->first();
+
+		return $result ? $result->player_id : false;
 	}
 
 }

@@ -30,6 +30,7 @@ class GameTransaction
 			        $trans_data["payout_reason"] = $request_data["reason"];
 		        break;
 		    case "rollback":
+		    		$trans_data["provider_trans_id"] = (array_key_exists('transid', $request_data) ? $request_data["transid"] : '');
 					$trans_data["bet_amount"] = 0;
 					$trans_data["win"] = 1;
 					$trans_data["pay_amount"] = $game_data->pay_amount;
