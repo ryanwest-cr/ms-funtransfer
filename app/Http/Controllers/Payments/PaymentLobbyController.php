@@ -1124,6 +1124,7 @@ class PaymentLobbyController extends Controller
         $data = array(
             "token_id" => $get_token_id->token_id,
             "purchase_id" => $transaction->orderId,
+            "reference_number"=>$transaction->reference_number,
             "amount" => $transaction->amount,
             "status_id" => $status_id
             );
