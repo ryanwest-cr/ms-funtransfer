@@ -37,20 +37,24 @@ $app->post('/posts/{post_id}/comments', 'PostCommentController@store');
 $app->put('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@update');
 $app->patch('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@update');
 $app->delete('/posts/{post_id}/comments/{comment_id}', 'PostCommentController@destroy');
+
 // Player Details Request
 $app->post('/api/playerdetailsrequest/', 'PlayerDetailsController@show');
+
 // Fund Transfer Request
-$app->post('/api/fundtransferrequest/', 'FundTransferController@process');
+$app->post('/api/fundtransferrequest/', 'FundTransferController@process')
+;
 // Solid Gaming Endpoints
-$app->post('/api/solid/authenticate', 'SolidGamingController@authPlayer');
-$app->post('/api/solid/playerdetails', 'SolidGamingController@getPlayerDetails');
-$app->post('/api/solid/balance', 'SolidGamingController@getBalance');
-$app->post('/api/solid/debit', 'SolidGamingController@debitProcess');
-$app->post('/api/solid/credit', 'SolidGamingController@creditProcess');
-$app->post('/api/solid/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
-$app->post('/api/solid/rollback', 'SolidGamingController@rollbackTransaction');
-$app->post('/api/solid/endround', 'SolidGamingController@endPlayerRound');
-$app->post('/api/solid/endsession', 'SolidGamingController@endPlayerSession');
+$app->post('/api/solid/{brand_code}/authenticate', 'SolidGamingController@authPlayer');
+$app->post('/api/solid/{brand_code}/playerdetails', 'SolidGamingController@getPlayerDetails');
+$app->post('/api/solid/{brand_code}/balance', 'SolidGamingController@getBalance');
+$app->post('/api/solid/{brand_code}/debit', 'SolidGamingController@debitProcess');
+$app->post('/api/solid/{brand_code}/credit', 'SolidGamingController@creditProcess');
+$app->post('/api/solid/{brand_code}/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
+$app->post('/api/solid/{brand_code}/rollback', 'SolidGamingController@rollbackTransaction');
+$app->post('/api/solid/{brand_code}/endround', 'SolidGamingController@endPlayerRound');
+$app->post('/api/solid/{brand_code}/endsession', 'SolidGamingController@endPlayerSession');
+
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
 $app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');
@@ -129,6 +133,7 @@ $app->post('/api/ebancodeposittransaction', 'EbancoController@depositInfo');
 $app->post('/api/ebancodeposittransactions', 'EbancoController@depositHistory'); 
 $app->post('/api/ebancoupdatedeposit', 'EbancoController@updateDeposit'); 
 $app->post('/api/ebancotest','EbancoController@testrequest');
+
 // Request an access token
 $app->post('/oauth/access_token', function() use ($app){
     return response()->json($app->make('oauth2-server.authorizer')->issueAccessToken());

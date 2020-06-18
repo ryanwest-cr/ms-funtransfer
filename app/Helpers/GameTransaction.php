@@ -4,10 +4,10 @@ use DB;
 
 class GameTransaction
 {
-	public static function save($method, $request_data, $game_data, $client_data) {
+	public static function save($method, $request_data, $game_data, $client_data, $player_data) {
 		/*var_dump($request_data); die();*/
 		$trans_data = [
-					"token_id" => $client_data->token_id,
+					"token_id" => $player_data->token_id,
 					"game_id" => $game_data->game_id,
 					"round_id" => $request_data["roundid"],
 					"income" => $request_data["income"]
