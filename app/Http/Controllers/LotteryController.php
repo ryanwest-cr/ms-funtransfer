@@ -100,6 +100,10 @@ class LotteryController extends Controller
 		// $player_token = $request->player_token;
 		$merchant_user = $request->merchant_user;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 		// dd($merchant_user);
 		$client_details = DB::table("players AS p")
 						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
@@ -111,45 +115,45 @@ class LotteryController extends Controller
 						 ->where("pst.status_id", 1)
 						 ->first();				 
 
+		// dd($client_details);				 
+
 	 	// dd($client_details);
 		// $hashkey = 6f1190df5414d22490583434fe3622fe;
-
+						 
 		if ($client_details) {
-		  // 	$http = new Client();
-		  //       $response = $http->post($client_details->player_details_url, [ 
-		  //           'form_params' => [
-		  //               'merchant_user'=> $request->merchant_user,
-		  //               'hashkey' => md5($client_details->client_api_key.$client_details->client_access_token),
-		  //           ],
-		  //       ]);
-				// $balance = json_decode((string) $response->getBody(), true);
-				// return $balance['playerdetailsresponse']['balance'];
+			 	$http = new Client();
+		        $response = $http->post($client_details->player_details_url, [ 
+		            'form_params' => [
+		                'merchant_user'=> $request->merchant_user,
+		                'hashkey' => md5($client_details->client_api_key.$client_details->client_access_token),
+		            ],
+		        ]);
+				$balance = json_decode((string) $response->getBody(), true);
+				return $balance['playerdetailsresponse']['balance'];
 
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
+				// $client = new Client([
+				//     'headers' => [ 
+				//     	'Content-Type' => 'application/json',
+				//     	'Authorization' => 'Bearer '.$client_details->client_access_token
+				//     ]
+				// ]);
 				
-				$guzzle_response = $client->post($client_details->player_details_url,
-				    ['body' => json_encode(
-				        	["access_token" => $client_details->client_access_token,
-								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-								"type" => "playerdetailsrequest",
-								"clientid" => $client_details->client_id,
-								"playerdetailsrequest" => [
-									"gamelaunch" => true,
-									"token" => $client_details->player_token,
-								]
-							]
-				    )]
-				);
+				// $guzzle_response = $client->post($client_details->player_details_url,
+				//     ['body' => json_encode(
+				//         	["access_token" => $client_details->client_access_token,
+				// 				"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				// 				"type" => "playerdetailsrequest",
+				// 				"clientid" => $client_details->client_id,
+				// 				"playerdetailsrequest" => [
+				// 					"currencyId" => $json_data["currencyId"],
+				// 					"gamelaunch" => true
+				// 				]
+				// 			]
+				//     )]
+				// );
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				// $client_response = json_decode($guzzle_response->getBody()->getContents());
 
-				// dd($client_response);
-				 echo json_encode($client_response->playerdetailsresponse->balance);
 				// return $client_response->playerdetailsresponse->balance;
 		}
 

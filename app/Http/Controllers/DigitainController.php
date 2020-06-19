@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+<<<<<<< HEAD
 use App\Helpers\GameRound;
 use App\Helpers\GameTransaction;
 use App\Helpers\Helper;
 use App\Helpers\CallParameters;
+=======
+use App\Helpers\Helper;
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
@@ -16,6 +20,7 @@ use DB;
 
 
 
+<<<<<<< HEAD
 /**
  *  
  *	Api Documentation v3 -> v3.7.0-1
@@ -29,6 +34,8 @@ use DB;
  *	betwin method additionals = requests:  bonusTicketId,   ,response: playerId, roundId, currencyId
  *	
  */
+=======
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 class DigitainController extends Controller
 {
 
@@ -46,21 +53,42 @@ class DigitainController extends Controller
     private $operator_id = 'B9EC7C0A';
 
 	public function authMethod($operatorId, $timestamp, $signature){
+<<<<<<< HEAD
+=======
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 	  	// "operatorId":111,
 		// "timestamp":"202003092113371560",
 		// "signature":"ba328e6d2358f6d77804e3d342cdee06c2afeba96baada218794abfd3b0ac926",
 		// "token":"90dbbb443c9b4b3fbcfc59643206a123"
+<<<<<<< HEAD
+=======
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 		// $digitain_key = "P5rWDliAmIYWKq6HsIPbyx33v2pkZq7l";
 		$digitain_key = "BetRNK3184223";
 	    $operator_id = $operatorId;
 	    $time_stamp = $timestamp;
 	    $message = $time_stamp.$operator_id;
+<<<<<<< HEAD
 	    $hmac = hash_hmac("sha256", $message, $digitain_key);
 		$result = false;
             if($hmac == $signature) {
 			    $result = true;
             }
         return $result;
+=======
+
+	    $hmac = hash_hmac("sha256", $message, $digitain_key);
+		$result = false;
+
+            if($hmac == $signature) {
+			    $result = true;
+            }
+
+        return $result;
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 	}
 
 
@@ -70,12 +98,19 @@ class DigitainController extends Controller
 		// $digitain_key = "P5rWDliAmIYWKq6HsIPbyx33v2pkZq7l";
 	    // $operator_id = 'D233911A'; /* STATIC FOR NOW */
 		// $digitain_key = "rgstest";
+<<<<<<< HEAD
 	    // $operator_id = '5FB4E74E';
+=======
+	 //    $operator_id = '5FB4E74E';
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 	    $digitain_key = $this->digitain_key;
 	    $operator_id = $this->operator_id;
 	    $time_stamp = $timestamp;
 	    $message = $time_stamp.$operator_id;
+<<<<<<< HEAD
 	    // $message = $digitain_key.$operator_id.$time_stamp;
+=======
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 	    $hmac = hash_hmac("sha256", $message, $digitain_key);
 	    return $hmac;
 	}
@@ -85,6 +120,7 @@ class DigitainController extends Controller
 		$date1 = str_replace("-", "", $daterequest);
 		$date2 = str_replace(":", "", $date1);
 		$date3 = str_replace(" ", "", $date2);
+<<<<<<< HEAD
 		return $date3;
 	}
 
@@ -104,12 +140,42 @@ class DigitainController extends Controller
 				return $check_client;
 		}
 			$client_details = $this->_getClientDetails('token', $json_data['playerdetailsrequest']['token']);
+=======
+
+		return $date3;
+	}
+
+	/*
+     * # Request , token, username, email, site_url, gamecode
+	 */
+	public function createGameSession(){
+
+		$json_data = json_decode(file_get_contents("php://input"), true);
+
+		$check_client = $this->checkClientPlayer($json_data['site_url'], 
+													$json_data['playerdetailsrequest']['username'], 
+													$json_data['playerdetailsrequest']['token']);
+
+		if($check_client['httpstatus'] != 200){
+				return $check_client;
+		}
+
+			$client_details = $this->_getClientDetails('token', $json_data['playerdetailsrequest']['token']);
+
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 			 $response = [
 			 	"errorcode" =>  "CLIENT_NOT_FOUND",
 				"errormessage" => "Client not found",
 				"httpstatus" => "404"
 			 ];
+<<<<<<< HEAD
 			 if ($client_details) { 
+=======
+
+			 if ($client_details) { 
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 			 // 	$subscription = new GameSubscription();
 				// $client_game_subscription = $subscription->check($client_details->client_id, 11, $json_data['gamecode']);
 
@@ -121,6 +187,7 @@ class DigitainController extends Controller
 				// 		];
 				// }
 				// else{
+<<<<<<< HEAD
 					$response = array(
                                 "url" => 'https://partnerapirgs.betadigitain.com/GamesLaunch/Launch?gameid='.$json_data['gamecode'].'&playMode=real&token='.$json_data['playerdetailsrequest']['token'].'&deviceType=1&lang=EN&operatorId='.$this->operator_id.'&mainDomain='.$json_data['site_url'].'',
                                 "game_launch" => true
@@ -149,6 +216,41 @@ class DigitainController extends Controller
 					];
 		if ($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])) {
 		$player_token = $json_data["token"];
+=======
+
+					$response = array(
+                                "url" => 'https://partnerapirgs.betadigitain.com/GamesLaunch/Launch?gameid='.$json_data['gamecode'].'&playMode=real
+&token='.$json_data['playerdetailsrequest']['token'].'&deviceType=1&lang=EN&operatorId='.$this->operator_id.'&mainDomain='.$json_data['site_url'].'',
+                                "game_launch" => true
+                            );
+				// }
+
+			 }
+
+			 // Helper::saveLog('register', 2, $response, 'resBoleReg');
+	         return $response;
+
+	}
+
+
+    public function authenticate(Request $request)
+    {
+		$json_data = json_decode(file_get_contents("php://input"), true);
+		Helper::saveLog('authenticationRGS', 2, 123, 'authenticate');
+		Helper::saveLog('authentication', 2, file_get_contents("php://input"), 'RiANDRAFT');
+
+		$response = [
+						"errorcode" =>  "INVALID_TOKEN",
+						"errormessage" => "The provided token could not be verified/Token already authenticated",
+						"httpstatus" => "404"
+					];
+		
+
+		if ($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])) {
+
+		$player_token = $json_data["token"];
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 		$client_details = DB::table("clients AS c")
 						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 						 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
@@ -157,6 +259,7 @@ class DigitainController extends Controller
 						 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
 						 ->where("pst.player_token", $player_token)
 						 ->first();
+<<<<<<< HEAD
 			if ($client_details) {
 				$client = new Client([
 				    'headers' => [ 
@@ -231,6 +334,95 @@ class DigitainController extends Controller
 					];
 		if ($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])) {
 		$player_token = $json_data["token"];
+=======
+
+
+		if ($client_details) {
+			
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			
+			$guzzle_response = $client->post($client_details->player_details_url,
+			    ['body' => json_encode(
+			        	["access_token" => $client_details->client_access_token,
+							"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+							"type" => "playerdetailsrequest",
+							"datesent" => "",
+							"gameid" => "",
+							"clientid" => $client_details->client_id,
+							"playerdetailsrequest" => [
+								"token" => $json_data["token"],
+								"gamelaunch" => true
+							]
+						]
+			    )]
+			);
+
+			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			// $time_formatted = $this->getTimestamp($client_response->playerdetailsresponse->daterequest);
+			// dd($client_response->playerdetailsresponse->status->code);
+
+			if(isset($client_response->playerdetailsresponse->status->code) &&
+				     $client_response->playerdetailsresponse->status->code == "200"){
+
+				$response = [
+					"timestamp" => date('YmdHisms'),
+					"signature" => $this->createSignature(date('YmdHisms')),
+					"errorCode" => 1,
+					"playerId" => $client_response->playerdetailsresponse->accountid,
+					"userName" => $client_response->playerdetailsresponse->accountname,
+					"currencyId" => $client_response->playerdetailsresponse->currencycode,
+					"balance" => $client_response->playerdetailsresponse->balance,
+					"birthDate" => $client_response->playerdetailsresponse->birthday,
+					"firstName" => $client_response->playerdetailsresponse->firstname,
+					"lastName" => $client_response->playerdetailsresponse->lastname,
+					"gender" => $client_response->playerdetailsresponse->gender,
+					"email" => $client_response->playerdetailsresponse->email,
+					"isReal" => false
+				];
+
+			}
+
+			Helper::saveLog('authentication', 2, file_get_contents("php://input"), $response);
+			echo json_encode($response);
+
+		}
+
+		
+
+		}else{
+			return $response;
+		}
+	
+	}
+
+
+
+
+
+
+	public function getBalance()
+	{
+
+		$json_data = json_decode(file_get_contents("php://input"), true);
+		Helper::saveLog('authenticationRGS', 2, 123, 'GETBALANCE');
+
+
+		$response = [
+						"errorcode" =>  "INVALID_TOKEN",
+						"errormessage" => "The provided token could not be verified/Token already authenticated",
+						"httpstatus" => "404"
+					];
+
+		if ($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])) {
+			
+		$player_token = $json_data["token"];
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 		$client_details = DB::table("clients AS c")
 						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 						 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
@@ -241,12 +433,21 @@ class DigitainController extends Controller
 						 ->first();
 
 		if ($client_details) {
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 			$client = new Client([
 			    'headers' => [ 
 			    	'Content-Type' => 'application/json',
 			    	'Authorization' => 'Bearer '.$client_details->client_access_token
 			    ]
 			]);
+<<<<<<< HEAD
+=======
+			
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 			$guzzle_response = $client->post($client_details->player_details_url,
 			    ['body' => json_encode(
 			        	["access_token" => $client_details->client_access_token,
@@ -262,10 +463,29 @@ class DigitainController extends Controller
 						]
 			    )]
 			);
+<<<<<<< HEAD
 			$client_response = json_decode($guzzle_response->getBody()->getContents());
 			$response = [
 				"timestamp" => date('YmdHisms'),
 				"signature" => $this->createSignature(date('YmdHisms')),
+=======
+
+			$client_response = json_decode($guzzle_response->getBody()->getContents());
+
+
+			$timenow = Carbon::now();
+	        $date = $timenow->format("yymd");
+	        $Time = $timenow->format("His");
+	        $ml = $timenow->format("u");
+	        // date('YmdHisms');
+	       	// $milliseconds = round(microtime(true) * 1000);
+	       	$currentMilliSecond = (int) (microtime(true) * 1000);
+
+
+			$response = [
+				"timestamp" => $date.$Time.substr(sprintf('%04d', $currentMilliSecond),0,4),
+				"signature" => $this->createSignature($date.$Time.$ml),
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 				"errorCode" => 1,
 				"balance" => $client_response->playerdetailsresponse->balance,
 				"email" => $client_response->playerdetailsresponse->email,
@@ -273,17 +493,26 @@ class DigitainController extends Controller
 			];
 
 		}
+<<<<<<< HEAD
 			Helper::saveLog('PLAYER BALANCE RSG', 2, file_get_contents("php://input"), $response);
 			return json_encode($response);
 		}else{
 			Helper::saveLog('PLAYER BALANCE RSG', 2, file_get_contents("php://input"), $response);
 			return json_encode($response);
+=======
+
+			echo json_encode($response);
+
+		}else{
+			echo json_encode($response);
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 		}
 	}
 
 
 
 	public function refreshtoken(){
+<<<<<<< HEAD
 		Helper::saveLog('RTOKEN RSG REQUESTED', 14, 'LOGS', 'LOGS');
 		Helper::saveLog('Auth Refresh Token RSG', 14, file_get_contents("php://input"), 'FIRST');
 		$json_data = json_decode(file_get_contents("php://input"), true);
@@ -1617,16 +1846,52 @@ class DigitainController extends Controller
 				return $message;
 
 	}
+=======
+		Helper::saveLog('authenticationRGS', 2, 123, 'refreshtoken');
+		return $this->createSignature(date('YmdHisms'));
+	}
+
+	public function bet(){
+		Helper::saveLog('authenticationRGS', 2, 123, 'bet');
+	}
+
+	public function betwin(){
+		Helper::saveLog('authenticationRGS', 2, 123, 'betwin');
+	}
+
+	public function refund(){
+		Helper::saveLog('authenticationRGS', 2, 123, 'refund');
+	}
+
+	public function amend(){
+		Helper::saveLog('authenticationRGS', 2, 123, 'amend');
+    }
+
+
+
+
+
+
+
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 
 
 
     /*
+<<<<<<< HEAD
      * DEPRECATED CENTRALIZED!
 	 * Check Player Using Token if its already register in the MW database if not register it!
 	 *
 	 */
 	public function checkClientPlayer($site_url, $merchant_user ,$token = false)
 	{
+=======
+		 * Check Player Using Token if its already register in the MW database if not register it!
+		 */
+		public function checkClientPlayer($site_url, $merchant_user ,$token = false)
+		{
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 
 				// Check Client Server Name
 				$client_check = DB::table('clients')
@@ -1734,44 +1999,80 @@ class DigitainController extends Controller
 		}
 
 
+<<<<<<< HEAD
 		public function _getClientDetails($type = "", $value = "") {
+=======
+
+		public function _getClientDetails($type = "", $value = "") {
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 		$query = DB::table("clients AS c")
 					 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 					 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 					 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 					 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
 					 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id");
+<<<<<<< HEAD
+=======
+					 
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 					if ($type == 'token') {
 						$query->where([
 					 		["pst.player_token", "=", $value],
 					 		["pst.status_id", "=", 1]
 					 	]);
 					}
+<<<<<<< HEAD
+=======
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 					if ($type == 'player_id') {
 						$query->where([
 					 		["p.player_id", "=", $value],
 					 		["pst.status_id", "=", 1]
 					 	]);
 					}
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 					if ($type == 'site_url') {
 						$query->where([
 					 		["c.client_url", "=", $value],
 					 	]);
 					}
+<<<<<<< HEAD
+=======
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 					if ($type == 'username') {
 						$query->where([
 					 		["p.username", $value],
 					 	]);
 					}
+<<<<<<< HEAD
 					$result= $query
+=======
+
+					 $result= $query
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 					 			->latest('token_id')
 					 			->first();
 
 			return $result;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 		}
 
 
 		public function _getPlayerTokenId($player_id){
+<<<<<<< HEAD
+=======
+
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 	       $client_details = DB::table("players AS p")
 	                         ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id','pst.token_id' , 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 	                         ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
@@ -1782,6 +2083,12 @@ class DigitainController extends Controller
 	                         ->where("pst.status_id", 1)
 	                         ->latest('token_id')
 	                         ->first();
+<<<<<<< HEAD
 	        return $client_details->token_id;    
+=======
+
+	        return $client_details->token_id;    
+	        
+>>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 	    }
 }

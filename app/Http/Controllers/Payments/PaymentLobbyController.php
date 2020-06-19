@@ -14,9 +14,9 @@ use DB;
 class PaymentLobbyController extends Controller
 {
     //
-    private $payment_lobby_url = "https://pay.betrnk.games";
+    private $payment_lobby_url = "https://pay-test.betrnk.games";
     // private $payment_lobby_url = 'http://middleware.freebetrnk.com/public';
-     // private $payment_lobby_url = "http://127.0.0.1:8003";
+    // private $payment_lobby_url = "http://127.0.0.1:8001";
     public function paymentLobbyLaunchUrl(Request $request){
         if($request->has("callBackUrl")
             &&$request->has("exitUrl")
@@ -130,6 +130,19 @@ class PaymentLobbyController extends Controller
                         $player_details = $this->_getClientDetails("token",$token);
                         $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,10,$request->input("amount"),2,1,$request->input("callBackUrl"),6);
                     }
+                    elseif($request->payment_method == "STRIPE")
+                    {
+                        /*
+                        entry type 2 = credit
+                        transaction type 1 = deposit
+                        status 6 = pending
+                        method_id = 10 IWALLET
+                        */
+                        $payment_method = "stripe";
+                        $payment_method_code = "STRIPE";
+                        $player_details = $this->_getClientDetails("token",$token);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,13,$request->input("amount"),2,1,$request->input("callBackUrl"),6);
+                    }
                     else{
                         $response = array(
                             "error" => "INVALID_METHOD",
@@ -180,13 +193,14 @@ class PaymentLobbyController extends Controller
                     &&$request->has("cvc")
                     &&$request->has("currency")
                     &&$request->has("exitUrl")){
-                        $returnUrl="https://pay.betrnk.games/paymongo/request?token=".$request->token."&exitUrl=".$request->exitUrl;
+                        $returnUrl="https://pay-test.betrnk.games/paymongo/request?token=".$request->token."&exitUrl=".$request->exitUrl;
                         $paymongo_transaction = PaymentHelper::paymongo($request->input("cardnumber"),$request->input("exp_year"),$request->input("exp_month"),$request->input("cvc"),$request->input("amount"),$request->input("currency"),$returnUrl);
                         if($paymongo_transaction){
                             if(array_key_exists("message",$paymongo_transaction)){
                                 if($paymongo_transaction["status"]=="awaiting_next_action"){
                                         $data = array(
                                         "token_id" => $player_details->token_id,
+                                        "reference_number" => $paymongo_transaction["provider_transaction_id"],
                                         "purchase_id" => $paymongo_transaction["purchase_id"],
                                         "amount" => $paymongo_transaction["equivalent_point"],
                                         "status_id" => 6
@@ -200,6 +214,7 @@ class PaymentLobbyController extends Controller
                                         $data = array(
                                             "token_id" => $player_details->token_id,
                                             "purchase_id" => $paymongo_transaction["purchase_id"],
+                                            "reference_number" => $paymongo_transaction["provider_transaction_id"],
                                             "amount" => $paymongo_transaction["equivalent_point"],
                                             "status_id" => 5
                                             );
@@ -272,6 +287,111 @@ class PaymentLobbyController extends Controller
                         return response($response,401)->header('Content-Type', 'application/json');
                     }
                 }
+                elseif($request->input("payment_method")== "STRIPE"){
+                    if($request->has("cardnumber")
+                    &&$request->has("exp_month")
+                    &&$request->has("exp_year")
+                    &&$request->has("cvc")
+                    &&$request->has("currency")
+                    &&$request->has("exitUrl")){
+                        $returnUrl="https://pay-test.betrnk.games/stripe/request?token=".$request->token."&exitUrl=".$request->exitUrl;
+                        $stripe_transaction = PaymentHelper::stripePayment($request->input("cardnumber"),$request->input("exp_year"),$request->input("exp_month"),$request->input("cvc"),$request->input("amount"),$request->input("currency"),$returnUrl);
+                        
+                        if($stripe_transaction){
+                            if(array_key_exists("status",$stripe_transaction)){
+                                    if($stripe_transaction["status"]=="requires_action"){
+                                        $data = array(
+                                        "token_id" => $player_details->token_id,
+                                        "reference_number" => $stripe_transaction["provider_transaction_id"],
+                                        "purchase_id" => $stripe_transaction["purchase_id"],
+                                        "amount" => $stripe_transaction["equivalent_point"],
+                                        "status_id" => 6
+                                        );
+                                        $transaction = PaymentHelper::updateTransaction($data);
+                                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($transaction),"PayMongo Payment Transaction");
+                                        return $stripe_transaction;
+                                    }
+                                    elseif($stripe_transaction["status"]=="succeeded"){
+                                        try{
+                                            $data = array(
+                                                "token_id" => $player_details->token_id,
+                                                "reference_number" => $stripe_transaction["provider_transaction_id"],
+                                                "purchase_id" => $stripe_transaction["purchase_id"],
+                                                "amount" => $stripe_transaction["equivalent_point"],
+                                                "status_id" => 5
+                                                );
+                                            $transaction = PaymentHelper::updateTransaction($data);
+                                            $client_player_id = DB::table('player_session_tokens as pst')
+                                                ->select("p.client_player_id","p.client_id")
+                                                ->leftJoin("players as p","pst.player_id","=","p.player_id")
+                                                ->where("pst.token_id",$transaction->token_id)
+                                                ->first();
+                                            $key = $transaction->id.'|'.$client_player_id->client_player_id.'|SUCCESS';
+                                            $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+                                            $http = new Client();
+                                            $response_client = $http->post($transaction->trans_update_url,[
+                                                'form_params' => [
+                                                    'transaction_type' => "DEPOSIT",
+                                                    'transaction_id' => $transaction->id,
+                                                    'orderId' => $transaction->orderId,
+                                                    "amount" => $stripe_transaction["equivalent_point"],
+                                                    'client_player_id' => $client_player_id->client_player_id,
+                                                    'status' => "SUCCESS",
+                                                    'message' => 'Thank you! Your Payment using STRIPE has successfully completed.',
+                                                    'AuthenticationCode' => $authenticationCode
+                                                ],
+                                            ]);
+                                            $datatorequest = array(
+                                                    'transaction_type' => "DEPOSIT",
+                                                    'transaction_id' => $transaction->id,
+                                                    'orderId' => $transaction->orderId,
+                                                    "amount" => $stripe_transaction["equivalent_point"],
+                                                    'client_player_id' => $client_player_id->client_player_id,
+                                                    'status' => "SUCCESS",
+                                                    'message' => 'Thank you! Your Payment using STRIPE has successfully completed.',
+                                                    'AuthenticationCode' => $authenticationCode
+                                            );
+                                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"Stripe Payment Update Transaction"); 
+                                            return $stripe_transaction; 
+                                        }
+                                        catch(ClientException $e){
+                                            $client_response = $e->getResponse();
+                                            $response = json_decode($client_response->getBody()->getContents(),True);
+                                            return response($response,200)
+                                            ->header('Content-Type', 'application/json');
+                                        }
+                                        catch(ConnectException $e){
+                                            $response = array(
+                                                "error" => "CONNECT_ERROR",
+                                                "message" => "Incorrect callBackUrl/callBackUrl is not found"
+                                            );
+                                            return response($response,200)
+                                            ->header('Content-Type', 'application/json');
+                                        }
+                                        
+                                    }
+                            }
+                            else{
+                                return $stripe_transaction;
+                            }
+                        }
+                        else{
+                            $response = array(
+                                "error" => "INVALID_REQUEST",
+                                "message" => "Invalid Stripe input/missing input"
+                            );
+                            return response($response,401)->header('Content-Type', 'application/json');
+                        }
+                        
+                    }
+                    else{
+                        $response = array(
+                            "error" => "INVALID_REQUEST",
+                            "message" => "Invalid Paymongo input/missing input"
+                        );
+                        return response($response,401)->header('Content-Type', 'application/json');
+                    }
+                }
                 elseif($request->input("payment_method")== "COINSPAYMENT"){
                     if($request->has("amount")&&$request->has("currency")&&$request->has("digital_currency")){
                         $dgcurrencyrate = $this->getCoinspaymentSingleRate($request->input("digital_currency"));//okiey
@@ -282,6 +402,7 @@ class PaymentLobbyController extends Controller
                                 $data = array(
                                     "token_id" => $player_details->token_id,
                                     "purchase_id" => $cointransaction["purchaseid"],
+                                    "reference_number" =>$cointransaction["txn_id"],
                                     "amount" => $cointransaction["purchase_amount"],
                                     "status_id" => 6
                                     );
@@ -317,6 +438,7 @@ class PaymentLobbyController extends Controller
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $qaicash_transaction["purchase_id"],
+                                "reference_number" => $qaicash_transaction["provider_transaction_id"],
                                 "amount" => $qaicash_transaction["purchase_amount"],
                                 "status_id" => 6
                                 );
@@ -383,6 +505,7 @@ class PaymentLobbyController extends Controller
                         if($vprica_trans){
                             $data = array(
                                 "token_id" => $player_details->token_id,
+                                "reference_number" =>$vprica_trans["purchase_id"],
                                 "purchase_id" => $vprica_trans["purchase_id"],
                                 "amount" => $vprica_trans["purchase_amount"],
                                 "status_id" => 7
@@ -444,6 +567,7 @@ class PaymentLobbyController extends Controller
                         if($ebanco_trans){
                             $data = array(
                                 "token_id" => $player_details->token_id,
+                                "reference_number" =>$ebanco_trans["deposit_id"],
                                 "purchase_id" => $ebanco_trans["deposit_id"],
                                 "amount" => $amount,
                                 "status_id" => 7
@@ -759,6 +883,7 @@ class PaymentLobbyController extends Controller
                         if($qaicash_transaction){
                             $data = array(
                                 "token_id" => $player_details->token_id,
+                                "reference_number" => $qaicash_transaction["provider_transaction_id"],
                                 "purchase_id" => $qaicash_transaction["withdrawal_id"],
                                 "amount" => $qaicash_transaction["withdrawal_amount"],
                                 "status_id" => 6
@@ -999,6 +1124,7 @@ class PaymentLobbyController extends Controller
         $data = array(
             "token_id" => $get_token_id->token_id,
             "purchase_id" => $transaction->orderId,
+            "reference_number"=>$transaction->reference_number,
             "amount" => $transaction->amount,
             "status_id" => $status_id
             );

@@ -19,40 +19,40 @@ class PaymentHelper
         //     ],
         // ]);
 
-        $response = $http->post('https://api.epointexchange.com/public/oauth/token', [
+         $response = $http->post('https://epointexchange.com/oauth/token', [
             'form_params' => [
                 'grant_type' => 'password',
                 'client_id' => '3',
                 'client_secret' => 'uAthPzJR6lk9hrgPljMUjzGHjnPvtT2Ps6eLHRv7',
-                'username' => 'api-test@betrnk.games',
-                'password' => ']WKtkT``mJCe8N3J',
+                'username' => 'stagingmiddleware@betrnk.games',
+                'password' => 'staging123',
                 'scope' => '*',
             ],
         ]);
 
         return json_decode((string) $response->getBody(), true)["access_token"];
-
     }
     public static function ebancoConnectTo(){
         $http = new Client();
  
-        $response = $http->post('http://api.e-banco.net/oauth/token', [
+          $response = $http->post('https://e-banco.net/oauth/token', [
             'form_params' => [
               'grant_type' => 'password',
                'client_id' => '5',
                'client_secret' => 'o6xxbH3bYbTcZOIcrLqRx0YVLDxhUHD28G03cfcr',
-               'username' => 'api@betrnk.games',
-               'password' => ']WKtkT``mJCe8N3J',
+               'username' => 'mychan@ash.gg',
+               'password' => 'charoot1223',
                'scope' => '*',
              ],
         ]);
+ 
         return json_decode((string) $response->getBody(), true)["access_token"];
  
      }
     public static function paymongo($cardnumber,$exp_year,$exp_month,$cvc,$amount,$currency,$returnUrl){
 
         $http = new Client();
-        $response = $http->post('https://api.epointexchange.com/public/api/v1/paymentportal/paymongo', [
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/paymongo2', [
             'form_params' => [
                 'pmcurrency' => $currency,
                 'amount' => $amount,
@@ -70,10 +70,30 @@ class PaymentHelper
 
         return json_decode($response->getBody()->getContents(), true);
     }
+    public static function stripePayment($cardnumber,$exp_year,$exp_month,$cvc,$amount,$currency,$returnUrl){
+        $http = new Client();
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/paymenintent', [
+            'form_params' => [
+                'currency' => $currency,
+                'amount' => $amount,
+                'cardnumber' => $cardnumber,
+                'exp_month' => $exp_month,
+                'exp_year' => $exp_year,
+                'cvc' => $cvc,
+                'returnUrl'=>$returnUrl,
+            ],
+            'headers' =>[
+                'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
+    }
     public static function paymongoUpdate($orderId){
 
         $http = new Client();
-        $response = $http->post('https://api.epointexchange.com/public/api/v1/paymentportal/paymongo_checkupdate', [
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/paymongo_checkupdate', [
             'form_params' => [
                 'orderId' => $orderId,
             ],
@@ -88,7 +108,7 @@ class PaymentHelper
     public static function vprica($cardnumber,$amount){
         $http = new Client();
         // $response = $http->post('http://localhost:8000/api/v1/paymentportal/vprica', [
-        $response = $http->post('https://api.epointexchange.com/public/api/v1/paymentportal/vprica', [
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/vprica', [
             'form_params' => [
                 'amount' => $amount,
                 'cardnumber' => $cardnumber,
@@ -103,7 +123,7 @@ class PaymentHelper
     public static function vpricaCardnumberExist($cardnumber){
         $http = new Client();
         // $response = $http->post('http://localhost:8000/api/v1/paymentportal/vprica', [
-        $response = $http->post('https://api.epointexchange.com/public/api/v1/paymentportal/vprica_check_exist', [
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/vprica_check_exist', [
             'form_params' => [
                 'cardnumber' => $cardnumber,
             ],
@@ -119,7 +139,7 @@ class PaymentHelper
     public static function getCoinspaymentRate(){
         $http = new Client();
         // $response = $http->get('http://localhost:8000/api/v1/paymentportal/coinpayment_rate', [
-        $response = $http->get('https://api.epointexchange.com/public/api/v1/paymentportal/coinpayment_rate', [
+        $response = $http->get('https://epointexchange.com/api/v1/paymentportal/coinpayment_rate', [
             'headers' =>[
                 'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
                 'Accept'     => 'application/json' 
@@ -133,7 +153,7 @@ class PaymentHelper
 
         $http = new Client();
         // $response = $http->post('http://localhost:8000/api/v1/paymentportal/coinpayment_transaction', [
-        $response = $http->post('https://api.epointexchange.com/public/api/v1/paymentportal/coinpayment_transaction', [
+        $response = $http->post('https://epointexchange.com/api/v1/paymentportal/coinpayment_transaction', [
             'form_params' => [
                 'amount' => $amount,
                 'currency' => $currency,
@@ -147,7 +167,7 @@ class PaymentHelper
     }
     public static function ebanco($amount,$bankname){
             $http = new Client();
-            $response = $http->post('https://api.e-banco.net/api/v1/makedeposit', [
+            $response = $http->post('https://e-banco.net/api/v1/makedeposit', [
                'headers' =>[
                    'Authorization' => 'Bearer '.PaymentHelper::ebancoConnectTo(),
                    'Accept'     => 'application/json' 
@@ -191,7 +211,7 @@ class PaymentHelper
     //03-24-20
     public static function QAICASHDepositMethod($currency){
         $http = new Client();
-        $response = $http->post('https://api.epointexchange.com/public/api/qaicash/depositmethods',[
+        $response = $http->post('https://epointexchange.com/api/qaicash/depositmethods',[
             'form_params' => [
                 'currency' => $currency,
             ],
@@ -205,7 +225,7 @@ class PaymentHelper
     //04-01-20
     public static function QAICASHPayoutMethod($currency){
         $http = new Client();
-        $response = $http->post('https://api.epointexchange.com/public/api/qaicash/payoutmethods',[
+        $response = $http->post('https://epointexchange.com/api/qaicash/payoutmethods',[
             'form_params' => [
                 'currency' => $currency,
             ],
@@ -220,7 +240,7 @@ class PaymentHelper
     public static function QAICASHPayoutApproved($order_id,$approved_by){
         $transaction = PayTransaction::find($order_id);
         $http = new Client();
-        $response = $http->post('https://api.epointexchange.com/public/api/qaicash/approvewithdraw',[
+        $response = $http->post('https://epointexchange.com/api/qaicash/approvewithdraw',[
             'form_params' => [
                 'order_id' => $transaction->identification_id,
                 'approved_by' => $approved_by
@@ -235,7 +255,7 @@ class PaymentHelper
     public static function QAICASHPayoutReject($order_id,$rejected_by){
         $transaction = PayTransaction::find($order_id);
         $http = new Client();
-        $response = $http->post('https://api.epointexchange.com/public/api/qaicash/rejectwithdraw',[
+        $response = $http->post('https://epointexchange.com/api/qaicash/rejectwithdraw',[
             'form_params' => [
                 'order_id' => $transaction->identification_id,
                 'rejected_by' => $rejected_by
@@ -250,7 +270,7 @@ class PaymentHelper
     //04-01-20
     public static function QAICASHMakeDeposit($amount,$currency,$deposit_method,$depositor_UId,$depositor_email,$depositor_name,$redirectUrl){
         $http = new Client();
-        $response = $http->post('https://api.epointexchange.com/public/api/qaicash/makedeposit',[
+        $response = $http->post('https://epointexchange.com/api/qaicash/makedeposit',[
             'form_params' => [
                 'amount'=>$amount,
                 'currency' => $currency,
@@ -269,7 +289,7 @@ class PaymentHelper
     }
     public static function QAICASHMakePayout($amount,$currency,$payout_method,$withdrawer_UId,$withdrawer_email,$withdrawer_name,$redirectUrl){
         $http = new Client();
-        $response = $http->post('https://api.epointexchange.com/public/api/qaicash/makewithdraw',[
+        $response = $http->post('https://epointexchange.com/api/qaicash/makewithdraw',[
             'form_params' => [
                 'amount'=>$amount,
                 'currency' => $currency,
@@ -304,6 +324,7 @@ class PaymentHelper
     }
     public static function updateTransaction($data){
         $pay_transaction = PayTransaction::where("token_id",$data["token_id"])->first();
+        $pay_transaction->reference_number = $data["reference_number"];
         $pay_transaction->identification_id=$data["purchase_id"];
         $pay_transaction->status_id = $data["status_id"];
         $pay_transaction->amount=$data["amount"];
