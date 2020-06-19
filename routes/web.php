@@ -64,7 +64,6 @@ $app->post('/api/solid/{brand_code}/endsession', 'SolidGamingController@endPlaye
 $app->post('/api/oryx/{brand_code}/tokens/{token}/authenticate', 'OryxGamingController@authPlayer');
 $app->post('/api/oryx/{brand_code}/players/{player_id}/balance', 'OryxGamingController@getBalance');
 $app->post('/api/oryx/{brand_code}/game-transaction', 'OryxGamingController@gameTransaction');
-<<<<<<< HEAD
 
 // SimplePlay Endpoints
 $app->post('/api/simpleplay/{brand_code}/GetUserBalance', 'SimplePlayController@getBalance');
@@ -156,88 +155,6 @@ $app->post('/api/ebancotest','EbancoController@testrequest');
 $app->post('/oauth/access_token', function() use ($app){
     return response()->json($app->make('oauth2-server.authorizer')->issueAccessToken());
 });
-=======
-
-// SimplePlay Endpoints
-$app->post('/api/simpleplay/{brand_code}/GetUserBalance', 'SimplePlayController@getBalance');
-$app->post('/api/simpleplay/{brand_code}/PlaceBet', 'SimplePlayController@debitProcess');
-$app->post('/api/simpleplay/{brand_code}/PlayerWin', 'SimplePlayController@creditProcess');
-$app->post('/api/simpleplay/{brand_code}/PlayerLost', 'SimplePlayController@lostTransaction');
-$app->post('/api/simpleplay/{brand_code}/PlaceBetCancel', 'SimplePlayController@rollBackTransaction');
-
-// QTech Ganes Endpoints
-$app->get('/api/qtech/{brand_code}/accounts/{player_id}/session?gameId={game_id}', 'QTechController@authPlayer');
-$app->post('/api/qtech/{brand_code}/accounts/{player_id}/balance?gameId={game_id}', 'QTechController@getBalance');
-$app->post('/api/qtech/{brand_code}/transactions', 'QTechController@gameTransaction');
-$app->post('/api/qtech/{brand_code}/transactions/rollback', 'QTechController@rollbackTransaction');
-$app->post('/api/qtech/{brand_code}/bonus/status', 'QTechController@bonusStatus');
-
-// Vivo Gaming Endpoints
-$app->get('/api/vivo/{brand_code}/authenticate', 'VivoController@authPlayer');
-$app->get('/api/vivo/{brand_code}/changebalance', 'VivoController@gameTransaction');
-$app->post('/api/vivo/{brand_code}/status.do', 'VivoController@gameTransaction');
-$app->post('/api/vivo/{brand_code}/getbalance.do', 'VivoController@rollbackTransaction');
-
-// ICG Gaming Endpoints
-$app->get('/api/icgaming/gamelist','ICGController@getGameList');
-$app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');
-$app->get('/api/icgaming/authplayer','ICGController@authPlayer');
-$app->get('/api/icgaming/playerDetails','ICGController@playerDetails');
-$app->post('/api/icgaming/bet','ICGController@betGame');
-$app->delete('/api/icgaming/bet','ICGController@cancelBetGame');
-$app->post('/api/icgaming/win','ICGController@winGame');
-
-// EDP Gaming Endpoints
-$app->post('/api/edp/gamelunch','EDPController@gameLaunchUrl');
-$app->get('/api/edp/check','EDPController@index');
-$app->get('/api/edp/session','EDPController@playerSession');
-$app->get('/api/edp/balance','EDPController@getBalance');
-$app->post('/api/edp/bet','EDPController@betGame');
-$app->post('/api/edp/win','EDPController@winGame');
-$app->post('/api/edp/refund','EDPController@refundGame');
-$app->post('/api/edp/endSession','EDPController@endGameSession');
-
-// Lottery Gaming Endpoints
-$app->post('/api/lottery/authenticate', 'LotteryController@authPlayer');
-$app->post('/api/lottery/balance', 'LotteryController@getBalance'); #/
-$app->post('/api/lottery/debit', 'LotteryController@debitProcess'); #/
-// $app->post('/api/lottery/credit', 'LotteryController@creditProcess');
-// $app->post('/api/lottery/debitandcredit', 'LotteryController@debitAndCreditProcess');
-// $app->post('/api/lottery/endsession', 'LotteryController@endPlayerSession');
-// Mariott Gaming Endpoints
-$app->post('/api/marriott/authenticate', 'MarriottController@authPlayer');
-$app->post('/api/marriott/balance', 'MarriottController@getBalance'); #/
-$app->post('/api/marriott/debit', 'MarriottController@debitProcess'); #/
-
-// RGS Gaming Endpoints
-$app->post('rsg/authenticate', 'DigitainController@authenticate');
-
-// Bole Gaming Endpoints
-$app->post('/api/bole/register', 'BoleGamingController@playerRegister');
-$app->post('/api/bole/logout', 'BoleGamingController@playerLogout');
-$app->post('/api/bole/wallet/player/cost', 'BoleGamingController@playerWalletCost');
-$app->post('/api/bole/wallet/player/balance', 'BoleGamingController@playerWalletBalance');
-
-// EPOINT CONTROLLER
-// $app->post('/api/epoint', 'EpointController@epointAuth'); #/
-// $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
-// EBANCO
-// $app->post('/api/ebancobanks', 'EbancoController@getAvailableBank'); #/
-// $app->post('/api/ebancodeposit', 'EbancoController@deposit'); #/
-// $app->post('/api/ebancodeposithistory', 'EbancoController@deposithistory'); #/
-// $app->post('/api/ebancodepositinfobyid', 'EbancoController@depositinfo'); #/
-// $app->post('/api/ebancodepositinfobyselectedid', 'EbancoController@depositinfobyselectedid'); #/
-// $app->post('/api/ebancodepositreceipt', 'EbancoController@depositReceipt'); #/
-$app->post('/api/ebancoauth', 'EbancoController@connectTo'); 
-$app->post('/api/ebancogetbanklist', 'EbancoController@getBankList'); 
-$app->post('/api/ebancodeposit', 'EbancoController@makeDeposit'); 
-$app->post('/api/ebancosenddepositreceipt', 'EbancoController@sendReceipt'); 
-$app->post('/api/ebancodeposittransaction', 'EbancoController@depositInfo'); 
-$app->post('/api/ebancodeposittransactions', 'EbancoController@depositHistory'); 
-$app->post('/api/ebancoupdatedeposit', 'EbancoController@updateDeposit'); 
-$app->post('/api/ebancotest','EbancoController@testrequest');
-
->>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 //paymentgateway routes
 $app->get('/paymentgateways','Payments\PaymentGatewayController@index');
 $app->post('/payment','Payments\PaymentGatewayController@paymentPortal');
@@ -262,39 +179,12 @@ $app->get('payment/list','Payments\PaymentLobbyController@getPaymentMethod');
 $app->get('payout/list','Payments\PaymentLobbyController@getPayoutMethod');
 $app->post('payment/check','Payments\PaymentLobbyController@minMaxAmountChecker');
 $app->post('payment/paymongoupdate','Payments\PaymentLobbyController@paymongoUpdateTransaction');
-<<<<<<< HEAD
-
-$app->post('payment/transaction','Payments\PaymentLobbyController@getPayTransactionDetails');
-$app->post('payment/cancel','Payments\PaymentLobbyController@cancelPayTransaction');
-//GameLobby
-$app->get('game/list','GameLobby\GameLobbyController@getGameList');
-$app->get('game/provider/{provider_name}','GameLobby\GameLobbyController@getProviderDetails');
-$app->post('game/launchurl','GameLobby\GameLobbyController@gameLaunchUrl');
-$app->post('gamelobby/launchurl','GameLobby\GameLobbyController@gameLobbyLaunchUrl');
-$app->get('game/balance','GameLobby\GameLobbyController@getPlayerBalance');
-$app->post('game/addfavorite','GameLobby\GameFavoriteController@index');
-$app->post('game/playerinfo','GameLobby\GameFavoriteController@playerInfo');
-$app->post('game/playerfavoritelist','GameLobby\GameFavoriteController@playerFavorite');
-$app->get('game/newestgames','GameLobby\GameInfoController@getNewestGames');
-$app->get('game/mostplayed','GameLobby\GameInfoController@getMostPlayed');
-$app->post('game/suggestions','GameLobby\GameInfoController@getGameSuggestions');
-$app->get('game/topcharts','GameLobby\GameInfoController@getTopGames');
-$app->get('game/topcharts/numberone','GameLobby\GameInfoController@getTopProvider');
-$app->post('game/betlist','GameLobby\GameInfoController@getBetList');
-$app->post('game/query','GameLobby\QueryController@queryData');
-
-=======
 $app->post('payment/checktransaction','Payments\PaymentLobbyController@checkPayTransactionContent');
 
 $app->post('payment/transaction','Payments\PaymentLobbyController@getPayTransactionDetails');
 $app->post('payment/cancel','Payments\PaymentLobbyController@cancelPayTransaction');
->>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
 // IWallet
 // $app->post('api/iwallet/makedeposit','IWalletController@makeDeposit');
 $app->post('api/iwallet/makesettlement','IWalletController@makeSettlement');
 // $app->post('api/iwallet/makepayment','IWalletController@makePayment');
-<<<<<<< HEAD
 $app->post('api/iwallet/makeremittance','IWalletController@makeRemittance');
-=======
-$app->post('api/iwallet/makeremittance','IWalletController@makeRemittance');
->>>>>>> 259aae13b75909c07546cbae8664951598a3fe9d
