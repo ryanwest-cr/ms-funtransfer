@@ -183,6 +183,23 @@ $app->post('payment/checktransaction','Payments\PaymentLobbyController@checkPayT
 
 $app->post('payment/transaction','Payments\PaymentLobbyController@getPayTransactionDetails');
 $app->post('payment/cancel','Payments\PaymentLobbyController@cancelPayTransaction');
+
+//GameLobby
+$app->get('game/list','GameLobby\GameLobbyController@getGameList');
+$app->get('game/provider/{provider_name}','GameLobby\GameLobbyController@getProviderDetails');
+$app->post('game/launchurl','GameLobby\GameLobbyController@gameLaunchUrl');
+$app->post('gamelobby/launchurl','GameLobby\GameLobbyController@gameLobbyLaunchUrl');
+$app->get('game/balance','GameLobby\GameLobbyController@getPlayerBalance');
+$app->post('game/addfavorite','GameLobby\GameFavoriteController@index');
+$app->post('game/playerinfo','GameLobby\GameFavoriteController@playerInfo');
+$app->post('game/playerfavoritelist','GameLobby\GameFavoriteController@playerFavorite');
+$app->get('game/newestgames','GameLobby\GameInfoController@getNewestGames');
+$app->get('game/mostplayed','GameLobby\GameInfoController@getMostPlayed');
+$app->post('game/suggestions','GameLobby\GameInfoController@getGameSuggestions');
+$app->get('game/topcharts','GameLobby\GameInfoController@getTopGames');
+$app->get('game/topcharts/numberone','GameLobby\GameInfoController@getTopProvider');
+$app->post('game/betlist','GameLobby\GameInfoController@getBetList');
+$app->post('game/query','GameLobby\QueryController@queryData');
 // IWallet
 // $app->post('api/iwallet/makedeposit','IWalletController@makeDeposit');
 $app->post('api/iwallet/makesettlement','IWalletController@makeSettlement');
