@@ -169,6 +169,15 @@ class GameLobby{
         return $result;
 
     }
+
+    public static function solidLaunchUrl($game_code,$token,$exitUrl){
+
+        $url = $exitUrl;
+        $domain = parse_url($url, PHP_URL_HOST);
+        $url = 'https://instage.solidgaming.net/api/launch/BETRNKMW/'.$game_code.'?language=en&currency=USD&token='.$token.'';
+        return $url;
+    }
+
 }
 
 ?>
