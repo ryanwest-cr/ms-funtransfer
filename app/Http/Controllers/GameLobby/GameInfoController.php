@@ -11,6 +11,16 @@ use DB;
 
 class GameInfoController extends Controller
 {
+	public function getDemoGame(Request $request){
+	 	$games = DB::table('games as g')
+                ->select('g.game_demo')
+                ->leftJoin('providers as p', "g.provider_id", "=", "p.provider_id")
+                ->where('g.game_code', $request->game_code)
+                ->where('p.provider_name', $request->game_provider)
+                ->first();
+        // return $games ? $games : false;        
+        return json_encode($games);        
+	}
 
 	public function getNewestGames(Request $request){
 	
@@ -23,7 +33,6 @@ class GameInfoController extends Controller
                 ->get();
         return $games;        
 	}
-
 
 	public function getMostPlayed(Request $request){
 		// $games = DB::table('games as g')
@@ -80,7 +89,6 @@ class GameInfoController extends Controller
         return $games;        
 	}
 
-
 	public function getBetList(Request $request){
 		// return $request->sample;
 
@@ -98,7 +106,6 @@ class GameInfoController extends Controller
 		// }	  
 		// return '11';	
 	}
-
 
 	public function getTopProvider(Request $request){
 	    $data = array();
@@ -149,7 +156,6 @@ class GameInfoController extends Controller
 
         return $game_suggestions;
 	}
-
 
 	/**
 	 *	@return player details

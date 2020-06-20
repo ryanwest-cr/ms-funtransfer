@@ -14,6 +14,7 @@
 $app->get('/', function () use ($app) {
     return $app->version();
 });
+$app->get('/al','AlController@index'); // TESTING!
 // Posts
 $app->get('/posts','PostController@index');
 $app->post('/posts','PostController@store');
@@ -195,6 +196,7 @@ $app->post('game/playerinfo','GameLobby\GameFavoriteController@playerInfo');
 $app->post('game/playerfavoritelist','GameLobby\GameFavoriteController@playerFavorite');
 $app->get('game/newestgames','GameLobby\GameInfoController@getNewestGames');
 $app->get('game/mostplayed','GameLobby\GameInfoController@getMostPlayed');
+$app->post('game/demogame','GameLobby\GameInfoController@getDemoGame');
 $app->post('game/suggestions','GameLobby\GameInfoController@getGameSuggestions');
 $app->get('game/topcharts','GameLobby\GameInfoController@getTopGames');
 $app->get('game/topcharts/numberone','GameLobby\GameInfoController@getTopProvider');
