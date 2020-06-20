@@ -65,8 +65,9 @@ class GameLobby{
         ]);
         // Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_encode($response->getBody()->getContents()));
         $client_response = json_decode($response->getBody()->getContents());
+        dd($client_response);
         return $client_response->resp_data->url;
-        // dd($client_response);
+        
         // return $client_response;
     }
 
