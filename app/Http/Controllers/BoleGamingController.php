@@ -271,8 +271,8 @@ class BoleGamingController extends Controller
 		{
 
 			$json_data = json_decode($request->getContent());
-			Helper::saveLog('WALLET CALL BOLE', 11, '11', 'BOLE CALL');
-			// Helper::saveLog('walletCostCall', 2, $request->getContent(), 'boleReq');
+			// Helper::saveLog('WALLET CALL BOLE', 11, '11', 'BOLE CALL');
+			Helper::saveLog('walletCostCall', 2, $request->getContent(), 'boleReq');
 
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			if(!$hashen){
