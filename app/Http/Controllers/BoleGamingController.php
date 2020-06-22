@@ -582,12 +582,17 @@ class BoleGamingController extends Controller
 		public function playerWalletBalance(Request $request)
 		{
 			// Helper::saveLog('balanceCall', 11, $request->getContent(), 'TEST');
+			$json_data = json_decode($request->getContent());
+			// dd($json_data->player_account);
+
 			// $hashen = $this->chashen($request->operator_id, $request->player_account, $request->sha1);
+			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			// if(!$hashen){
 		 //        return ["code" => "error"];
 		 //        Helper::saveLog('UnknownCall', 11, $request->getContent(), 'UnknownboleReq');
 			// }
-			$client_details = $this->_getClientDetails('player_id', $request->player_account);
+			// $client_details = $this->_getClientDetails('player_id', $request->player_account);
+			$client_details = $this->_getClientDetails('player_id', $json_data->player_account);
 			// dd($client_details);
 			if($client_details)
 			{
