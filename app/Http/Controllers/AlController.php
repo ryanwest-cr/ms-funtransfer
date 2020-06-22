@@ -17,13 +17,13 @@ class AlController extends Controller
     public function index(Request $request){
 
         // public function getDemoGame(Request $request){
-        $games = DB::table('games as g')
-                ->select('g.game_demo')
-                ->leftJoin('providers as p', "g.provider_id", "=", "p.provider_id")
-                ->where('g.game_code', 'rbwar')
-                ->where('p.provider_name', 'Bole Gaming')
-                ->first();
-        dd($games);        
+        // $games = DB::table('games as g')
+        //         ->select('g.game_demo')
+        //         ->leftJoin('providers as p', "g.provider_id", "=", "p.provider_id")
+        //         ->where('g.game_code', 'rbwar')
+        //         ->where('p.provider_name', 'Bole Gaming')
+        //         ->first();
+        // dd($games);        
     // }
 
         // $gg = DB::table('games as g')
