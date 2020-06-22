@@ -16,31 +16,33 @@ class AlController extends Controller
 {
     public function index(Request $request){
 
-        // public function getDemoGame(Request $request){
-        // $games = DB::table('games as g')
-        //         ->select('g.game_demo')
-        //         ->leftJoin('providers as p', "g.provider_id", "=", "p.provider_id")
-        //         ->where('g.game_code', 'rbwar')
-        //         ->where('p.provider_name', 'Bole Gaming')
-        //         ->first();
-        // dd($games);        
-    // }
 
-        // $gg = DB::table('games as g')
-        //     ->where('provider_id', 13)
-        //     ->get();
 
-        // $array = array();  
-        // foreach($gg as $g){
-        //     DB::table('games')
-        //            ->where('provider_id', 13)
-        //            ->where('game_id', $g->game_id)
-        //            ->update(['icon' => 'https://asset-dev.betrnk.games/images/casino/edp/eng/388x218/'.$g->game_code.'.jpg']);
+        $gg = DB::table('games as g')
+            ->where('provider_id', $request->provider_id)
+            ->get();
+
+        $array = array();  
+        foreach($gg as $g){
+            DB::table('games')
+                   ->where('provider_id',$request->provider_id)
+                   ->where('game_id', $g->game_id)
+                   ->update(['icon' => 'https://asset-dev.betrnk.games/images/casino/'.$request->prefix.'/eng/388x218/'.$g->game_code.'.jpg']);
                     
-        // }     
-        // return 'ok';    
+        }     
+        return 'ok';    
 
 
+
+        // public function getDemoGame(Request $request){
+            // $games = DB::table('games as g')
+            //         ->select('g.game_demo')
+            //         ->leftJoin('providers as p', "g.provider_id", "=", "p.provider_id")
+            //         ->where('g.game_code', 'rbwar')
+            //         ->where('p.provider_name', 'Bole Gaming')
+            //         ->first();
+            // dd($games);        
+        // }
 
         // dd(Auth()->user()->id);
         // if($payment_method == "paymongo"){
@@ -118,7 +120,7 @@ class AlController extends Controller
          // dd(isset(Auth::user()->username) ? Auth::user()->username : Auth::user()->email);
          // 
          // dd($_SERVER['SERVER_NAME']);
-    	return view('al');
+    	// return view('al');
     }
 
 

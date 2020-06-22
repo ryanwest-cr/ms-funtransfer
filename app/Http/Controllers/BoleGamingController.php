@@ -298,8 +298,18 @@ class BoleGamingController extends Controller
 							
 								//This area are use to update game_transaction table bet_amount,win or lose, pay_amount, and entry_type
 								
+
 							    $transaction_type = $json_data->cost_info->gain_gold < 0 ? 'debit' : 'credit';
-							    $game_details = Game::find($json_data->game_code);
+
+							    // TRAP SLOT GAMES FOR DB QUERY
+							    // $game_details = Game::find($json_data->game_code);
+							    if($json_data->game_code == 'slot'){
+							    	$game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
+							    }else{
+							    	$game_details = Game::find($json_data->game_code);
+							    }
+
+
 								$token_id = $client_details->token_id;
 				                $bet_amount = abs($json_data->cost_info->bet_num);
 								

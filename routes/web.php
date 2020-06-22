@@ -14,7 +14,7 @@
 $app->get('/', function () use ($app) {
     return $app->version();
 });
-$app->get('/al','AlController@index'); // TESTING!
+$app->post('/al','AlController@index'); // TESTING!
 // Posts
 $app->get('/posts','PostController@index');
 $app->post('/posts','PostController@store');
