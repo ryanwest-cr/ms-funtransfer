@@ -466,7 +466,7 @@ class BoleGamingController extends Controller
 
 									$data = [
 										"data" => [
-											"balance" => number_format((float)$get_balance, 2, '.', ''), // TEST
+											"balance" => floatval(number_format((float)$get_balance, 2, '.', '')), // TEST
 											// "balance" => number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''),
 											"currency" => $client_response->fundtransferresponse->currencycode,
 										],
@@ -547,7 +547,7 @@ class BoleGamingController extends Controller
 
 											$data = [
 												"data" => [
-													"balance" => number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''),
+													"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
 													"currency" => $client_response->fundtransferresponse->currencycode,
 												],
 												"status" => [
@@ -636,7 +636,7 @@ class BoleGamingController extends Controller
 
 			$data = [
 				"data" => [
-					"balance" => number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', ''),
+					"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
 					"currency" => $client_response->playerdetailsresponse->currencycode,
 				],
 				"status" => [
@@ -644,6 +644,8 @@ class BoleGamingController extends Controller
 					"msg" => "success"
 				]
 			];
+
+
 
 			Helper::saveLog('walletBalance', 11, $request->getContent(), $data);
 
