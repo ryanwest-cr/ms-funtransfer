@@ -321,8 +321,7 @@ class SolidGamingController extends Controller
 						    ]
 						]);
 						
-						$guzzle_response = $client->post($client_details->fund_transfer_url,
-						    ['body' => json_encode(
+						$body = json_encode(
 						        	[
 									  "access_token" => $client_details->client_access_token,
 									  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -346,7 +345,10 @@ class SolidGamingController extends Controller
 										]
 									  ]
 									]
-						    )]
+						    );
+
+						$guzzle_response = $client->post($client_details->fund_transfer_url,
+						    ['body' => $body]
 						);
 
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
@@ -389,7 +391,7 @@ class SolidGamingController extends Controller
 			}
 		}
 		
-		Helper::saveClientLog('debit', 2, "", $client_response);
+		Helper::saveClientLog('debit', 2, $body, $client_response);
 		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 

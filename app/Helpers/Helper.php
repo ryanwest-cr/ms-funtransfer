@@ -29,10 +29,10 @@ class Helper
 		$data = [
 					"method_name" => $method,
 					"provider_id" => $provider_id,
-					"sent_data" => "",
+					"sent_data" => $sent_data,
 					"response_data" => json_encode($response_data)
 				];
-				
+
 		DB::table('seamless_sent_logs')->insert($data);
 	}
 
