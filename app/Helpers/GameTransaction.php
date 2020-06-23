@@ -48,12 +48,21 @@ class GameTransaction
 
 		$game_details = DB::table("game_transactions AS g")
 				 ->where("g.round_id", $request_data['roundid'])
-				 ->first();;
+				 ->first();
 
-		$income = $game_details->bet_amount - $request_data['amount'];
+		$income = $game_details->income; 
+		$win = 0;
+		$pay_amount = 0;
+
+		if($json_data["amount"] > 0.00) {
+			$win = 1;
+			$income = $game_details->bet_amount - $request_data['amount'];
+			$pay_amount = $json_data["amount"];
+		}
+
         $update = DB::table('game_transactions')
                 ->where('game_trans_id', $game_details->game_trans_id)
-                ->update(['pay_amount' => $request_data['amount'], 'income' => $income, 'win' => 1, 'entry_id' => 2]);
+                ->update(['pay_amount' => $pay_amount, 'income' => $income, 'win' => $win, 'entry_id' => 2]);
                 
 		return ($update ? true : false);
 	}

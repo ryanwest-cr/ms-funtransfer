@@ -495,9 +495,7 @@ class SolidGamingController extends Controller
 
 							$json_data['income'] = $json_data['amount'] - $json_data["amount"];
 
-							if($json_data["amount"] > 0.00) {
-								GameTransaction::update('credit', $json_data, $game_details, $client_details, $player_details);
-							}
+							GameTransaction::update('credit', $json_data, $game_details, $client_details, $player_details);
 							
 							$response = [
 								"status" => "OK",
@@ -668,10 +666,9 @@ class SolidGamingController extends Controller
 						
 									$json_data["amount"] = $json_data["winamount"];
 									$json_data["reason"] = "";
-									if($json_data["amount"] > 0.00) {
-										GameTransaction::update('credit', $json_data, $game_details, $client_details, $player_details);
-									}
-
+									
+									GameTransaction::update('credit', $json_data, $game_details, $client_details, $player_details);
+									
 									$response = [
 										"status" => "OK",
 										"currency" => $credit_client_response->fundtransferresponse->currencycode,
