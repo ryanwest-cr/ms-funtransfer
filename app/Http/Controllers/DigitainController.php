@@ -607,6 +607,18 @@ class DigitainController extends Controller
 	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
 	 			if(!$checkLog):
 
+	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
+	 			if(!$checkLog):
+
+	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
+	 			if(!$checkLog):
+
+	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
+	 			if(!$checkLog):
+
+	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
+	 			if(!$checkLog):
+
 				 		$client = new Client([
 		                    'headers' => [ 
 		                        'Content-Type' => 'application/json',
@@ -702,6 +714,38 @@ class DigitainController extends Controller
 						 		}
 				        	    $items_array[0]['betsAmount'] = array_sum($total_bets);
 			        	    endif;
+			    else:
+	        		// dd('hahah double entry ka!');
+	        		$items_array[] = [
+						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						 "errorCode" => 8, //already exist
+						 "metadata" => "" // Optional but must be here!
+	        	    ]; 
+	        	endif; 
+	        	else:
+	        		// dd('hahah double entry ka!');
+	        		$items_array[] = [
+						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						 "errorCode" => 8, //already exist
+						 "metadata" => "" // Optional but must be here!
+	        	    ]; 
+	        	endif; 
+	        	else:
+	        		// dd('hahah double entry ka!');
+	        		$items_array[] = [
+						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						 "errorCode" => 8, //already exist
+						 "metadata" => "" // Optional but must be here!
+	        	    ]; 
+	        	endif; 
+	            else:
+	        		// dd('hahah double entry ka!');
+	        		$items_array[] = [
+						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						 "errorCode" => 8, //already exist
+						 "metadata" => "" // Optional but must be here!
+	        	    ]; 
+	        	endif; 
 			    else:
 	        		// dd('hahah double entry ka!');
 	        		$items_array[] = [
@@ -1099,9 +1143,12 @@ class DigitainController extends Controller
 
 				   		foreach($amounts_array as $amnts):
 				   			$check_win_exist = $this->findGameTransaction($key['txId']); // if transaction id exist bypass it
+			   				$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
 	 						if(!$check_win_exist):
-
-	 						$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
+	  				     	if(!$checkLog):
+	  				     	if(!$check_win_exist):
+	  				     	if(!$checkLog):
+	  				     	if(!$check_win_exist):
 	  				     	if(!$checkLog):
 
 					   			if((int)$amnts > 0):
@@ -1158,6 +1205,34 @@ class DigitainController extends Controller
 									 "errorCode" => 8, //already exist
 									 "metadata" => "" // Optional but must be here!
 							    ];   
+							endif; 
+				        	else:
+								$items_array[] = [
+									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+									 "errorCode" => 8, //already exist
+									 "metadata" => "" // Optional but must be here!
+							    ];   
+							endif;  
+							else:
+								$items_array[] = [
+									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+									 "errorCode" => 8, //already exist
+									 "metadata" => "" // Optional but must be here!
+							    ];   
+							endif;  
+							else:
+								$items_array[] = [
+									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+									 "errorCode" => 8, //already exist
+									 "metadata" => "" // Optional but must be here!
+							    ];   
+							endif;  
+				        	else:
+								$items_array[] = [
+									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+									 "errorCode" => 8, //already exist
+									 "metadata" => "" // Optional but must be here!
+							    ];   
 							endif;      
 				        	else:
 								$items_array[] = [
@@ -1190,6 +1265,18 @@ class DigitainController extends Controller
 
  						$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
 	  					if(!$checkLog):
+
+  				     	$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
+  				     	if(!$checkLog):
+
+  				     	$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
+  				     	if(!$checkLog):
+
+  				     	$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
+  				     	if(!$checkLog):
+
+  				     	$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
+  				     	if(!$checkLog):
 
  							$requesttosend = [
 							  "access_token" => $client_details->client_access_token,
@@ -1236,6 +1323,34 @@ class DigitainController extends Controller
 								 "errorCode" => 1,
 								 "metadata" => "" // Optional but must be here!
 			        	    ];
+			        	else:
+							$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 8, //already exist
+								 "metadata" => "" // Optional but must be here!
+						    ];   
+						endif; 
+						else:
+							$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 8, //already exist
+								 "metadata" => "" // Optional but must be here!
+						    ];   
+						endif; 
+						else:
+							$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 8, //already exist
+								 "metadata" => "" // Optional but must be here!
+						    ];   
+						endif; 
+						else:
+							$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 8, //already exist
+								 "metadata" => "" // Optional but must be here!
+						    ];   
+						endif; 
 			        	else:
 							$items_array[] = [
 								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
