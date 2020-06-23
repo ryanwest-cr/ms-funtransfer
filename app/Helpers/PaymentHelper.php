@@ -204,6 +204,30 @@ class PaymentHelper
         }
         return $currency;
     }
+    public static function currencyConverter($currency){
+        $client = new Client([
+            'headers' => ['x-rapidapi-host' => 'currency-converter5.p.rapidapi.com',
+            'x-rapidapi-key' => '8206256315mshcd8655ee7f5800dp1bf51bjsn355caa8858be',
+            'Content-Type' => 'application/x-www-form-urlencoded'],
+            'http_errors' => false,
+        ]);
+        $response = $client->get('https://currency-converter5.p.rapidapi.com/currency/convert', [
+        ]);
+        $data = json_decode($response->getBody(),TRUE);
+        $currencylist = array(
+            "main_currency"=>$currency,
+            "rates"=>array()
+        );
+        foreach($data["rates"] as $key=>$rate){
+            $currencyconverted = array(
+                "currency" =>$key,
+                "currency_name"=>$rate["currency_name"],
+                "rate" => number_format((1/(float)$rate["rate"])/(1/(float)$data["rates"][$currency]["rate"]), 5, '.', ''),
+            );
+            array_push($currencylist["rates"],$currencyconverted);
+        }
+        return $currencylist;
+    }
 
     ///endcoinspayment
 
@@ -327,6 +351,9 @@ class PaymentHelper
         $pay_transaction->reference_number = $data["reference_number"];
         $pay_transaction->identification_id=$data["purchase_id"];
         $pay_transaction->status_id = $data["status_id"];
+        $pay_transaction->from_currency = $data["from_currency"];
+        $pay_transaction->input_amount = $data["input_amount"];
+        $pay_transaction->exchange_rate = $data["exchange_rate"];
         $pay_transaction->amount=$data["amount"];
         $pay_transaction->save();
         return $pay_transaction;
