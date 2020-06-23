@@ -29,7 +29,7 @@ class AlController extends Controller
                    ->where('provider_id',$request->provider_id)
                    ->where('sub_provider_id',$request->subprovider)
                    ->where('game_id', $g->game_id)
-                   ->update(['icon' => 'https://asset-dev.betrnk.games/images/games/casino/'.$request->prefix.'/'.$g->game_code.'.jpg']);
+                   ->update(['icon' => 'https://asset-dev.betrnk.games/images/games/casino/'.$request->prefix.'/'.$g->game_code.'.'.$g->extension.'']);
                    // ->update(['icon' => 'https://asset-dev.betrnk.games/images/casino/'.$request->prefix.'/eng/388x218/'.$g->game_code.'.jpg']);
                     
         }     
