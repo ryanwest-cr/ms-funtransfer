@@ -44,6 +44,20 @@ class GameTransaction
 		DB::table('game_transactions')->insert($trans_data);
 	}
 
+	public static function update($method, $request_data, $game_data, $client_data, $player_data) {
+
+		$game_details = DB::table("game_transactions AS g")
+				 ->where("g.round_id", $request_data['roundid'])
+				 ->first();;
+
+		$income = $game_details->bet_amount - $request_data['amount'];
+        $update = DB::table('game_transactions')
+                ->where('game_trans_id', $game_details->game_trans_id)
+                ->update(['pay_amount' => $request_data['amount'], 'income' => $income, 'win' => 1, 'entry_id' => 2]);
+                
+		return ($update ? true : false);
+	}
+
 	public static function find($original_trans_id) {
 		$transaction_id = DB::table('game_transactions')
 								->where('provider_trans_id', $original_trans_id)
