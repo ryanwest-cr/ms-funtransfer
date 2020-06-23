@@ -986,21 +986,21 @@ class DigitainController extends Controller
 			$items_array = array();
 		 	foreach ($json_data['items'] as $key):
 		 		// We dont want early refund xD
-		 		if($key['holdEarlyRefund'] == false):
- 						$items_array[] = [
-							 "info" => $key['info'], // IWininfo
-							 "errorCode" => 7,
-							 "metadata" => "" // Optional but must be here!
-		        	    ];
-						$response = array(
-							 "timestamp" => date('YmdHisms'),
-						     "signature" => $this->createSignature(date('YmdHisms')),
-							 "errorCode" => 1,
-							 "Items" => $items_array,
-			   			);
-						Helper::saveLog('RSG REFUND GAME REQUEST DENIED', 14, file_get_contents("php://input"), $response);
-			   			return $response;
-		 		endif;
+		 		// if($key['holdEarlyRefund'] == false):
+ 				// 		$items_array[] = [
+					// 		 "info" => $key['info'], // IWininfo
+					// 		 "errorCode" => 7,
+					// 		 "metadata" => "" // Optional but must be here!
+		   //      	    ];
+					// 	$response = array(
+					// 		 "timestamp" => date('YmdHisms'),
+					// 	     "signature" => $this->createSignature(date('YmdHisms')),
+					// 		 "errorCode" => 1,
+					// 		 "Items" => $items_array,
+			  //  			);
+					// 	Helper::saveLog('RSG REFUND GAME REQUEST DENIED', 14, file_get_contents("php://input"), $response);
+			  //  			return $response;
+		 		// endif;
 		 		// Trapping Data PlayerId is Null Use The Transaction Data and Pull PlayerId Based On The TransactionID
 		 		if(isset($key['roundId']) && $key['roundId'] != ''):// if both playerid and roundid is missing
 		 		 	$client_details = $this->_getClientDetails('player_id', $key['playerId']);
@@ -1101,6 +1101,9 @@ class DigitainController extends Controller
 				   			$check_win_exist = $this->findGameTransaction($key['txId']); // if transaction id exist bypass it
 	 						if(!$check_win_exist):
 
+	 						$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
+	  				     	if(!$checkLog):
+
 					   			if((int)$amnts > 0):
 					   				$transactiontype = 'credit'; // Bet Amount should be returned as credit to player
 					   			else:
@@ -1128,7 +1131,8 @@ class DigitainController extends Controller
 									]
 								  ]
 								];
-
+								$round_id = isset($key['roundId']) ? $key['roundId'] : $gg_tem->roundId;
+								$round_id = $gg_tem->roundId;
 								$guzzle_response = $client->post($client_details->fund_transfer_url,
 									['body' => json_encode($requesttosend)]
 								);
@@ -1138,7 +1142,9 @@ class DigitainController extends Controller
 								$game_trans = Helper::saveGame_transaction($token_id, $gg_tem->gameId, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 						 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 						   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
-						   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount, $key['txId'] ,$key['roundId']);
+						   		// $rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,3, $amount,$key['txId'], $gg_tem->roundId);
+
+						   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 3, $amount, $key['txId'], $round_id);
 						   		$items_array[] = [
 				        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 									 "balance" => $balance_reply,
@@ -1146,6 +1152,13 @@ class DigitainController extends Controller
 									 "errorCode" => 1,
 									 "metadata" => "" // Optional but must be here!
 				        	    ];
+				        	else:
+								$items_array[] = [
+									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+									 "errorCode" => 8, //already exist
+									 "metadata" => "" // Optional but must be here!
+							    ];   
+							endif;      
 				        	else:
 								$items_array[] = [
 									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
@@ -1175,6 +1188,9 @@ class DigitainController extends Controller
 			   			$check_win_exist = $this->findGameTransaction($key['txId']); // if transaction id exist bypass it
  						if(!$check_win_exist):
 
+ 						$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
+	  					if(!$checkLog):
+
  							$requesttosend = [
 							  "access_token" => $client_details->client_access_token,
 							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -1201,14 +1217,18 @@ class DigitainController extends Controller
 								['body' => json_encode($requesttosend)]
 							);
 
+							$refund_round = $key['roundId'];
 							$method = $transactiontype == 'credit' ? 2 : 1; 
 							$client_response = json_decode($guzzle_response->getBody()->getContents());
 							$balance_reply = $client_response->fundtransferresponse->balance;
 							$game_details = Helper::findGameDetails('game_code', 14, $gg_tem->gameId);
-							$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+							$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $refund_round);
 					 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 					   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
-					   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount, $key['txId'] ,$key['roundId']);
+					   		// $rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount, $key['txId'], (int)$key['roundId']);
+
+					   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 3, $amount, $key['txId'] ,$refund_round);
+
 					   		$items_array[] = [
 			        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 								 "balance" => $balance_reply,
@@ -1216,6 +1236,13 @@ class DigitainController extends Controller
 								 "errorCode" => 1,
 								 "metadata" => "" // Optional but must be here!
 			        	    ];
+			        	else:
+							$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 8, //already exist
+								 "metadata" => "" // Optional but must be here!
+						    ];   
+						endif;     
 			        	else:
 							$items_array[] = [
 								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
@@ -1359,11 +1386,12 @@ class DigitainController extends Controller
 		 	    }else{
 		 	    	$provider_trans_id = null;
 		 	    }
+		 	    $round_id = $key['roundId'];
 		 	    $game_details = Helper::findGameDetails('game_code', 14, $datatrans->game_id);
 		 		$game_trans = Helper::saveGame_transaction($token_id, $gameId, $amount, $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 		 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 		   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
-		 		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, $json_data, 3, $amount, $key['txId'] ,$key['roundId']);
+		 		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, $json_data, 3, $amount, $key['txId'],$round_id);
         	    $items_array[] = [
         	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 					 "balance" => $client_response->fundtransferresponse->balance,
