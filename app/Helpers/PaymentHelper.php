@@ -351,6 +351,9 @@ class PaymentHelper
         $pay_transaction->reference_number = $data["reference_number"];
         $pay_transaction->identification_id=$data["purchase_id"];
         $pay_transaction->status_id = $data["status_id"];
+        $pay_transaction->from_currency = $data["from_currency"];
+        $pay_transaction->input_amount = $data["input_amount"];
+        $pay_transaction->exchange_rate = $data["exchange_rate"];
         $pay_transaction->amount=$data["amount"];
         $pay_transaction->save();
         return $pay_transaction;

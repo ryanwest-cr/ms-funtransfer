@@ -210,12 +210,16 @@ class PaymentLobbyController extends Controller
                         $paymongo_transaction = PaymentHelper::paymongo($request->input("cardnumber"),$request->input("exp_year"),$request->input("exp_month"),$request->input("cvc"),$request->input("amount"),$request->input("currency"),$returnUrl);
                         if($paymongo_transaction){
                             if(array_key_exists("message",$paymongo_transaction)){
+                                $converted = $this->currencyConverter($player_details->default_currency,$request->currency,$paymongo_transaction["equivalent_point"]);
                                 if($paymongo_transaction["status"]=="awaiting_next_action"){
                                         $data = array(
                                         "token_id" => $player_details->token_id,
                                         "reference_number" => $paymongo_transaction["provider_transaction_id"],
                                         "purchase_id" => $paymongo_transaction["purchase_id"],
-                                        "amount" => $paymongo_transaction["equivalent_point"],
+                                        "from_currency" =>$converted[0]["currency_from"],
+                                        "input_amount"=>$request->amount,
+                                        "exchange_rate"=>$converted[0]["exchange_rate"],
+                                        "amount" => $converted[0]["amount"],
                                         "status_id" => 6
                                         );
                                         $transaction = PaymentHelper::updateTransaction($data);
@@ -228,7 +232,10 @@ class PaymentLobbyController extends Controller
                                             "token_id" => $player_details->token_id,
                                             "purchase_id" => $paymongo_transaction["purchase_id"],
                                             "reference_number" => $paymongo_transaction["provider_transaction_id"],
-                                            "amount" => $paymongo_transaction["equivalent_point"],
+                                            "from_currency" =>$converted[0]["currency_from"],
+                                            "input_amount"=>$request->amount,
+                                            "exchange_rate"=>$converted[0]["exchange_rate"],
+                                            "amount" => $converted[0]["amount"],
                                             "status_id" => 5
                                             );
                                         $transaction = PaymentHelper::updateTransaction($data);
@@ -244,7 +251,7 @@ class PaymentLobbyController extends Controller
                                             'form_params' => [
                                                 'transaction_id' => $transaction->id,
                                                 'orderId' => $transaction->orderId,
-                                                "amount" => $paymongo_transaction["equivalent_point"],
+                                                "amount" => $converted[0]["amount"],
                                                 'client_player_id' => $client_player_id->client_player_id,
                                                 'status' => "SUCCESS",
                                                 'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
@@ -254,7 +261,7 @@ class PaymentLobbyController extends Controller
                                         $datatorequest = array(
                                                 'transaction_id' => $transaction->id,
                                                 'orderId' => $transaction->orderId,
-                                                "amount" => $paymongo_transaction["equivalent_point"],
+                                                "amount" => $converted[0]["amount"],
                                                 'client_player_id' => $client_player_id->client_player_id,
                                                 'status' => "SUCCESS",
                                                 'message' => 'Thank you! Your Payment using PAYMONGO has successfully completed.',
@@ -312,12 +319,17 @@ class PaymentLobbyController extends Controller
                         
                         if($stripe_transaction){
                             if(array_key_exists("status",$stripe_transaction)){
+                                    $converted = $this->currencyConverter($player_details->default_currency,$request->currency,$stripe_transaction["equivalent_point"]);
                                     if($stripe_transaction["status"]=="requires_action"){
+                                        
                                         $data = array(
                                         "token_id" => $player_details->token_id,
                                         "reference_number" => $stripe_transaction["provider_transaction_id"],
                                         "purchase_id" => $stripe_transaction["purchase_id"],
-                                        "amount" => $stripe_transaction["equivalent_point"],
+                                        "from_currency" =>$converted[0]["currency_from"],
+                                        "input_amount"=>$request->amount,
+                                        "exchange_rate"=>$converted[0]["exchange_rate"],
+                                        "amount" => $converted[0]["amount"],
                                         "status_id" => 6
                                         );
                                         $transaction = PaymentHelper::updateTransaction($data);
@@ -330,7 +342,10 @@ class PaymentLobbyController extends Controller
                                                 "token_id" => $player_details->token_id,
                                                 "reference_number" => $stripe_transaction["provider_transaction_id"],
                                                 "purchase_id" => $stripe_transaction["purchase_id"],
-                                                "amount" => $stripe_transaction["equivalent_point"],
+                                                "from_currency" =>$converted[0]["currency_from"],
+                                                "input_amount"=>$request->amount,
+                                                "exchange_rate"=>$converted[0]["exchange_rate"],
+                                                "amount" => $converted[0]["amount"],
                                                 "status_id" => 5
                                                 );
                                             $transaction = PaymentHelper::updateTransaction($data);
@@ -347,7 +362,7 @@ class PaymentLobbyController extends Controller
                                                     'transaction_type' => "DEPOSIT",
                                                     'transaction_id' => $transaction->id,
                                                     'orderId' => $transaction->orderId,
-                                                    "amount" => $stripe_transaction["equivalent_point"],
+                                                    "amount" => $converted[0]["amount"],
                                                     'client_player_id' => $client_player_id->client_player_id,
                                                     'status' => "SUCCESS",
                                                     'message' => 'Thank you! Your Payment using STRIPE has successfully completed.',
@@ -358,7 +373,7 @@ class PaymentLobbyController extends Controller
                                                     'transaction_type' => "DEPOSIT",
                                                     'transaction_id' => $transaction->id,
                                                     'orderId' => $transaction->orderId,
-                                                    "amount" => $stripe_transaction["equivalent_point"],
+                                                    "amount" => $converted[0]["amount"],
                                                     'client_player_id' => $client_player_id->client_player_id,
                                                     'status' => "SUCCESS",
                                                     'message' => 'Thank you! Your Payment using STRIPE has successfully completed.',
@@ -411,12 +426,16 @@ class PaymentLobbyController extends Controller
                             $currency = (float)$this->getCurrencyConvertion($request->input("currency"));
                             $finalcurrency =((float)$request->input("amount")*$currency)/(float)$dgcurrencyrate;
                             $cointransaction = PaymentHelper::coinspayment($finalcurrency,$request->input("digital_currency"));
+                            $converted = $this->currencyConverter($player_details->default_currency,$request->currency,$cointransaction["purchase_amount"]);
                             if($cointransaction){
                                 $data = array(
                                     "token_id" => $player_details->token_id,
                                     "purchase_id" => $cointransaction["purchaseid"],
                                     "reference_number" =>$cointransaction["txn_id"],
-                                    "amount" => $cointransaction["purchase_amount"],
+                                    "from_currency" =>$converted[0]["currency_from"],
+                                    "input_amount"=>$request->amount,
+                                    "exchange_rate"=>$converted[0]["exchange_rate"],
+                                    "amount" => $converted[0]["amount"],
                                     "status_id" => 6
                                     );
                                 $transaction = PaymentHelper::updateTransaction($data);
@@ -425,6 +444,7 @@ class PaymentLobbyController extends Controller
                                     "order_id" => $transaction->orderId,
                                     "digi_currency" =>$request->input("digital_currency"),
                                     "digi_currency_value"=>$finalcurrency,
+                                    "amount" => $converted[0]["amount"],
                                     "checkout_url"=>$cointransaction["checkout_url"],
                                     "wallt_address"=>$cointransaction["wallet_address"],
                                     "httpcode" => "SUCCESS",
@@ -448,11 +468,15 @@ class PaymentLobbyController extends Controller
                         $qaicash_transaction = PaymentHelper::QAICASHMakeDeposit($request->input("amount"),$request->input("currency"),$request->input("deposit_method"),$player_details->player_id
                                                                 ,$player_details->email,$player_details->display_name,$request->input("exitUrl"));
                         if($qaicash_transaction){
+                            $converted = $this->currencyConverter($player_details->default_currency,$request->currency,$qaicash_transaction["purchase_amount"]);
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $qaicash_transaction["purchase_id"],
                                 "reference_number" => $qaicash_transaction["provider_transaction_id"],
-                                "amount" => $qaicash_transaction["purchase_amount"],
+                                "from_currency" =>$converted[0]["currency_from"],
+                                "input_amount"=>$request->amount,
+                                "exchange_rate"=>$converted[0]["exchange_rate"],
+                                "amount" => $converted[0]["amount"],
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
@@ -460,6 +484,7 @@ class PaymentLobbyController extends Controller
                                 "transaction_id"=>$transaction->id,
                                 "order_id" => $transaction->orderId,
                                 "payment_page_url"=>$qaicash_transaction["payment_page_url"],
+                                "amount" => $converted[0]["amount"],
                                 "status"=>$qaicash_transaction["status"],
                                 "currency"=>$qaicash_transaction["currency"],
                             );
@@ -471,7 +496,7 @@ class PaymentLobbyController extends Controller
                                 'form_params' => [
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
-                                    'amount'=> $transaction->amount,
+                                    "amount" => $converted[0]["amount"],
                                     'client_player_id' => $player_details->player_id,
                                     'status' => $status,
                                     'message' => "Hi! Thank you for choosing Qaicash for Payment. Your request will be approved first by the management. We will notify and email you once it is approved.",
@@ -481,7 +506,7 @@ class PaymentLobbyController extends Controller
                             $requesttoclient = array(
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
-                                    'amount'=> $transaction->amount,
+                                    "amount" => $converted[0]["amount"],
                                     'client_player_id' => $player_details->player_id,
                                     'status' => $status,
                                     'message' => "Hi! Thank you for choosing Qaicash for Payment. Your request will be approved first by the management. We will notify and email you once it is approved.",
@@ -492,6 +517,7 @@ class PaymentLobbyController extends Controller
                                 "transaction_id"=>$transaction->id,
                                 "order_id" => $transaction->orderId,
                                 "payment_page_url"=>$qaicash_transaction["payment_page_url"],
+                                "amount" => $converted[0]["amount"],
                                 "status"=>$qaicash_transaction["status"],
                                 "currency"=>$qaicash_transaction["currency"],
                             );
@@ -578,11 +604,15 @@ class PaymentLobbyController extends Controller
                         $amount =((float)$request->input("amount")*$currency);                           
                         $ebanco_trans = PaymentHelper::ebanco($amount,$request->input("bank_name"));
                         if($ebanco_trans){
+                            $converted = $this->currencyConverter($player_details->default_currency,$request->currency,$ebanco_trans["deposit_amount"]);
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "reference_number" =>$ebanco_trans["deposit_id"],
                                 "purchase_id" => $ebanco_trans["deposit_id"],
-                                "amount" => $amount,
+                                "from_currency" =>$converted[0]["currency_from"],
+                                "input_amount"=>$request->amount,
+                                "exchange_rate"=>$converted[0]["exchange_rate"],
+                                "amount" => $converted[0]["amount"],
                                 "status_id" => 7
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
@@ -594,7 +624,7 @@ class PaymentLobbyController extends Controller
                                 "bank_account_no"=>$ebanco_trans["bank_account_no"],
                                 "bank_account_name"=>$ebanco_trans["bank_account_name"],
                                 "bank_branch_name"=>$ebanco_trans["bank_branch_name"],
-                                "deposit_amount"=>$ebanco_trans["deposit_amount"],
+                                "amount" => $converted[0]["amount"],
                                 "status"=>$ebanco_trans["status"],
                             );
                             $status="HELD";
