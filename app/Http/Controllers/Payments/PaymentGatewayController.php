@@ -349,8 +349,6 @@ class PaymentGatewayController extends Controller
                      );
 
                     $token_player_id = $this->getPlayerTokenId($player_check->player_id);   
-
-
                       if($request->has("amount")&&
                            $request->has("currency")&&
                            $request->has("payout_method")&&
