@@ -389,6 +389,7 @@ class SolidGamingController extends Controller
 			}
 		}
 		
+		Helper::saveClientLog('debit', 2, "", $client_response);
 		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
@@ -660,7 +661,7 @@ class SolidGamingController extends Controller
 									$game_details = Game::find($json_data["gamecode"]);
 									$json_data["amount"] = $json_data["betamount"];
 									$json_data['income'] = $json_data['betamount'];
-									
+
 									GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
 						
 									$json_data["amount"] = $json_data["winamount"];

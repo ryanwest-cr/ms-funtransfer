@@ -25,6 +25,17 @@ class Helper
 		DB::table('seamless_request_logs')->insert($data);
 	}
 
+	public static function saveClientLog($method, $provider_id = 0, $sent_data, $response_data) {
+		$data = [
+					"method_name" => $method,
+					"provider_id" => $provider_id,
+					"sent_data" => "",
+					"response_data" => json_encode($response_data)
+				];
+				
+		DB::table('seamless_sent_logs')->insert($data);
+	}
+
 	/* NEW 061620 */
 	public static function findGameDetails($type, $provider_id, $identification) {
 		    $game_details = DB::table("games as g")
