@@ -372,6 +372,8 @@ class SolidGamingController extends Controller
 									}
 								}
 
+								$json_data['income'] = $json_data['amount'] - $json_data["amount"];
+								
 								$game_details = Game::find($json_data["gamecode"]);
 								GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
 
