@@ -184,7 +184,7 @@ $app->post('payment/checktransaction','Payments\PaymentLobbyController@checkPayT
 
 $app->post('payment/transaction','Payments\PaymentLobbyController@getPayTransactionDetails');
 $app->post('payment/cancel','Payments\PaymentLobbyController@cancelPayTransaction');
-
+$app->post('currency/convert','Payments\PaymentLobbyController@currencyConverter');
 //GameLobby
 $app->get('game/list','GameLobby\GameLobbyController@getGameList');
 $app->get('game/provider/{provider_name}','GameLobby\GameLobbyController@getProviderDetails');

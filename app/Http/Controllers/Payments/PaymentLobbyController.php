@@ -94,6 +94,7 @@ class PaymentLobbyController extends Controller
                             $lang= $request->lang;
                         }
                         $response = array(
+                            "token"=> $token,
                             "transaction_id" => $transaction->id,
                             "orderId" => $transaction->orderId,
                             "payment_method" => $payment_method_code,
@@ -154,7 +155,19 @@ class PaymentLobbyController extends Controller
                     if($request->has("lang")){
                         $lang= $request->lang;
                     }
+                    if($request->has("api")&&$request->input("api")=="V1"){
+                        $response = array(
+                            "token" => $token,
+                            "transaction_id" => $transaction->id,
+                            "orderId" => $transaction->orderId,
+                            "payment_method" => $payment_method_code,
+                            "status" => "PENDING"
+                        );
+                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"PaymentUrl"); 
+                        return response($response,200)->header('Content-Type', 'application/json');
+                    }
                     $response = array(
+                        "token" => $token,
                         "transaction_id" => $transaction->id,
                         "orderId" => $transaction->orderId,
                         "payment_method" => $payment_method_code,
@@ -693,7 +706,7 @@ class PaymentLobbyController extends Controller
     private function _getClientDetails($type = "", $value = "") {
 
         $query = DB::table("clients AS c")
-                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email','c.default_currency', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
                  ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
                  ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
                  ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -851,6 +864,16 @@ class PaymentLobbyController extends Controller
                         );
                         return response($response,402)->header('Content-Type', 'application/json');
                     }
+                    if($request->has("api")){
+                        $response = array(
+                            "token" => $token,
+                            "transaction_id" => $transaction->id,
+                            "orderId" => $transaction->orderId,
+                            "payment_method" => $payout_method_code,
+                            "status" => "PENDING"
+                        );
+                        return response($response,200)->header('Content-Type', 'application/json');
+                    }
                     $response = array(
                         "transaction_id" => $transaction->id,
                         "orderId" => $transaction->orderId,
@@ -880,26 +903,32 @@ class PaymentLobbyController extends Controller
                     if($request->has("amount")&&$request->has("currency")&&$request->has("qaicashpayout_method")&&$request->has("exitUrl")){
                         $qaicash_transaction = PaymentHelper::QAICASHMakePayout($request->input("amount"),$request->input("currency"),$request->input("qaicashpayout_method"),$player_details->player_id
                                                                 ,$player_details->email,$player_details->display_name,$request->input("exitUrl"));
+
+                        $converted = $this->currencyConverter($player_details->default_currency,$request->currency,$request->amount);
                         if($qaicash_transaction){
                             $data = array(
                                 "token_id" => $player_details->token_id,
                                 "reference_number" => $qaicash_transaction["provider_transaction_id"],
                                 "purchase_id" => $qaicash_transaction["withdrawal_id"],
-                                "amount" => $qaicash_transaction["withdrawal_amount"],
+                                "amount" => $converted[0]["amount"],
                                 "status_id" => 6
                                 );
                             $transaction = PaymentHelper::updateTransaction($data);
                             $response = array(
+                                "transaction_type"=> "PAYOUT",
                                 "transaction_id"=>$transaction->id,
                                 "order_id" => $transaction->orderId,
+                                "amount"=>$converted[0]["amount"],
                                 "payout_page_url"=>$qaicash_transaction["payment_page_url"],
                                 "status"=>$qaicash_transaction["status"],
                                 "currency"=>$qaicash_transaction["currency"],
                             );
                             PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->getContent()),json_encode($response),"QAICASH Payout Transaction");
                             return array(
+                                "transaction_type"=> "PAYOUT",
                                 "transaction_id"=>$transaction->id,
                                 "order_id" => $transaction->orderId,
+                                "amount"=>$converted[0]["amount"],
                                 "payout_page_url"=>$qaicash_transaction["payment_page_url"],
                                 "status"=>$qaicash_transaction["status"],
                                 "currency"=>$qaicash_transaction["currency"],
@@ -1153,6 +1182,22 @@ class PaymentLobbyController extends Controller
                 'AuthenticationCode' => $authenticationCode
         );
         PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($datatorequest),json_encode($response_client->getBody()),"PayMongo Payment Update Transaction"); 
+    }
+    public function currencyConverter($client_currency,$player_currency,$amount){
+        $currencies = PaymentHelper::currencyConverter($client_currency);
+        $converted = array();
+        foreach($currencies["rates"] as $currency){
+            if($currency["currency"]== $player_currency){
+                $finalconverted = array(
+                    "currency_from" => $currencies["main_currency"],
+                    "currency_to" => $currency["currency"],
+                    "exchange_rate" => $currency["rate"],
+                    "amount" => number_format($amount/$currency["rate"],2)
+                );
+                array_push($converted,$finalconverted);
+            }
+        }
+        return $converted;
     }
     
 }
