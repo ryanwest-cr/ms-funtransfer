@@ -463,7 +463,7 @@ class DigitainController extends Controller
 			 		$payout_reason = 'Bet : '.$this->getOperationType($key['operationType']);
 			 		$win_or_lost = 0;
 			 		$method = 1;
-			 		$income = null; // Sample
+			 		// $income = null; // Sample
 			 	    $token_id = $client_details->token_id;
 			 	    if(isset($key['roundId'])){
 			 	    	$round_id = 'RSG'.$key['roundId'];
@@ -478,6 +478,8 @@ class DigitainController extends Controller
 			 	    }
 			 	    $game_details = Helper::findGameDetails('game_code', 14, $key['gameId']);	
 			 	    $bet_payout = 0; // Bet always 0 payout!
+
+			 	    $income = $key['betAmount'] - $bet_payout;
 			 		$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $key['betAmount'],  $bet_payout, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 			 		// $game_trans = Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
 			 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
@@ -644,7 +646,7 @@ class DigitainController extends Controller
 				 		$payout_reason = 'Win : '.$this->getOperationType($key['operationType']);
 				 		$win_or_lost = 1;
 				 		$method = 2;
-				 		$income = null; // Sample
+				 		
 				 	    $token_id = $client_details->token_id;
 				 	    if(isset($key['roundId'])){
 				 	    	$round_id = 'RSG'.$key['roundId'];
@@ -670,7 +672,7 @@ class DigitainController extends Controller
 	        	    		$bet_transaction = $this->findPlayerGameTransaction('RSG'.$key['roundId'], $key['playerId']);
 	        	    		$bet_transaction = $bet_transaction->bet_amount;
 	        	    	}
-				 		
+				 			$income = $bet_transaction - $key['winAmount']; // Sample	
 				 	  		$game_details = Helper::findGameDetails('game_code', 14, $key['gameId']);				
 				 	  		$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_transaction,  $key['winAmount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 				 			
