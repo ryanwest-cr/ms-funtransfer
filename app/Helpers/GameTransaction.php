@@ -49,15 +49,15 @@ class GameTransaction
 		$game_details = DB::table("game_transactions AS g")
 				 ->where("g.round_id", $request_data['roundid'])
 				 ->first();
-
+		
 		$income = $game_details->income; 
 		$win = 0;
 		$pay_amount = 0;
 
-		if($json_data["amount"] > 0.00) {
+		if($request_data["amount"] > 0.00) {
 			$win = 1;
 			$income = $game_details->bet_amount - $request_data['amount'];
-			$pay_amount = $json_data["amount"];
+			$pay_amount = $request_data["amount"];
 		}
 
         $update = DB::table('game_transactions')
