@@ -1184,6 +1184,9 @@ class PaymentLobbyController extends Controller
             "token_id" => $get_token_id->token_id,
             "purchase_id" => $transaction->orderId,
             "reference_number"=>$transaction->reference_number,
+            "from_currency" =>$transaction->from_currency,
+            "input_amount"=>$transaction->input_amount,
+            "exchange_rate"=>$transaction->exchange_rate,
             "amount" => $transaction->amount,
             "status_id" => $status_id
             );
