@@ -216,7 +216,7 @@ class PaymentLobbyController extends Controller
                                         "token_id" => $player_details->token_id,
                                         "reference_number" => $paymongo_transaction["provider_transaction_id"],
                                         "purchase_id" => $paymongo_transaction["purchase_id"],
-                                        "from_currency" =>$converted[0]["currency_from"],
+                                        "from_currency" =>$converted[0]["currency_to"],
                                         "input_amount"=>$request->amount,
                                         "exchange_rate"=>$converted[0]["exchange_rate"],
                                         "amount" => $converted[0]["amount"],
@@ -232,7 +232,7 @@ class PaymentLobbyController extends Controller
                                             "token_id" => $player_details->token_id,
                                             "purchase_id" => $paymongo_transaction["purchase_id"],
                                             "reference_number" => $paymongo_transaction["provider_transaction_id"],
-                                            "from_currency" =>$converted[0]["currency_from"],
+                                            "from_currency" =>$converted[0]["currency_to"],
                                             "input_amount"=>$request->amount,
                                             "exchange_rate"=>$converted[0]["exchange_rate"],
                                             "amount" => $converted[0]["amount"],
@@ -496,7 +496,7 @@ class PaymentLobbyController extends Controller
                                 'form_params' => [
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
-                                    "amount" => $converted[0]["amount"],
+                                    'amount'=> $transaction->amount,
                                     'client_player_id' => $player_details->player_id,
                                     'status' => $status,
                                     'message' => "Hi! Thank you for choosing Qaicash for Payment. Your request will be approved first by the management. We will notify and email you once it is approved.",
@@ -506,7 +506,7 @@ class PaymentLobbyController extends Controller
                             $requesttoclient = array(
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
-                                    "amount" => $converted[0]["amount"],
+                                    'amount'=> $transaction->amount,
                                     'client_player_id' => $player_details->player_id,
                                     'status' => $status,
                                     'message' => "Hi! Thank you for choosing Qaicash for Payment. Your request will be approved first by the management. We will notify and email you once it is approved.",
@@ -1220,9 +1220,9 @@ class PaymentLobbyController extends Controller
             if($currency["currency"]== $player_currency){
                 $finalconverted = array(
                     "currency_from" => $currencies["main_currency"],
-                    "currency_to" => $currency["currency"],
+                    "currency_to" => $player_currency,
                     "exchange_rate" => $currency["rate"],
-                    "amount" => number_format($amount/$currency["rate"],2)
+                    "amount" => number_format($amount*$currency["rate"],2)
                 );
                 array_push($converted,$finalconverted);
             }
