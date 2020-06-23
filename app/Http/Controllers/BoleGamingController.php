@@ -271,8 +271,8 @@ class BoleGamingController extends Controller
 		{
 
 			$json_data = json_decode($request->getContent());
-			// Helper::saveLog('WALLET CALL BOLE', 11, '11', 'BOLE CALL');
-			Helper::saveLog('walletCostCall', 2, $request->getContent(), 'boleReq');
+			Helper::saveLog('WALLET CALL BOLE', 11, '11', 'BOLE CALL');
+			// Helper::saveLog('walletCostCall', 2, $request->getContent(), 'boleReq');
 
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			if(!$hashen){
@@ -298,18 +298,8 @@ class BoleGamingController extends Controller
 							
 								//This area are use to update game_transaction table bet_amount,win or lose, pay_amount, and entry_type
 								
-
 							    $transaction_type = $json_data->cost_info->gain_gold < 0 ? 'debit' : 'credit';
-
-							    // TRAP SLOT GAMES FOR DB QUERY
-							    // $game_details = Game::find($json_data->game_code);
-							    if($json_data->game_code == 'slot'){
-							    	$game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
-							    }else{
-							    	$game_details = Game::find($json_data->game_code);
-							    }
-
-
+							    $game_details = Game::find($json_data->game_code);
 								$token_id = $client_details->token_id;
 				                $bet_amount = abs($json_data->cost_info->bet_num);
 								
@@ -476,7 +466,7 @@ class BoleGamingController extends Controller
 
 									$data = [
 										"data" => [
-											"balance" => floatval(number_format((float)$get_balance, 2, '.', '')), // TEST
+											"balance" => number_format((float)$get_balance, 2, '.', ''), // TEST
 											// "balance" => number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''),
 											"currency" => $client_response->fundtransferresponse->currencycode,
 										],
@@ -557,7 +547,7 @@ class BoleGamingController extends Controller
 
 											$data = [
 												"data" => [
-													"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
+													"balance" => number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''),
 													"currency" => $client_response->fundtransferresponse->currencycode,
 												],
 												"status" => [
@@ -591,18 +581,13 @@ class BoleGamingController extends Controller
 
 		public function playerWalletBalance(Request $request)
 		{
-			Helper::saveLog('balanceCall', 11, $request->getContent(), 'TEST');
-			$json_data = json_decode($request->getContent());
-			// dd($json_data->player_account);
-
+			// Helper::saveLog('balanceCall', 11, $request->getContent(), 'TEST');
 			// $hashen = $this->chashen($request->operator_id, $request->player_account, $request->sha1);
-			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			// if(!$hashen){
-		    //        return ["code" => "error"];
-		    //        Helper::saveLog('UnknownCall', 11, $request->getContent(), 'UnknownboleReq');
+		 //        return ["code" => "error"];
+		 //        Helper::saveLog('UnknownCall', 11, $request->getContent(), 'UnknownboleReq');
 			// }
-			// $client_details = $this->_getClientDetails('player_id', $request->player_account);
-			$client_details = $this->_getClientDetails('player_id', $json_data->player_account);
+			$client_details = $this->_getClientDetails('player_id', $request->player_account);
 			// dd($client_details);
 			if($client_details)
 			{
@@ -646,7 +631,7 @@ class BoleGamingController extends Controller
 
 			$data = [
 				"data" => [
-					"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
+					"balance" => number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', ''),
 					"currency" => $client_response->playerdetailsresponse->currencycode,
 				],
 				"status" => [
@@ -654,8 +639,6 @@ class BoleGamingController extends Controller
 					"msg" => "success"
 				]
 			];
-
-
 
 			Helper::saveLog('walletBalance', 11, $request->getContent(), $data);
 
