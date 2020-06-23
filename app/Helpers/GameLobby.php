@@ -2,6 +2,9 @@
 namespace App\Helpers;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
 use App\Helpers\Helper;
 use App\Helpers\IAHelper;
 use DB;             
@@ -43,10 +46,10 @@ class GameLobby{
             "signature" => $signature,
         ];
         $client_player_details = GameLobby::getClientDetails('token', $token);
-        $http = new Client();
-        $response = $http->post(config('providerlinks.bolegaming.login_url'), [
-            'form_params' => [
-               'game_code' => $game_code,
+        try {
+            $http = new Client();
+            $data = [
+                'game_code' => $game_code,
                 'scene' => $scene_id,
                 'player_account' => $client_player_details->player_id,
                 'country'=> $country_code,
@@ -61,13 +64,18 @@ class GameLobby{
                 //'op_home_url' => 'https://demo.freebetrnk.com/casino', //hide home button for games test
                 'ui_hot_list_disable' => 1, //hide latest game menu
                 'ui_category_disable' => 1 //hide category list
-            ],
-        ]);
+            ];
+            $response = $http->post(config('providerlinks.bolegaming.login_url'), [
+                'form_params' => $data,
+            ]);
+            $client_response = json_decode($response->getBody()->getContents());
+            Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_decode($response->getBody()));
+            return isset($client_response->resp_data->url) ? $client_response->resp_data->url : false;
+        } catch (Exception $e) {
+            return false;        
+        }
         // Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_encode($response->getBody()->getContents()));
-        $client_response = json_decode($response->getBody()->getContents());
-        return $client_response->resp_data->url;
-        // dd($client_response);
-        // return $client_response;
+        
     }
 
     public static function rsgLaunchUrl($game_code,$token,$exitUrl){

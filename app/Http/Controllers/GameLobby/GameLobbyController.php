@@ -108,13 +108,20 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                  elseif($request->input('game_provider')=="Bole Gaming"){
-                    $msg = array(
-                        "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::boleLaunchUrl($request->game_code,$token,$request->exitUrl,$request->country_code),
-                        "game_launch" => true
-                    );
-                    return response($msg,200)
-                    ->header('Content-Type', 'application/json');
+                    $url = GameLobby::boleLaunchUrl($request->game_code,$token,$request->exitUrl,$request->country_code);
+                    if($url){
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $url,
+                            "game_launch" => true
+                        );
+                    }else{
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "game_launch" => false
+                        );
+                    }
+                    return $msg;
                 }
                 elseif($request->input('game_provider')=="RSG Gaming"){ // request->token
                     Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
