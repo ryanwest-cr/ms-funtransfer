@@ -24,8 +24,8 @@ class PaymentHelper
                 'grant_type' => 'password',
                 'client_id' => '3',
                 'client_secret' => 'uAthPzJR6lk9hrgPljMUjzGHjnPvtT2Ps6eLHRv7',
-                'username' => 'stagingmiddleware@betrnk.games',
-                'password' => 'staging123',
+                'username' => 'api@betrnk.games',
+                'password' => ']WKtkT``mJCe8N3J',
                 'scope' => '*',
             ],
         ]);
