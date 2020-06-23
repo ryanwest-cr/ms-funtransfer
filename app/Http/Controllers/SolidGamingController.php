@@ -373,7 +373,7 @@ class SolidGamingController extends Controller
 								}
 
 								$json_data['income'] = $json_data['amount'] - $json_data["amount"];
-								
+
 								$game_details = Game::find($json_data["gamecode"]);
 								GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
 
@@ -489,6 +489,8 @@ class SolidGamingController extends Controller
 							}
 							
 							$game_details = Game::find($json_data["gamecode"]);
+
+							$json_data['income'] = $json_data['amount'] - $json_data["amount"];
 							GameTransaction::save('credit', $json_data, $game_details, $client_details, $player_details);
 
 							$response = [
@@ -654,6 +656,8 @@ class SolidGamingController extends Controller
 
 									$game_details = Game::find($json_data["gamecode"]);
 									$json_data["amount"] = $json_data["betamount"];
+									$json_data['income'] = $json_data['betamount'] - $json_data["winamount"];
+
 									GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
 
 									$json_data["amount"] = $json_data["winamount"];
