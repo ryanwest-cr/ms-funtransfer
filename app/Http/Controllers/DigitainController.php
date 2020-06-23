@@ -483,7 +483,7 @@ class DigitainController extends Controller
 			 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 			   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
 
-			   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, $json_data, 1, $key['betAmount']);
+			   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, $json_data, 1, $key['betAmount'], $key['txId'] ,$key['roundId']);
 
 	        	    $items_array[] = [
 	        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
@@ -551,29 +551,31 @@ class DigitainController extends Controller
 
 
 			// OUTSIDE FILTER
-			$item_filter = array();
-			foreach ($json_data['items'] as $key):
-					$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
-			 		if($checkLog):
-			 			// dd('hahah double entry ka!');
-			 			$item_filter[] = [
-							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-							 "errorCode" => 8, //already exist
-							 "metadata" => "" // Optional but must be here!
-		        	    ]; 
+			// $item_filters = array();
+			// foreach ($json_data['items'] as $key):
+			// 		$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
+			// 		dd($checkLog);
+			//  		if($checkLog):
+			//  			// dd('hahah double entry ka!');
+			//  			// foreach ($json_data['items'] as $key):
+			// 	 			$item_filters[] = [
+			// 					 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+			// 					 "errorCode" => 8, //already exist
+			// 					 "metadata" => "123123" // Optional but must be here!
+			//         	    ];
+			//         	// endforeach;
+		 //    //     	    $response = array(
+			// 			// 		 "timestamp" => date('YmdHisms'),
+			// 			// 	     "signature" => $this->createSignature(date('YmdHisms')),
+			// 			// 		 "errorCode" => 1,
+			// 			// 		 "Items" => $item_filter,
+			// 	  //  		);	
+			// 	  //  		Helper::saveLog('RSG WIN GAME REQUEST', 14, file_get_contents("php://input"), $response);
+			// 			// return $response;
+			//  		endif;
+			// endforeach;
 
-		        	    $response = array(
-							 "timestamp" => date('YmdHisms'),
-						     "signature" => $this->createSignature(date('YmdHisms')),
-							 "errorCode" => 1,
-							 "Items" => $item_filter,
-			   			);	
-						Helper::saveLog('RSG WIN GAME REQUEST', 14, file_get_contents("php://input"), $response);
-						return $response;
-			 		endif;
-			endforeach;
-
-
+			// return $item_filters;
 			$items_array = array();
 			foreach ($json_data['items'] as $key):
 				$client_details = $this->_getClientDetails('player_id', $key['playerId']);
@@ -600,6 +602,9 @@ class DigitainController extends Controller
 		 		$check_win_exist = $this->findGameTransaction($key['txId']); // if transaction id exist bypass it
 	 			if(!$check_win_exist):
 	 		
+	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
+	 			if(!$checkLog):
+
 				 		$client = new Client([
 		                    'headers' => [ 
 		                        'Content-Type' => 'application/json',
@@ -671,7 +676,7 @@ class DigitainController extends Controller
 				 			
 				 	  	// 	$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 				   		// DB::table('game_transaction_ext')->insert($game_trans_ext);	
-				 			$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount']);
+				 			$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
 
 			        	    $items_array[] = [
 			        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
@@ -695,7 +700,14 @@ class DigitainController extends Controller
 						 		}
 				        	    $items_array[0]['betsAmount'] = array_sum($total_bets);
 			        	    endif;
-
+			    else:
+	        		// dd('hahah double entry ka!');
+	        		$items_array[] = [
+						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						 "errorCode" => 8, //already exist
+						 "metadata" => "" // Optional but must be here!
+	        	    ]; 
+	        	endif;      	    
 	        	else:
 	        		// dd('hahah double entry ka!');
 	        		$items_array[] = [
@@ -850,7 +862,7 @@ class DigitainController extends Controller
 		 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 		   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
 
-		   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 1, $key['betAmount']);
+		   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 1, $key['betAmount'], $key['txId'] ,$key['roundId']);
 
 		   		// For The Win
 				$requesttosend = [
@@ -901,7 +913,7 @@ class DigitainController extends Controller
 		 		$game_trans = Helper::saveGame_transaction($token_id, $key['gameId'], $key['winAmount'],  $key['winAmount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 		 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 		   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
-		   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount']);
+		   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
         	    $items_array[] = [
         	    	 "externalTxId" => $game_trans, // MW Game Transaction Only Save The Last Game Transaction Which is the credit!
 					 "balance" => $client_response_ii->fundtransferresponse->balance,
@@ -1124,7 +1136,7 @@ class DigitainController extends Controller
 								$game_trans = Helper::saveGame_transaction($token_id, $gg_tem->gameId, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 						 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 						   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
-						   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount);	
+						   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount, $key['txId'] ,$key['roundId']);
 						   		$items_array[] = [
 				        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 									 "balance" => $balance_reply,
@@ -1194,7 +1206,7 @@ class DigitainController extends Controller
 							$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $amount,  $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 					 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 					   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
-					   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount);
+					   		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, 3, $amount, $key['txId'] ,$key['roundId']);
 					   		$items_array[] = [
 			        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 								 "balance" => $balance_reply,
@@ -1349,7 +1361,7 @@ class DigitainController extends Controller
 		 		$game_trans = Helper::saveGame_transaction($token_id, $gameId, $amount, $amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 		 		// $game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 		   // 		DB::table('game_transaction_ext')->insert($game_trans_ext);	
-		 		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, $json_data, 3, $amount);
+		 		$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response, $json_data, 3, $amount, $key['txId'] ,$key['roundId']);
         	    $items_array[] = [
         	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
 					 "balance" => $client_response->fundtransferresponse->balance,
@@ -1386,8 +1398,7 @@ class DigitainController extends Controller
 		return $game ? true :false;
 	}
 
-
-	public  function createRSGTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response, $transaction_detail,$game_transaction_type, $amount=null){
+	public  function createRSGTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response, $transaction_detail,$game_transaction_type, $amount=null, $provider_trans_id=null, $round_id=null){
 
 		$provider_request_details = array();
 		// $provider_request['items'][0]['winAmount']
@@ -1408,8 +1419,8 @@ class DigitainController extends Controller
 
 		$gametransactionext = array(
 			"game_trans_id" => $gametransaction_id,
-			"provider_trans_id" => $provider_request_details['txId'],
-			"round_id" => $provider_request_details['roundId'],
+			"provider_trans_id" => $provider_trans_id,
+			"round_id" => $round_id,
 			"amount" => $amount,
 			"game_transaction_type"=>$game_transaction_type,
 			"provider_request" => json_encode($provider_request),
