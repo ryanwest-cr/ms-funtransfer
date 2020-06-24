@@ -326,7 +326,7 @@ class PaymentLobbyController extends Controller
                                         "token_id" => $player_details->token_id,
                                         "reference_number" => $stripe_transaction["provider_transaction_id"],
                                         "purchase_id" => $stripe_transaction["purchase_id"],
-                                        "from_currency" =>$converted[0]["currency_from"],
+                                        "from_currency" =>$converted[0]["currency_to"],
                                         "input_amount"=>$request->amount,
                                         "exchange_rate"=>$converted[0]["exchange_rate"],
                                         "amount" => $converted[0]["amount"],
@@ -342,7 +342,7 @@ class PaymentLobbyController extends Controller
                                                 "token_id" => $player_details->token_id,
                                                 "reference_number" => $stripe_transaction["provider_transaction_id"],
                                                 "purchase_id" => $stripe_transaction["purchase_id"],
-                                                "from_currency" =>$converted[0]["currency_from"],
+                                                "from_currency" =>$converted[0]["currency_to"],
                                                 "input_amount"=>$request->amount,
                                                 "exchange_rate"=>$converted[0]["exchange_rate"],
                                                 "amount" => $converted[0]["amount"],
@@ -432,7 +432,7 @@ class PaymentLobbyController extends Controller
                                     "token_id" => $player_details->token_id,
                                     "purchase_id" => $cointransaction["purchaseid"],
                                     "reference_number" =>$cointransaction["txn_id"],
-                                    "from_currency" =>$converted[0]["currency_from"],
+                                    "from_currency" =>$converted[0]["currency_to"],
                                     "input_amount"=>$request->amount,
                                     "exchange_rate"=>$converted[0]["exchange_rate"],
                                     "amount" => $converted[0]["amount"],
@@ -473,7 +473,7 @@ class PaymentLobbyController extends Controller
                                 "token_id" => $player_details->token_id,
                                 "purchase_id" => $qaicash_transaction["purchase_id"],
                                 "reference_number" => $qaicash_transaction["provider_transaction_id"],
-                                "from_currency" =>$converted[0]["currency_from"],
+                                "from_currency" =>$converted[0]["currency_to"],
                                 "input_amount"=>$request->amount,
                                 "exchange_rate"=>$converted[0]["exchange_rate"],
                                 "amount" => $converted[0]["amount"],
@@ -609,7 +609,7 @@ class PaymentLobbyController extends Controller
                                 "token_id" => $player_details->token_id,
                                 "reference_number" =>$ebanco_trans["deposit_id"],
                                 "purchase_id" => $ebanco_trans["deposit_id"],
-                                "from_currency" =>$converted[0]["currency_from"],
+                                "from_currency" =>$converted[0]["currency_to"],
                                 "input_amount"=>$request->amount,
                                 "exchange_rate"=>$converted[0]["exchange_rate"],
                                 "amount" => $converted[0]["amount"],
@@ -940,6 +940,9 @@ class PaymentLobbyController extends Controller
                                 "token_id" => $player_details->token_id,
                                 "reference_number" => $qaicash_transaction["provider_transaction_id"],
                                 "purchase_id" => $qaicash_transaction["withdrawal_id"],
+                                "from_currency" =>$converted[0]["currency_to"],
+                                "input_amount"=>$request->amount,
+                                "exchange_rate"=>$converted[0]["exchange_rate"],
                                 "amount" => $converted[0]["amount"],
                                 "status_id" => 6
                                 );
@@ -1225,7 +1228,7 @@ class PaymentLobbyController extends Controller
                     "currency_from" => $currencies["main_currency"],
                     "currency_to" => $player_currency,
                     "exchange_rate" => $currency["rate"],
-                    "amount" => number_format($amount*$currency["rate"],2)
+                    "amount" => round($amount*$currency["rate"],2)
                 );
                 array_push($converted,$finalconverted);
             }
