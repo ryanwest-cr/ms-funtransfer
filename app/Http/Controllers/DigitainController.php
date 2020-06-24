@@ -370,7 +370,7 @@ class DigitainController extends Controller
 	 */
 	public function bet(Request $request){
 		// Helper::saveLog('BET RSG REQUESTED', 14, 'LOGS', 'LOGS');
-		// Helper::saveLog('RSG BET GAME REQUEST FIRST', 14, file_get_contents("php://input"), '1');
+		Helper::saveLog('RSG BET GAME REQUEST FIRST', 14, file_get_contents("php://input"), '1');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$response = [
 			"errormessage" => "The provided token could not be verified/Token already authenticated",
@@ -524,7 +524,7 @@ class DigitainController extends Controller
 	public function win(Request $request){
 		// return 'hold on xD';
 		// Helper::saveLog('WIN RSG REQUESTED', 14, 'LOGS', 'LOGS');
-		// Helper::saveLog('RSG WIN GAME REQUEST FIRST', 14, file_get_contents("php://input"), '1');
+		Helper::saveLog('RSG WIN GAME REQUEST FIRST', 14, file_get_contents("php://input"), '1');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$response = [
 			"errormessage" => "The provided token could not be verified/Token already authenticated",
