@@ -152,7 +152,7 @@ class GameLobby{
     public static function getClientDetails($type = "", $value = "") {
 
         $query = DB::table("clients AS c")
-                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_code','c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
                  ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
                  ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
                  ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -179,10 +179,11 @@ class GameLobby{
     }
 
     public static function solidLaunchUrl($game_code,$token,$exitUrl){
-
+        $client_details = GameLobby::getClientDetails('token', $token);
+        $client_code = $client_details->client_code ? $client_details->client_code : 'BETRNKMW';
         $url = $exitUrl;
         $domain = parse_url($url, PHP_URL_HOST);
-        $url = 'https://instage.solidgaming.net/api/launch/BETRNKMW/'.$game_code.'?language=en&currency=USD&token='.$token.'';
+        $url = 'https://instage.solidgaming.net/api/launch/'.$client_code.'/'.$game_code.'?language=en&currency=USD&token='.$token.'';
         return $url;
     }
 
