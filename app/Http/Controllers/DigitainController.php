@@ -284,7 +284,7 @@ class DigitainController extends Controller
 
 
 	public function refreshtoken(){
-		Helper::saveLog('RTOKEN RSG REQUESTED', 14, 'LOGS', 'LOGS');
+		// Helper::saveLog('RTOKEN RSG REQUESTED', 14, 'LOGS', 'LOGS');
 		Helper::saveLog('Auth Refresh Token RSG', 14, file_get_contents("php://input"), 'FIRST');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$response = [
@@ -607,18 +607,6 @@ class DigitainController extends Controller
 	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
 	 			if(!$checkLog):
 
-	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
-	 			if(!$checkLog):
-
-	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
-	 			if(!$checkLog):
-
-	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
-	 			if(!$checkLog):
-
-	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
-	 			if(!$checkLog):
-
 				 		$client = new Client([
 		                    'headers' => [ 
 		                        'Content-Type' => 'application/json',
@@ -678,22 +666,41 @@ class DigitainController extends Controller
 
 				 	    // NEW BASIS GAME_TRANSACTION BET_AMOUNT!
 						if(isset($key['betTxId'])){
-	        	    		$bet_transaction = $this->findGameTransaction($key['betTxId']);
-	        	    		$bet_transaction = $bet_transaction->bet_amount;
+	        	    		$bet_transaction_detail = $this->findGameTransaction($key['betTxId']);
+	        	    		$bet_transaction = $bet_transaction_detail->bet_amount;
 	        	    	}else{
-	        	    		$bet_transaction = $this->findPlayerGameTransaction('RSG'.$key['roundId'], $key['playerId']);
-	        	    		$bet_transaction = $bet_transaction->bet_amount;
+	        	    		$bet_transaction_detail = $this->findPlayerGameTransaction('RSG'.$key['roundId'], $key['playerId']);
+	        	    		$bet_transaction = $bet_transaction_detail->bet_amount;
 	        	    	}
 				 			$income = $bet_transaction - $key['winAmount']; // Sample	
-				 	  		$game_details = Helper::findGameDetails('game_code', 14, $key['gameId']);				
-				 	  		$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_transaction,  $key['winAmount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-				 			
+				 	  		$game_details = Helper::findGameDetails('game_code', 14, $key['gameId']);
+
+				 	  		// NO MORE WIN LOGS! 06-25-2020			
+				 	  		// $game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_transaction,  $key['winAmount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+
+				 	  		// WIN LOGS TO UPDATE!
+				 	  	    // $update_bet = $this->updateBetToWin($key['roundId'], $key['winAmount'], $key['winAmount'], $key['winAmount'], 2);
+
+				 	  		// HEAD 06-25-2020
+				 	  		if($key['winAmount'] != 0){
+				 	  			if($bet_transaction_detail->bet_amount > $key['winAmount']){
+				 	  				$win = 0; // lost
+				 	  				$entry_id = 1; //lost
+				 	  				$income = $bet_transaction_detail->bet_amount - $key['winAmount'];
+				 	  			}else{
+				 	  				$win = 1; //win
+				 	  				$entry_id = 2; //win
+				 	  				$income = $bet_transaction_detail->bet_amount - $key['winAmount'];
+				 	  			}
+			 	  				$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $key['winAmount'], $income, $win, $entry_id);
+				 	  		}
+
 				 	  	// 	$game_trans_ext = ["game_trans_id" => $game_trans, "transaction_detail" => file_get_contents("php://input")];
 				   		// DB::table('game_transaction_ext')->insert($game_trans_ext);	
-				 			$rsg_trans_ext = $this->createRSGTransactionExt($game_trans, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
+				 			$rsg_trans_ext = $this->createRSGTransactionExt($bet_transaction_detail->game_trans_id, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
 
 			        	    $items_array[] = [
-			        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
+			        	    	 "externalTxId" => $bet_transaction_detail->game_trans_id, // MW Game Transaction Id
 								 "balance" => $client_response->fundtransferresponse->balance,
 								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 								 "errorCode" => 1,
@@ -714,38 +721,6 @@ class DigitainController extends Controller
 						 		}
 				        	    $items_array[0]['betsAmount'] = array_sum($total_bets);
 			        	    endif;
-			    else:
-	        		// dd('hahah double entry ka!');
-	        		$items_array[] = [
-						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-						 "errorCode" => 8, //already exist
-						 "metadata" => "" // Optional but must be here!
-	        	    ]; 
-	        	endif; 
-	        	else:
-	        		// dd('hahah double entry ka!');
-	        		$items_array[] = [
-						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-						 "errorCode" => 8, //already exist
-						 "metadata" => "" // Optional but must be here!
-	        	    ]; 
-	        	endif; 
-	        	else:
-	        		// dd('hahah double entry ka!');
-	        		$items_array[] = [
-						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-						 "errorCode" => 8, //already exist
-						 "metadata" => "" // Optional but must be here!
-	        	    ]; 
-	        	endif; 
-	            else:
-	        		// dd('hahah double entry ka!');
-	        		$items_array[] = [
-						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-						 "errorCode" => 8, //already exist
-						 "metadata" => "" // Optional but must be here!
-	        	    ]; 
-	        	endif; 
 			    else:
 	        		// dd('hahah double entry ka!');
 	        		$items_array[] = [
@@ -783,7 +758,7 @@ class DigitainController extends Controller
 	 */
 	public function betwin(Request $request){
 
-		Helper::saveLog('BETWIN RSG REQUESTED', 14, 'LOGS', 'LOGS');
+		// Helper::saveLog('BETWIN RSG REQUESTED', 14, 'LOGS', 'LOGS');
 		Helper::saveLog('RSG BETWIN GAME REQUEST FIRST', 14, file_get_contents("php://input"), '1');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		// Helper::saveLog('Bet Request RSG', 14, file_get_contents("php://input"), 'bet');
@@ -993,7 +968,7 @@ class DigitainController extends Controller
 	public function refund(Request $request){
 		// dd(1);
 		// Helper::saveLog('REFUND RSG REQUESTED', 14, 'LOGS', 'LOGS');
-		// Helper::saveLog('RSG REFUND GAME REQUEST FIRST', 14, file_get_contents("php://input"), '1');
+		Helper::saveLog('RSG REFUND GAME REQUEST FIRST', 14, file_get_contents("php://input"), '1');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$response = [
 			"errormessage" => "The provided token could not be verified/Token already authenticated",
@@ -1146,10 +1121,6 @@ class DigitainController extends Controller
 			   				$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
 	 						if(!$check_win_exist):
 	  				     	if(!$checkLog):
-	  				     	if(!$check_win_exist):
-	  				     	if(!$checkLog):
-	  				     	if(!$check_win_exist):
-	  				     	if(!$checkLog):
 
 					   			if((int)$amnts > 0):
 					   				$transactiontype = 'credit'; // Bet Amount should be returned as credit to player
@@ -1205,34 +1176,6 @@ class DigitainController extends Controller
 									 "errorCode" => 8, //already exist
 									 "metadata" => "" // Optional but must be here!
 							    ];   
-							endif; 
-				        	else:
-								$items_array[] = [
-									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-									 "errorCode" => 8, //already exist
-									 "metadata" => "" // Optional but must be here!
-							    ];   
-							endif;  
-							else:
-								$items_array[] = [
-									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-									 "errorCode" => 8, //already exist
-									 "metadata" => "" // Optional but must be here!
-							    ];   
-							endif;  
-							else:
-								$items_array[] = [
-									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-									 "errorCode" => 8, //already exist
-									 "metadata" => "" // Optional but must be here!
-							    ];   
-							endif;  
-				        	else:
-								$items_array[] = [
-									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-									 "errorCode" => 8, //already exist
-									 "metadata" => "" // Optional but must be here!
-							    ];   
 							endif;      
 				        	else:
 								$items_array[] = [
@@ -1265,18 +1208,6 @@ class DigitainController extends Controller
 
  						$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
 	  					if(!$checkLog):
-
-  				     	$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
-  				     	if(!$checkLog):
-
-  				     	$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
-  				     	if(!$checkLog):
-
-  				     	$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
-  				     	if(!$checkLog):
-
-  				     	$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'], 3); // REFUND NEW ADDED
-  				     	if(!$checkLog):
 
  							$requesttosend = [
 							  "access_token" => $client_details->client_access_token,
@@ -1329,34 +1260,6 @@ class DigitainController extends Controller
 								 "errorCode" => 8, //already exist
 								 "metadata" => "" // Optional but must be here!
 						    ];   
-						endif; 
-						else:
-							$items_array[] = [
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-								 "errorCode" => 8, //already exist
-								 "metadata" => "" // Optional but must be here!
-						    ];   
-						endif; 
-						else:
-							$items_array[] = [
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-								 "errorCode" => 8, //already exist
-								 "metadata" => "" // Optional but must be here!
-						    ];   
-						endif; 
-						else:
-							$items_array[] = [
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-								 "errorCode" => 8, //already exist
-								 "metadata" => "" // Optional but must be here!
-						    ];   
-						endif; 
-			        	else:
-							$items_array[] = [
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-								 "errorCode" => 8, //already exist
-								 "metadata" => "" // Optional but must be here!
-						    ];   
 						endif;     
 			        	else:
 							$items_array[] = [
@@ -1381,7 +1284,7 @@ class DigitainController extends Controller
 
 
 	public function amend(){
-		Helper::saveLog('AMEND RSG REQUESTED', 14, 'LOGS', 'LOGS');
+		// Helper::saveLog('AMEND RSG REQUESTED', 14, 'LOGS', 'LOGS');
 		Helper::saveLog('RSG AMEND GAME REQUEST FIRST', 14, file_get_contents("php://input"), '1');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$response = [
@@ -1634,6 +1537,21 @@ class DigitainController extends Controller
 	}
 
 	/**
+	 * Find bet and update to win 
+	 */
+	public  function updateBetToWin($round_id, $pay_amount, $income, $win, $entry_id) {
+   	    $update = DB::table('game_transactions')
+                ->where('round_id', $round_id)
+                ->update(['pay_amount' => $pay_amount, 
+	        		  'income' => $income, 
+	        		  'win' => $win, 
+	        		  'entry_id' => $entry_id,
+	        		  'transaction_reason' => 'Bet updated to win'
+	    		]);
+		return ($update ? true : false);
+	}
+
+	/**
 	 * Find The Transactions For Win/bet, Providers Transaction ID
 	 */
 	public  function findPlayerGameTransaction($round_id, $player_id) {
@@ -1783,53 +1701,42 @@ class DigitainController extends Controller
 	 */
 	public function checkClientPlayer($site_url, $merchant_user ,$token = false)
 	{
-
 				// Check Client Server Name
 				$client_check = DB::table('clients')
 	          	 	 ->where('client_url', $site_url)
 	           		 ->first();
-
 	           	$data = [
 		        	"msg" => "Client Not Found",
 		        	"httpstatus" => "404"
 		        ];  	 
-
 	            if($client_check){  
-
 		                $player_check = DB::table('players')
 		                    ->where('client_id', $client_check->client_id)
 		                    ->where('username', $merchant_user)
 		                    ->first();
-
 		                if($player_check){
-
 		                    DB::table('player_session_tokens')->insert(
 		                            array('player_id' => $player_check->player_id, 
 	                            		  'player_token' =>  $token, 
 		                            	  'status_id' => '1')
 		                    );    
-
 		                    $token_player_id = $this->_getPlayerTokenId($player_check->player_id);
-
 		                    $data = [
 						        	"token" => $token,
 						        	"httpstatus" => "200",
 						        	"new" => false
 					        ];   
-
 		                }else{
 
 	                	try
 	                	{
 						        $client_details = $this->_getClientDetails('site_url', $site_url);
-
 								$client = new Client([
 								    'headers' => [ 
 								    	'Content-Type' => 'application/json',
 								    	'Authorization' => 'Bearer '.$client_details->client_access_token
 								    ]
 								]);
-
 								$guzzle_response = $client->post($client_details->player_details_url,
 								    ['body' => json_encode(
 								        	["access_token" => $client_details->client_access_token,
@@ -1846,7 +1753,6 @@ class DigitainController extends Controller
 								);
 
 								$client_response = json_decode($guzzle_response->getBody()->getContents());
-
 								DB::table('players')->insert(
 		                            array('client_id' => $client_check->client_id, 
 		                            	  'client_player_id' =>  $client_response->playerdetailsresponse->accountid, 
@@ -1854,17 +1760,13 @@ class DigitainController extends Controller
 		                            	  'email' => $client_response->playerdetailsresponse->email,
 		                            	  'display_name' => $client_response->playerdetailsresponse->accountname)
 			                    );
-
 			                	$last_player_id = DB::getPDO()->lastInsertId();
-
 			                	DB::table('player_session_tokens')->insert(
 				                            array('player_id' => $last_player_id, 
 				                            	  'player_token' =>  $token, 
 				                            	  'status_id' => '1')
 			                    );
-
 			                	$token_player_id = $this->_getPlayerTokenId($last_player_id);
-
 						}
 						catch(ClientException $e)
 						{
@@ -1873,24 +1775,18 @@ class DigitainController extends Controller
 						  return response($response,$client_response->getStatusCode())
 						   ->header('Content-Type', 'application/json');
 						}
-
 				                $data = [
 						        	"token" => $token,
 						        	"httpstatus" => "200",
 						        	"new" => true
 						        ];   
-
 		      			}     
-
 				}
-
 		        return $data;
-			
-
 		}
 
 
-		public function _getClientDetails($type = "", $value = "") {
+	public function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
 					 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 					 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
@@ -1924,10 +1820,10 @@ class DigitainController extends Controller
 					 			->first();
 
 			return $result;
-		}
+	}
 
 
-		public function _getPlayerTokenId($player_id){
+	public function _getPlayerTokenId($player_id){
 	       $client_details = DB::table("players AS p")
 	                         ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id','pst.token_id' , 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 	                         ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
@@ -1939,5 +1835,5 @@ class DigitainController extends Controller
 	                         ->latest('token_id')
 	                         ->first();
 	        return $client_details->token_id;    
-	    }
+    }
 }
