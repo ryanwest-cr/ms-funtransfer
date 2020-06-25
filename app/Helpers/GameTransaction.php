@@ -18,7 +18,7 @@ class GameTransaction
 					$trans_data["provider_trans_id"] = $request_data["transid"];
 					$trans_data["bet_amount"] = $request_data["amount"];
 					$trans_data["win"] = 0;
-					$trans_data["pay_amount"] = $request_data["amount"];
+					$trans_data["pay_amount"] = 0;
 					$trans_data["entry_id"] = 1;
 		        break;
 		    case "credit":

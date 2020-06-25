@@ -10,6 +10,7 @@ use App\Models\GameProvider;
 use App\Models\GameSubProvider;
 use App\Helpers\Helper;
 use App\Helpers\GameLobby;
+use App\Models\ClientGameSubscribe;
 use Stripe\Balance;
 use DB;
 
@@ -23,58 +24,87 @@ class GameLobbyController extends Controller
 	// 	/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
 	// }
     public function getGameList(Request $request){
-        if($request->has("type")){
-            $type = GameType::with("game.provider")->get();
-            return $type;
-        }
-        else{
-            $providers = GameProvider::with("games.game_type")->get(["provider_id","provider_name", "icon"]);
-            $data = array();
-            foreach($providers as $provider){
-                $providerdata = array(
-                    "provider_id" => $provider->provider_id,
-                    "provider_name" => $provider->provider_name,
-                    "icon" => $this->image_url.$provider->icon,
-                    "games_list" => array(),
-                );
-                foreach($provider->games as $game){
-                    if($game->sub_provider_id == 0){
-                        $game = array(
-                            "game_id" => $game->game_id,
-                            "game_name"=>$game->game_name,
-                            "game_code"=>$game->game_code,
-                            "game_type" => $game->game_type->game_type_name,
-                            "subpro" =>$game->sub_provider_id,
-                            "game_provider"=> $game->provider->provider_name,
-                            "game_icon" => $game->icon,
-                        );
-                        array_push($providerdata["games_list"],$game);
+        if($request->has("client_id")){
+            
+            $excludedlist = ClientGameSubscribe::with("selectedProvider")->with("gameExclude")->with("subProviderExcluded")->where("client_id",$request->client_id)->get();
+            if($excludedlist){
+                $providerexcludeId=array();
+                foreach($excludedlist[0]->selectedProvider as $providerexcluded){
+                    array_push($providerexcludeId,$providerexcluded->provider_id);
+                }
+                $gamesexcludeId=array();
+                foreach($excludedlist[0]->gameExclude as $excluded){
+                    array_push($gamesexcludeId,$excluded->game_id);
+                }
+                $subproviderexcludeId=array();
+                foreach($excludedlist[0]->subProviderExcluded as $excluded){
+                    array_push($subproviderexcludeId,$excluded->sub_provider_id);
+                }
+                if($request->has("type")){
+                    $type = GameType::with("game.provider")->get();
+                    return $type;
+                }
+                else{
+                    $providers = GameProvider::with(["games.game_type","games"=>function($q)use($gamesexcludeId){
+                        $q->whereNotIn("game_id",$gamesexcludeId);
+                    }])->whereNotIn("provider_id",$providerexcludeId)->get(["provider_id","provider_name", "icon"]);
+                    $data = array();
+                    foreach($providers as $provider){
+                                $providerdata = array(
+                                    "provider_id" => $provider->provider_id,
+                                    "provider_name" => $provider->provider_name,
+                                    "icon" => $this->image_url.$provider->icon,
+                                    "games_list" => array(),
+                                );
+                                foreach($provider->games as $game){
+                                    if($game->sub_provider_id == 0){
+                                        $game = array(
+                                            "game_id" => $game->game_id,
+                                            "game_name"=>$game->game_name,
+                                            "game_code"=>$game->game_code,
+                                            "game_type" => $game->game_type->game_type_name,
+                                            "subpro" =>$game->sub_provider_id,
+                                            "game_provider"=> $game->provider->provider_name,
+                                            "game_icon" => $game->icon,
+                                        );
+                                        array_push($providerdata["games_list"],$game);
+                                    }
+                                }
+                                array_push($data,$providerdata);
                     }
+                    $sub_providers = GameSubProvider::with(["games.game_type","games"=>function($q)use($gamesexcludeId){
+                        $q->whereNotIn("game_id",$gamesexcludeId);
+                    }])->whereNotIn("sub_provider_id",$subproviderexcludeId)->get(["sub_provider_id","sub_provider_name", "icon"]);
+                    foreach($sub_providers as $sub_provider){
+                        $subproviderdata = array(
+                            "provider_id" => "sp".$sub_provider->sub_provider_id,
+                            "provider_name" => $sub_provider->sub_provider_name,
+                            "icon" => $this->image_url.$sub_provider->icon,
+                            "games_list" => array(),
+                        );
+                        foreach($sub_provider->games as $game){
+                            $game = array(
+                                "game_id" => $game->game_id,
+                                "game_name"=>$game->game_name,
+                                "game_code"=>$game->game_code,
+                                "game_type" => $game->game_type->game_type_name,
+                                "game_provider"=> $game->provider->provider_name,
+                                "game_icon" => $game->icon,
+                            );
+                            array_push($subproviderdata["games_list"],$game);
+                        }
+                        array_push($data,$subproviderdata);
+                    }
+                    return $data;
                 }
-                array_push($data,$providerdata);
             }
-            $sub_providers = GameSubProvider::with("games.game_type")->get(["sub_provider_id","sub_provider_name", "icon"]);
-            foreach($sub_providers as $sub_provider){
-                $subproviderdata = array(
-                    "provider_id" => "sp".$sub_provider->sub_provider_id,
-                    "provider_name" => $sub_provider->sub_provider_name,
-                    "icon" => $this->image_url.$sub_provider->icon,
-                    "games_list" => array(),
+            else{
+                $msg = array(
+                    "message" => "Client Id Doesnt Exist / Client doesnt have Subcription Yet!",
                 );
-                foreach($sub_provider->games as $game){
-                    $game = array(
-                        "game_id" => $game->game_id,
-                        "game_name"=>$game->game_name,
-                        "game_code"=>$game->game_code,
-                        "game_type" => $game->game_type->game_type_name,
-                        "game_provider"=> $game->provider->provider_name,
-                        "game_icon" => $game->icon,
-                    );
-                    array_push($subproviderdata["games_list"],$game);
-                }
-                array_push($data,$subproviderdata);
+                return response($msg,401)
+                ->header('Content-Type', 'application/json');
             }
-            return $data;
         }
         
     }
