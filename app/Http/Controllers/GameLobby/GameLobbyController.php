@@ -25,6 +25,7 @@ class GameLobbyController extends Controller
 	// }
     public function getGameList(Request $request){
         if($request->has("client_id")){
+            return $request->client_id;
             $excludedlist = ClientGameSubscribe::with("selectedProvider")->with("gameExclude")->with("subProviderExcluded")->where("client_id",$request->input("client_id"))->get();
             
             $providerexcludeId=array();
