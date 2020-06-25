@@ -73,6 +73,12 @@ $app->post('/api/simpleplay/{brand_code}/PlayerWin', 'SimplePlayController@credi
 $app->post('/api/simpleplay/{brand_code}/PlayerLost', 'SimplePlayController@lostTransaction');
 $app->post('/api/simpleplay/{brand_code}/PlaceBetCancel', 'SimplePlayController@rollBackTransaction');
 
+// MannaPlay Endpoints
+$app->post('/api/manna/{brand_code}/fetchbalance', 'MannaPlayController@getBalance');
+$app->post('/api/manna/{brand_code}/bet', 'MannaPlayController@debitProcess');
+$app->post('/api/manna/{brand_code}/win', 'MannaPlayController@creditProcess');
+$app->post('/api/manna/{brand_code}/betrollback', 'MannaPlayController@rollbackTransaction');
+
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
 $app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');

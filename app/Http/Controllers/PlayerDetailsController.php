@@ -84,13 +84,16 @@ class PlayerDetailsController extends Controller
 										"clientid" => $json_data["clientid"],
 										"playerdetailsrequest" => [
 											"token" => $json_data["playerdetailsrequest"]["token"],
-											"gamelaunch" => $json_data["playerdetailsrequest"]["gamelaunch"]
+											"gamelaunch" => $json_data["playerdetailsrequest"]["gamelaunch"],
+											"username" => $json_data["playerdetailsrequest"]["username"],
+											"refresh_token" => $json_data["playerdetailsrequest"]["refresh_token"]
 										]]
 						    )]
 						);
 						
-						return $response->getBody()->getContents();
+						$client_response = $response->getBody()->getContents();
 						
+						$arr_result = $client_response;
 					}
 				}
 			}
