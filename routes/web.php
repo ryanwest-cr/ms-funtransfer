@@ -206,6 +206,7 @@ $app->post('game/demogame','GameLobby\GameInfoController@getDemoGame');
 $app->post('game/suggestions','GameLobby\GameInfoController@getGameSuggestions');
 $app->get('game/topcharts','GameLobby\GameInfoController@getTopGames');
 $app->get('game/topcharts/numberone','GameLobby\GameInfoController@getTopProvider');
+$app->post('game/playerdetailsrequest','GameLobby\GameInfoController@getClientPlayerDetails');
 $app->post('game/betlist','GameLobby\GameInfoController@getBetList');
 $app->post('game/query','GameLobby\QueryController@queryData');
 // IWallet

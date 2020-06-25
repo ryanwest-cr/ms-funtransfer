@@ -157,6 +157,47 @@ class GameInfoController extends Controller
         return $game_suggestions;
 	}
 
+
+	/**
+	 *	@return client player details 
+	 *	@param accept player_id, token
+	 */
+	public function getClientPlayerDetails(Request $request){
+
+			if($request->has('player_id')){
+				$client_details = $this->_getClientDetails('player_id', $request->player_id);
+			}else if($request->has('token')){
+				$client_details = $this->_getClientDetails('token', $request->token);
+			}else{
+				return ['status' => 'failed'];
+			}
+		    $client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			$guzzle_response = $client->post($client_details->player_details_url,
+			    ['body' => json_encode(
+			        	["access_token" => $client_details->client_access_token,
+							"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+							"type" => "playerdetailsrequest",
+							"datesent" => "",
+							"gameid" => "",
+							"clientid" => $client_details->client_id,
+							"playerdetailsrequest" => [
+								"token" => $client_details->player_token,
+								"gamelaunch" => true
+							]
+						]
+			    )]
+			);
+			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			return json_encode($client_response);
+
+	}
+
+
 	/**
 	 *	@return player details
 	 */
