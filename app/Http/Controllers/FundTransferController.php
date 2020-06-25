@@ -102,6 +102,7 @@ class FundTransferController extends Controller
 											      "gamesessionid" => $json_data["fundtransferrequest"]["fundinfo"]["gamesessionid"],
 											      "transactiontype" => $json_data["fundtransferrequest"]["fundinfo"]["transactiontype"],
 											      "transferid" => $json_data["fundtransferrequest"]["fundinfo"]["transferid"],
+											      "rollback" => $json_data["fundtransferrequest"]["fundinfo"]["rollback"],
 											      "currencycode" => $json_data["fundtransferrequest"]["fundinfo"]["currencycode"],
 											      "amount" => $json_data["fundtransferrequest"]["fundinfo"]["amount"]
 											]
