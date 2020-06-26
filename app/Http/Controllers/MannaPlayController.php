@@ -108,7 +108,7 @@ class MannaPlayController extends Controller
 			}
 		}
 
-		Helper::saveLog('balance', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('manna_balance', 16, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -245,7 +245,7 @@ class MannaPlayController extends Controller
 					}
 				}
 
-				Helper::saveClientLog('debit', 2, $body, $client_response);
+				Helper::saveClientLog('manna_debit', 16, $body, $client_response);
 			}
 		}
 		
@@ -376,7 +376,7 @@ class MannaPlayController extends Controller
 			}
 		}
 		
-		Helper::saveLog('credit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('manna_credit', 16, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -500,7 +500,7 @@ class MannaPlayController extends Controller
 			}
 		}
 
-		Helper::saveLog('rollback', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('manna_rollback', 16, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}

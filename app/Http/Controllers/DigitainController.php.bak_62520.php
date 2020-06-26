@@ -15,30 +15,9 @@ use Carbon\Carbon;
 use DB;
 
 
-// Error code Error description
-// 1 No errors were encountered
-// 2 Session Not Found
-// 3 Session Expired
-// 4 Wrong Player Id
-// 5 Player Is Blocked
-// 6 Low Balance
-// 7 Transaction Not Found
-// 8 Transaction Already Exists
-// 9 Provider Not Allowed For Partner
-// 10 Provider's Action Not Found
-// 11 Game Not Found
-// 12 Wrong API Credentials
-// 13 Invalid Method
-// 14 Transaction Already Rolled Back
-// 15 Wrong Operator Id
-// 16 Wrong Currency Id
-// 17 Request Parameter Missing
-// 18 Invalid Data
-// 19 Incorrect Operation Type
-// 20 Transaction already won
 
 /**
- *  
+ *  BACKUP 06-25-20 6:30PM
  *	Api Documentation v3 -> v3.7.0-1
  *	Current State : v3 updating to v3.7.0-1    
  *  ## Authors Note : You cannot win if you dont bet! xD Bet comes first!
@@ -49,10 +28,10 @@ use DB;
  *	bet method additionals = requests:  checkRefunded, bonusTicketId
  *	betwin method additionals = requests:  bonusTicketId,   ,response: playerId, roundId, currencyId
  *	
- *	
  */
 class DigitainController extends Controller
 {
+
 	// private $apikey ="321dsfjo34j5olkdsf";
 	// private $access_token = "123iuysdhfb09875v9hb9pwe8f7yu439jvoiefjs";
 
@@ -1706,13 +1685,7 @@ class DigitainController extends Controller
 					break;	
 				case 38:
 					$message = 'Amend Debit';
-					break;	
-				case 39:
-					$message = 'Feature Trigger Bet';
-					break;	
-				case 40:
-					$message = 'Feature Trigger Win';
-					break;																																				
+					break;																																			
 				default:		  
 			}	
 				return $message;
@@ -1863,5 +1836,4 @@ class DigitainController extends Controller
 	                         ->first();
 	        return $client_details->token_id;    
     }
-
 }

@@ -469,8 +469,12 @@ class SolidGamingController extends Controller
 										],
 										"fundinfo" => [
 										      "gamesessionid" => "",
+<<<<<<< HEAD
 										      // "transactiontype" => "debit", // Barry
 										      "transactiontype" => "credit", // RiAN TEST!
+=======
+										      "transactiontype" => "credit",
+>>>>>>> d7671a5e8823ff64bdf0a812681def4fd44bed14
 										      "transferid" => "",
 										      "rollback" => "false",
 										      "currencycode" => $player_details->currency,
