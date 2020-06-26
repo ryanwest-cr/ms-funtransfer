@@ -469,7 +469,7 @@ class SolidGamingController extends Controller
 										],
 										"fundinfo" => [
 										      "gamesessionid" => "",
-										      "transactiontype" => "debit",
+										      "transactiontype" => "credit",
 										      "transferid" => "",
 										      "rollback" => "false",
 										      "currencycode" => $player_details->currency,
