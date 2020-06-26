@@ -124,7 +124,7 @@ class GameLobbyController extends Controller
             else{
                 $ip_address = "127.0.0.1";
             }
-            if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$request->game_code,$ip_address)){
+            if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
                 if($request->input('game_provider')=="Iconic Gaming"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
