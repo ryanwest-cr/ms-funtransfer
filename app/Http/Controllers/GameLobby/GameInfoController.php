@@ -171,6 +171,7 @@ class GameInfoController extends Controller
 			}else{
 				return ['status' => 'failed'];
 			}
+
 		    $client = new Client([
 			    'headers' => [ 
 			    	'Content-Type' => 'application/json',
@@ -186,15 +187,15 @@ class GameInfoController extends Controller
 							"gameid" => "",
 							"clientid" => $client_details->client_id,
 							"playerdetailsrequest" => [
-								"token" => $client_details->player_token,
-								"gamelaunch" => true
+								"token" => $client_details->player_token ? $client_details->player_token : '',
+								"username" => $client_details->username ? $client_details->username : '',
+								"gamelaunch" => false
 							]
 						]
 			    )]
 			);
 			$client_response = json_decode($guzzle_response->getBody()->getContents());
 			return json_encode($client_response);
-
 	}
 
 
@@ -204,7 +205,7 @@ class GameInfoController extends Controller
 	public function _getClientDetails($type = "", $value = "", $client_id="") 
 	{
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id','p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -218,7 +219,7 @@ class GameInfoController extends Controller
 					if ($type == 'player_id') {
 						$query->where([
 					 		["p.player_id", "=", $value],
-					 		["pst.status_id", "=", 1]
+					 		// ["pst.status_id", "=", 1]
 					 	]);
 					}
 					if ($type == 'site_url') {
