@@ -52,7 +52,7 @@ class MannaPlayController extends Controller
 			// Find the player and client details
 			$client_details = $this->_getClientDetails($client_code);
 			$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');
-			
+
 			if ($client_details) {
 
 				$client = new Client([
@@ -61,7 +61,22 @@ class MannaPlayController extends Controller
 				    	'Authorization' => 'Bearer '.$client_details->client_access_token
 				    ]
 				]);
-				
+			        
+
+			/*	var_dump(json_encode(
+                                                [
+                                                        "access_token" => $client_details->client_access_token,
+                                                                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                                                                "type" => "playerdetailsrequest",
+                                                                "datesent" => "",
+                                                                "gamecode" => "",
+                                                                "clientid" => $client_details->client_id,
+                                                                "playerdetailsrequest" => [
+                                                                        "token" => $player_details->player_token,
+                                                                        "gamelaunch" => "false"
+                                                                ]]
+							)); die();
+			 */
 				$guzzle_response = $client->post($client_details->player_details_url,
 				    ['body' => json_encode(
 				        	[
@@ -79,7 +94,6 @@ class MannaPlayController extends Controller
 				);
 
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
-				
 				if(isset($client_response->playerdetailsresponse->status->code) 
 				&& $client_response->playerdetailsresponse->status->code == "200") {
 

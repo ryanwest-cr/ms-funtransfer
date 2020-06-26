@@ -158,12 +158,53 @@ class GameInfoController extends Controller
 	}
 
 	/**
+	 *	@return client player details 
+	 *	@param accept player_id, token
+	 */
+	public function getClientPlayerDetails(Request $request){
+
+			if($request->has('player_id')){
+				$client_details = $this->_getClientDetails('player_id', $request->player_id);
+			}else if($request->has('token')){
+				$client_details = $this->_getClientDetails('token', $request->token);
+			}else{
+				return ['status' => 'failed'];
+			}
+
+		    $client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			$guzzle_response = $client->post($client_details->player_details_url,
+			    ['body' => json_encode(
+			        	["access_token" => $client_details->client_access_token,
+							"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+							"type" => "playerdetailsrequest",
+							"datesent" => "",
+							"gameid" => "",
+							"clientid" => $client_details->client_id,
+							"playerdetailsrequest" => [
+								"token" => $client_details->player_token ? $client_details->player_token : '',
+								"username" => $client_details->username ? $client_details->username : '',
+								"gamelaunch" => true
+							]
+						]
+			    )]
+			);
+			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			return json_encode($client_response);
+	}
+
+
+	/**
 	 *	@return player details
 	 */
 	public function _getClientDetails($type = "", $value = "", $client_id="") 
 	{
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id','p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -177,7 +218,7 @@ class GameInfoController extends Controller
 					if ($type == 'player_id') {
 						$query->where([
 					 		["p.player_id", "=", $value],
-					 		["pst.status_id", "=", 1]
+					 		// ["pst.status_id", "=", 1]
 					 	]);
 					}
 					if ($type == 'site_url') {
