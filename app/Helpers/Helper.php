@@ -93,24 +93,25 @@ class Helper
 				];
 		return DB::table('players')->insertGetId($data);
 	}
-	public static function checkPlayerExist($client_id, $client_player_id, $username,  $email, $display_name,$token){
+	public static function checkPlayerExist($client_id, $client_player_id, $username,  $email, $display_name,$token,$player_ip_address=false){
 		$player = DB::table('players')
 					->where('client_id',$client_id)
 					->where('client_player_id',$client_player_id)
 					->where('username',$username)
 					->first();
 		if($player){
-			return Helper::createPlayerSessionToken($player->player_id,$token);
+			return Helper::createPlayerSessionToken($player->player_id,$token,$player_ip_address);
 		}
 		else{
 			$player_id=Helper::save_player($client_id,$client_player_id,$username,$email,$display_name);
-			return Helper::createPlayerSessionToken($player_id,$token);
+			return Helper::createPlayerSessionToken($player_id,$token,$player_ip_address);
 		}
 	}
-	public static function createPlayerSessionToken($player_id,$token){
+	public static function createPlayerSessionToken($player_id,$token,$player_ip_address){
 		$player_session_token = array(
 			"player_id" => $player_id,
 			"player_token" => $token,
+			"player_ip_address" => $player_ip_address,
 			"status_id" => 1
 		);
 		DB::table('player_session_tokens')->insert($player_session_token);

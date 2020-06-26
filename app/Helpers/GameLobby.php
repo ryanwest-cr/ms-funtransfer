@@ -14,8 +14,9 @@ class GameLobby{
         $game_list =GameLobby::icgGameUrl($client->default_currency);
         foreach($game_list["data"] as $game){
             if($game["productId"] == $game_code){
+                $language = $client->default_language != "" ? $client->default_language:"en";
                 Helper::savePLayerGameRound($game["productId"],$token);
-                return $game["href"].'&token='.$token.'&lang=en&home_URL='.$exitUrl;
+                return $game["href"].'&token='.$token.'&lang='.$language.'&home_URL='.$exitUrl;
             }
         }
     }
