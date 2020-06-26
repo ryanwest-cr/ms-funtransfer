@@ -76,9 +76,10 @@ class EDPController extends Controller
         $sha1key = sha1($request->token.''.$this->secretkey);
         if($sha1key == $request->sign){
             $game = Helper::getInfoPlayerGameRound($request->token);
+            $client_details = $this->_getClientDetails('token', $request->token);
             $sessions =array(
                 "player" => $game->username,
-                "currency"=> "USD",
+                "currency"=> $client_details->default_currency,
                 "game"   => $game->game_code
             );
             $data2 = array(
@@ -445,7 +446,7 @@ class EDPController extends Controller
     private function _getClientDetails($type = "", $value = "") {
 
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name','c.default_currency', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
