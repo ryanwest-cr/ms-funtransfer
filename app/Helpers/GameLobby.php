@@ -10,7 +10,8 @@ use App\Helpers\IAHelper;
 use DB;             
 class GameLobby{
     public static function icgLaunchUrl($game_code,$token,$exitUrl){
-        $game_list =GameLobby::icgGameUrl();
+        $client = GameLobby::getClientDetails("token",$token);
+        $game_list =GameLobby::icgGameUrl($client->default_currency);
         foreach($game_list["data"] as $game){
             if($game["productId"] == $game_code){
                 Helper::savePLayerGameRound($game["productId"],$token);
@@ -126,24 +127,28 @@ class GameLobby{
         endif;  
     }
 
-    private static function icgGameUrl(){
+    private static function icgGameUrl($currency){
         $http = new Client();
-
         $response = $http->get(config("providerlinks.icgaminggames"), [
             'headers' =>[
-                'Authorization' => 'Bearer '.GameLobby::icgConnect(),
+                'Authorization' => 'Bearer '.GameLobby::icgConnect($currency),
                 'Accept'     => 'application/json'
             ]
         ]);
         return json_decode((string) $response->getBody(), true);
     }
-    private static function icgConnect(){
+    private static function icgConnect($currency){
         $http = new Client();
-
+        $username = config("providerlinks.icgagents.usdagents.username");
+        $password = config("providerlinks.icgagents.usdagents.password");
+        if($currency == "JPY"){
+            $username = config("providerlinks.icgagents.jpyagents.username");
+            $password = config("providerlinks.icgagents.jpyagents.password");
+        }
         $response = $http->post(config("providerlinks.icgaminglogin"), [
             'form_params' => [
-                'username' => 'betrnk',
-                'password' => 'betrnk168!^*',
+                'username' => $username,
+                'password' => $password,
             ],
         ]);
 
@@ -152,7 +157,7 @@ class GameLobby{
     public static function getClientDetails($type = "", $value = "") {
 
         $query = DB::table("clients AS c")
-                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_code','c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_code','c.default_currency','c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
                  ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
                  ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
                  ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
