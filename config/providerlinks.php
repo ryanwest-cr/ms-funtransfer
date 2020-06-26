@@ -10,6 +10,11 @@ return [
             'password' => ']WKtkT``mJCe8N3J',
             'secure_code' => '60e7a70e-806a-479c-af0b-d3c83a6616c1',
         ],
+        'cnyagents'=>[
+            'username' => 'betrnkcny',
+            'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => '7a640de8-82ce-4fe7-b0a3-0bea404bceb8',
+        ],
         'usdagents'=>[
             'username' => 'betrnk',
             'password' => 'betrnk168!^*',

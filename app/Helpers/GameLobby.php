@@ -145,6 +145,10 @@ class GameLobby{
             $username = config("providerlinks.icgagents.jpyagents.username");
             $password = config("providerlinks.icgagents.jpyagents.password");
         }
+        elseif($currency == "CNY"){
+            $username = config("providerlinks.icgagents.cnyagents.username");
+            $password = config("providerlinks.icgagents.cnyagents.password");
+        }
         $response = $http->post(config("providerlinks.icgaminglogin"), [
             'form_params' => [
                 'username' => $username,

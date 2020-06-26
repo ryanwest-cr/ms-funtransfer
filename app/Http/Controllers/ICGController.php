@@ -695,5 +695,8 @@ class ICGController extends Controller
         elseif($currency == "JPY"){
             return config("providerlinks.icgagents.jpyagents.secure_code");
         }
+        elseif($currency == "CNY"){
+            return config("providerlinks.icgagents.cnyagents.secure_code");
+        }
     }
 }
