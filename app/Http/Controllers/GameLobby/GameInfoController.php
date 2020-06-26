@@ -178,22 +178,24 @@ class GameInfoController extends Controller
 			    	'Authorization' => 'Bearer '.$client_details->client_access_token
 			    ]
 			]);
+			$datatosend = ["access_token" => $client_details->client_access_token,
+				"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				"type" => "playerdetailsrequest",
+				"datesent" => "",
+				"gameid" => "",
+				"clientid" => $client_details->client_id,
+				"playerdetailsrequest" => [
+					"token" => $client_details->player_token ? $client_details->player_token : '',
+					"username" => $client_details->username ? $client_details->username : '',
+					"gamelaunch" => false
+				]
+			];
+
+			// dd($datatosend);
 			$guzzle_response = $client->post($client_details->player_details_url,
-			    ['body' => json_encode(
-			        	["access_token" => $client_details->client_access_token,
-							"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-							"type" => "playerdetailsrequest",
-							"datesent" => "",
-							"gameid" => "",
-							"clientid" => $client_details->client_id,
-							"playerdetailsrequest" => [
-								"token" => $client_details->player_token ? $client_details->player_token : '',
-								"username" => $client_details->username ? $client_details->username : '',
-								"gamelaunch" => false
-							]
-						]
-			    )]
+				['body' => json_encode($datatosend)]
 			);
+
 			$client_response = json_decode($guzzle_response->getBody()->getContents());
 			return json_encode($client_response);
 	}
