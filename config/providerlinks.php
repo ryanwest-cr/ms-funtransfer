@@ -8,10 +8,12 @@ return [
         'jpyagents'=>[
             'username' => 'betrnkjpy',
             'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => '60e7a70e-806a-479c-af0b-d3c83a6616c1',
         ],
         'usdagents'=>[
             'username' => 'betrnk',
             'password' => 'betrnk168!^*',
+            'secure_code' => '2c00c099-f32b-4fc1-a69d-661d8c51c6ae',
         ],
     ],
     'endorphina' => [
