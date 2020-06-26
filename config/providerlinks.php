@@ -4,6 +4,16 @@
 return [
     'icgaminglogin' => 'https://admin-stage.iconic-gaming.com/service/login',
     'icgaminggames' => 'https://admin-stage.iconic-gaming.com/service/api/v1/games?type=all&lang=en',
+    'icgagents'=>[
+        'jpyagents'=>[
+            'username' => 'betrnkjpy',
+            'password' => ']WKtkT``mJCe8N3J',
+        ],
+        'usdagents'=>[
+            'username' => 'betrnk',
+            'password' => 'betrnk168!^*',
+        ],
+    ],
     'endorphina' => [
         'url' => 'https://test.endorphina.network/api/sessions/seamless/rest/v1',
         'nodeId' => 1002,
