@@ -14,7 +14,7 @@ use Carbon\Carbon;
 
 use DB;
 
-
+// UPDATE ERROR CODES!
 // Error code Error description
 // 1 No errors were encountered
 // 2 Session Not Found
@@ -262,6 +262,7 @@ class DigitainController extends Controller
 						 ->first();
 
 		if ($client_details) {
+
 			$client = new Client([
 			    'headers' => [ 
 			    	'Content-Type' => 'application/json',
@@ -283,14 +284,23 @@ class DigitainController extends Controller
 						]
 			    )]
 			);
+
+
 			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			$errorcode = 1;
+			
+			// UPDATE
+			if($json_data["currencyId"] != $client_response->playerdetailsresponse->currencycode){
+				$errorcode = 16; // Wrong currency ID!
+			}
+
 			$response = [
 				"timestamp" => date('YmdHisms'),
 				"signature" => $this->createSignature(date('YmdHisms')),
-				"errorCode" => 1,
+				"errorCode" => $errorcode,
 				"balance" => $client_response->playerdetailsresponse->balance,
-				"email" => $client_response->playerdetailsresponse->email,
-				"updatedAt" => date('YmdHis.ms')
+				// "email" => $client_response->playerdetailsresponse->email,
+				// "updatedAt" => date('YmdHis.ms')
 			];
 
 		}
@@ -308,11 +318,17 @@ class DigitainController extends Controller
 		// Helper::saveLog('RTOKEN RSG REQUESTED', 14, 'LOGS', 'LOGS');
 		Helper::saveLog('Auth Refresh Token RSG', 14, file_get_contents("php://input"), 'FIRST');
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		// $response = [
+		// 	"errorcode" =>  "INVALID_TOKEN",
+		// 	"errormessage" => "The provided token could not be verified/Token already authenticated",
+		// 	"httpstatus" => "404",
+		// 	"errorCode" => 12,
+		// ];
 		$response = [
-			"errorcode" =>  "INVALID_TOKEN",
-			"errormessage" => "The provided token could not be verified/Token already authenticated",
-			"httpstatus" => "404",
-			"errorCode" => 12,
+			"timestamp" => date('YmdHisms'),
+			"signature" => $this->createSignature(date('YmdHisms')),
+			"token" => $json_data['token'],
+			"errorCode" => 12 //Wrong Operator Id 
 		];
 		if($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])) {
 			$client_details = $this->_getClientDetails('token', $json_data['token']);
