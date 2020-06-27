@@ -14,8 +14,9 @@ class GameLobby{
         $game_list =GameLobby::icgGameUrl($client->default_currency);
         foreach($game_list["data"] as $game){
             if($game["productId"] == $game_code){
+                $language = $client->default_language != "" ? $client->default_language:"en";
                 Helper::savePLayerGameRound($game["productId"],$token);
-                return $game["href"].'&token='.$token.'&lang=en&home_URL='.$exitUrl;
+                return $game["href"].'&token='.$token.'&lang='.$language.'&home_URL='.$exitUrl;
             }
         }
     }
@@ -145,6 +146,10 @@ class GameLobby{
             $username = config("providerlinks.icgagents.jpyagents.username");
             $password = config("providerlinks.icgagents.jpyagents.password");
         }
+        elseif($currency == "CNY"){
+            $username = config("providerlinks.icgagents.cnyagents.username");
+            $password = config("providerlinks.icgagents.cnyagents.password");
+        }
         $response = $http->post(config("providerlinks.icgaminglogin"), [
             'form_params' => [
                 'username' => $username,
@@ -157,7 +162,7 @@ class GameLobby{
     public static function getClientDetails($type = "", $value = "") {
 
         $query = DB::table("clients AS c")
-                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_code','c.default_currency','c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+                 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_code','c.default_currency','c.default_language','c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
                  ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
                  ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
                  ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
