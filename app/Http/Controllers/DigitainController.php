@@ -438,29 +438,38 @@ class DigitainController extends Controller
 
 			$items_array = array();
 		 	foreach ($json_data['items'] as $key):
+		 		// $client_details = $this->_getClientDetails('token', $key['token']);
+		 		// // dd($client_details);
+		 		// if(!$client_details){
+		 		// 		$items_array = array();
+			 	// 		foreach ($json_data['items'] as $key) {
+					// 		$items_array[] = [
+					// 			 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+					// 			 "errorCode" => 4,
+					// 			 "metadata" => "" // Optional but must be here!
+			  //       	    ];
+					// 		$response = array(
+					// 			 "timestamp" => date('YmdHisms'),
+					// 		     "signature" => $this->createSignature(date('YmdHisms')),
+					// 			 "errorCode" => 4, 
+					// 			 "Items" => $items_array,
+				 //   			);
+			  //  			}
+			  //  			Helper::saveLog('RSG BET GAME REQUEST', 14, file_get_contents("php://input"), $response);
+			  //  			return $response;
+		 		// }
+
 		 		$client_details = $this->_getClientDetails('token', $key['token']);
 		 		// dd($client_details);
-		 		if(!$client_details){
-		 				$items_array = array();
-			 			foreach ($json_data['items'] as $key) {
-							$items_array[] = [
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-								 "errorCode" => 4,
-								 "metadata" => "" // Optional but must be here!
-			        	    ];
-							$response = array(
-								 "timestamp" => date('YmdHisms'),
-							     "signature" => $this->createSignature(date('YmdHisms')),
-								 "errorCode" => 4, 
-								 "Items" => $items_array,
-				   			);
-			   			}
-			   			Helper::saveLog('RSG BET GAME REQUEST', 14, file_get_contents("php://input"), $response);
-			   			return $response;
-		 		}
-
+		 		$client_player = $this->playerDetailsCall($key['token']);
 		 		$check_win_exist = $this->findGameTransaction($key['txId']); // if transaction id exist bypass it
-		 		if(!$check_win_exist):
+
+		 		if(!empty($client_details)):
+		 		if(!$check_win_exist): // No Bet Exist!
+		 		if($key['currencyId'] != $client_player->playerdetailsresponse->currencycode): // Currency not match nb
+		 		if($client_player->playerdetailsresponse->balance > $key['betAmount']): // Player balance is low!
+
+
 			 		$client = new Client([
 	                    'headers' => [ 
 	                        'Content-Type' => 'application/json',
@@ -530,14 +539,35 @@ class DigitainController extends Controller
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 1,
 						 "metadata" => "" // Optional but must be here!
-	        	    ];
+	        	    ];     
 	        	else:
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-						 "errorCode" => 8, //already exist
+						 "errorCode" => 6, // Player Low Balance!
 						 "metadata" => "" // Optional but must be here!
 	        	    ];   
-	        	endif;     
+	        	endif;
+	        	else:
+	        		$items_array[] = [
+						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						 "errorCode" => 16, // Currency code dont match!
+						 "metadata" => "" // Optional but must be here!
+	        	    ];   
+	        	endif;         
+	        	else:
+	        		$items_array[] = [
+						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						 "errorCode" => 8, // already exist
+						 "metadata" => "" // Optional but must be here!
+	        	    ];   
+	        	endif; 
+	        	else:
+	        		$items_array[] = [
+						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						 "errorCode" => 4, //The playerId was not found
+						 "metadata" => "" // Optional but must be here!
+	        	    ];  
+	        	endif;    
 			endforeach;
 				$response = array(
 					 "timestamp" => date('YmdHisms'),
@@ -1733,6 +1763,49 @@ class DigitainController extends Controller
 			}	
 				return $message;
 
+	}
+
+
+	public function playerDetailsCall($player_token, $refreshtoken=false){
+		$client_details = DB::table("clients AS c")
+						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.client_player_id', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+						 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
+						 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
+						 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
+						 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
+						 ->where("pst.player_token", $player_token)
+						 ->first();
+		if($client_details){
+			try{
+				$client = new Client([
+				    'headers' => [ 
+				    	'Content-Type' => 'application/json',
+				    	'Authorization' => 'Bearer '.$client_details->client_access_token
+				    ]
+				]);
+				$datatosend = ["access_token" => $client_details->client_access_token,
+					"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+					"type" => "playerdetailsrequest",
+					"clientid" => $client_details->client_id,
+					"playerdetailsrequest" => [
+						"token" => $player_token,
+						// "playerId" => $client_details->client_player_id,
+						"currencyId" => $client_details->currency,
+						"gamelaunch" => false,
+						"refreshtoken" => $refreshtoken
+					]
+				];
+				$guzzle_response = $client->post($client_details->player_details_url,
+				    ['body' => json_encode($datatosend)]
+				);
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
+			 	return $client_response;
+            }catch (\Exception $e){
+               return false;
+            }
+		}else{
+			return false;
+		}
 	}
 
 
