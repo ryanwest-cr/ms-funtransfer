@@ -1222,8 +1222,6 @@ class DigitainController extends Controller
 
 			 		$datatrans = $this->findTransactionRefund($key['winTxId'], 'transaction_id');
 			 		$datatrans = $this->amendWin($key['roundId']);
-			 		$jsoned1 = json_encode($datatrans->mw_request);
-			 		$jsoned2 = json_decode($jsoned1);
 			 		// $datareverse = $this->reverseDataBody($jsoned2);
 			 		dd($datatrans);
 		 			$jsonify = json_decode($datatrans->transaction_detail, true);
