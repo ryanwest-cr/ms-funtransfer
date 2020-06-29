@@ -53,16 +53,18 @@ class GameTransaction
 		$income = $game_details->income; 
 		$win = 0;
 		$pay_amount = 0;
+		$entry_id = 1;
 
 		if($request_data["amount"] > 0.00) {
 			$win = 1;
 			$income = $game_details->bet_amount - $request_data['amount'];
 			$pay_amount = $request_data["amount"];
+			$entry_id = 2;
 		}
 
         $update = DB::table('game_transactions')
                 ->where('game_trans_id', $game_details->game_trans_id)
-                ->update(['pay_amount' => $pay_amount, 'income' => $income, 'win' => $win, 'entry_id' => 2]);
+                ->update(['pay_amount' => $pay_amount, 'income' => $income, 'win' => $win, 'entry_id' => $entry_id]);
                 
 		return ($update ? true : false);
 	}
