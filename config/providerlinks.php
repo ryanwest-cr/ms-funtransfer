@@ -10,10 +10,45 @@ return [
             'password' => ']WKtkT``mJCe8N3J',
             'secure_code' => '60e7a70e-806a-479c-af0b-d3c83a6616c1',
         ],
+        'euragents'=>[
+            'username' => 'betrnkeuro',
+            'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => '4c7aa6fe-5559-4006-b995-b2414a472d0b',
+        ],
         'cnyagents'=>[
             'username' => 'betrnkcny',
             'password' => ']WKtkT``mJCe8N3J',
             'secure_code' => '7a640de8-82ce-4fe7-b0a3-0bea404bceb8',
+        ],
+        'krwagents'=>[
+            'username' => 'betrnkkrw',
+            'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => '0d18064c-cd77-4a04-9f17-2dc27bdb903a',
+        ],
+        'phpagents'=>[
+            'username' => 'betrnkphp',
+            'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => '0fa2144d-7529-4483-9306-6515485ce6c7',
+        ],
+        'thbagents'=>[
+            'username' => 'betrnkthb',
+            'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => 'e2d411bd-ddea-41b1-a173-483d2f98f7cf',
+        ],
+        'tryagents'=>[
+            'username' => 'betrnktry',
+            'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => '93928542-4014-4736-a72e-3d99786df5ea',
+        ],
+        'twdagents'=>[
+            'username' => 'betrnkTWD',
+            'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => '99d78fd7-d342-4fa5-932a-029a65b8a1f1',
+        ],
+        'vndagents'=>[
+            'username' => 'betrnkvnd',
+            'password' => ']WKtkT``mJCe8N3J',
+            'secure_code' => '99d78fd7-d342-4fa5-932a-029a65b8a1f1',
         ],
         'usdagents'=>[
             'username' => 'betrnk',

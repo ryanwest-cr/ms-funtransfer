@@ -698,5 +698,26 @@ class ICGController extends Controller
         elseif($currency == "CNY"){
             return config("providerlinks.icgagents.cnyagents.secure_code");
         }
+        elseif($currency == "EUR"){
+            return config("providerlinks.icgagents.euragents.secure_code");
+        }
+        elseif($currency == "KRW"){
+            return config("providerlinks.icgagents.krwagents.secure_code");
+        }
+        elseif($currency == "PHP"){
+            return config("providerlinks.icgagents.phpagents.secure_code");
+        }
+        elseif($currency == "THB"){
+            return config("providerlinks.icgagents.thbagents.secure_code");
+        }
+        elseif($currency == "TRY"){
+            return config("providerlinks.icgagents.tryagents.secure_code");
+        }
+        elseif($currency == "TWD"){
+            return config("providerlinks.icgagents.twdagents.secure_code");
+        }
+        elseif($currency == "VND"){
+            return config("providerlinks.icgagents.vndagents.secure_code");
+        }
     }
 }
