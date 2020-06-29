@@ -108,7 +108,7 @@ class SolidGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('authentication', 2, file_get_contents("php://input"), $response);
+		Helper::saveSolidLog('authentication', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -161,7 +161,7 @@ class SolidGamingController extends Controller
 				);
 
 				$client_response = json_decode($guzzle_response->getBody()->getContents());		
-
+				
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
@@ -178,7 +178,7 @@ class SolidGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('playerdetails', 2, file_get_contents("php://input"), $response);
+		Helper::saveSolidLog('playerdetails', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -260,7 +260,7 @@ class SolidGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('balance', 2, file_get_contents("php://input"), $response);
+		Helper::saveSolidLog('balance', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -392,7 +392,7 @@ class SolidGamingController extends Controller
 		}
 		
 		/*Helper::saveClientLog('debit', 2, $body, $client_response);*/
-		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
+		Helper::saveSolidLog('debit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -509,7 +509,7 @@ class SolidGamingController extends Controller
 			}
 		}
 		
-		Helper::saveLog('credit', 2, file_get_contents("php://input"), $response);
+		Helper::saveSolidLog('credit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -683,7 +683,7 @@ class SolidGamingController extends Controller
 			}
 		}
 		
-		Helper::saveLog('debitandcredit', 2, file_get_contents("php://input"), $response);
+		Helper::saveSolidLog('debitandcredit', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 	}
 
@@ -877,7 +877,7 @@ class SolidGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('rollback', 2, file_get_contents("php://input"), $response);
+		Helper::saveSolidLog('rollback', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -923,7 +923,7 @@ class SolidGamingController extends Controller
 			
 		}
 
-		Helper::saveLog('rollback', 2, file_get_contents("php://input"), $response);
+		Helper::saveSolidLog('rollback', 2, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
