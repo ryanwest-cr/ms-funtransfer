@@ -118,6 +118,7 @@ class GameInfoController extends Controller
 	  			 ->orderBy('total', 'DESC')
 	  			 ->limit(1)
 	  			 ->get();
+	  	return $provider;
 	  	foreach ($provider as $pro) {
 	  		$data['provider'] = $pro;
 	  	}
@@ -128,7 +129,7 @@ class GameInfoController extends Controller
                 ->where('p.provider_id', $data['provider']->provider_id)
                 ->get();
         $data['games'] = $games;          
-        return $data;    
+        return $data ? $data : false;    
 	}
 
 	public function getGameSuggestions(Request $request){			
