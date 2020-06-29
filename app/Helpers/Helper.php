@@ -25,16 +25,6 @@ class Helper
 		DB::table('seamless_request_logs')->insert($data);
 	}
 
-	public static function saveSolidLog($method, $provider_id = 0, $request_data, $response_data) {
-		$data = [
-					"method_name" => $method,
-					"provider_id" => $provider_id,
-					"request_data" => json_encode(json_decode($request_data)),
-					"response_data" => json_encode($response_data)
-				];
-		DB::table('solid_seamless_request_logs')->insert($data);
-	}
-
 	public static function saveClientLog($method, $provider_id = 0, $sent_data, $response_data) {
 		$data = [
 					"method_name" => $method,
