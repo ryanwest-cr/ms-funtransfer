@@ -98,10 +98,7 @@ class MannaPlayController extends Controller
 				&& $client_response->playerdetailsresponse->status->code == "200") {
 
 					$response = [
-						"balance" => $client_response->playerdetailsresponse->balance,
-						"Message" => "OK",
-						"Code" => $client_response->playerdetailsresponse->currencycode,
-						
+						"balance" => $client_response->playerdetailsresponse->balance
 					];
 				}
 			
@@ -235,9 +232,7 @@ class MannaPlayController extends Controller
 
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
-										"balance" => $client_response->fundtransferresponse->balance,
-										"Message" => "OK",
-										"Code" => $client_response->fundtransferresponse->currencycode,
+										"balance" => $client_response->fundtransferresponse->balance
 									];
 								}
 							}
@@ -364,9 +359,7 @@ class MannaPlayController extends Controller
 								
 								$response = [
 									"transaction_id" => $json_data['transaction_id'],
-									"balance" => $client_response->fundtransferresponse->balance,
-									"Message" => "OK",
-									"Code" => $client_response->fundtransferresponse->currencycode,
+									"balance" => $client_response->fundtransferresponse->balance
 								];
 							}
 						}
@@ -488,9 +481,7 @@ class MannaPlayController extends Controller
 									
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
-										"balance" => $client_response->fundtransferresponse->balance,
-										"Message" => "OK",
-										"Code" => $client_response->fundtransferresponse->currencycode,
+										"balance" => $client_response->fundtransferresponse->balance
 									];
 								}
 							}
