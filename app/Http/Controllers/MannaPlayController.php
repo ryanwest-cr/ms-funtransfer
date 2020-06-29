@@ -32,7 +32,7 @@ class MannaPlayController extends Controller
 	public function getBalance(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$client_code = RouteParam::get($request, 'brand_code');
+		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
 		if(!CallParameters::check_keys($json_data, 'account', 'sessionId')) {
 				$response = [
@@ -50,8 +50,8 @@ class MannaPlayController extends Controller
 						];
 
 			// Find the player and client details
-			$client_details = $this->_getClientDetails($client_code);
-			$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');
+			$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+			/*$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');*/
 
 			if ($client_details) {
 
@@ -87,7 +87,7 @@ class MannaPlayController extends Controller
 								"gamecode" => "",
 								"clientid" => $client_details->client_id,
 								"playerdetailsrequest" => [
-									"token" => $player_details->player_token,
+									"token" => $client_details->player_token,
 									"gamelaunch" => "false"
 								]]
 				    )]
@@ -113,7 +113,7 @@ class MannaPlayController extends Controller
 	public function debitProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$client_code = RouteParam::get($request, 'brand_code');
+		/*$client_code = RouteParam::get($request, 'brand_code');*/
 		$api_key = $request->header('apiKey');
 
 		if(!CallParameters::check_keys($json_data, 'account', 'sessionId', 'amount', 'game_id', 'round_id', 'transaction_id')) {
@@ -141,11 +141,11 @@ class MannaPlayController extends Controller
 							"httpstatus" => "404"
 						];
 
-				$client_details = $this->_getClientDetails($client_code);
-				$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');
+				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				/*$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');*/
 
-				if ($client_details && $player_details != NULL) {
-					GameRound::create($json_data['round_id'], $player_details->token_id);
+				if ($client_details/* && $player_details != NULL*/) {
+					GameRound::create($json_data['round_id'], $client_details->token_id);
 
 					// Check if the game is available for the client
 					$subscription = new GameSubscription();
@@ -188,14 +188,14 @@ class MannaPlayController extends Controller
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $player_details->player_token
+												"token" => $client_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
 											      "transactiontype" => "debit",
 											      "transferid" => "",
 											      "rollback" => "false",
-											      "currencycode" => $player_details->currency,
+											      "currencycode" => $client_details->currency,
 											      "amount" => "-".$json_data["amount"]
 											]
 										  ]
@@ -228,7 +228,7 @@ class MannaPlayController extends Controller
 									$json_data['transid'] = $json_data['transaction_id'];
 
 									$game_details = Game::find($json_data["game_id"]);
-									GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
+									GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
@@ -253,7 +253,7 @@ class MannaPlayController extends Controller
 	public function creditProcess(Request $request)
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$client_code = RouteParam::get($request, 'brand_code');
+		/*$client_code = RouteParam::get($request, 'brand_code');*/
 		$api_key = $request->header('apiKey');
 
 		if(!CallParameters::check_keys($json_data, 'account', 'sessionId', 'amount', 'game_id', 'round_id', 'transaction_id')) {
@@ -282,10 +282,10 @@ class MannaPlayController extends Controller
 								"httpstatus" => "404"
 							];
 
-				$client_details = $this->_getClientDetails($client_code);
-				$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');
+				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				/*$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');*/
 
-				if ($client_details && $player_details != NULL) {
+				if ($client_details/* && $player_details != NULL*/) {
 
 					// Check if the game is available for the client
 					$subscription = new GameSubscription();
@@ -329,14 +329,14 @@ class MannaPlayController extends Controller
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $player_details->player_token
+												"token" => $client_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
 											      "transactiontype" => "debit",
 											      "transferid" => "",
 											      "rollback" => "false",
-											      "currencycode" => $player_details->currency,
+											      "currencycode" => $client_details->currency,
 											      "amount" => $json_data["amount"]
 											]
 										  ]
@@ -355,7 +355,7 @@ class MannaPlayController extends Controller
 								$json_data['roundid'] = $json_data['round_id'];
 								$json_data['transid'] = $json_data['transaction_id'];
 
-								GameTransaction::update('credit', $json_data, $game_details, $client_details, $player_details);
+								GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
 								
 								$response = [
 									"transaction_id" => $json_data['transaction_id'],
@@ -377,7 +377,7 @@ class MannaPlayController extends Controller
 	public function rollBackTransaction(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$client_code = RouteParam::get($request, 'brand_code');
+		/*$client_code = RouteParam::get($request, 'brand_code');*/
 		$api_key = $request->header('apiKey');
 
 		if(!CallParameters::check_keys($json_data, 'sessionId', 'amount', 'game_id', 'round_id', 'transaction_id')) {
@@ -404,10 +404,10 @@ class MannaPlayController extends Controller
 						"httpstatus" => "404"
 					];
 
-				$client_details = $this->_getClientDetails($client_code);
-				$player_details = PlayerHelper::getPlayerDetails($json_data['sessionId'], 'token');
+				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				/*$player_details = PlayerHelper::getPlayerDetails($json_data['sessionId'], 'token');*/
 
-				if ($client_details && $player_details != NULL) {
+				if ($client_details/* && $player_details != NULL*/) {
 					// Check if round exist
 					if(!GameRound::find($json_data['roundid'])) {
 						
@@ -458,14 +458,14 @@ class MannaPlayController extends Controller
 											  ],
 											  "fundtransferrequest" => [
 													"playerinfo" => [
-													"token" => $player_details->player_token
+													"token" => $client_details->player_token
 												],
 												"fundinfo" => [
 												      "gamesessionid" => "",
 												      "transactiontype" => "credit",
 												      "transferid" => "",
 												      "rollback" => "true",
-												      "currencycode" => $player_details->currency,
+												      "currencycode" => $client_details->currency,
 												      "amount" => $game_transaction->bet_amount
 												]
 											  ]
@@ -477,7 +477,7 @@ class MannaPlayController extends Controller
 
 								// If client returned a success response
 								if($client_response->fundtransferresponse->status->code == "200") {
-									GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $player_details);
+									GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 									
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
@@ -497,7 +497,7 @@ class MannaPlayController extends Controller
 	}
 
 
-	private function _getClientDetails($client_code) {
+	/*private function _getClientDetails($client_code) {
 
 		$query = DB::table("clients AS c")
 				 ->select('c.client_id', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
@@ -508,9 +508,9 @@ class MannaPlayController extends Controller
 				 $result= $query->first();
 
 		return $result;
-	}
+	}*/
 
-	/*private function _getClientDetails($type = "", $value = "") {
+	private function _getClientDetails($type = "", $value = "") {
 
 		$query = DB::table("clients AS c")
 				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
@@ -533,11 +533,18 @@ class MannaPlayController extends Controller
 				 	]);
 				}
 
+				if ($type == 'username') {
+					$query->where([
+				 		["p.username", "=", $value],
+				 		["pst.status_id", "=", 1]
+				 	]);
+				}
+
 				 $result= $query->first();
 
 		return $result;
 
-	}*/
+	}
 
 
 }

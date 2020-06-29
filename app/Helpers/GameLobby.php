@@ -9,14 +9,14 @@ use App\Helpers\Helper;
 use App\Helpers\IAHelper;
 use DB;             
 class GameLobby{
-    public static function icgLaunchUrl($game_code,$token,$exitUrl){
+    public static function icgLaunchUrl($game_code,$token,$exitUrl,$lang="en"){
         $client = GameLobby::getClientDetails("token",$token);
         $game_list =GameLobby::icgGameUrl($client->default_currency);
         foreach($game_list["data"] as $game){
             if($game["productId"] == $game_code){
-                $language = $client->default_language != "" ? $client->default_language:"en";
+                $lang = GameLobby::getLanguage("Iconic Gaming",$lang);
                 Helper::savePLayerGameRound($game["productId"],$token);
-                return $game["href"].'&token='.$token.'&lang='.$language.'&home_URL='.$exitUrl;
+                return $game["href"].'&token='.$token.'&lang='.$lang.'&home_URL='.$exitUrl;
             }
         }
     }
@@ -140,15 +140,47 @@ class GameLobby{
     }
     private static function icgConnect($currency){
         $http = new Client();
-        $username = config("providerlinks.icgagents.usdagents.username");
-        $password = config("providerlinks.icgagents.usdagents.password");
-        if($currency == "JPY"){
-            $username = config("providerlinks.icgagents.jpyagents.username");
-            $password = config("providerlinks.icgagents.jpyagents.password");
-        }
-        elseif($currency == "CNY"){
-            $username = config("providerlinks.icgagents.cnyagents.username");
-            $password = config("providerlinks.icgagents.cnyagents.password");
+        switch($currency){
+            case "JPY":
+                $username = config("providerlinks.icgagents.jpyagents.username");
+                $password = config("providerlinks.icgagents.jpyagents.password");
+            break;
+            case "CNY":
+                $username = config("providerlinks.icgagents.cnyagents.username");
+                $password = config("providerlinks.icgagents.cnyagents.password");
+            break;
+            case "EUR":
+                $username = config("providerlinks.icgagents.euragents.username");
+                $password = config("providerlinks.icgagents.euragents.password");
+            break;
+            case "KRW":
+                $username = config("providerlinks.icgagents.krwagents.username");
+                $password = config("providerlinks.icgagents.krwagents.password");
+            break;
+            case "PHP":
+                $username = config("providerlinks.icgagents.phpagents.username");
+                $password = config("providerlinks.icgagents.phpwagents.password");
+            break;
+            case "THB":
+                $username = config("providerlinks.icgagents.thbagents.username");
+                $password = config("providerlinks.icgagents.thbagents.password");
+            break;
+            case "TRY":
+                $username = config("providerlinks.icgagents.tryagents.username");
+                $password = config("providerlinks.icgagents.tryagents.password");
+            break;
+            case "TWD":
+                $username = config("providerlinks.icgagents.twdagents.username");
+                $password = config("providerlinks.icgagents.twdagents.password");
+            break;
+            case "VND":
+                $username = config("providerlinks.icgagents.vndagents.username");
+                $password = config("providerlinks.icgagents.vndagents.password");
+            break;
+            default:
+                $username = config("providerlinks.icgagents.usdagents.username");
+                $password = config("providerlinks.icgagents.usdagents.password");
+
         }
         $response = $http->post(config("providerlinks.icgaminglogin"), [
             'form_params' => [
@@ -195,6 +227,16 @@ class GameLobby{
         $domain = parse_url($url, PHP_URL_HOST);
         $url = 'https://instage.solidgaming.net/api/launch/'.$client_code.'/'.$game_code.'?language=en&currency=USD&token='.$token.'';
         return $url;
+    }
+    public static function getLanguage($provider_name,$language){
+        $provider_language = DB::table("providers")->where("provider_name",$provider_name)->get();
+        $languages = json_decode($provider_language[0]->languages,TRUE);
+        if(array_key_exists($language,$languages)){
+            return $languages[$language];
+        }
+        else{
+            return $languages["en"];
+        }
     }
 
 }

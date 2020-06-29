@@ -13,6 +13,7 @@ use App\Helpers\GameLobby;
 use App\Models\ClientGameSubscribe;
 use Stripe\Balance;
 use DB;
+use GameLobby as GlobalGameLobby;
 
 class GameLobbyController extends Controller
 {
@@ -124,11 +125,12 @@ class GameLobbyController extends Controller
             else{
                 $ip_address = "127.0.0.1";
             }
+            $lang = $request->has("lang")?$request->lang:"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
                 if($request->input('game_provider')=="Iconic Gaming"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl),
+                        "url" => GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$lang),
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -263,5 +265,8 @@ class GameLobbyController extends Controller
                 array_push($data,$providerdata);
             }
             return $data;
+    }
+    public function getLanguage(Request $request){
+        return GameLobby::getLanguage($request->provider_name,$request->language);
     }
 }
