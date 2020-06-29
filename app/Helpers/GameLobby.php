@@ -190,7 +190,7 @@ class GameLobby{
 
     public static function solidLaunchUrl($game_code,$token,$exitUrl){
         $client_details = GameLobby::getClientDetails('token', $token);
-        $client_code = $client_details->client_code ? $client_details->client_code : 'BETRNKMW';
+        $client_code = 'BETRNKMW'; /*$client_details->client_code ? $client_details->client_code : 'BETRNKMW';*/
         $url = $exitUrl;
         $domain = parse_url($url, PHP_URL_HOST);
         $url = 'https://instage.solidgaming.net/api/launch/'.$client_code.'/'.$game_code.'?language=en&currency=USD&token='.$token.'';
