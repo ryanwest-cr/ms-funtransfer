@@ -118,7 +118,7 @@ class GameInfoController extends Controller
 	  			 ->orderBy('total', 'DESC')
 	  			 ->limit(1)
 	  			 ->get();
-	  	return $provider;
+	  	
 	  	foreach ($provider as $pro) {
 	  		$data['provider'] = $pro;
 	  	}
