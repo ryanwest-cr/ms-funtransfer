@@ -161,7 +161,7 @@ class SolidGamingController extends Controller
 				);
 
 				$client_response = json_decode($guzzle_response->getBody()->getContents());		
-				
+
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
@@ -377,7 +377,7 @@ class SolidGamingController extends Controller
 								$json_data['income'] = $json_data['amount'];
 
 								$game_details = Game::find($json_data["gamecode"]);
-								GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
+								GameTransaction::solid_save('debit', $json_data, $game_details, $client_details, $client_details);
 
 								$response = [
 									"status" => "OK",
@@ -496,7 +496,7 @@ class SolidGamingController extends Controller
 
 							$json_data['income'] = $json_data['amount'] - $json_data["amount"];
 
-							GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+							GameTransaction::solid_update('credit', $json_data, $game_details, $client_details, $client_details);
 							
 							$response = [
 								"status" => "OK",
@@ -663,12 +663,12 @@ class SolidGamingController extends Controller
 									$json_data["amount"] = $json_data["betamount"];
 									$json_data['income'] = $json_data['betamount'];
 
-									GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
+									GameTransaction::solid_save('debit', $json_data, $game_details, $client_details, $client_details);
 						
 									$json_data["amount"] = $json_data["winamount"];
 									$json_data["reason"] = "";
 									
-									GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+									GameTransaction::solid_update('credit', $json_data, $game_details, $client_details, $client_details);
 									
 									$response = [
 										"status" => "OK",
@@ -728,7 +728,7 @@ class SolidGamingController extends Controller
 					if(array_key_exists('originaltransid', $json_data)) {
 						
 						// Check if the transaction exist
-						$game_transaction = GameTransaction::find($json_data['originaltransid']);
+						$game_transaction = GameTransaction::solid_find($json_data['originaltransid']);
 
 						// If transaction is not found
 						if(!$game_transaction) {
@@ -781,7 +781,7 @@ class SolidGamingController extends Controller
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
 								$json_data['income'] = $game_transaction->bet_amount;
-								GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
+								GameTransaction::solid_save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 								
 								$response = [
 									"status" => "OK",
@@ -812,7 +812,7 @@ class SolidGamingController extends Controller
 							];
 
 							// If round is still active
-							$bulk_rollback_result = GameTransaction::bulk_rollback($json_data['roundid']);
+							$bulk_rollback_result = GameTransaction::solid_bulk_rollback($json_data['roundid']);
 
 							if($bulk_rollback_result) {
 								foreach ($bulk_rollback_result as $key => $value) {
@@ -857,7 +857,7 @@ class SolidGamingController extends Controller
 									// If client returned a success response
 									if($client_response->fundtransferresponse->status->code == "200") {
 										$json_data['income'] = $value->bet_amount;
-										GameTransaction::save('rollback', $json_data, $value, $client_details, $client_details);
+										GameTransaction::solid_save('rollback', $json_data, $value, $client_details, $client_details);
 									}
 
 								}
