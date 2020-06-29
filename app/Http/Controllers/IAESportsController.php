@@ -14,7 +14,7 @@ use DB;
 
 
 /**
- * IA ESports Controller
+ * IA ESports Controller (Seamless Setup)
  *
  * @version 1.1
  * @var username = MW player_id (NOT THE CLIENT PLAYER ID/USERNAME) ,prefixed with BETRNK_{$mw_id}
@@ -114,13 +114,11 @@ class IAESportsController extends Controller
         $timeout = 5;
 		$client_response = $this->curlData($this->url_lunch, $uhayuu, $header, $timeout);
 		$data = json_decode($this->rehashen($client_response[1], true));
-		// dd($data->message);
-		// dd($data->data->url); // URL
-		// dd($data);
 		return $data->data->url;
 	}
 
 	/**
+	 * DEPRECATED CENTRALIZED
 	 * Register Player and call the userlunch method after!
 	 *
 	 */
@@ -176,14 +174,16 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessDeposit(Request $request)
 	{
-		Helper::saveLog('IA Deposit', 2, '', 'CALL RECEIVED');
 		Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
-		$cha = json_decode($this->rehashen($data, true));
-		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES);
+		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
+
+		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
-		if(!$client_details):
+		// dd($client_details);
+
+		if(empty($client_details)):
 			$params = [
 	            "code" => 111003,
 	            "data" => [],
@@ -199,6 +199,8 @@ class IAESportsController extends Controller
 	        ];	
 			return $params;
 		endif;
+
+		
 		// $cha_data = $cha->currencyInfo;
 		// $chachi = json_decode($cha_data,JSON_UNESCAPED_SLASHES);
 		// return $chachi['short_name'];
@@ -217,55 +219,80 @@ class IAESportsController extends Controller
 		$provider_trans_id = $cha->orderId;
 		// $gamerecord  = Helper::saveGame_transaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
 		// $game_transextension = Helper::saveGame_trans_ext($gamerecord, json_encode($cha));
-		$client = new Client([
-		    'headers' => [ 
-		    	'Content-Type' => 'application/json',
-		    	'Authorization' => 'Bearer '.$client_details->client_access_token
-		    ]
-		]);
-		$guzzle_response = $client->post($client_details->fund_transfer_url,
-		    ['body' => json_encode(
-		        	[
-					  "access_token" => $client_details->client_access_token,
-					  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-					  "type" => "fundtransferrequest",
-					  "datetsent" => "",
-					  "gamedetails" => [
-					    "gameid" => $game_code,
-					    "gamename" => ""
-					  ],
-					  "fundtransferrequest" => [
-							"playerinfo" => [
-							"token" => $client_details->player_token
-						],
-						"fundinfo" => [
-						      "gamesessionid" => "",
-						      "transactiontype" => $transaction_type,
-						      "transferid" => "",
-						      "rollback" => "false",
-						      "currencycode" => $client_details->currency,
-						      "amount" => $cha->money // Amount to be send!
-						]
-					  ]
-					]
-		    )]
-		);
-	    $client_response = json_decode($guzzle_response->getBody()->getContents());
-	    // Not Enough Balance Need Double Check
-	    if(isset($client_response->error_code) && $client_response->error_code == 'NOT_SUFFICIENT_FUNDS'):
-	    	$status_code = 111004; // Not enough balance!
-	    else:	
-			$gamerecord  = Helper::saveGame_transaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
-			$game_transextension = Helper::saveGame_trans_ext($gamerecord, json_encode($cha));
-	    endif;
-	    $params = [
-            "code" => $status_code,
-            "data" => [
-            	"available_balance" => $client_response->fundtransferresponse->balance,
-            	"status" => 1,
-            ],
-			"message" => "Success",
-        ];	
+		$client_player = $this->playerDetailsCall($prefixed_username[1]);
+		if($client_player->playerdetailsresponse->balance > $cha->money):
+
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+
+
+			$requesttosend = [
+			  "access_token" => $client_details->client_access_token,
+			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			  "type" => "fundtransferrequest",
+			  "datetsent" => "",
+			  "gamedetails" => [
+			    "gameid" => $game_code,
+			    "gamename" => ""
+			  ],
+			  "fundtransferrequest" => [
+					"playerinfo" => [
+					"token" => $client_details->player_token
+				],
+				"fundinfo" => [
+				      "gamesessionid" => "",
+				      "transactiontype" => $transaction_type,
+				      "transferid" => "",
+				      "rollback" => "false",
+				      "currencycode" => $client_details->currency,
+				      "amount" => $cha->money // Amount to be send!
+				]
+			  ]
+			];
+
+			$guzzle_response = $client->post($client_details->fund_transfer_url,
+			    ['body' => json_encode($requesttosend)]
+			);
+
+		    $client_response = json_decode($guzzle_response->getBody()->getContents());
+
+		    $params = [
+	            "code" => $status_code,
+	            "data" => [
+	            	"available_balance" => $client_response->fundtransferresponse->balance,
+	            	"status" => 1,
+	            ],
+				"message" => "Success",
+	        ];	
+
+        	$bet_details = $this->getOrderData($cha->orderId);
+	        if($bet_details->bet_amount){
+ 	  			if($bet_details->bet_amount > $cha->money){
+ 	  				$win = 0; // lost
+ 	  				$entry_id = 1; //lost
+ 	  				$income = $bet_details->bet_amount - $cha->money;
+ 	  			}else{
+ 	  				$win = 1; //win
+ 	  				$entry_id = 2; //win
+ 	  				$income = $bet_details->bet_amount - $cha->money;
+ 	  			}
+			    $this->updateBetToWin(1, $pay_amount, $income, $win, $entry_id);
+ 	  		}
+	     
+		    $game_transextension = $this->createGameTransExt($bet_details->game_trans_id ,$cha->orderId, 1, $cha->money, 2, $cha, $params, $requesttosend, $client_response, $params);
+
+		  
+	     else:
+		    $params = [
+	            "code" => $status_code,
+	            "data" => [],
+				"message" => "Insufficient balance",
+	        ];
+		endif;
 		Helper::saveLog('IA Deposit Request And Response', 2,json_encode($cha), json_encode($params));
 		return $params;
 	}
@@ -277,17 +304,18 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessWithdrawal(Request $request)
 	{
-		// Helper::saveLog('IA Withrawal', 2, '', 'CALL RECEIVED');
-		// Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
+		// dd($cha);
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES);
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
 		// $cha_data = $cha->currencyInfo;
 		// $chachi = json_decode($cha_data,JSON_UNESCAPED_SLASHES);
 		// return $chachi['short_name'];
-		if(!$client_details):
+
+		if(empty($client_details)):
 			$params = [
 	            "code" => 111003,
 	            "data" => [],
@@ -304,6 +332,7 @@ class IAESportsController extends Controller
 	        ];	
 			return $params;
 		endif;
+
 		$status_code = 200;
 		$game_code = '';
 		$transaction_type = 'debit';
@@ -318,56 +347,68 @@ class IAESportsController extends Controller
 		$income = $cha->money;	
 		$provider_trans_id = $cha->orderId;
 
-		$client = new Client([
-		    'headers' => [ 
-		    	'Content-Type' => 'application/json',
-		    	'Authorization' => 'Bearer '.$client_details->client_access_token
-		    ]
-		]);
-		$guzzle_response = $client->post($client_details->fund_transfer_url,
-		    ['body' => json_encode(
-		        	[
-					  "access_token" => $client_details->client_access_token,
-					  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-					  "type" => "fundtransferrequest",
-					  "datetsent" => "",
-					  "gamedetails" => [
-					    "gameid" => $game_code,
-					    "gamename" => ""
-					  ],
-					  "fundtransferrequest" => [
-							"playerinfo" => [
-							"token" => $client_details->player_token
-						],
-						"fundinfo" => [
-						      "gamesessionid" => "",
-						      "transactiontype" => $transaction_type,
-						      "transferid" => "",
-						      "rollback" => "false",
-						      "currencycode" => $client_details->currency,
-						      "amount" => $cha->money // Amount to be send!
-						]
-					  ]
+		$client_player = $this->playerDetailsCall($prefixed_username[1]);
+		if($client_player->playerdetailsresponse->balance > $cha->money):
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+
+			$requesttosend = [
+				  "access_token" => $client_details->client_access_token,
+				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				  "type" => "fundtransferrequest",
+				  "datetsent" => "",
+				  "gamedetails" => [
+				    "gameid" => $game_code,
+				    "gamename" => ""
+				  ],
+				  "fundtransferrequest" => [
+						"playerinfo" => [
+						"token" => $client_details->player_token
+					],
+					"fundinfo" => [
+					      "gamesessionid" => "",
+					      "transactiontype" => $transaction_type,
+					      "transferid" => "",
+					      "rollback" => "false",
+					      "currencycode" => $client_details->currency,
+					      "amount" => $cha->money // Amount to be send!
 					]
-		    )]
-		);
-	    $client_response = json_decode($guzzle_response->getBody()->getContents());
-	    // Not Enough Balance Need Double Check
-	    if(isset($client_response->error_code) && $client_response->error_code == 'NOT_SUFFICIENT_FUNDS'):
-	    	$status_code = 111004; // Not enough balance!
-	    else:	
-			$gamerecord  = Helper::saveGame_transaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
-			$game_transextension = Helper::saveGame_trans_ext($gamerecord, json_encode($cha));
-	    endif;	
-	    $params = [
-            "code" => $status_code,
-            "data" => [
-            	"available_balance" => $client_response->fundtransferresponse->balance,
-            	"status" => 1,
-            ],
-			"message" => "Success",
-        ];	
-		Helper::saveLog('IA Withrawal Request And Response', 2,json_encode($cha), json_encode($params));
+				  ]
+			];
+
+			$guzzle_response = $client->post($client_details->fund_transfer_url,
+			    ['body' => json_encode($requesttosend)]
+			);
+
+		    $client_response = json_decode($guzzle_response->getBody()->getContents());
+
+		    $params = [
+	            "code" => $status_code,
+	            "data" => [
+	            	"available_balance" => $client_response->fundtransferresponse->balance,
+	            	"status" => 1,
+	            ],
+				"message" => "Success",
+	        ];	
+
+		    $gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
+
+		    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, 1, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
+
+
+		else:
+		    $params = [
+	            "code" => $status_code,
+	            "data" => [],
+				"message" => "Insufficient balance",
+	        ];
+		endif;
+
+		Helper::saveLog('IA Withrawal Request And Response', 2,json_encode($cha), $params);
 		return $params;
 	}
 
@@ -377,13 +418,7 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessBalance(Request $request)
 	{	
-		// decrpting the data for test
-		// $data_received = file_get_contents("php://input");
-		// $cha = json_decode($this->rehashen($data_received, true));
-		// dd($cha);
-		// dd($data_received);
-		// end decrpyting the data
-		Helper::saveLog('IA Balance', 2, '', 'CALL RECEIVED');
+
 		Helper::saveLog('IA Balance', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data_received = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data_received, true));
@@ -423,7 +458,6 @@ class IAESportsController extends Controller
         ];	
         // Helper::saveLog('IA Balance Request & Response',2,json_encode($cha), json_encode($params));
         return $params;
-		// dd($this->hashen($params));
 	}
 
 	/**
@@ -461,126 +495,108 @@ class IAESportsController extends Controller
 		return $params;
 	}
 
+	public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
 
+		$gametransactionext = array(
+			"game_trans_id" => $game_trans_id,
+			"provider_trans_id" => $provider_trans_id,
+			"round_id" => $round_id,
+			"amount" => $amount,
+			"game_transaction_type"=>$game_type,
+			"provider_request" => json_encode($provider_request),
+			"mw_response" =>json_encode($mw_response),
+			"mw_request"=>json_encode($mw_request),
+			"client_response" =>json_encode($client_response),
+			"transaction_detail" =>json_encode($transaction_detail),
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		return $gametransactionext;
 
+	}
 
 
 	/**
-	 * DEPRECATED < WE USE SEAMLESS NOW >
-	 * Register Player and call the userlunch method after!
-	 * @see EXPECTED PARAMETERS
-	 * @param username = player username 
-	 * @param client_id = player origin
-	 * @param amount = amount
+	 * Find bet and update to win 
 	 *
 	 */
-	public function userDeposit(Request $request)
-	{
-		return 'ASHEN';
-		Helper::saveLog('IA Deposit', 2, 'haha', 'DEMO CALL');
-		Helper::saveLog('IA Deposit', 2, file_get_contents("php://input"), 'DEMO CALL');
-		$player_details = $this->_getClientDetails('username_and_cid', $request->username, $request->client_id);
-		$username = $this->prefix.'_'.$player_details->player_id;
-		$params = [
-				"username" => $username,
-				"amount" => $request->amount,
-				"order_id" => 'TEST', // MW IDENTIFICATION
-        ];
-        $uhayuu = $this->hashen($params);
-        $header = ['pch:'. $this->pch];
-        $timeout = 5;
-        // dd($params);
-		$client_response = $this->curlData($this->url_deposit, $uhayuu, $header, $timeout);
-		$data = json_decode($this->rehashen($client_response[1], true));
-		dd($data);
+	public  function updateBetToWin($round_id, $pay_amount, $income, $win, $entry_id) {
+   	    $update = DB::table('game_transactions')
+                ->where('round_id', $round_id)
+                ->update(['pay_amount' => $pay_amount, 
+	        		  'income' => $income, 
+	        		  'win' => $win, 
+	        		  'entry_id' => $entry_id,
+	        		  'transaction_reason' => 'Bet updated to win'
+	    		]);
+		return ($update ? true : false);
 	}
 
 	/**
-	 *  Dreprecated!
+	 * Create Transaction
 	 * 
 	 */
-	public function userWithdraw(Request $request)
-	{
-		return 'ASHEN';
-		Helper::saveLog('IA Withdraw', 2, 'haha', 'DEMO CALL');
-		Helper::saveLog('IA Withdraw', 2, file_get_contents("php://input"), 'DEMO CALL');
+	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
+		$data = [
+					"token_id" => $token_id,
+					"game_id" => $game_id,
+					"round_id" => $round_id,
+					"bet_amount" => $bet_amount,
+					"provider_trans_id" => $provider_trans_id,
+					"pay_amount" => $payout,
+					"income" => $income,
+					"entry_id" => $entry_id,
+					"win" => $win,
+					"transaction_reason" => $transaction_reason,
+					"payout_reason" => $payout_reason
+				];
+		$data_saved = DB::table('game_transactions')->insertGetId($data);
+		return $data_saved;
 	}
 
-	/**
-	 * DEPRECATED < WE USE SEAMLESS NOW >
-	 * Register Player and call the userlunch method after!
-	 * @see EXPECTED PARAMETERS
-	 * @param username = player username 
-	 * @param client_id = player origin
-	 *
-	 */
-	public function userBalance(Request $request)
-	{
-		return 'ASHEN';
-		Helper::saveLog('IA Balance', 2, 'haha', 'DEMO CALL');
-		Helper::saveLog('IA Balance', 2, file_get_contents("php://input"), 'DEMO CALL');
-		$player_details = $this->_getClientDetails('username_and_cid', $request->username, $request->client_id);
-		$username = $this->prefix.'_'.$player_details->player_id;
-		$params = [
-				"username" => $username,
-        ];
-        $uhayuu = $this->hashen($params);
-        $header = ['pch:'. $this->pch];
-        $timeout = 5;
-        // dd($params);
-		$client_response = $this->curlData($this->url_balance, $uhayuu, $header, $timeout);
-		$data = json_decode($this->rehashen($client_response[1], true));
-		//dd($data);
+
+	public function playerDetailsCall($player_id, $refreshtoken=false){
+		$client_details = DB::table("clients AS c")
+					 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+					 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
+					 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
+					 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
+					 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
+					 ->where("p.player_id", "=", $player_id)
+					 ->latest('token_id')
+					 ->first();
+		if($client_details){
+			try{
+				$client = new Client([
+				    'headers' => [ 
+				    	'Content-Type' => 'application/json',
+				    	'Authorization' => 'Bearer '.$client_details->client_access_token
+				    ]
+				]);
+				$datatosend = ["access_token" => $client_details->client_access_token,
+					"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+					"type" => "playerdetailsrequest",
+					"clientid" => $client_details->client_id,
+					"playerdetailsrequest" => [
+						"token" => $client_details->player_token,
+						"username" => $client_details->username,
+						"currencyId" => $client_details->default_currency,
+						"gamelaunch" => false,
+						"refreshtoken" => $refreshtoken
+					]
+				];
+				$guzzle_response = $client->post($client_details->player_details_url,
+				    ['body' => json_encode($datatosend)]
+				);
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
+			 	return $client_response;
+            }catch (\Exception $e){
+               return false;
+            }
+		}else{
+			return false;
+		}
 	}
 
-	/**
-	 * Deprecated!
-	 * 
-	 */
-	public function userWager(Request $request)
-	{
-		return 'ASHEN';
-		Helper::saveLog('IA Wager', 2, 'haha', 'DEMO CALL');
-		Helper::saveLog('IA Wager', 2, file_get_contents("php://input"), 'DEMO CALL');
-	}
-
-	/**
-	 * Deprecated!
-	 * 
-	 */
-	public function getHotGames(Request $request)
-	{
-		return 'ASHEN';
-		$header = ['pch:'. $this->pch];
-        $params = array();
-        $uhayuu = $this->hashen($params);
-		$timeout = 5;
-		$client_response = $this->curlData($this->url_hotgames, $uhayuu, $header, $timeout);
-		$data = json_decode($this->rehashen($client_response[1], true));
-		dd($data);
-	}
-	
-	/**
-	 * Deprecated!
-	 * 
-	 */
-	public function userActivityLog(Request $request)
-	{
-		return 'ASHEN';
-		Helper::saveLog('IA Log', 2, 'haha', 'DEMO CALL');
-		Helper::saveLog('IA Log', 2, file_get_contents("php://input"), 'DEMO CALL');
-		// $header = ['pch' => $this->pch];
-	    // $body = ['body' => json_encode(
-		//         	[
-		// 				"start_time" => 1523600346,
-		// 				"end_time" => 1523604346,
-		// 				"page" => 1,
-		// 				"limit" => 10000,
-		// 			]
-		// 	    )];
-		// $call = $this->apiCall($body, $this->url_activity_logs, $header);
-		// return $call;
-	}
 
 	/**
 	 * Currency Check
@@ -607,6 +623,16 @@ class IAESportsController extends Controller
 				    ->latest()
 				    ->first();
 		return $game_transactions ? true : false;
+    }
+
+
+     public  function getOrderData($order_id) 
+    {
+		$game_transactions = DB::table("game_transactions")
+					->where('provider_trans_id', $order_id)
+				    ->latest()
+				    ->first();
+		return $game_transactions ? $game_transactions : false;
     }
 
 
@@ -654,7 +680,7 @@ class IAESportsController extends Controller
 	public function _getClientDetails($type = "", $value = "", $client_id="") 
 	{
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -662,13 +688,13 @@ class IAESportsController extends Controller
 					if ($type == 'token') {
 						$query->where([
 					 		["pst.player_token", "=", $value],
-					 		["pst.status_id", "=", 1]
+					 		// ["pst.status_id", "=", 1]
 					 	]);
 					}
 					if ($type == 'player_id') {
 						$query->where([
 					 		["p.player_id", "=", $value],
-					 		["pst.status_id", "=", 1]
+					 		// ["pst.status_id", "=", 1]
 					 	]);
 					}
 					if ($type == 'site_url') {
@@ -746,48 +772,5 @@ class IAESportsController extends Controller
 	    return array($status, $handles, $error);
 	}
 
-
-
-	// /**
-	//  * Api Call
-	//  * 
-	//  * @author json_decode because api return data as json
-	//  * @param header = header of call default null
-	//  * @param body = hrequest body
-	//  * @return errorcode, body, json
-	//  * 
-	//  */
-	// public function apiCall($body, $url, $header=null)
-	// {		
-	// 		$client = new Client([
-	// 			['headers' => 
-	// 				$header
-	// 			]
-	// 		]);
-	// 	    try
-	// 	    {         
-	// 	       $guzzle_response = $client->post($url, [
-	// 	        	$body
-	// 	       ]);
-	// 	       $client_response = json_decode($guzzle_response->getBody()->getContents(), True);
-	// 	    }
- //            catch(ClientException $e) // CLient Exception
- //            {
- //              $client_response = $e->getResponse();
- //              return $client_response->getStatusCode();
- //            }
- //            catch(RequestException $e) // Request Exception
- //            {  
- //                if ($e->hasResponse()) {
- //                    return $e->getCode();  // Get the response code!
- //                }
- //            }
- //            catch (\Exception $e) 
- //            {	
- //            	return $e->getCode();
- //            }
-
- //            return $client_response;
-	// }
 
 }

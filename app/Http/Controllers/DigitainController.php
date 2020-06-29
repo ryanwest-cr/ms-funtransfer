@@ -1220,24 +1220,46 @@ class DigitainController extends Controller
 	 			if($key['currencyId'] == $client_details->default_currency): // Currency not match nb //
 
 
-			 		$datatrans = $this->findTransactionRefund($key['winTxId'], 'transaction_id');
+			 		// $datatrans = $this->findTransactionRefund($key['winTxId'], 'transaction_id');
 			 		$datatrans = $this->amendWin($key['roundId']);
 			 		// $datareverse = $this->reverseDataBody($jsoned2);
-			 		dd($datatrans);
-		 			$jsonify = json_decode($datatrans->transaction_detail, true);
-		 			if(isset($jsonify['items'][0]['winAmount'])){
-		 				// return 'its a win';
-		 				$transactiontype = 'debit';
-		 				$amount = $jsonify['items'][0]['winAmount'];
-		 				$gameId = $jsonify['items'][0]['gameId'];
-		 			}else{
-		 				// return 'its a bet';
-		 				$transactiontype = 'credit';
-		 				$amount = $jsonify['items'][0]['betAmount'];
-		 				$gameId = $jsonify['items'][0]['gameId'];
-		 			}
-			 
-			 		$transaction_type =  $key['isCredit'] == true ? 'credit' : 'debit';
+
+			 		if($datatrans){
+			 			$jsonify = json_decode($datatrans->transaction_detail, true);
+			 			// dd($jsonify);
+			 			foreach($jsonify['items'] as $item){
+			 				if($item['roundId'] == $key['roundId']){
+			 					if(isset($item['winAmount'])){ 
+					 				// return 'its a win';
+					 				$transaction_type = 'debit';
+					 				$amount = $item['winAmount'];
+					 				$gameId = $item['gameId'];
+					 			}else{
+					 				// return 'its a bet';
+					 				$transaction_type = 'credit';
+					 				$amount = $item['betAmount'];
+					 				$gameId = $item['gameId'];
+					 			}
+			 				}
+			 			}
+
+			 		}else{
+			 			$items_array[] = [
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 7, // Transaction not found
+							 "metadata" => "" // Optional but must be here!
+		        	    ];
+
+		        	    return $response = array(
+							 "timestamp" => date('YmdHisms'),
+						     "signature" => $this->createSignature(date('YmdHisms')),
+							 "errorCode" => 1,
+							 "items" => $items_array,
+						);
+			 		}
+		 			
+
+			 		// $transaction_type =  $key['isCredit'] == true ? 'credit' : 'debit';
 			 		$amount = $key['amendAmount'];
 			 		$client = new Client([
 	                    'headers' => [ 
@@ -1264,7 +1286,7 @@ class DigitainController extends Controller
 						      "gamesessionid" => "",
 						      "transactiontype" => $transaction_type,
 						      "rollback" => "false",
-						      "currencycode" => $client_details->currency,
+						      "currencycode" => $client_details->default_currency,
 						      "amount" => $amount // Amount of ammend,
 						]
 					  ]
