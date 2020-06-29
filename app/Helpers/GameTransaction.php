@@ -58,7 +58,7 @@ class GameTransaction
 		if($request_data["amount"] > 0.00) {
 			$win = 1;
 			$income = $game_details->bet_amount - $request_data['amount'];
-			$pay_amount = $request_data["amount"];
+			$pay_amount = $game_details->pay_amount + $request_data["amount"];
 			$entry_id = 2;
 		}
 
