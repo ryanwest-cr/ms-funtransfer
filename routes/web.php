@@ -120,16 +120,16 @@ $app->post('rsg/betwin', 'DigitainController@betwin');
 $app->post('rsg/refund', 'DigitainController@refund');
 $app->post('rsg/amend', 'DigitainController@amend');
 // IA SPORTS
-$app->post('ia/hash', 'IAESportsController@hashen');
-$app->post('ia/lunch', 'IAESportsController@userlunch');
+$app->post('ia/hash', 'IAESportsController@hashen'); // DEPRECATED
+$app->post('ia/lunch', 'IAESportsController@userlunch');// DEPRECATED
 $app->post('ia/register', 'IAESportsController@userRegister');
-$app->post('ia/userwithdraw', 'IAESportsController@userWithdraw');
-$app->post('ia/userdeposit', 'IAESportsController@userDeposit');
-$app->post('ia/userbalance', 'IAESportsController@userBalance');
-$app->post('ia/wager', 'IAESportsController@userWager');
-$app->post('ia/hotgames', 'IAESportsController@getHotGames');
-$app->post('ia/orders', 'IAESportsController@userOrders');
-$app->post('ia/activity_logs', 'IAESportsController@userActivityLog');
+$app->post('ia/userwithdraw', 'IAESportsController@userWithdraw');// DEPRECATED
+$app->post('ia/userdeposit', 'IAESportsController@userDeposit');// DEPRECATED
+$app->post('ia/userbalance', 'IAESportsController@userBalance');// DEPRECATED
+$app->post('ia/wager', 'IAESportsController@userWager'); // DEPRECATED
+$app->post('ia/hotgames', 'IAESportsController@getHotGames'); // DEPRECATED
+$app->post('ia/orders', 'IAESportsController@userOrders');// DEPRECATED
+$app->post('ia/activity_logs', 'IAESportsController@userActivityLog'); // DEPRECATED
 $app->post('ia/deposit', 'IAESportsController@seamlessDeposit');
 $app->post('ia/withdrawal', 'IAESportsController@seamlessWithdrawal');
 $app->post('ia/balance', 'IAESportsController@seamlessBalance');
