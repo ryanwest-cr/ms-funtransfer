@@ -37,18 +37,18 @@ class SolidGamingController extends Controller
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
 		if(!CallParameters::check_keys($json_data, 'token')) {
+				$http_status = 400;
 				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
 					];
 		}
 		else
 		{
+			$http_status = 404;
 			$response = [
 							"errorcode" =>  "INVALID_TOKEN",
 							"errormessage" => "The provided token could not be verified/Token already authenticated",
-							"httpstatus" => "404"
 						];
 			
 			$client_details = $this->_getClientDetails('token', $json_data['token']);
@@ -87,6 +87,7 @@ class SolidGamingController extends Controller
 					// save token to system if not exist
 					TokenHelper::saveIfNotExist($player_id, $json_data["token"]);
 
+					$http_status = 200;
 					$response = [
 						"status" => "OK",
 						"brand" => 'BETRNKMW',
@@ -109,7 +110,7 @@ class SolidGamingController extends Controller
 		}
 
 		Helper::saveLog('authentication', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		return response()->json($response, $http_status);
 
 	}
 
@@ -119,18 +120,18 @@ class SolidGamingController extends Controller
 		$client_code = RouteParam::get($request, 'brand_code');
 
 		if(!CallParameters::check_keys($json_data, 'playerid')) {
+				$http_status = 400;
 				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
 					];
 		}
 		else
 		{
+			$http_status = 404;
 			$response = [
 							"errorcode" =>  "PLAYER_NOT_FOUND",
 							"errormessage" => "The provided playerid don’t exist.",
-							"httpstatus" => "404"
 						];
 
 			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
@@ -165,6 +166,7 @@ class SolidGamingController extends Controller
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
+					$http_status = 200;
 					$response = [
 						"status" => "OK",
 						"brand" => 'BETRNKMW',
@@ -179,7 +181,7 @@ class SolidGamingController extends Controller
 		}
 
 		Helper::saveLog('playerdetails', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		return response()->json($response, $http_status);
 
 	}
 
@@ -189,18 +191,18 @@ class SolidGamingController extends Controller
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'gamecode', 'platform')) {
+				$http_status = 400;
 				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
 					];
 		}
 		else
 		{
+			$http_status = 404;
 			$response = [
 							"errorcode" =>  "PLAYER_NOT_FOUND",
 							"errormessage" => "Player not found",
-							"httpstatus" => "404"
 						];
 
 			// Find the player and client details
@@ -250,6 +252,7 @@ class SolidGamingController extends Controller
 					if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
+						$http_status = 200;
 						$response = [
 							"status" => "OK",
 							"currency" => $client_details->currency,
@@ -261,7 +264,7 @@ class SolidGamingController extends Controller
 		}
 
 		Helper::saveLog('balance', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		return response()->json($response, $http_status);
 
 	}
 
@@ -271,19 +274,18 @@ class SolidGamingController extends Controller
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
-
+				$http_status = 400;
 				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
 					];
 		}
 		else
 		{
+			$http_status = 404;
 			$response = [
 							"errorcode" =>  "PLAYER_NOT_FOUND",
 							"errormessage" => "Player not found",
-							"httpstatus" => "404"
 						];
 
 			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
@@ -297,6 +299,7 @@ class SolidGamingController extends Controller
 				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
 
 				if(!$client_game_subscription) {
+					$http_status = 404;
 					$response = [
 							"errorcode" =>  "GAME_NOT_FOUND",
 							"errormessage" => "Game not found",
@@ -306,6 +309,7 @@ class SolidGamingController extends Controller
 				else
 				{
 					if(!GameRound::check($json_data['roundid'])) {
+						$http_status = 400;
 						$response = [
 							"errorcode" =>  "ROUND_ENDED",
 							"errormessage" => "Game round have already been closed",
@@ -357,10 +361,10 @@ class SolidGamingController extends Controller
 
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "402") {
+							$http_status = 402;
 							$response = [
 								"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
 								"errormessage" => "Not sufficient funds",
-								"httpstatus" => "402"
 							];
 						}
 						else
@@ -379,6 +383,7 @@ class SolidGamingController extends Controller
 								$game_details = Game::find($json_data["gamecode"]);
 								GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
+								$http_status = 200;
 								$response = [
 									"status" => "OK",
 									"currency" => $client_details->currency,
@@ -393,7 +398,7 @@ class SolidGamingController extends Controller
 		
 		/*Helper::saveClientLog('debit', 2, $body, $client_response);*/
 		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		return response()->json($response, $http_status);
 
 	}
 
@@ -510,10 +515,7 @@ class SolidGamingController extends Controller
 		}
 		
 		Helper::saveLog('credit', 2, file_get_contents("php://input"), $response);
-
 		return response()->json($response, $http_status);
-		// echo json_encode($response);
-
 	}
 
 	public function debitAndCreditProcess(Request $request) 
@@ -523,18 +525,18 @@ class SolidGamingController extends Controller
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'betamount', 'winamount', 'roundended')) {
 
+				$http_status = 400;
 				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
 					];
 		}
 		else
 		{
+			$http_status = 404;
 			$response = [
 							"errorcode" =>  "PLAYER_NOT_FOUND",
 							"errormessage" => "Player not found",
-							"httpstatus" => "404"
 						];
 
 			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
@@ -548,10 +550,10 @@ class SolidGamingController extends Controller
 				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
 
 				if(!$client_game_subscription) {
+					$http_status = 404;
 					$response = [
 							"errorcode" =>  "GAME_NOT_FOUND",
 							"errormessage" => "Game not found",
-							"httpstatus" => "404"
 						];
 				}
 				else
@@ -559,19 +561,19 @@ class SolidGamingController extends Controller
 					if(!GameRound::find($json_data['roundid'])) {
 					
 						// If round is not found
+						$http_status = 404;
 						$response = [
 							"errorcode" =>  "ROUND_NOT_FOUND",
 							"errormessage" => "Round not found",
-							"httpstatus" => "404"
 						];
 					}
 					else
 					{
 						if(!GameRound::check($json_data['roundid'])) {
+							$http_status = 400;
 							$response = [
 								"errorcode" =>  "ROUND_ENDED",
 								"errormessage" => "Game round have already been closed",
-								"httpstatus" => "404"
 							];
 						}
 						else
@@ -644,6 +646,7 @@ class SolidGamingController extends Controller
 
 							if(isset($debit_client_response->fundtransferresponse->status->code) 
 						&& $debit_client_response->fundtransferresponse->status->code == "402") {
+								$http_status = 404;
 								$response = [
 									"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
 									"errormessage" => "Not sufficient funds",
@@ -686,7 +689,7 @@ class SolidGamingController extends Controller
 		}
 		
 		Helper::saveLog('debitandcredit', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		return response()->json($response, $http_status);
 	}
 
 	public function rollBackTransaction(Request $request) 
@@ -695,18 +698,18 @@ class SolidGamingController extends Controller
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid')) {
+				$http_status = 400;
 				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
 					];
 		}
 		else
 		{
+			$http_status = 404;
 			$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
 						"errormessage" => "The provided playerid don’t exist.",
-						"httpstatus" => "404"
 					];
 
 			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
@@ -717,10 +720,10 @@ class SolidGamingController extends Controller
 				if(!GameRound::find($json_data['roundid'])) {
 					
 					// If round is not found
+					$http_status = 404;
 					$response = [
 						"errorcode" =>  "ROUND_NOT_FOUND",
 						"errormessage" => "Round not found",
-						"httpstatus" => "404"
 					];
 				}
 				else
@@ -734,10 +737,10 @@ class SolidGamingController extends Controller
 
 						// If transaction is not found
 						if(!$game_transaction) {
+							$http_status = 404;
 							$response = [
 								"errorcode" =>  "TRANS_NOT_FOUND",
 								"errormessage" => "Transaction not found",
-								"httpstatus" => "404"
 							];
 						}
 						else
@@ -785,6 +788,7 @@ class SolidGamingController extends Controller
 								$json_data['income'] = $game_transaction->bet_amount;
 								GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 								
+								$http_status = 200;
 								$response = [
 									"status" => "OK",
 									"currency" => $client_details->currency,
@@ -799,18 +803,18 @@ class SolidGamingController extends Controller
 						// Check if the round is ended
 						if(!GameRound::check($json_data['roundid'])) {
 							// If round is ended
+							$http_status = 400;
 							$response = [
 								"errorcode" =>  "ROUND_ENDED",
 								"errormessage" => "Game round have already been closed",
-								"httpstatus" => "404"
 							];
 						}
 						else
 						{
+							$http_status = 404;
 							$response = [
 								"errorcode" =>  "TRANS_NOT_FOUND",
 								"errormessage" => "Transaction not found",
-								"httpstatus" => "404"
 							];
 
 							// If round is still active
@@ -864,6 +868,7 @@ class SolidGamingController extends Controller
 
 								}
 
+								$http_status = 200;
 								$response = [
 										"status" => "OK",
 										"currency" => $client_details->currency,
@@ -880,7 +885,7 @@ class SolidGamingController extends Controller
 		}
 
 		Helper::saveLog('rollback', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		return response()->json($response, $http_status);
 
 	}
 
@@ -889,10 +894,10 @@ class SolidGamingController extends Controller
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
+		$http_status = 404;
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
 						"errormessage" => "The provided playerid don’t exist.",
-						"httpstatus" => "404"
 					];
 
 		$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
@@ -900,10 +905,10 @@ class SolidGamingController extends Controller
 
 		if ($client_details/* && $player_details != NULL*/) {
 			if(!GameRound::check($json_data['roundid'])) {
+				$http_status = 400;
 				$response = [
 					"errorcode" =>  "ROUND_ENDED",
 					"errormessage" => "Game round have already been closed",
-					"httpstatus" => "404"
 				];
 			}
 			else
@@ -915,6 +920,7 @@ class SolidGamingController extends Controller
 					}
 				}
 				
+				$http_status = 200;
 				$response = [
 					"status" => "OK",
 					"currency" => $client_details->currency,
@@ -926,7 +932,7 @@ class SolidGamingController extends Controller
 		}
 
 		Helper::saveLog('rollback', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		return response()->json($response, $http_status);
 
 	}
 
