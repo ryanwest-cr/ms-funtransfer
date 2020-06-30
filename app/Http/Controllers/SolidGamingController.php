@@ -403,19 +403,18 @@ class SolidGamingController extends Controller
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
-
+				$http_status = 404;
 				$response = [
 						"errorcode" =>  "BAD_REQUEST",
 						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
 					];
 		}
 		else
 		{
+			$http_status = 404;
 			$response = [
 							"errorcode" =>  "PLAYER_NOT_FOUND",
 							"errormessage" => "Player not found",
-							"httpstatus" => "404"
 						];
 
 			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
@@ -428,19 +427,19 @@ class SolidGamingController extends Controller
 				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
 
 				if(!$client_game_subscription) {
+					$http_status = 404;
 					$response = [
 							"errorcode" =>  "GAME_NOT_FOUND",
 							"errormessage" => "Game not found",
-							"httpstatus" => "404"
 						];
 				}
 				else
 				{
 					if(!GameRound::check($json_data['roundid'])) {
+						$http_status = 400;
 						$response = [
 							"errorcode" =>  "ROUND_ENDED",
 							"errormessage" => "Game round have already been closed",
-							"httpstatus" => "404"
 						];
 					}
 					else
@@ -497,7 +496,8 @@ class SolidGamingController extends Controller
 							$json_data['income'] = $json_data['amount'] - $json_data["amount"];
 
 							GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
-							
+
+							$http_status = 200;
 							$response = [
 								"status" => "OK",
 								"currency" => $client_details->currency,
@@ -510,7 +510,9 @@ class SolidGamingController extends Controller
 		}
 		
 		Helper::saveLog('credit', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+
+		return response()->json($response, $http_status);
+		// echo json_encode($response);
 
 	}
 
