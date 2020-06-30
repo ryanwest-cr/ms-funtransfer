@@ -11,6 +11,7 @@ use DB;
 class GameLobby{
     public static function icgLaunchUrl($game_code,$token,$exitUrl,$lang="en"){
         $client = GameLobby::getClientDetails("token",$token);
+        Helper::saveLog('GAMELAUNCH ICG', 11, json_encode($game_code), json_encode($lang));
         $game_list =GameLobby::icgGameUrl($client->default_currency);
         foreach($game_list["data"] as $game){
             if($game["productId"] == $game_code){
