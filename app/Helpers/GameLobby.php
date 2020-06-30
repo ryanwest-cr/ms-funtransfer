@@ -222,13 +222,64 @@ class GameLobby{
     }
 
     public static function solidLaunchUrl($game_code,$token,$exitUrl){
-        $client_details = GameLobby::getClientDetails('token', $token);
+        /*$client_details = GameLobby::getClientDetails('token', $token);*/
         $client_code = 'BETRNKMW'; /*$client_details->client_code ? $client_details->client_code : 'BETRNKMW';*/
         $url = $exitUrl;
-        $domain = parse_url($url, PHP_URL_HOST);
         $url = 'https://instage.solidgaming.net/api/launch/'.$client_code.'/'.$game_code.'?language=en&currency=USD&token='.$token.'';
         return $url;
     }
+
+    public static function mannaLaunchUrl($game_code,$token,$exitUrl){
+        $client_details = GameLobby::getClientDetails('token', $token);
+
+        // Authenticate New Token
+        $auth_token = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'apiKey' => 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a'
+                ]
+            ]);
+
+        $auth_token_response = $client->post('https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
+                ['body' => json_encode(
+                        [
+                            "id" => "betrnk",
+                            "account" => $client_details->username,
+                            "currency" => $client_details->currency,
+                            "sessionId" => $token,
+                            "channel" => ""
+                        ]
+                )]
+            );
+
+        $auth_result = json_decode($auth_token_response->getBody()->getContents());
+
+        // Generate Game Link
+        $game_link = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'apiKey' => 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
+                    'token' => $auth_result->token
+                ]
+            ]);
+
+        $game_link_response = $client->post('https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
+                ['body' => json_encode(
+                        [
+                            "account" => $client_details->username,
+                            "sessionId" => $token,
+                            "language" => "en-US",
+                            "gameId" => $game_code,
+                        ]
+                )]
+            );
+
+        $link_result = json_decode($game_link_response->getBody()->getContents());
+
+        return $link_result->url;
+    }
+
+
     public static function getLanguage($provider_name,$language){
         $provider_language = DB::table("providers")->where("provider_name",$provider_name)->get();
         $languages = json_decode($provider_language[0]->languages,TRUE);
