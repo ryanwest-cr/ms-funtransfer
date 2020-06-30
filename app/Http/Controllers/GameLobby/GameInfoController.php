@@ -133,14 +133,14 @@ class GameInfoController extends Controller
 	}
 
 	public function getGameSuggestions(Request $request){			
-		 $player_details = $this->_getClientDetails('token', $request->token);
+		 // $player_details = $this->_getClientDetails('token', $request->token);
          $query = DB::table("game_suggestions AS gs")
                  ->select('gs.game_id', 'gs.client_id', 'gs.classification', 'gt.game_type_name','sp.sub_provider_name', 'p.provider_name', 'p.icon as provider_icon', 'g.game_name', 'g.game_code', 'g.icon')
                  ->leftJoin("games AS g", "gs.game_id", "=", "g.game_id")
                  ->leftJoin("providers AS p", "p.provider_id", "=", "g.provider_id")
                  ->leftJoin("game_types AS gt", "gt.game_type_id", "=", "g.game_type_id")
                  ->leftJoin("sub_providers AS sp", "g.sub_provider_id", "=", "sp.sub_provider_id")
-                 ->where('gs.client_id', $player_details->client_id)
+                 // ->where('gs.client_id', $player_details->client_id)
                  ->limit(20);
                  $result = $query->get()->toArray();
 
