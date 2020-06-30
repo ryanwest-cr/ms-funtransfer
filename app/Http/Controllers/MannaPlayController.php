@@ -149,7 +149,7 @@ class MannaPlayController extends Controller
 
 					// Check if the game is available for the client
 					$subscription = new GameSubscription();
-					$client_game_subscription = $subscription->check($client_details->client_id, 6, $json_data['game_id']);
+					$client_game_subscription = $subscription->check($client_details->client_id, 16, $json_data['game_id']);
 
 					if(!$client_game_subscription) {
 						$response = [
@@ -289,7 +289,7 @@ class MannaPlayController extends Controller
 
 					// Check if the game is available for the client
 					$subscription = new GameSubscription();
-					$client_game_subscription = $subscription->check($client_details->client_id, 6, $json_data['game_id']);
+					$client_game_subscription = $subscription->check($client_details->client_id, 16, $json_data['game_id']);
 
 					if(!$client_game_subscription) {
 						$response = [
