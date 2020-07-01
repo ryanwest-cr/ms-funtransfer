@@ -76,10 +76,10 @@ class EDPController extends Controller
         $sha1key = sha1($request->token.''.$this->secretkey);
         if($sha1key == $request->sign){
             $game = Helper::getInfoPlayerGameRound($request->token);
-            //$client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = $this->_getClientDetails('token', $request->token);
             $sessions =array(
                 "player" => $game->username,
-                "currency"=> "USD",//$client_details->default_currency,
+                "currency"=> $client_details->default_currency,
                 "game"   => $game->game_code
             );
             $data2 = array(

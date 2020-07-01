@@ -51,10 +51,10 @@ class GameTransaction
 				 ->first();
 		
 		$income = $game_details->income; 
-		$win = 0;
-		$pay_amount = 0;
-		$entry_id = 1;
-
+		$win = $game_details->win;
+		$pay_amount = $game_details->pay_amount;
+		$entry_id = $game_details->entry_id;
+		
 		if($request_data["amount"] > 0.00) {
 			$win = 1;
 			$pay_amount = $game_details->pay_amount + $request_data["amount"];

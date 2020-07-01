@@ -35,7 +35,7 @@ class PaymentLobbyController extends Controller
                     return response($response,401)->header('Content-Type', 'application/json');
                 }
                 $token = substr("abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 25), 1).substr(md5(time()), 1);
-                if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token)){
+                if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token,'127.0.0.1')){
                     $payment_method_code = "";
                     if($request->payment_method == "PAYMONGO")
                     {
@@ -857,7 +857,7 @@ class PaymentLobbyController extends Controller
 
 
                 $token = substr("abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 25), 1).substr(md5(time()), 1);
-                if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token)){
+                if($token = Helper::checkPlayerExist($request->client_id,$request->player_id,$request->player_username,$request->email,$request->player_username,$token,'127.0.0.1')){
                     $payout_method_code = "";
                     
                     if($request->payout_method == "QAICASHPAYOUT")
