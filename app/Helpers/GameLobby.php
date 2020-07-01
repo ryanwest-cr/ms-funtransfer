@@ -232,14 +232,14 @@ class GameLobby{
         $client_details = GameLobby::getClientDetails('token', $token);
 
         // Authenticate New Token
-        $auth_token = new Client([
+        $auth_token = new Client([ // auth_token
                 'headers' => [ 
                     'Content-Type' => 'application/json',
                     'apiKey' => 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a'
                 ]
             ]);
 
-        $auth_token_response = $client->post('https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
+        $auth_token_response = $auth_token->post('https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
                 ['body' => json_encode(
                         [
                             "id" => "betrnk",
@@ -262,7 +262,7 @@ class GameLobby{
                 ]
             ]);
 
-        $game_link_response = $client->post('https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
+        $game_link_response = $game_link->post('https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
                 ['body' => json_encode(
                         [
                             "account" => $client_details->username,

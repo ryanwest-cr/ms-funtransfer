@@ -353,6 +353,8 @@ class BoleGamingController extends Controller
 								   $json_data->game_code == 'dzmj' || 
 								   $json_data->game_code == 'zjh' || 
 								   $json_data->game_code == 'sangong' || 
+								   $json_data->game_code == 'tbnn' || 
+								   $json_data->game_code == 'qydz' || 
 								   $json_data->game_code == 'blnn' || 
 								   $json_data->game_code == 'mjxzdd' || 
 								   $json_data->game_code == 'mjxlch'){
@@ -407,6 +409,8 @@ class BoleGamingController extends Controller
 								   $json_data->game_code == 'dzmj' || 
 								   $json_data->game_code == 'zjh' || 
 								   $json_data->game_code == 'sangong' || 
+								   $json_data->game_code == 'tbnn' || 
+								   $json_data->game_code == 'qydz' || 
 								   $json_data->game_code == 'blnn' || 
 								   $json_data->game_code == 'mjxzdd' || 
 								   $json_data->game_code == 'mjxlch'){  // Table Games
@@ -513,6 +517,8 @@ class BoleGamingController extends Controller
 										   $json_data->game_code == 'dzmj' || 
 										   $json_data->game_code == 'zjh' || 
 										   $json_data->game_code == 'sangong' || 
+										   $json_data->game_code == 'tbnn' || 
+								           $json_data->game_code == 'qydz' || 
 										   $json_data->game_code == 'blnn' || 
 										   $json_data->game_code == 'mjxzdd' || 
 										   $json_data->game_code == 'mjxlch'){ 

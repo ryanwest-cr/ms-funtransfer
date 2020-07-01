@@ -481,7 +481,7 @@ class DigitainController extends Controller
 			 // 			dd('meron');
 			 // 		endif;
 				// ///////////////////////////////////////////////////////////////////////////////
-				
+
 		 		$client_details = $this->_getClientDetails('player_id', $key['playerId']);
 	 			if(!empty($client_details)):
 
@@ -1056,7 +1056,7 @@ class DigitainController extends Controller
 									$client_response = json_decode($guzzle_response->getBody()->getContents());
 									$balance_reply = $client_response->fundtransferresponse->balance;
 
-							 		$win = 3;
+							 		$win = 4; //3 draw, 4 refund
 				 	  				$entry_id = $datatrans->entry_id;
 
 				 	  				$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $datatrans->pay_amount, $datatrans->income, $win, $entry_id);
