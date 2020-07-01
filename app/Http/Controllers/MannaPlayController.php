@@ -31,118 +31,123 @@ class MannaPlayController extends Controller
 
 	public function getBalance(Request $request) 
 	{
-		$json_data = json_decode(file_get_contents("php://input"), true);
-		/*$client_code = RouteParam::get($request, 'brand_code');*/
-
-		if(!CallParameters::check_keys($json_data, 'account', 'sessionId')) {
-				$response = [
-						"errorcode" =>  "BAD_REQUEST",
-						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
+		$http_status = 200;
+		$response = [
+						"errorCode" =>  10100,
+						"message" => "Server is not ready!",
 					];
-		}
-		else
-		{
-			$response = [
-							"errorcode" =>  "PLAYER_NOT_FOUND",
-							"errormessage" => "Player not found",
-							"httpstatus" => "404"
-						];
 
-			// Find the player and client details
-			$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
-			/*$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');*/
-
-			if ($client_details) {
-
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
-			        
-
-			/*	var_dump(json_encode(
-                                                [
-                                                        "access_token" => $client_details->client_access_token,
-                                                                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                                                                "type" => "playerdetailsrequest",
-                                                                "datesent" => "",
-                                                                "gamecode" => "",
-                                                                "clientid" => $client_details->client_id,
-                                                                "playerdetailsrequest" => [
-                                                                        "token" => $player_details->player_token,
-                                                                        "gamelaunch" => "false"
-                                                                ]]
-							)); die();
-			 */
-				$guzzle_response = $client->post($client_details->player_details_url,
-				    ['body' => json_encode(
-				        	[
-				        		"access_token" => $client_details->client_access_token,
-								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-								"type" => "playerdetailsrequest",
-								"datesent" => "",
-								"gamecode" => "",
-								"clientid" => $client_details->client_id,
-								"playerdetailsrequest" => [
-									"token" => $client_details->player_token,
-									"gamelaunch" => "false"
-								]]
-				    )]
-				);
-
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
-				if(isset($client_response->playerdetailsresponse->status->code) 
-				&& $client_response->playerdetailsresponse->status->code == "200") {
-
-					$response = [
-						"balance" => $client_response->playerdetailsresponse->balance
-					];
-				}
-			
-			}
-		}
-
-		Helper::saveLog('manna_balance', 16, file_get_contents("php://input"), $response);
-		echo json_encode($response);
-
-	}
-
-	public function debitProcess(Request $request) 
-	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		/*$client_code = RouteParam::get($request, 'brand_code');*/
 		$api_key = $request->header('apiKey');
 
-		if(!CallParameters::check_keys($json_data, 'account', 'sessionId', 'amount', 'game_id', 'round_id', 'transaction_id')) {
-
+		if(!CallParameters::check_keys($json_data, 'account', 'sessionId')) {
+				$http_status = 200;
 				$response = [
-						"errorcode" =>  "BAD_REQUEST",
-						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
+						"errorCode" =>  10102,
+						"message" => "Post data is invalid!",
 					];
 		}
 		else
 		{
 			if($api_key != env('MANNA_API_KEY')) {
+				$http_status = 200;
 				$response = [
-							"errorcode" =>  "API_KEY_INVALID",
-							"errormessage" => "API key invalid.",
-							"httpstatus" => "404"
+							"errorCode" =>  10105,
+							"message" => "Authenticate fail!",
 						];
 			}
 			else
 			{
+				$http_status = 200;
 				$response = [
-							"errorcode" =>  "PLAYER_NOT_FOUND",
-							"errormessage" => "Player not found",
-							"httpstatus" => "404"
+								"errorCode" =>  10204,
+								"message" => "Account is not exist!",
+							];
+
+				// Find the player and client details
+				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				
+				if ($client_details) {
+
+					$client = new Client([
+					    'headers' => [ 
+					    	'Content-Type' => 'application/json',
+					    	'Authorization' => 'Bearer '.$client_details->client_access_token
+					    ]
+					]);
+				        
+
+					$guzzle_response = $client->post($client_details->player_details_url,
+					    ['body' => json_encode(
+					        	[
+					        		"access_token" => $client_details->client_access_token,
+									"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+									"type" => "playerdetailsrequest",
+									"datesent" => "",
+									"gamecode" => "",
+									"clientid" => $client_details->client_id,
+									"playerdetailsrequest" => [
+										"token" => $client_details->player_token,
+										"gamelaunch" => "false"
+									]]
+					    )]
+					);
+
+					$client_response = json_decode($guzzle_response->getBody()->getContents());
+					if(isset($client_response->playerdetailsresponse->status->code) 
+					&& $client_response->playerdetailsresponse->status->code == "200") {
+
+						$http_status = 200;
+						$response = [
+							"balance" => $client_response->playerdetailsresponse->balance
 						];
+					}
+				
+				}
+			}
+		}
+
+		Helper::saveLog('manna_balance', 16, file_get_contents("php://input"), $response);
+		return response()->json($response, $http_status);
+
+	}
+
+	public function debitProcess(Request $request) 
+	{
+		$http_status = 200;
+		$response = [
+						"errorCode" =>  10100,
+						"message" => "Server is not ready!",
+					];
+
+		$json_data = json_decode(file_get_contents("php://input"), true);
+		$api_key = $request->header('apiKey');
+
+		if(!CallParameters::check_keys($json_data, 'account', 'sessionId', 'amount', 'game_id', 'round_id', 'transaction_id')) {
+				$http_status = 200;
+				$response = [
+						"errorCode" =>  10102,
+						"message" => "Post data is invalid!",
+					];
+		}
+		else
+		{
+			if($api_key != env('MANNA_API_KEY')) {
+				$http_status = 200;
+				$response = [
+							"errorCode" =>  10105,
+							"message" => "Authenticate fail!",
+						];
+			}
+			else
+			{
+				$http_status = 200;
+				$response = [
+								"errorCode" =>  10204,
+								"message" => "Account is not exist!",
+							];
 
 				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
-				/*$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');*/
 
 				if ($client_details/* && $player_details != NULL*/) {
 					GameRound::create($json_data['round_id'], $client_details->token_id);
@@ -152,19 +157,19 @@ class MannaPlayController extends Controller
 					$client_game_subscription = $subscription->check($client_details->client_id, 16, $json_data['game_id']);
 
 					if(!$client_game_subscription) {
-						$response = [
-								"errorcode" =>  "GAME_NOT_FOUND",
-								"errormessage" => "Game not found",
-								"httpstatus" => "404"
+						$http_status = 200;
+							$response = [
+								"errorCode" =>  10109,
+								"message" => "Game not found!",
 							];
 					}
 					else
 					{
 						if(!GameRound::check($json_data['round_id'])) {
+							$http_status = 200;
 							$response = [
-								"errorcode" =>  "ROUND_ENDED",
-								"errormessage" => "Game round have already been closed",
-								"httpstatus" => "404"
+								"errorCode" =>  10209,
+								"message" => "Round id is exists!",
 							];
 						}
 						else
@@ -212,11 +217,11 @@ class MannaPlayController extends Controller
 
 							if(isset($client_response->fundtransferresponse->status->code) 
 						&& $client_response->fundtransferresponse->status->code == "402") {
+								$http_status = 200;
 								$response = [
-									"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
-									"errormessage" => "Not sufficient funds",
-									"httpstatus" => "402"
-								];
+												"errorCode" =>  10203,
+												"message" => "Insufficient balance",
+											];
 							}
 							else
 							{
@@ -230,6 +235,7 @@ class MannaPlayController extends Controller
 									$game_details = Game::find($json_data["game_id"]);
 									GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
+									$http_status = 200;
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
 										"balance" => $client_response->fundtransferresponse->balance
@@ -245,45 +251,49 @@ class MannaPlayController extends Controller
 		}
 		
 		
-		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		Helper::saveLog('manna_debit', 16, file_get_contents("php://input"), $response);
+		return response()->json($response, $http_status);
 
 	}
 
 	public function creditProcess(Request $request)
 	{
+		$http_status = 200;
+		$response = [
+						"errorCode" =>  10100,
+						"message" => "Server is not ready!",
+					];
+
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 		$api_key = $request->header('apiKey');
 
 		if(!CallParameters::check_keys($json_data, 'account', 'sessionId', 'amount', 'game_id', 'round_id', 'transaction_id')) {
 
+				$http_status = 200;
 				$response = [
-						"errorcode" =>  "BAD_REQUEST",
-						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
+						"errorCode" =>  10102,
+						"message" => "Post data is invalid!",
 					];
 		}
 		else
 		{
 			if($api_key != env('MANNA_API_KEY')) {
+				$http_status = 200;
 				$response = [
-							"errorcode" =>  "API_KEY_INVALID",
-							"errormessage" => "API key invalid.",
-							"httpstatus" => "404"
+							"errorCode" =>  10105,
+							"message" => "Authenticate fail!",
 						];
 			}
 			else
 			{
-
+				$http_status = 200;
 				$response = [
-								"errorcode" =>  "PLAYER_NOT_FOUND",
-								"errormessage" => "Player not found",
-								"httpstatus" => "404"
+								"errorCode" =>  10204,
+								"message" => "Account is not exist!",
 							];
 
 				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
-				/*$player_details = PlayerHelper::getPlayerDetails($json_data['account'], 'username');*/
 
 				if ($client_details/* && $player_details != NULL*/) {
 
@@ -292,23 +302,167 @@ class MannaPlayController extends Controller
 					$client_game_subscription = $subscription->check($client_details->client_id, 16, $json_data['game_id']);
 
 					if(!$client_game_subscription) {
-						$response = [
-								"errorcode" =>  "GAME_NOT_FOUND",
-								"errormessage" => "Game not found",
-								"httpstatus" => "404"
+						$http_status = 200;
+							$response = [
+								"errorCode" =>  10109,
+								"message" => "Game not found!",
 							];
 					}
 					else
 					{
 						if(!GameRound::check($json_data['round_id'])) {
+							$http_status = 200;
+								$response = [
+									"errorCode" =>  10209,
+									"message" => "Round id is exists!",
+								];
+						}
+						else
+						{
+							if($json_data['amount'] < 0) {
+								$http_status = 200;
+								$response = [
+									"errorCode" =>  10201,
+									"message" => "Warning value must not be less 0.",
+								];
+							}
+							else
+							{
+								if(GameTransaction::find($json_data['transaction_id']) ) {
+									$http_status = 200;
+									$response = [
+										"errorCode" =>  10208,
+										"message" => "Transaction id is exists!",
+									];
+								}
+								else
+								{
+									$client = new Client([
+									    'headers' => [ 
+									    	'Content-Type' => 'application/json',
+									    	'Authorization' => 'Bearer '.$client_details->client_access_token
+									    ]
+									]);
+									
+									$guzzle_response = $client->post($client_details->fund_transfer_url,
+									    ['body' => json_encode(
+									        	[
+												  "access_token" => $client_details->client_access_token,
+												  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+												  "type" => "fundtransferrequest",
+												  "datetsent" => "",
+												  "gamedetails" => [
+												    "gameid" => "",
+												    "gamename" => ""
+												  ],
+												  "fundtransferrequest" => [
+														"playerinfo" => [
+														"token" => $client_details->player_token
+													],
+													"fundinfo" => [
+													      "gamesessionid" => "",
+													      "transactiontype" => "debit",
+													      "transferid" => "",
+													      "rollback" => "false",
+													      "currencycode" => $client_details->currency,
+													      "amount" => $json_data["amount"]
+													]
+												  ]
+												]
+									    )]
+									);
+
+									$client_response = json_decode($guzzle_response->getBody()->getContents());
+
+									if(isset($client_response->fundtransferresponse->status->code) 
+								&& $client_response->fundtransferresponse->status->code == "200") {
+										
+										$game_details = Game::find($json_data["game_id"]);
+
+										$json_data['income'] = $json_data['amount'] - $json_data["amount"];
+										$json_data['roundid'] = $json_data['round_id'];
+										$json_data['transid'] = $json_data['transaction_id'];
+
+										GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+										
+										$http_status = 200;
+										$response = [
+											"transaction_id" => $json_data['transaction_id'],
+											"balance" => $client_response->fundtransferresponse->balance
+										];
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		Helper::saveLog('manna_credit', 16, file_get_contents("php://input"), $response);
+		return response()->json($response, $http_status);
+
+	}
+
+	public function rollBackTransaction(Request $request) 
+	{
+		$http_status = 200;
+		$response = [
+						"errorCode" =>  10100,
+						"message" => "Server is not ready!",
+					];
+
+		$json_data = json_decode(file_get_contents("php://input"), true);
+		/*$client_code = RouteParam::get($request, 'brand_code');*/
+		$api_key = $request->header('apiKey');
+
+		if(!CallParameters::check_keys($json_data, 'sessionId', 'amount', 'game_id', 'round_id', 'transaction_id')) {
+				$http_status = 200;
+				$response = [
+						"errorCode" =>  10102,
+						"message" => "Post data is invalid!",
+					];
+		}
+		else
+		{
+			if($api_key != env('MANNA_API_KEY')) {
+				$http_status = 200;
+				$response = [
+							"errorCode" =>  10105,
+							"message" => "Authenticate fail!",
+						];
+			}
+			else
+			{
+				$http_status = 200;
+				$response = [
+								"errorCode" =>  10204,
+								"message" => "Account is not exist!",
+							];
+
+
+				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				/*$player_details = PlayerHelper::getPlayerDetails($json_data['sessionId'], 'token');*/
+
+				if ($client_details/* && $player_details != NULL*/) {
+					
+					// Check if "originaltransid" is present in the Solid Gaming request
+					if(array_key_exists('transaction_id', $json_data)) {
+						
+						// Check if the transaction exist
+						$game_transaction = GameTransaction::find($json_data['transaction_id']);
+
+						// If transaction is not found
+						if(!$game_transaction) {
+							$http_status = 200;
 							$response = [
-								"errorcode" =>  "ROUND_ENDED",
-								"errormessage" => "Game round have already been closed",
-								"httpstatus" => "404"
+								"errorCode" =>  10210,
+								"message" => "Target transaction id not found!",
 							];
 						}
 						else
 						{
+							// If transaction is found, send request to the client
 							$client = new Client([
 							    'headers' => [ 
 							    	'Content-Type' => 'application/json',
@@ -333,11 +487,11 @@ class MannaPlayController extends Controller
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
-											      "transactiontype" => "debit",
+											      "transactiontype" => "credit",
 											      "transferid" => "",
-											      "rollback" => "false",
+											      "rollback" => "true",
 											      "currencycode" => $client_details->currency,
-											      "amount" => $json_data["amount"]
+											      "amount" => $game_transaction->bet_amount
 											]
 										  ]
 										]
@@ -346,17 +500,11 @@ class MannaPlayController extends Controller
 
 							$client_response = json_decode($guzzle_response->getBody()->getContents());
 
-							if(isset($client_response->fundtransferresponse->status->code) 
-						&& $client_response->fundtransferresponse->status->code == "200") {
+							// If client returned a success response
+							if($client_response->fundtransferresponse->status->code == "200") {
+								GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 								
-								$game_details = Game::find($json_data["game_id"]);
-
-								$json_data['income'] = $json_data['amount'] - $json_data["amount"];
-								$json_data['roundid'] = $json_data['round_id'];
-								$json_data['transid'] = $json_data['transaction_id'];
-
-								GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
-								
+								$http_status = 200;
 								$response = [
 									"transaction_id" => $json_data['transaction_id'],
 									"balance" => $client_response->fundtransferresponse->balance
@@ -364,141 +512,18 @@ class MannaPlayController extends Controller
 							}
 						}
 					}
-				}
-
-			}
-		}
-		
-		Helper::saveLog('manna_credit', 16, file_get_contents("php://input"), $response);
-		echo json_encode($response);
-
-	}
-
-	public function rollBackTransaction(Request $request) 
-	{
-		$json_data = json_decode(file_get_contents("php://input"), true);
-		/*$client_code = RouteParam::get($request, 'brand_code');*/
-		$api_key = $request->header('apiKey');
-
-		if(!CallParameters::check_keys($json_data, 'sessionId', 'amount', 'game_id', 'round_id', 'transaction_id')) {
-				$response = [
-						"errorcode" =>  "BAD_REQUEST",
-						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
-					];
-		}
-		else
-		{
-			if($api_key != env('MANNA_API_KEY')) {
-				$response = [
-							"errorcode" =>  "API_KEY_INVALID",
-							"errormessage" => "API key invalid.",
-							"httpstatus" => "404"
-						];
-			}
-			else
-			{
-				$response = [
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "The provided playerid don’t exist.",
-						"httpstatus" => "404"
-					];
-
-				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
-				/*$player_details = PlayerHelper::getPlayerDetails($json_data['sessionId'], 'token');*/
-
-				if ($client_details/* && $player_details != NULL*/) {
-					// Check if round exist
-					if(!GameRound::find($json_data['roundid'])) {
-						
-						// If round is not found
-						$response = [
-							"errorcode" =>  "ROUND_NOT_FOUND",
-							"errormessage" => "Round not found",
-							"httpstatus" => "404"
-						];
-					}
-					else
-					{
-						// If round is found
-						// Check if "originaltransid" is present in the Solid Gaming request
-						if(array_key_exists('transaction_id', $json_data)) {
-							
-							// Check if the transaction exist
-							$game_transaction = GameTransaction::find($json_data['transaction_id']);
-
-							// If transaction is not found
-							if(!$game_transaction) {
-								$response = [
-									"errorcode" =>  "TRANS_NOT_FOUND",
-									"errormessage" => "Transaction not found",
-									"httpstatus" => "404"
-								];
-							}
-							else
-							{
-								// If transaction is found, send request to the client
-								$client = new Client([
-								    'headers' => [ 
-								    	'Content-Type' => 'application/json',
-								    	'Authorization' => 'Bearer '.$client_details->client_access_token
-								    ]
-								]);
-								
-								$guzzle_response = $client->post($client_details->fund_transfer_url,
-								    ['body' => json_encode(
-								        	[
-											  "access_token" => $client_details->client_access_token,
-											  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-											  "type" => "fundtransferrequest",
-											  "datetsent" => "",
-											  "gamedetails" => [
-											    "gameid" => "",
-											    "gamename" => ""
-											  ],
-											  "fundtransferrequest" => [
-													"playerinfo" => [
-													"token" => $client_details->player_token
-												],
-												"fundinfo" => [
-												      "gamesessionid" => "",
-												      "transactiontype" => "credit",
-												      "transferid" => "",
-												      "rollback" => "true",
-												      "currencycode" => $client_details->currency,
-												      "amount" => $game_transaction->bet_amount
-												]
-											  ]
-											]
-								    )]
-								);
-
-								$client_response = json_decode($guzzle_response->getBody()->getContents());
-
-								// If client returned a success response
-								if($client_response->fundtransferresponse->status->code == "200") {
-									GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
-									
-									$response = [
-										"transaction_id" => $json_data['transaction_id'],
-										"balance" => $client_response->fundtransferresponse->balance
-									];
-								}
-							}
-						}
-					}
+					
 				}
 			}
 		}
 
 		Helper::saveLog('manna_rollback', 16, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		return response()->json($response, $http_status);
 
 	}
 
 
 	/*private function _getClientDetails($client_code) {
-
 		$query = DB::table("clients AS c")
 				 ->select('c.client_id', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
