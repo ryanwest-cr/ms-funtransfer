@@ -163,9 +163,10 @@ class GameLobbyController extends Controller
                 }
                 elseif($request->input('game_provider')=="RSG Gaming"){ // request->token
                     Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
+                    $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::rsgLaunchUrl($request->game_code,$request->token,$request->exitUrl), //TEST
+                        "url" => GameLobby::rsgLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang), //TEST
                         "game_launch" => true
                     );
                     return response($msg,200)

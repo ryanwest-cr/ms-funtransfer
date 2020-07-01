@@ -81,11 +81,10 @@ class GameLobby{
         
     }
 
-    public static function rsgLaunchUrl($game_code,$token,$exitUrl){
-
+    public static function rsgLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
         $url = $exitUrl;
         $domain = parse_url($url, PHP_URL_HOST);
-        $url = 'https://partnerapirgs.betadigitain.com/GamesLaunch/Launch?gameid='.$game_code.'&playMode=real&token='.$token.'&deviceType=1&lang=EN&operatorId=B9EC7C0A&mainDomain='.$domain.'';
+        $url = 'https://partnerapirgs.betadigitain.com/GamesLaunch/Launch?gameid='.$game_code.'&playMode=real&token='.$token.'&deviceType=1&lang='.$lang.'&operatorId=B9EC7C0A&mainDomain='.$domain.'';
         return $url;
     }
 
