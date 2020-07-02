@@ -244,7 +244,7 @@ class GameLobby{
                         [
                             "id" => "betrnk",
                             "account" => $client_details->username,
-                            "currency" => $client_details->currency,
+                            "currency" => 'USD',
                             "sessionId" => $token,
                             "channel" => ""
                         ]
