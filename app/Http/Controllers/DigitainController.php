@@ -297,7 +297,7 @@ class DigitainController extends Controller
 					  "access_token" => $client_details->client_access_token,
 					  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 					  "type" => "fundtransferrequest",
-					  "datetsent" => "",
+					  "datesent" => Helper::datesent(),
 					  "gamedetails" => [
 					    "gameid" =>  $key['gameId'],
 					    "gamename" => ""
@@ -504,7 +504,7 @@ class DigitainController extends Controller
 						  "access_token" => $client_details->client_access_token,
 						  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 						  "type" => "fundtransferrequest",
-						  "datetsent" => "",
+						  "datesent" => Helper::datesent(),
 						  "gamedetails" => [
 						    "gameid" =>  $key['gameId'],
 						    "gamename" => ""
@@ -740,7 +740,7 @@ class DigitainController extends Controller
 						  "access_token" => $client_details->client_access_token,
 						  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 						  "type" => "fundtransferrequest",
-						  "datetsent" => "",
+						  "datesent" => Helper::datesent(),
 						  "gamedetails" => [
 						    "gameid" =>  $key['gameId'],
 						    "gamename" => ""
@@ -791,7 +791,7 @@ class DigitainController extends Controller
 						  "access_token" => $client_details->client_access_token,
 						  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 						  "type" => "fundtransferrequest",
-						  "datetsent" => "",
+						  "datesent" => Helper::datesent(),
 						  "gamedetails" => [
 						    "gameid" =>  $key['gameId'],
 						    "gamename" => ""
@@ -1025,7 +1025,7 @@ class DigitainController extends Controller
 								  "access_token" => $client_details->client_access_token,
 								  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 								  "type" => "fundtransferrequest",
-								  "datetsent" => "",
+								  "datesent" => Helper::datesent(),
 								  "gamedetails" => [
 								    "gameid" =>  "",
 								    "gamename" => ""
@@ -1211,7 +1211,7 @@ class DigitainController extends Controller
 						  "access_token" => $client_details->client_access_token,
 						  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 						  "type" => "fundtransferrequest",
-						  "datetsent" => "",
+						  "datesent" => Helper::datesent(),
 						  "gamedetails" => [
 						    "gameid" =>  $key['gameId'],
 						    "gamename" => ""

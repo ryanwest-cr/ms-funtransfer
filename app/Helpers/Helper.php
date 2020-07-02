@@ -2,8 +2,16 @@
 namespace App\Helpers;
 use DB;
 use GuzzleHttp\Client;
+use Carbon\Carbon;
+
 class Helper
 {
+	
+	public static function datesent(){
+		$date = Carbon::now();
+		return $date->toDateTimeString();
+	}
+
 	public static function auth_key($api_key, $access_token) {
 		$result = false;
 

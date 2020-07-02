@@ -234,7 +234,7 @@ class IAESportsController extends Controller
 			  "access_token" => $client_details->client_access_token,
 			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 			  "type" => "fundtransferrequest",
-			  "datetsent" => "",
+			  "datesent" => Helper::datesent(),
 			  "gamedetails" => [
 			    "gameid" => $game_code,
 			    "gamename" => ""
@@ -360,7 +360,7 @@ class IAESportsController extends Controller
 				  "access_token" => $client_details->client_access_token,
 				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 				  "type" => "fundtransferrequest",
-				  "datetsent" => "",
+				  "datesent" => Helper::datesent(),
 				  "gamedetails" => [
 				    "gameid" => $game_code,
 				    "gamename" => ""
@@ -438,7 +438,7 @@ class IAESportsController extends Controller
 					        	["access_token" => $client_details->client_access_token,
 									"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 									"type" => "playerdetailsrequest",
-									"datesent" => "",
+									"datesent" => Helper::datesent(),
 									"gameid" => "",
 									"clientid" => $client_details->client_id,
 									"playerdetailsrequest" => [
