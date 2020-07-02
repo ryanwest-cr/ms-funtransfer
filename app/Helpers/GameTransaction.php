@@ -40,8 +40,8 @@ class GameTransaction
 
 		    default:
 		}
-		/*var_dump($trans_data); die();*/
-		DB::table('game_transactions')->insert($trans_data);
+		$id = DB::table('game_transactions')->insertGetId($trans_data);
+		return $id; 
 	}
 
 	public static function update($method, $request_data, $game_data, $client_data, $player_data) {
@@ -66,7 +66,7 @@ class GameTransaction
                 ->where('game_trans_id', $game_details->game_trans_id)
                 ->update(['pay_amount' => $pay_amount, 'income' => $income, 'win' => $win, 'entry_id' => $entry_id]);
                 
-		return ($update ? true : false);
+		return ($update ? $game_details->game_trans_id : false);
 	}
 
 	public static function find($original_trans_id) {
