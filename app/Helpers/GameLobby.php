@@ -159,7 +159,7 @@ class GameLobby{
             break;
             case "PHP":
                 $username = config("providerlinks.icgagents.phpagents.username");
-                $password = config("providerlinks.icgagents.phpwagents.password");
+                $password = config("providerlinks.icgagents.phpagents.password");
             break;
             case "THB":
                 $username = config("providerlinks.icgagents.thbagents.username");
