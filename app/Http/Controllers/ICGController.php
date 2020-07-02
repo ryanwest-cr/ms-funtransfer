@@ -274,7 +274,7 @@ class ICGController extends Controller
                             "transferid" => "",
                             "rollback" => "false",
                             "currencycode" => $client_details->currency,
-                            "amount" => "-".round($json["amount"]/100,2)
+                            "amount" => round($json["amount"]/100,2) #change data here
                       ]
                     ]
                       ];
@@ -603,7 +603,7 @@ class ICGController extends Controller
                                 "transferid" => "",
                                 "rollback" => "false",
                                 "currencycode" => $client_details->currency,
-                                "amount" => "-".round($json["amount"]/100,2)
+                                "amount" => round($json["amount"]/100,2)
                           ]
                         ]
                           ];

@@ -184,7 +184,7 @@ class EDPController extends Controller
                             "transferid" => "",
                             "rollback" => "false",
                             "currencycode" => $client_details->currency,
-                            "amount" => "-".number_format($bet_amount/1000,2, '.', '')
+                            "amount" => number_format($bet_amount/1000,2, '.', '') #change here
                       ]
                     ]
                       ];
