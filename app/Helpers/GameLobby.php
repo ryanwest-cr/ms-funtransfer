@@ -278,6 +278,14 @@ class GameLobby{
         return $link_result->url;
     }
 
+    public static function aoyamaLaunchUrl($game_code,$token,$exitUrl){
+        /*$client_details = GameLobby::getClientDetails('token', $token);*/
+        $client_code = 'BETRNKMW'; /*$client_details->client_code ? $client_details->client_code : 'BETRNKMW';*/
+        $url = $exitUrl;
+        $url = 'https://svr.betrnk.games/winwin/';
+        return $url;
+    }
+
 
     public static function getLanguage($provider_name,$language){
         $provider_language = DB::table("providers")->where("provider_name",$provider_name)->get();
