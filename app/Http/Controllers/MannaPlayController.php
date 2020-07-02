@@ -366,7 +366,7 @@ class MannaPlayController extends Controller
 													],
 													"fundinfo" => [
 													      "gamesessionid" => "",
-													      "transactiontype" => "debit",
+													      "transactiontype" => "credit",
 													      "transferid" => "",
 													      "rollback" => "false",
 													      "currencycode" => $client_details->currency,
