@@ -212,15 +212,6 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($request->input('game_provider')=="Aoyama Slots"){
-                    $msg = array(
-                        "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::aoyamaLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
-                        "game_launch" => true
-                    );
-                    return response($msg,200)
-                    ->header('Content-Type', 'application/json');
-                }
             }
         }
         else{
@@ -320,10 +311,10 @@ class GameLobbyController extends Controller
                 $data = array();
                 foreach($providers as $provider){
                     foreach($provider->games as $game){
-                        if($game->sub_provider_id == 0){
+                        // if($game->sub_provider_id == 0){
                             $game = $game->game_code;
                             array_push($data,$game);
-                        }
+                        // }
                     }
                 }
               return  in_array($game_code, $data) ? 1 : 0;
