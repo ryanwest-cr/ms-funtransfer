@@ -316,7 +316,7 @@ class DigitainController extends Controller
 					  ]
 					];
 
-					try {
+					// try {
 
 						$guzzle_response = $client->post($client_details->fund_transfer_url,
 							['body' => json_encode($requesttosend)]
@@ -324,7 +324,8 @@ class DigitainController extends Controller
 
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
 
-				 		$payout_reason = 'Bet : '.$this->getOperationType($key['operationType']);
+				 		$operation_type = isset($key['operationType']) ? $key['operationType'] : 1;
+				 		$payout_reason = 'Bet : '.$this->getOperationType($operation_type);
 				 		$win_or_lost = 0;
 				 		$method = 5; // 1 for bet 5 for processing // Update 070320
 				 	    $token_id = $client_details->token_id;
@@ -363,24 +364,24 @@ class DigitainController extends Controller
 						];
 						#ALLORNONE END
 
-					} catch (\Exception $e) {
-						// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
-						if($json_data['allOrNone'] == 'true'):
-							$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
-					        return 	$response = array(
-										 "timestamp" => date('YmdHisms'),
-									     "signature" => $this->createSignature(date('YmdHisms')),
-										 "errorCode" => 999,
-										 // "info" => $key['info'],
-						   			);
-						else:
-							$items_array[] = [
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-								 "errorCode" => 999, // Http Failed!
-								 "metadata" => "" // Optional but must be here!
-			        	    ]; 
-						endif;	
-					}
+					// } catch (\Exception $e) {
+					// 	// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
+					// 	if($json_data['allOrNone'] == 'true'):
+					// 		$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					//         return 	$response = array(
+					// 					 "timestamp" => date('YmdHisms'),
+					// 				     "signature" => $this->createSignature(date('YmdHisms')),
+					// 					 "errorCode" => 999,
+					// 					 // "info" => $key['info'],
+					// 	   			);
+					// 	else:
+					// 		$items_array[] = [
+					// 			 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+					// 			 "errorCode" => 999, // Http Failed!
+					// 			 "metadata" => "" // Optional but must be here!
+			  //       	    ]; 
+					// 	endif;	
+					// }
 
 	        	else:
 	        		$items_array[] = [
@@ -524,7 +525,7 @@ class DigitainController extends Controller
 						  ]
 						];
 
-				 		try {
+				 		// try {
 
 				 		$guzzle_response = $client->post($client_details->fund_transfer_url,
 							['body' => json_encode($requesttosend)]
@@ -566,6 +567,7 @@ class DigitainController extends Controller
 
 				 	  		// HEAD 06-25-2020
 				 	  		if($key['winAmount'] != 0){
+
 				 	  			if($datatrans->bet_amount > $key['winAmount']){
 				 	  				$win = 0; // lost
 				 	  				$entry_id = 1; //lost
@@ -576,6 +578,9 @@ class DigitainController extends Controller
 				 	  				$income = $datatrans->bet_amount - $key['winAmount'];
 				 	  			}
 			 	  				$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $key['winAmount'], $income, $win, $entry_id);
+				 	  		}else{
+				 	  			// 1 processed
+				 	  			$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $datatrans->pay_amount, $datatrans->income, $datatrans->win, 1);
 				 	  		}
 
 				 			$rsg_trans_ext = $this->createRSGTransactionExt($datatrans->game_trans_id, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
@@ -623,25 +628,25 @@ class DigitainController extends Controller
 							];
 							#ALLORNONE END
 
-				 		}catch (\Exception $e){
-				 			// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
-							if($json_data['allOrNone'] == 'true'):
-								$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
-								$this->rollbackChanges($items_revert_update);
-						        return 	$response = array(
-											 "timestamp" => date('YmdHisms'),
-										     "signature" => $this->createSignature(date('YmdHisms')),
-											 "errorCode" => 999,
-											 // "info" => $key['info'],
-							   			);
-							else:
-								$items_array[] = [
-									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-									 "errorCode" => 999, // Http Failed!
-									 "metadata" => "" // Optional but must be here!
-				        	    ]; 
-							endif;
-				 		}
+				 		// }catch (\Exception $e){
+				 		// 	// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
+							// if($json_data['allOrNone'] == 'true'):
+							// 	$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+							// 	$this->rollbackChanges($items_revert_update);
+						 //        return 	$response = array(
+							// 				 "timestamp" => date('YmdHisms'),
+							// 			     "signature" => $this->createSignature(date('YmdHisms')),
+							// 				 "errorCode" => 999,
+							// 				 // "info" => $key['info'],
+							//    			);
+							// else:
+							// 	$items_array[] = [
+							// 		 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							// 		 "errorCode" => 999, // Http Failed!
+							// 		 "metadata" => "" // Optional but must be here!
+				   //      	    ]; 
+							// endif;
+				 		// }
 				 		
 				else:
 	        		$items_array[] = [
