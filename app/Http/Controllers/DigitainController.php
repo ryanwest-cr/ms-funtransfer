@@ -454,42 +454,42 @@ class DigitainController extends Controller
 			$items_array = array(); // ITEMS INFO
 			foreach ($json_data['items'] as $key):
 
-				// ///////////////////////////////////////////////////////////////////////////////
-				// $datatrans_status = true;
-	 		// 		if(isset($key['roundId']) && $key['roundId'] != ''):// if both playerid and roundid is missing
-	 		// 		    $client_details = $this->_getClientDetails('player_id', $key['playerId']);
-			 // 		 	$datatrans = $this->findTransactionRefund('RSG'.$key['roundId'], 'round_id');
-	 		// 			$transaction_identifier = $key['roundId'];
-	 		// 			$transaction_identifier_type = 'round_id';
-			 // 		 	if(!$datatrans): // Transaction Not Found!
-			 // 					$datatrans_status = false;
-			 // 			endif;
-			 // 		else: // use originalTxid instead
-			 // 			$datatrans = $this->findTransactionRefund($key['betTxId'], 'transaction_id');
-	 		// 			$transaction_identifier = $key['betTxId'];
-	 		// 			$transaction_identifier_type = 'provider_trans_id';
-			 // 			if(!$datatrans): // Transaction Not Found!
-			 // 					$datatrans_status = false;
-			 // 			endif;
-			 // 			$jsonify = json_decode($datatrans->transaction_detail, true);
-			 // 			$client_details = $this->_getClientDetails('player_id', $jsonify['items'][0]['playerId']);
-			 // 		endif;	
+				$datatrans_status = true;
+ 				if(isset($key['roundId']) && $key['roundId'] != ''):// if both playerid and roundid is missing
+ 				    $client_details = $this->_getClientDetails('player_id', $key['playerId']);
+		 		 	$datatrans = $this->findTransactionRefund('RSG'.$key['roundId'], 'round_id');
+ 					$transaction_identifier = $key['roundId'];
+ 					$transaction_identifier_type = 'round_id';
+		 		 	if(!$datatrans): // Transaction Not Found!
+		 					$datatrans_status = false;
+		 			endif;
+		 		else: // use originalTxid instead
+		 			$datatrans = $this->findTransactionRefund($key['betTxId'], 'transaction_id');
+ 					$transaction_identifier = $key['betTxId'];
+ 					$transaction_identifier_type = 'provider_trans_id';
+		 			if(!$datatrans): // Transaction Not Found!
+		 					$datatrans_status = false;
+		 			else:
+		 				$jsonify = json_decode($datatrans->transaction_detail, true);
+		 			    $client_details = $this->_getClientDetails('player_id', $jsonify['items'][0]['playerId']);
+		 			endif;
+		 		endif;	
 
-			 // 		if($datatrans_status != false):
-			 // 			dd($datatrans);
-			 // 		else:
-			 // 			dd('meron');
-			 // 		endif;
-				// ///////////////////////////////////////////////////////////////////////////////
-
-		 		$client_details = $this->_getClientDetails('player_id', $key['playerId']);
 	 			if(!empty($client_details)):
-
-		 		$check_win_exist = $this->findGameTransaction($key['txId']); // if transaction id exist bypass it
+	 			// dd($client_details);
+		 		$check_win_exist = $this->gameTransactionEXTLog('provider_trans_id',$key['txId'], 2); // if transaction id exist bypass it
 	 			if(!$check_win_exist):
 
-	 			$checkLog = $this->checkRSGExtLog($key['txId'],$key['roundId'],2);
-	 			if(!$checkLog):
+	 			if($datatrans != false):
+
+	 			// OLD GAME TRANSACTION IF ALL OR NONE FAILED!
+ 				$items_revert_update[] = [
+	 				'game_trans_id' => $datatrans->game_trans_id,
+					'win' => $datatrans->win,
+					'pay_amount' => $datatrans->pay_amount,
+					'income' => $datatrans->income,
+					'entry_id' => $datatrans->entry_id,
+				];
 	 				
 	 			if($key['currencyId'] == $client_details->default_currency): // Currency not match nb //
 
@@ -506,13 +506,13 @@ class DigitainController extends Controller
 						  "type" => "fundtransferrequest",
 						  "datesent" => Helper::datesent(),
 						  "gamedetails" => [
-						    "gameid" =>  $key['gameId'],
+						    "gameid" =>  "",
 						    "gamename" => ""
 						  ],
 						  "fundtransferrequest" => [
 								"playerinfo" => [
 								"token" => $client_details->player_token,
-								"playerId" => $key['playerId']
+								"playerId" => ""
 							],
 							"fundinfo" => [
 							      "gamesessionid" => "",
@@ -525,69 +525,60 @@ class DigitainController extends Controller
 						];
 
 				 		try {
-				 		// $gametransaction_details = $this->findTransactionRefund('RSG'.$key['roundId'], 'round_id');
-				 		// dd($gametransaction_details);
 
 				 		$guzzle_response = $client->post($client_details->fund_transfer_url,
 							['body' => json_encode($requesttosend)]
 						);
 
 				 		$client_response = json_decode($guzzle_response->getBody()->getContents());
-				 		// dd($client_response);
-				 		// TEST GAME TRANSACTION LOGGING
-				 		$payout_reason = 'Win : '.$this->getOperationType($key['operationType']);
-				 		$win_or_lost = 1;
-				 		$method = 2;
+
+				 		// NO WINGAME TRANSACTION LOGGING
+				 		// $payout_reason = 'Win : '.$this->getOperationType($key['operationType']);
+				 		// $win_or_lost = 1;
+				 		// $method = 2;
 				 		
-				 	    $token_id = $client_details->token_id;
-				 	    if(isset($key['roundId'])){
-				 	    	$round_id = 'RSG'.$key['roundId'];
-				 	    }
-				 	    // elseif(isset($key['betTxId'])){
-				 	    // 	$round_id = 'RSG'.$key['betTxId']; // SCENARIO
+				 	    // $token_id = $client_details->token_id;
+				 	    // if(isset($key['roundId'])){
+				 	    // 	$round_id = 'RSG'.$key['roundId'];
 				 	    // }
-				 	    else{
-				 	    	$round_id = 1;
-				 	    }
+				 	    // // elseif(isset($key['betTxId'])){
+				 	    // // 	$round_id = 'RSG'.$key['betTxId']; // SCENARIO
+				 	    // // }
+				 	    // else{
+				 	    // 	$round_id = 1;
+				 	    // }
 
-				 	    if(isset($key['txId'])){
-				 	    	$provider_trans_id = $key['txId'];
-				 	    }else{
-				 	    	$provider_trans_id = null;
-				 	    }
+				 	    // if(isset($key['txId'])){
+				 	    // 	$provider_trans_id = $key['txId'];
+				 	    // }else{
+				 	    // 	$provider_trans_id = null;
+				 	    // }
+				
+			 			// $income = $datatrans->bet_amount - $key['winAmount']; // Sample	
+			 	  		// $game_details = Helper::findGameDetails('game_code', 14, $key['gameId']);
 
-				 	    // NEW BASIS GAME_TRANSACTION BET_AMOUNT!
-						if(isset($key['betTxId'])){
-	        	    		$bet_transaction_detail = $this->findGameTransaction($key['betTxId']);
-	        	    		$bet_transaction = $bet_transaction_detail->bet_amount;
-	        	    	}else{
-	        	    		$bet_transaction_detail = $this->findPlayerGameTransaction('RSG'.$key['roundId'], $key['playerId']);
-	        	    		$bet_transaction = $bet_transaction_detail->bet_amount;
-	        	    	}
-				 			$income = $bet_transaction - $key['winAmount']; // Sample	
-				 	  		$game_details = Helper::findGameDetails('game_code', 14, $key['gameId']);
+			 	  		// NO MORE WIN LOGS! 06-25-2020			
+			 	  		// $game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_transaction,  $key['winAmount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 
-				 	  		// NO MORE WIN LOGS! 06-25-2020			
-				 	  		// $game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_transaction,  $key['winAmount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-
-				 	  		// WIN LOGS TO UPDATE!
-				 	  	    // $update_bet = $this->updateBetToWin($key['roundId'], $key['winAmount'], $key['winAmount'], $key['winAmount'], 2);
+			 	  		// WIN LOGS TO UPDATE!
+			 	  	    // $update_bet = $this->updateBetToWin($key['roundId'], $key['winAmount'], $key['winAmount'], $key['winAmount'], 2);
+			 	  	    // END NO WIN GAME TRANSACTION 
 
 				 	  		// HEAD 06-25-2020
 				 	  		if($key['winAmount'] != 0){
-				 	  			if($bet_transaction_detail->bet_amount > $key['winAmount']){
+				 	  			if($datatrans->bet_amount > $key['winAmount']){
 				 	  				$win = 0; // lost
 				 	  				$entry_id = 1; //lost
-				 	  				$income = $bet_transaction_detail->bet_amount - $key['winAmount'];
+				 	  				$income = $datatrans->bet_amount - $key['winAmount'];
 				 	  			}else{
 				 	  				$win = 1; //win
 				 	  				$entry_id = 2; //win
-				 	  				$income = $bet_transaction_detail->bet_amount - $key['winAmount'];
+				 	  				$income = $datatrans->bet_amount - $key['winAmount'];
 				 	  			}
 			 	  				$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $key['winAmount'], $income, $win, $entry_id);
 				 	  		}
 
-				 			$rsg_trans_ext = $this->createRSGTransactionExt($bet_transaction_detail->game_trans_id, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
+				 			$rsg_trans_ext = $this->createRSGTransactionExt($datatrans->game_trans_id, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
 
 			       
 			        	    if(isset($key['returnBetsAmount']) && $key['returnBetsAmount'] == true): // SCENARIO
@@ -606,7 +597,7 @@ class DigitainController extends Controller
 						 		}
 						 	
 				        	    $items_array[] = [
-				        	    	 "externalTxId" => $bet_transaction_detail->game_trans_id, // MW Game Transaction Id
+				        	    	 "externalTxId" => $datatrans->game_trans_id, // MW Game Transaction Id
 									 "balance" => $client_response->fundtransferresponse->balance,
 									 "betsAmount" => array_sum($total_bets),
 									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
@@ -615,7 +606,7 @@ class DigitainController extends Controller
 				        	    ];
 				        	else:
 		        		 	    $items_array[] = [
-				        	    	 "externalTxId" => $bet_transaction_detail->game_trans_id, // MW Game Transaction Id
+				        	    	 "externalTxId" => $datatrans->game_trans_id, // MW Game Transaction Id
 									 "balance" => $client_response->fundtransferresponse->balance,
 									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 									 "errorCode" => 1,
@@ -636,6 +627,7 @@ class DigitainController extends Controller
 				 			// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
 							if($json_data['allOrNone'] == 'true'):
 								$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+								$this->rollbackChanges($items_revert_update);
 						        return 	$response = array(
 											 "timestamp" => date('YmdHisms'),
 										     "signature" => $this->createSignature(date('YmdHisms')),
