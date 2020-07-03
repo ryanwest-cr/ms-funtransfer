@@ -326,7 +326,7 @@ class DigitainController extends Controller
 
 				 		$payout_reason = 'Bet : '.$this->getOperationType($key['operationType']);
 				 		$win_or_lost = 0;
-				 		$method = 1;
+				 		$method = 5; // 1 for bet 5 for processing // Update 070320
 				 	    $token_id = $client_details->token_id;
 				 	    if(isset($key['roundId'])){
 				 	    	$round_id = 'RSG'.$key['roundId'];
@@ -1771,6 +1771,25 @@ class DigitainController extends Controller
 	// 		}
 	// 		$result= $game_details->first();
 	//  		return $result;
+	// }
+
+
+	// public static function saveGame_transaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
+	// 	$data = [
+	// 				"token_id" => $token_id,
+	// 				"game_id" => $game_id,
+	// 				"round_id" => $round_id,
+	// 				"bet_amount" => $bet_amount,
+	// 				"provider_trans_id" => $provider_trans_id,
+	// 				"pay_amount" => $payout,
+	// 				"income" => $income,
+	// 				"entry_id" => $entry_id,
+	// 				"win" => $win,
+	// 				"transaction_reason" => $transaction_reason,
+	// 				"payout_reason" => $payout_reason
+	// 			];
+	// 	$data_saved = DB::table('game_transactions')->insertGetId($data);
+	// 	return $data_saved;
 	// }
 
 }
