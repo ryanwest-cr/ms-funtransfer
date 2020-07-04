@@ -580,7 +580,7 @@ class DigitainController extends Controller
 			 	  				$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $key['winAmount'], $income, $win, $entry_id);
 				 	  		}else{
 				 	  			// 1 processed
-				 	  			$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $datatrans->pay_amount, $datatrans->income, 1, $datatrans->entry_id);
+				 	  			$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $datatrans->pay_amount, $datatrans->income, 0, $datatrans->entry_id);
 				 	  		}
 
 				 			$rsg_trans_ext = $this->createRSGTransactionExt($datatrans->game_trans_id, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
