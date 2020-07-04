@@ -326,8 +326,8 @@ class DigitainController extends Controller
 
 				 		$operation_type = isset($key['operationType']) ? $key['operationType'] : 1;
 				 		$payout_reason = 'Bet : '.$this->getOperationType($operation_type);
-				 		$win_or_lost = 0;
-				 		$method = 5; // 1 for bet 5 for processing // Update 070320
+				 		$win_or_lost = 5; // 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
+				 		$method = 1; 
 				 	    $token_id = $client_details->token_id;
 				 	    if(isset($key['roundId'])){
 				 	    	$round_id = 'RSG'.$key['roundId'];
@@ -580,7 +580,7 @@ class DigitainController extends Controller
 			 	  				$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $key['winAmount'], $income, $win, $entry_id);
 				 	  		}else{
 				 	  			// 1 processed
-				 	  			$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $datatrans->pay_amount, $datatrans->income, $datatrans->win, 1);
+				 	  			$updateTheBet = $this->updateBetToWin('RSG'.$key['roundId'], $datatrans->pay_amount, $datatrans->income, 1, $datatrans->entry_id);
 				 	  		}
 
 				 			$rsg_trans_ext = $this->createRSGTransactionExt($datatrans->game_trans_id, $json_data, $requesttosend, $client_response, $client_response,$json_data, 2, $key['winAmount'], $key['txId'] ,$key['roundId']);
