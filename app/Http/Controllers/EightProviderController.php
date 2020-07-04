@@ -92,5 +92,42 @@ class EightProviderController extends Controller
 		return $response;
 	}
 
+	public function gameBet(Request $request){
+		Helper::saveLog('8P gameBet', 14, 14, 'ENDPOINT HIT');
+		$response = array(
+			'status' => 'ok',
+			'data' => [
+				'balance' => 456455.66,
+				'currency' => 'USD',
+			],
+		);
+		return $response;
+	}
+
+	public function gameWin(Request $request){
+		Helper::saveLog('8P gameWin', 14, 14, 'ENDPOINT HIT');
+		$response = array(
+			'status' => 'ok',
+			'data' => [
+				'balance' => 456455.66,
+				'currency' => 'USD',
+			],
+		);
+		return $response;
+	}
+	
+	public function gameRefund(Request $request){
+		Helper::saveLog('8P gameRefund', 14, 14, 'ENDPOINT HIT');
+		$response = array(
+			'status' => 'ok',
+			'data' => [
+				'balance' => 456455.66,
+				'currency' => 'USD',
+			],
+		);
+		return $response;
+	}
+	
+
 	
 }
