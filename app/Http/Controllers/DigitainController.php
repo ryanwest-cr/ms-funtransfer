@@ -316,7 +316,7 @@ class DigitainController extends Controller
 					  ]
 					];
 
-					// try {
+					try {
 
 						$guzzle_response = $client->post($client_details->fund_transfer_url,
 							['body' => json_encode($requesttosend)]
@@ -364,24 +364,24 @@ class DigitainController extends Controller
 						];
 						#ALLORNONE END
 
-					// } catch (\Exception $e) {
-					// 	// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
-					// 	if($json_data['allOrNone'] == 'true'):
-					// 		$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
-					//         return 	$response = array(
-					// 					 "timestamp" => date('YmdHisms'),
-					// 				     "signature" => $this->createSignature(date('YmdHisms')),
-					// 					 "errorCode" => 999,
-					// 					 // "info" => $key['info'],
-					// 	   			);
-					// 	else:
-					// 		$items_array[] = [
-					// 			 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-					// 			 "errorCode" => 999, // Http Failed!
-					// 			 "metadata" => "" // Optional but must be here!
-			  //       	    ]; 
-					// 	endif;	
-					// }
+					} catch (\Exception $e) {
+						// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
+						if($json_data['allOrNone'] == 'true'):
+							$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					        return 	$response = array(
+										 "timestamp" => date('YmdHisms'),
+									     "signature" => $this->createSignature(date('YmdHisms')),
+										 "errorCode" => 999,
+										 // "info" => $key['info'],
+						   			);
+						else:
+							$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 999, // Http Failed!
+								 "metadata" => "" // Optional but must be here!
+			        	    ]; 
+						endif;	
+					}
 
 	        	else:
 	        		$items_array[] = [
@@ -525,7 +525,7 @@ class DigitainController extends Controller
 						  ]
 						];
 
-				 		// try {
+				 		try {
 
 				 		$guzzle_response = $client->post($client_details->fund_transfer_url,
 							['body' => json_encode($requesttosend)]
@@ -628,25 +628,25 @@ class DigitainController extends Controller
 							];
 							#ALLORNONE END
 
-				 		// }catch (\Exception $e){
-				 		// 	// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
-							// if($json_data['allOrNone'] == 'true'):
-							// 	$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
-							// 	$this->rollbackChanges($items_revert_update);
-						 //        return 	$response = array(
-							// 				 "timestamp" => date('YmdHisms'),
-							// 			     "signature" => $this->createSignature(date('YmdHisms')),
-							// 				 "errorCode" => 999,
-							// 				 // "info" => $key['info'],
-							//    			);
-							// else:
-							// 	$items_array[] = [
-							// 		 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-							// 		 "errorCode" => 999, // Http Failed!
-							// 		 "metadata" => "" // Optional but must be here!
-				   //      	    ]; 
-							// endif;
-				 		// }
+				 		}catch (\Exception $e){
+				 			// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
+							if($json_data['allOrNone'] == 'true'):
+								$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+								$this->rollbackChanges($items_revert_update);
+						        return 	$response = array(
+											 "timestamp" => date('YmdHisms'),
+										     "signature" => $this->createSignature(date('YmdHisms')),
+											 "errorCode" => 999,
+											 // "info" => $key['info'],
+							   			);
+							else:
+								$items_array[] = [
+									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+									 "errorCode" => 999, // Http Failed!
+									 "metadata" => "" // Optional but must be here!
+				        	    ]; 
+							endif;
+				 		}
 				 		
 				else:
 	        		$items_array[] = [
@@ -1658,6 +1658,11 @@ class DigitainController extends Controller
 
 	}
 
+	/**
+	 * Revert the changes made to bet/win transaction
+	 * @param $[items_revert_update] [<array of data>]
+	 * 
+	 */
 	public function rollbackChanges($items_revert_update){
 		foreach($items_revert_update as $undo):
 		     DB::table('game_transactions')
