@@ -139,6 +139,10 @@ $app->post('/api/bole/register', 'BoleGamingController@playerRegister');
 $app->post('/api/bole/logout', 'BoleGamingController@playerLogout');
 $app->post('/api/bole/wallet/player/cost', 'BoleGamingController@playerWalletCost');
 $app->post('/api/bole/wallet/player/balance', 'BoleGamingController@playerWalletBalance');
+// 8PROVIDERS TEST
+$app->post('/api/eightprovider/init', 'EightProviderController@gameInit');
+$app->post('/api/eightprovider/deposit', 'EightProviderController@gameDeposit');
+$app->post('/api/eightprovider/withdrawal', 'EightProviderController@gameWithdrawal');
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
