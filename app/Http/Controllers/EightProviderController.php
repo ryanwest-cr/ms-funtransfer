@@ -54,6 +54,15 @@ class EightProviderController extends Controller
 	    return $md5;
 	}
 
+	public function index(){
+		Helper::saveLog('8P gameBet', 19, 19, 'ENDPOINT HIT');
+		Helper::saveLog('8P BET', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
+		Helper::saveLog('8P BET FORMDATA', 19, json_encode($request->all()), 'ENDPOINT HIT');
+
+		
+		return 'endpoint reached';
+	}
+
 
 	public function getGames(){
 

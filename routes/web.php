@@ -140,6 +140,7 @@ $app->post('/api/bole/logout', 'BoleGamingController@playerLogout');
 $app->post('/api/bole/wallet/player/cost', 'BoleGamingController@playerWalletCost');
 $app->post('/api/bole/wallet/player/balance', 'BoleGamingController@playerWalletBalance');
 // 8PROVIDERS TEST
+$app->post('/api/eightprovider', 'EightProviderController@index');
 $app->post('/api/eightprovider/getlist', 'EightProviderController@getGames');
 $app->post('/api/eightprovider/geturl', 'EightProviderController@gameUrl');
 $app->post('/api/eightprovider/registerbunos', 'EightProviderController@registerBunos');
