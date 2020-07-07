@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use App\Helpers\Helper;
 use App\Helpers\IAHelper;
+use App\Helpers\ProviderHelper;
 use DB;             
 class GameLobby{
     public static function icgLaunchUrl($game_code,$token,$exitUrl,$lang="en"){
@@ -79,6 +80,37 @@ class GameLobby{
         }
         // Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_encode($response->getBody()->getContents()));
         
+    }
+
+    public static function evoplayLunchUrl($token,$game_code){
+        $client_player_details = GameLobby::getClientDetails('token', $token);
+        $requesttosend = [
+          "project" => config('providerlinks.evoplay.project_id'),
+          "version" => 1,
+          "token" => $token,
+          "game" => $game_code, //game_code, game_id
+          "settings" =>  [
+            'user_id'=> $client_player_details->player_id,
+            'language'=> $client_player_details->language ? $client_player_details->language : 'en',
+          ],
+          "denomination" => '0.1', // device to play
+          "currency" => $client_player_details->default_currency,
+          "return_url_info" => true, // url link
+          "callback_version" => 2, // POST CALLBACK
+        ];
+        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.evoplay.secretkey'));
+        $requesttosend['signature'] = $signature;
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ]
+        ]);
+        $response = $client->post(config('providerlinks.evoplay.api_url').'/game/geturl',[
+            'form_params' => $requesttosend,
+        ]);
+        $res = json_decode($response->getBody(),TRUE);
+        Helper::saveLog('GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
+        return $res['data']['link'];
     }
 
     public static function betrnkLaunchUrl($token){

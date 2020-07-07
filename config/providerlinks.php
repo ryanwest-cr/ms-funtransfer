@@ -76,6 +76,11 @@ return [
         'url_lunch' => 'http://api.ilustretest.com/user/lunch',
         'url_register' => 'http://api.ilustretest.com/user/register',
     ],
+    'evoplay' => [
+        'api_url' => 'http://api.8provider.com',
+        'project_id' => '1042',
+        'secretkey' => 'c270d53d4d83d69358056dbca870c0ce',
+    ],
     'payment'=>[
         'catpay'=>[
             'url_order'=>'http://celpay.vip/platform/submit/order',

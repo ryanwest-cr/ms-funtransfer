@@ -204,6 +204,15 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider')=="Evoplay"){
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::evoplayLunchUrl($request->token,$request->game_code), //TEST
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
                 elseif($request->input('game_provider')=="Solid Gaming"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
