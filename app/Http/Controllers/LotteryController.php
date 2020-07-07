@@ -121,6 +121,7 @@ class LotteryController extends Controller
 	public function debitProcess(Request $request)
 	{
 		  Helper::saveLog('Lottery Debit', 10, json_encode($request->all()), 'ENDPOINT HIT');
+
 		  $player_check = DB::table('players')
 				->where('username', $request->merchant_user)
 				->first();
