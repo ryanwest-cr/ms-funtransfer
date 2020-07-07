@@ -132,6 +132,8 @@ class EightProviderController extends Controller
 			
 		Helper::saveLog('8P BET', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
 
+		Helper::saveLog('8P BET FORMDATA', 19, json_encode($request->all()), 'ENDPOINT HIT');
+
 
 		return 'endpoint reached';
 
