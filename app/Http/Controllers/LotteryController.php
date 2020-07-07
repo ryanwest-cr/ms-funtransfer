@@ -80,7 +80,7 @@ class LotteryController extends Controller
 
 	public function getBalance(Request $request)
 	{	
-		Helper::saveLog('Lottery', 10, json_encode($request->all()), 'ENDPOINT HIT');
+		Helper::saveLog('Lottery Balance', 10, json_encode($request->all()), 'ENDPOINT HIT');
 		$merchant_user = $request->merchant_user;
 		$client_details = DB::table("players AS p")
 						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
@@ -113,13 +113,14 @@ class LotteryController extends Controller
 				    )]
 				);
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				Helper::saveLog('Lottery Balance Reply', 10, json_encode($client_response), 'ENDPOINT HIT');
 				echo json_encode($client_response->playerdetailsresponse->balance);
 		}
 	}
 
 	public function debitProcess(Request $request)
 	{
-		  Helper::saveLog('Lottery', 10, json_encode($request->all()), 'ENDPOINT HIT');
+		  Helper::saveLog('Lottery Debit', 10, json_encode($request->all()), 'ENDPOINT HIT');
 		  $player_check = DB::table('players')
 				->where('username', $request->merchant_user)
 				->first();
