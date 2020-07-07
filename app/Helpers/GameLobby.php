@@ -95,7 +95,8 @@ class GameLobby{
             ],
         ]);
 
-        return $game_url = json_decode((string) $response->getBody(), true)["response"]["game_url"];
+        $game_url = json_decode((string) $response->getBody(), true)["response"]["game_url"];
+        return $game_url.'&player_token='.$token;
     }
 
     public static function rsgLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
