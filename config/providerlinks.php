@@ -76,6 +76,16 @@ return [
         'url_lunch' => 'http://api.ilustretest.com/user/lunch',
         'url_register' => 'http://api.ilustretest.com/user/register',
     ],
+    'payment'=>[
+        'catpay'=>[
+            'url_order'=>'http://celpay.vip/platform/submit/order',
+            'url_redirect'=>'http://celpay.vip',
+            'platformId' => 'WamRAOjZxH8vYG4rJU1',
+            'platformToken'=>'azETahcH',
+            'platformKey'=>'3a3343c316d947f68841fd7fd7c35636',
+            'sign'=> 'WamRAOjZxH8vYG4rJU1',
+        ]
+    ]
     
 ];
 
