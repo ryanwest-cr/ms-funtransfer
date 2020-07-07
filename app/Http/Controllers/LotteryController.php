@@ -81,7 +81,6 @@ class LotteryController extends Controller
 	public function getBalance(Request $request)
 	{	
 		Helper::saveLog('Lottery', 10, json_encode($request->all()), 'ENDPOINT HIT');
-		dd(1);
 		$merchant_user = $request->merchant_user;
 		$client_details = DB::table("players AS p")
 						 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
