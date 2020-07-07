@@ -54,7 +54,7 @@ class EightProviderController extends Controller
 	    return $md5;
 	}
 
-	public function index(){
+	public function index(Request $request){
 		Helper::saveLog('8P index', 19, 19, 'ENDPOINT HIT');
 		Helper::saveLog('8P index', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
 		Helper::saveLog('8P index getcontent', 19, json_encode($request->getContent()), 'ENDPOINT HIT');
