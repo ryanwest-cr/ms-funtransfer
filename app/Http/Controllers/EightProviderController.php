@@ -132,6 +132,9 @@ class EightProviderController extends Controller
 			
 		Helper::saveLog('8P BET', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
 
+
+		return 'endpoint reached';
+
 		// $guzzle_response = $client->post($client_details->fund_transfer_url,
 		// 		['body' => json_encode($requesttosend)]
 		// );
