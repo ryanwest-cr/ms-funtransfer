@@ -81,6 +81,23 @@ class GameLobby{
         
     }
 
+    public static function betrnkLaunchUrl($token){
+
+        $http = new Client();
+        $player_details = GameLobby::playerDetailsCall($token);
+        $response = $http->post('http://betrnk-lotto.com/api/v1/index.php', [
+            'form_params' => [
+                'cmd' => 'auth', // auth request command
+                'username' => 'freebetrnk',  // client subscription acc
+                'password' => 'w34KM)!##$$#',
+                'merchant_user'=> $player_details->playerdetailsresponse->username,
+                'merchant_user_balance'=> $player_details->playerdetailsresponse->balance,
+            ],
+        ]);
+
+        return $game_url = json_decode((string) $response->getBody(), true)["response"]["game_url"];
+    }
+
     public static function rsgLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
         $url = $exitUrl;
         $domain = parse_url($url, PHP_URL_HOST);
@@ -295,6 +312,57 @@ class GameLobby{
         }
         else{
             return $languages["en"];
+        }
+    }
+
+
+     /**
+     * Client Player Details API Call
+     * @return [Object]
+     * @param $[player_token] [<players token>]
+     * @param $[refreshtoken] [<Default False, True token will be requested>]
+     * 
+     */
+    public static function playerDetailsCall($player_token, $refreshtoken=false){
+        $client_details = DB::table("clients AS c")
+                     ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+                     ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
+                     ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
+                     ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
+                     ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
+                     ->where("pst.player_token", "=", $player_token)
+                     ->latest('token_id')
+                     ->first();
+        if($client_details){
+            try{
+                $client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.$client_details->client_access_token
+                    ]
+                ]);
+                $datatosend = ["access_token" => $client_details->client_access_token,
+                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                    "type" => "playerdetailsrequest",
+                    "clientid" => $client_details->client_id,
+                    "playerdetailsrequest" => [
+                        "token" => $player_token,
+                        // "playerId" => $client_details->client_player_id,
+                        "currencyId" => $client_details->currency,
+                        "gamelaunch" => false,
+                        "refreshtoken" => $refreshtoken
+                    ]
+                ];
+                $guzzle_response = $client->post($client_details->player_details_url,
+                    ['body' => json_encode($datatosend)]
+                );
+                $client_response = json_decode($guzzle_response->getBody()->getContents());
+                return $client_response;
+            }catch (\Exception $e){
+               return false;
+            }
+        }else{
+            return false;
         }
     }
 

@@ -127,15 +127,15 @@ class GameLobbyController extends Controller
             }
 
             // CLIENT SUBSCRIPTION FILTER
-            $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
-            if(!$subscription_checker){
-                $msg = array(
-                    "game_code" => $request->input("game_code"),
-                    "game_launch" => false
-                );
-                return $msg;
-            }
-            /////
+            // $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
+            // if(!$subscription_checker){
+            //     $msg = array(
+            //         "game_code" => $request->input("game_code"),
+            //         "game_launch" => false
+            //     );
+            //     return $msg;
+            // }
+            ///
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
@@ -189,6 +189,16 @@ class GameLobbyController extends Controller
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::iaLaunchUrl($request->game_code,$request->token,$request->exitUrl), //TEST
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="Betrnk"){
+                    // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::betrnkLaunchUrl($request->token), //TEST
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -337,6 +347,5 @@ class GameLobbyController extends Controller
     public function getLanguage(Request $request){
         return GameLobby::getLanguage($request->provider_name,$request->language);
     }
-
 
 }
