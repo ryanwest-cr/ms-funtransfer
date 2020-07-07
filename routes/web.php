@@ -224,3 +224,5 @@ $app->post('api/iwallet/makesettlement','IWalletController@makeSettlement');
 $app->post('api/iwallet/makeremittance','IWalletController@makeRemittance');
 
 $app->post('game/lang','GameLobby\GameLobbyController@getLanguage');
+
+$app->post('catpay/launch','Payments\PaymentLobbyController@CatPaytest');

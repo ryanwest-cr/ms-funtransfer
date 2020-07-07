@@ -4,6 +4,7 @@ use DB;
 use GuzzleHttp\Client;
 use App\PayTransaction;
 use App\PayTransactionLogs;
+use Carbon\Carbon;
 class PaymentHelper
 {
     public static function connectTo(){
@@ -331,6 +332,27 @@ class PaymentHelper
         return json_decode((string) $response->getBody(), true);
     }
 
+    public static function launchCatPayPayment($order,$paytype,$orderId){
+        $http = new Client();
+        $response = $http->post(config('providerlinks.payment.catpay.url_order'),[
+            'form_params' => [
+                'order'=>$order,
+                'timeStamp'=>(Carbon::now('Asia/Shanghai')->timestamp)*1000,
+                'platformId'=>'WamRAOjZxH8vYG4rJU1',
+                'platformToken'=>'azETahcH',
+                'platformKey'=>'3a3343c316d947f68841fd7fd7c35636',
+                'sign'=>md5('WamRAOjZxH8vYG4rJU1'.$orderId.'azETahcH3a3343c316d947f68841fd7fd7c35636786eea43c64af4e8dc26dc0c1cb896ea'),
+                'payType'=>$paytype,
+                'orderId'=>$orderId,
+            ],
+            // 'headers' =>[
+            //     'Authorization' => 'Bearer '.PaymentHelper::connectTo(),
+            //     'Accept'     => 'application/json' 
+            // ]
+        ]);
+        return json_decode((string) $response->getBody(), true);
+    }
+
     //end
     public static function payTransactions($token_id,$order_id,$purchase_id,$payment_id,$amount,$entry_id,$trans_type_id,$trans_update_url,$status_id){
         $pay_transaction = new PayTransaction();
@@ -365,5 +387,8 @@ class PaymentHelper
         $pay_trasaction_log->response = $response;
         $pay_trasaction_log->transaction_log_type = $transaction_log_type;
         $pay_trasaction_log->save();
+    }
+    public static function getTransaction($token_id){
+        return PayTransaction::where("token_id",$token_id)->first();
     }
 }
