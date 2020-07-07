@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Payments;
 use App\Helpers\Helper;
 use App\Helpers\PaymentHelper;
 use App\Http\Controllers\Controller;
+use App\Payment;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 use App\PayTransaction;
 use DB;
+use Carbon\Carbon;
 class PaymentLobbyController extends Controller
 {
     //
@@ -143,6 +145,19 @@ class PaymentLobbyController extends Controller
                         $payment_method_code = "STRIPE";
                         $player_details = $this->_getClientDetails("token",$token);
                         $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,13,$request->input("amount"),2,1,$request->input("callBackUrl"),6);
+                    }
+                    elseif($request->payment_method == "CATPAY")
+                    {
+                        /*
+                        entry type 2 = credit
+                        transaction type 1 = deposit
+                        status 6 = pending
+                        method_id = 10 IWALLET
+                        */
+                        $payment_method = "catpay";
+                        $payment_method_code = "CATPAY";
+                        $player_details = $this->_getClientDetails("token",$token);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,14,$request->input("amount"),2,1,$request->input("callBackUrl"),6);
                     }
                     else{
                         $response = array(
@@ -664,6 +679,77 @@ class PaymentLobbyController extends Controller
                                 "status"=>$ebanco_trans["status"],
                             );
                         }
+                    }
+                    else{
+                        $response = array(
+                            "error" => "INVALID_REQUEST",
+                            "message" => "Invalid input / missing input in EBANCO"
+                        );
+                        return response($response,401)->header('Content-Type', 'application/json');
+                    }
+                }
+                elseif($request->input("payment_method") == "CATPAY"){
+                    if($request->has("amount")&&$request->has("paytype")){
+                        $transaction = PaymentHelper::getTransaction($player_details->token_id);
+                        $order = array(
+                            'order' => array(
+                                "streetName"=>"",
+                                "sumPrice" => $request->amount,
+                                "freight">6,
+                                "name"=>$player_details->display_name,
+                                "mobile"=>""
+                            ),
+                            "orderId"=>$transaction->id
+                            );
+                        $catpay_transaction = PaymentHelper::launchCatPayPayment(json_encode($order),$request->paytype,$transaction->id);
+                        $return_data = array(
+                            "transaction_id" => $transaction->id,
+                            "payment_page" =>config('providerlinks.payment.catpay.url_redirect').$catpay_transaction["result"]["payPage"]
+                                            .'?token='.$catpay_transaction["result"]["token"].'&orderId='.$transaction->id.'&price='.$request->amount.'&flowId='.$catpay_transaction["result"]["flowId"]
+                                            .'&noteNum='.$catpay_transaction["result"]["noteNum"].'&payType='.$catpay_transaction["result"]["payType"].'&providerMobile='.$catpay_transaction["result"]["providerMobile"],
+                            "status"=>"PENDING"
+                        );
+                        $status="HELD";
+                        $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
+                        $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
+                        try{
+                            $http = new Client();
+                            $responsefromclient = $http->post($transaction->trans_update_url,[
+                                'form_params' => [
+                                    'transaction_id' => $transaction->id,
+                                    'orderId' => $transaction->orderId,
+                                    'amount'=> $transaction->amount,
+                                    'client_player_id' => $player_details->player_id,
+                                    'status' => $status,
+                                    'message' => "Hi! Thank you for choosing CatPay. Your Payment is in held and waiting for final payment.",
+                                    'AuthenticationCode' => $authenticationCode
+                                ],
+                            ]);
+                            $requesttoclient = array(
+                                    'transaction_id' => $transaction->id,
+                                    'orderId' => $transaction->orderId,
+                                    'amount'=> $transaction->amount,
+                                    'client_player_id' => $player_details->player_id,
+                                    'status' => $status,
+                                    'message' => "Hi! Thank you for choosing CatPay. Your Payment is in held and waiting for final payment.",
+                                    'AuthenticationCode' => $authenticationCode
+                            );
+                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($responsefromclient->getBody()),"CATPAY Payment Transaction");
+                        }
+                        catch(ClientException $e){
+                            $requesttoclient = array(
+                                'transaction_id' => $transaction->id,
+                                'orderId' => $transaction->orderId,
+                                'amount'=> $transaction->amount,
+                                'client_player_id' => $player_details->player_id,
+                                'status' => $status,
+                                'message' => "Hi! Thank you for choosing CatPay. Your Payment is in held and waiting for final payment.",
+                                'AuthenticationCode' => $authenticationCode
+                            );
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($e),"CATPAY Payment Transaction");
+                        }
+                        return $return_data;
+                        
                     }
                     else{
                         $response = array(
@@ -1235,5 +1321,9 @@ class PaymentLobbyController extends Controller
         }
         return $converted;
     }
-    
+    public function CatPaytest(){
+        // $dt = Carbon::parse('2020-03-27');
+        //return Carbon::now('Asia/Shanghai')->timestamp;
+        return PaymentHelper::launchCatPayPayment();
+    }
 }
