@@ -335,7 +335,7 @@ class OryxGamingController extends Controller
 											      "transferid" => "",
 											      "rollback" => "false",
 											      "currencycode" => $player_details->currency,
-											      "amount" => ($transactiontype == 'debit' ? "-" : "").$json_data[$key]["amount"]
+											      "amount" => /*($transactiontype == 'debit' ? "-" : "").*/$json_data[$key]["amount"]
 											]
 										  ]
 										]
