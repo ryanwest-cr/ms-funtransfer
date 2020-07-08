@@ -93,14 +93,14 @@ class GameLobby{
             'user_id'=> $client_player_details->player_id,
             'language'=> $client_player_details->language ? $client_player_details->language : 'en',
           ],
-          "denomination" => '0.1', // device to play
+          "denomination" => '1.0', // game to be launched with
           "currency" => $client_player_details->default_currency,
           "return_url_info" => true, // url link
           "callback_version" => 2, // POST CALLBACK
         ];
         $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.evoplay.secretkey'));
         $requesttosend['signature'] = $signature;
-        Helper::saveLog('GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_encode($requesttosend));
+        // Helper::saveLog('GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_encode($requesttosend));
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/x-www-form-urlencoded',
