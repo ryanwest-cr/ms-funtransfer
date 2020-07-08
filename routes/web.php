@@ -232,4 +232,4 @@ $app->post('api/iwallet/makeremittance','IWalletController@makeRemittance');
 
 $app->post('game/lang','GameLobby\GameLobbyController@getLanguage');
 
-$app->post('catpay/launch','Payments\PaymentLobbyController@CatPaytest');
+$app->post('payment/catpay/callBack','Payments\PaymentGatewayController@catpayCallback');

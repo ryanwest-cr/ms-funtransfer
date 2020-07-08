@@ -902,5 +902,29 @@ class PaymentGatewayController extends Controller
         ));
 
         return $update_withdraw;    
+    }
+    public function catpayCallback(Request $request){
+        PaymentHelper::savePayTransactionLogs(123,json_encode($request, true), "","CATPAY CALLBACK TRANSACTION");
+        $datafromprovider=array(
+            "statusid"=>$request->statusId,
+            "orderId"=>$request->orderId,
+            "blockCPayOrder" => $request->blockCPayOrder,
+            "orderPrice"=>$request->orderPrice,
+            "message" =>$request->message,
+            "sign"=>$request->sign,
+            "md5Key" => $request->md5Key,
+        );
+        if($datafromprovider["message"]=='success' && $datafromprovider["statusid"]=='15')
+        {
+            $price =sprintf("%.2f",$datafromprovider["orderPrice"]);
+            $mysign = md5($datafromprovider["blockCPayOrder"].$price.$datafromprovider["orderId"].$datafromprovider["statusid"].$datafromprovider["message"].$datafromprovider["md5Key"]);
+            if($mysign != $datafromprovider["sign"])
+            {
+                return 'Failed verification';
+            }
+            return 'SUCCESS';
+        }
+        return 'FAIL';
+        PaymentHelper::savePayTransactionLogs(123,json_encode($request, true), json_encode($datafromprovider),"CATPAY CALLBACK TRANSACTION");
     }   
 }

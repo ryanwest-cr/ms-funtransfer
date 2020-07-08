@@ -18,7 +18,7 @@ class PaymentLobbyController extends Controller
     //
     private $payment_lobby_url = "https://pay-staging.betrnk.games";
     // private $payment_lobby_url = 'http://middleware.freebetrnk.com/public';
-    // private $payment_lobby_url = "http://127.0.0.1:8001";
+    //private $payment_lobby_url = "http://127.0.0.1:8000";
     public function paymentLobbyLaunchUrl(Request $request){
         if($request->has("callBackUrl")
             &&$request->has("exitUrl")
@@ -690,7 +690,7 @@ class PaymentLobbyController extends Controller
                 }
                 elseif($request->input("payment_method") == "CATPAY"){
                     if($request->has("amount")&&$request->has("paytype")){
-                        $transaction = PaymentHelper::getTransaction($player_details->token_id);
+                        $transaction = PaymentHelper::getTransaction("token",$player_details->token_id);
                         $order = array(
                             'order' => array(
                                 "streetName"=>"",
