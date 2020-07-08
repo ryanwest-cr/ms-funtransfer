@@ -63,7 +63,8 @@ class EightProviderController extends Controller
 		Helper::saveLog('8P index FORMDATA', 19, json_encode($request->all()), 'ENDPOINT HIT');
 		if($request->name == 'init'){
 
-			return json_encode('init');
+			$game_init = $this->gameInitialize($request->all());
+			return json_encode($game_init);
 
 		}elseif($request->name == 'bet'){
 				
@@ -72,7 +73,6 @@ class EightProviderController extends Controller
 
 		}elseif($request->name == 'win'){
 
-			return json_encode('win');
 
 		}elseif($request->name == 'refund'){
 
@@ -145,20 +145,19 @@ class EightProviderController extends Controller
 	}
 
 
-	public function getGames(){
+	public function gameInitialize($data){
 
-		// $requesttosend = [
-		//   "project" => $this->project_id,
-		//   "version" => 2,
-		// ];
-		// $signature = $this->getSignature($requesttosend, $this->secret_key);
-		// $requesttosend['signature'] = $signature;
-		// $client = new Client();
-		// $response = $client->post('http://api.8provider.com/game/getlist',[
-		// 		'form_params' => $requesttosend,
-		// ]);
+		$player_details = ProviderHelper::playerDetailsCall($data['token']);
+		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
 
-  //       return $res = json_decode($response->getBody(),TRUE);
+		$response = array(
+			'status' => 'ok',
+			'data' => [
+				'balance' => $player_details->playerdetailsresponse->balance,
+				'currency' => $client_details->default_currency,
+			],
+	 	 );
+	  	return $response;
 	}
 
 
