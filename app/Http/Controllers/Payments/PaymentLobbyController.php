@@ -18,7 +18,7 @@ class PaymentLobbyController extends Controller
     //
     private $payment_lobby_url = "https://pay-staging.betrnk.games";
     // private $payment_lobby_url = 'http://middleware.freebetrnk.com/public';
-    // private $payment_lobby_url = "http://127.0.0.1:8001";
+    //private $payment_lobby_url = "http://127.0.0.1:8000";
     public function paymentLobbyLaunchUrl(Request $request){
         if($request->has("callBackUrl")
             &&$request->has("exitUrl")
@@ -690,7 +690,7 @@ class PaymentLobbyController extends Controller
                 }
                 elseif($request->input("payment_method") == "CATPAY"){
                     if($request->has("amount")&&$request->has("paytype")){
-                        $transaction = PaymentHelper::getTransaction($player_details->token_id);
+                        $transaction = PaymentHelper::getTransaction("token",$player_details->token_id);
                         $order = array(
                             'order' => array(
                                 "streetName"=>"",
@@ -699,23 +699,46 @@ class PaymentLobbyController extends Controller
                                 "name"=>$player_details->display_name,
                                 "mobile"=>""
                             ),
-                            "orderId"=>$transaction->id
+                            "orderId"=>$transaction->orderId
                             );
-                        $catpay_transaction = PaymentHelper::launchCatPayPayment(json_encode($order),$request->paytype,$transaction->id);
-                        $return_data = array(
-                            "transaction_id" => $transaction->id,
-                            "payment_page" =>config('providerlinks.payment.catpay.url_redirect').$catpay_transaction["result"]["payPage"]
-                                            .'?token='.$catpay_transaction["result"]["token"].'&orderId='.$transaction->id.'&price='.$request->amount.'&flowId='.$catpay_transaction["result"]["flowId"]
-                                            .'&noteNum='.$catpay_transaction["result"]["noteNum"].'&payType='.$catpay_transaction["result"]["payType"].'&providerMobile='.$catpay_transaction["result"]["providerMobile"],
-                            "status"=>"PENDING"
-                        );
-                        $status="HELD";
-                        $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
-                        $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
-                        try{
-                            $http = new Client();
-                            $responsefromclient = $http->post($transaction->trans_update_url,[
-                                'form_params' => [
+                        $catpay_transaction = PaymentHelper::launchCatPayPayment(json_encode($order),$request->paytype,$transaction->orderId);
+                        if(array_key_exists("result",$catpay_transaction)){
+                            $return_data = array(
+                                "transaction_id" => $transaction->id,
+                                "payment_page" =>config('providerlinks.payment.catpay.url_redirect').$catpay_transaction["result"]["payPage"]
+                                                .'?token='.$catpay_transaction["result"]["token"].'&orderId='.$transaction->id.'&price='.$request->amount.'&flowId='.$catpay_transaction["result"]["flowId"]
+                                                .'&noteNum='.$catpay_transaction["result"]["noteNum"].'&payType='.$catpay_transaction["result"]["payType"].'&providerMobile='.$catpay_transaction["result"]["providerMobile"],
+                                "status"=>"PENDING"
+                            );
+                            $status="HELD";
+                            $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
+                            $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
+                            try{
+                                $http = new Client();
+                                $responsefromclient = $http->post($transaction->trans_update_url,[
+                                    'form_params' => [
+                                        'transaction_id' => $transaction->id,
+                                        'orderId' => $transaction->orderId,
+                                        'amount'=> $transaction->amount,
+                                        'client_player_id' => $player_details->player_id,
+                                        'status' => $status,
+                                        'message' => "Hi! Thank you for choosing CatPay. Your Payment is in held and waiting for final payment.",
+                                        'AuthenticationCode' => $authenticationCode
+                                    ],
+                                ]);
+                                $requesttoclient = array(
+                                        'transaction_id' => $transaction->id,
+                                        'orderId' => $transaction->orderId,
+                                        'amount'=> $transaction->amount,
+                                        'client_player_id' => $player_details->player_id,
+                                        'status' => $status,
+                                        'message' => "Hi! Thank you for choosing CatPay. Your Payment is in held and waiting for final payment.",
+                                        'AuthenticationCode' => $authenticationCode
+                                );
+                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($responsefromclient->getBody()),"CATPAY Payment Transaction");
+                            }
+                            catch(ClientException $e){
+                                $requesttoclient = array(
                                     'transaction_id' => $transaction->id,
                                     'orderId' => $transaction->orderId,
                                     'amount'=> $transaction->amount,
@@ -723,33 +746,15 @@ class PaymentLobbyController extends Controller
                                     'status' => $status,
                                     'message' => "Hi! Thank you for choosing CatPay. Your Payment is in held and waiting for final payment.",
                                     'AuthenticationCode' => $authenticationCode
-                                ],
-                            ]);
-                            $requesttoclient = array(
-                                    'transaction_id' => $transaction->id,
-                                    'orderId' => $transaction->orderId,
-                                    'amount'=> $transaction->amount,
-                                    'client_player_id' => $player_details->player_id,
-                                    'status' => $status,
-                                    'message' => "Hi! Thank you for choosing CatPay. Your Payment is in held and waiting for final payment.",
-                                    'AuthenticationCode' => $authenticationCode
-                            );
-                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($responsefromclient->getBody()),"CATPAY Payment Transaction");
+                                );
+                                PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($e),"CATPAY Payment Transaction");
+                            }
+                            return $return_data;
                         }
-                        catch(ClientException $e){
-                            $requesttoclient = array(
-                                'transaction_id' => $transaction->id,
-                                'orderId' => $transaction->orderId,
-                                'amount'=> $transaction->amount,
-                                'client_player_id' => $player_details->player_id,
-                                'status' => $status,
-                                'message' => "Hi! Thank you for choosing CatPay. Your Payment is in held and waiting for final payment.",
-                                'AuthenticationCode' => $authenticationCode
-                            );
-                            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($e),"CATPAY Payment Transaction");
+                        else{
+                            PaymentHelper::savePayTransactionLogs($transaction->id,"",json_encode($catpay_transaction),"CATPAY Payment Transaction");
+                            return $catpay_transaction;
                         }
-                        return $return_data;
-                        
                     }
                     else{
                         $response = array(

@@ -388,7 +388,12 @@ class PaymentHelper
         $pay_trasaction_log->transaction_log_type = $transaction_log_type;
         $pay_trasaction_log->save();
     }
-    public static function getTransaction($token_id){
-        return PayTransaction::where("token_id",$token_id)->first();
+    public static function getTransaction($type,$data){
+        if($type == "token"){
+            return PayTransaction::where("token_id",$data)->first();
+        }
+        elseif($type == "orderid"){
+            return PayTransaction::where("orderId",$data)->first();
+        }
     }
 }
