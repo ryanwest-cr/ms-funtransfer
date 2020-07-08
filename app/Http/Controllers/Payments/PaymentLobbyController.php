@@ -710,6 +710,18 @@ class PaymentLobbyController extends Controller
                                                 .'&noteNum='.$catpay_transaction["result"]["noteNum"].'&payType='.$catpay_transaction["result"]["payType"].'&providerMobile='.$catpay_transaction["result"]["providerMobile"],
                                 "status"=>"PENDING"
                             );
+                            $converted = $this->currencyConverter($player_details->default_currency,$request->currency,$request->amount);
+                            $data = array(
+                                "token_id" => $player_details->token_id,
+                                "purchase_id" => $transaction->orderId,
+                                "reference_number" => $catpay_transaction["result"]["noteNum"],
+                                "from_currency" =>$converted[0]["currency_to"],
+                                "input_amount"=>$request->amount,
+                                "exchange_rate"=>$converted[0]["exchange_rate"],
+                                "amount" => $converted[0]["amount"],
+                                "status_id" => 6
+                                );
+                            $transaction = PaymentHelper::updateTransaction($data);
                             $status="HELD";
                             $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
                             $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
@@ -759,7 +771,7 @@ class PaymentLobbyController extends Controller
                     else{
                         $response = array(
                             "error" => "INVALID_REQUEST",
-                            "message" => "Invalid input / missing input in EBANCO"
+                            "message" => "Invalid input / missing input in CATPAY"
                         );
                         return response($response,401)->header('Content-Type', 'application/json');
                     }
