@@ -32,7 +32,7 @@ class EightProviderController extends Controller
 	// 97e464b9b6e4d2de3b5d36facffa9556
 
     /**
-     * GetSignature 
+     * GetSignature  NOT FULLY IMPLEMENTED
      * @return string
      *
      */
