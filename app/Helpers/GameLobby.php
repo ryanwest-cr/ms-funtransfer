@@ -338,7 +338,12 @@ class GameLobby{
         return $url;
     }
 
-
+    public static function oryxLaunchUrl($game_code,$token,$exitUrl){
+        $url = $exitUrl;
+        $url = 'https://cdn.oryxgaming.com/badges/ORX/_P168/2019-P09.05/index.html?token='.$token.'&gameCode='.$game_code.'&languageCode=ENG&play_mode=REAL&lobbyUrl=OFF';
+        return $url;
+    }
+    
     public static function getLanguage($provider_name,$language){
         $provider_language = DB::table("providers")->where("provider_name",$provider_name)->get();
         $languages = json_decode($provider_language[0]->languages,TRUE);
