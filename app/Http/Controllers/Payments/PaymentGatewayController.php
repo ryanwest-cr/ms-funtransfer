@@ -930,7 +930,7 @@ class PaymentGatewayController extends Controller
                                     ->leftJoin("players as p","pst.player_id","=","p.player_id")
                                     ->where("pst.token_id",$transaction->token_id)
                                     ->first();
-            $key = $transaction->id.'|'.$client_player_id->client_player_id.'|'.$request->status;
+            $key = $transaction->id.'|'.$client_player_id->client_player_id.'|SUCCESS';
             $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
             $message = "Thank you! Your Payment using CATPAY has successfully completed.";
             $http = new Client();
@@ -980,7 +980,7 @@ class PaymentGatewayController extends Controller
                 'amount'=> $transaction->amount,
                 'client_player_id' => $client_player_id->client_player_id,
                 'client_id' =>$client_player_id->client_id,
-                'status' => "SUCCESS",
+                'status' => "FAILED",
                 'message'=> $message,
                 'AuthenticationCode' => $authenticationCode
             ],
@@ -992,7 +992,7 @@ class PaymentGatewayController extends Controller
                 'amount'=> $transaction->amount,
                 'client_player_id' => $client_player_id->client_player_id,
                 'client_id' =>$client_player_id->client_id,
-                'status' => "SUCCESS",
+                'status' => "FAILED",
                 'message'=> $message,
                 'AuthenticationCode' => $authenticationCode
         );
