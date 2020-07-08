@@ -111,7 +111,7 @@ class GameLobby{
         ]);
         $res = json_decode($response->getBody(),TRUE);
         // return $res;
-        Helper::saveLog('GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
+        Helper::saveLog('P8 GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
         return $res['data']['link'];
     }
 

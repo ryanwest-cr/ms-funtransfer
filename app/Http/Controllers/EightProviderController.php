@@ -73,16 +73,22 @@ class EightProviderController extends Controller
 
 		}elseif($request->name == 'win'){
 
+			$win_handler = $this->gameWin($request->all());
+			return json_encode($win_handler);
 
 		}elseif($request->name == 'refund'){
 
-			return json_encode('refund');
+			$refund_handler = $this->gameRefund($request->all());
+			return json_encode($refund_handler);
 		}
 
 	}
 
+
+
 	/**
 	 * @param data [array]
+	 * NOTE APPLY FILTER BALANCE
 	 * 
 	 */
 	public function gameBet($data){
@@ -145,6 +151,62 @@ class EightProviderController extends Controller
 	}
 
 
+
+	public function gameWin(Request $request){
+
+		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+		$requesttosend = [
+			  "access_token" => $client_details->client_access_token,
+			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			  "type" => "fundtransferrequest",
+			  "datesent" => Helper::datesent(),
+			  "gamedetails" => [
+			    "gameid" =>  "",
+			    "gamename" => ""
+			  ],
+			  "fundtransferrequest" => [
+					"playerinfo" => [
+					"token" => $data['token'],
+				],
+				"fundinfo" => [
+				      "gamesessionid" => "",
+				      "transactiontype" => 'credit',
+				      "rollback" => "false",
+				      "currencycode" => $client_details->default_currency,
+				      "amount" => $data['data']['amount']
+				]
+			  ]
+			];
+			try {
+				$client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.$client_details->client_access_token
+                    ]
+                ]);
+				$guzzle_response = $client->post($client_details->fund_transfer_url,
+					['body' => json_encode($requesttosend)]
+				);
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => $client_response->fundtransferresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+			 	 );
+			  	return $response;
+
+			}catch(\Exception $e){
+				return array(
+					"status" => 'failed',
+					"message" => $e->getMessage(),
+				);
+			}
+
+	}
+
+
 	public function gameInitialize($data){
 
 		$player_details = ProviderHelper::playerDetailsCall($data['token']);
@@ -160,31 +222,58 @@ class EightProviderController extends Controller
 	  	return $response;
 	}
 
-
-
-	public function gameWin(Request $request){
-		// Helper::saveLog('8P gameWin', 19, 19, 'ENDPOINT HIT');
-		// Helper::saveLog('8P WIN', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
-		// $response = array(
-		// 	'status' => 'ok',
-		// 	'data' => [
-		// 		'balance' => 456455.66,
-		// 		'currency' => 'USD',
-		// 	],
-		// );
-		// return $response;
-	}
 	
 	public function gameRefund(Request $request){
-		Helper::saveLog('8P gameRefund', 19, 19, 'ENDPOINT HIT');
-		$response = array(
-			'status' => 'ok',
-			'data' => [
-				'balance' => 456455.66,
-				'currency' => 'USD',
-			],
-		);
-		return $response;
+		    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+		    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
+		  	$requesttosend = [
+			  "access_token" => $client_details->client_access_token,
+			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			  "type" => "fundtransferrequest",
+			  "datesent" => Helper::datesent(),
+			  "gamedetails" => [
+			    "gameid" =>  "",
+			    "gamename" => ""
+			  ],
+			  "fundtransferrequest" => [
+					"playerinfo" => [
+					"token" => $data['token'],
+				],
+				"fundinfo" => [
+				      "gamesessionid" => "",
+				      "transactiontype" => 'debit',
+				      "rollback" => "true",
+				      "currencycode" => $client_details->default_currency,
+				      "amount" => $data['data']['amount']
+				]
+			  ]
+			];
+			try {
+				$client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.$client_details->client_access_token
+                    ]
+                ]);
+				$guzzle_response = $client->post($client_details->fund_transfer_url,
+					['body' => json_encode($requesttosend)]
+				);
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => $client_response->fundtransferresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+			 	 );
+			  	return $response;
+
+			}catch(\Exception $e){
+				return array(
+					"status" => 'failed',
+					"message" => $e->getMessage(),
+				);
+			}
 	}
 
 	public function registerBunos(){
