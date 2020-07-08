@@ -110,7 +110,7 @@ class GameLobby{
             'form_params' => $requesttosend,
         ]);
         $res = json_decode($response->getBody(),TRUE);
-        return $res;
+        // return $res;
         Helper::saveLog('GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
         return $res['data']['link'];
     }
