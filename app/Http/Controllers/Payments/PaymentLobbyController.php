@@ -699,9 +699,9 @@ class PaymentLobbyController extends Controller
                                 "name"=>$player_details->display_name,
                                 "mobile"=>""
                             ),
-                            "orderId"=>$transaction->id
+                            "orderId"=>$transaction->orderId
                             );
-                        $catpay_transaction = PaymentHelper::launchCatPayPayment(json_encode($order),$request->paytype,$transaction->id);
+                        $catpay_transaction = PaymentHelper::launchCatPayPayment(json_encode($order),$request->paytype,$transaction->orderId);
                         if(array_key_exists("result",$catpay_transaction)){
                             $return_data = array(
                                 "transaction_id" => $transaction->id,

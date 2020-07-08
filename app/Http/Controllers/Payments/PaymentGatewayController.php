@@ -17,7 +17,7 @@ class PaymentGatewayController extends Controller
 	//
     public function __construct(){
 
-		$this->middleware('oauth', ['except' => ['updatetransaction','updatePayoutTransaction']]);
+		$this->middleware('oauth', ['except' => ['updatetransaction','updatePayoutTransaction','catpayCallback']]);
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
 	}
     public function index(){
