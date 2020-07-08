@@ -904,7 +904,7 @@ class PaymentGatewayController extends Controller
         return $update_withdraw;    
     }
     public function catpayCallback(Request $request){
-        PaymentHelper::savePayTransactionLogs(123,json_encode($request, true), "","CATPAY CALLBACK TRANSACTION");
+        PaymentHelper::savePayTransactionLogs(123,json_encode($request->getContent()), "","CATPAY CALLBACK TRANSACTION");
         $datafromprovider=array(
             "statusid"=>$request->statusId,
             "orderId"=>$request->orderId,
