@@ -923,6 +923,8 @@ class PaymentGatewayController extends Controller
             {
                 return 'Failed verification';
             }
+            $transaction->status_id =5;
+            $transaction->save();
             $client_player_id = DB::table('player_session_tokens as pst')
                                     ->select("p.client_player_id","p.client_id")
                                     ->leftJoin("players as p","pst.player_id","=","p.player_id")
@@ -959,6 +961,8 @@ class PaymentGatewayController extends Controller
             PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request),json_encode($response->getBody()),"Payout Update Transaction"); 
             return 'SUCCESS';
         }
+        $transaction->status_id =3;
+        $transaction->save();
         $client_player_id = DB::table('player_session_tokens as pst')
                                     ->select("p.client_player_id","p.client_id")
                                     ->leftJoin("players as p","pst.player_id","=","p.player_id")

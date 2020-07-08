@@ -706,7 +706,7 @@ class PaymentLobbyController extends Controller
                             $return_data = array(
                                 "transaction_id" => $transaction->id,
                                 "payment_page" =>config('providerlinks.payment.catpay.url_redirect').$catpay_transaction["result"]["payPage"]
-                                                .'?token='.$catpay_transaction["result"]["token"].'&orderId='.$transaction->id.'&price='.$request->amount.'&flowId='.$catpay_transaction["result"]["flowId"]
+                                                .'?token='.$catpay_transaction["result"]["token"].'&orderId='.$transaction->orderId.'&price='.$request->amount.'&flowId='.$catpay_transaction["result"]["flowId"]
                                                 .'&noteNum='.$catpay_transaction["result"]["noteNum"].'&payType='.$catpay_transaction["result"]["payType"].'&providerMobile='.$catpay_transaction["result"]["providerMobile"],
                                 "status"=>"PENDING"
                             );
