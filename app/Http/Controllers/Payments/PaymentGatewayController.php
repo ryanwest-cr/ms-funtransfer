@@ -912,7 +912,6 @@ class PaymentGatewayController extends Controller
             "orderPrice"=>$request->orderPrice,
             "message" =>$request->message,
             "sign"=>$request->sign,
-            "md5Key" => $request->md5Key,
         );
         if($datafromprovider["message"]=='success' && $datafromprovider["statusid"]=='15')
         {
