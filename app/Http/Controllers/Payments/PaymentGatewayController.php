@@ -913,10 +913,11 @@ class PaymentGatewayController extends Controller
             "message" =>$request->message,
             "sign"=>$request->sign,
         );
+        $md5Key = "786eea43c64af4e8dc26dc0c1cb896ea";
         if($datafromprovider["message"]=='success' && $datafromprovider["statusid"]=='15')
         {
             $price =sprintf("%.2f",$datafromprovider["orderPrice"]);
-            $mysign = md5($datafromprovider["blockCPayOrder"].$price.$datafromprovider["orderId"].$datafromprovider["statusid"].$datafromprovider["message"].$datafromprovider["md5Key"]);
+            $mysign = md5($datafromprovider["blockCPayOrder"].$price.$datafromprovider["orderId"].$datafromprovider["statusid"].$datafromprovider["message"].$md5Key);
             if($mysign != $datafromprovider["sign"])
             {
                 return 'Failed verification';
