@@ -134,7 +134,7 @@ class EightProviderController extends Controller
 						'currency' => $client_details->default_currency,
 					],
 			 	 );
-			  	return $client_response;
+			  	return $response;
 
 			}catch(\Exception $e){
 				return array(
