@@ -91,7 +91,7 @@ class ProviderHelper{
 	 */
 	public static function playerDetailsCall($player_token, $refreshtoken=false){
 
-		$client_details = ProviderHelper::_getClientDetails('token', $player_token);
+		$client_details = ProviderHelper::getClientDetails('token', $player_token);
 					 
 		if($client_details){
 			try{
