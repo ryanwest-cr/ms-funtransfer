@@ -141,15 +141,18 @@ $app->post('/api/bole/wallet/player/cost', 'BoleGamingController@playerWalletCos
 $app->post('/api/bole/wallet/player/balance', 'BoleGamingController@playerWalletBalance');
 // 8PROVIDERS TEST
 $app->post('/api/eightprovider', 'EightProviderController@index');
+$app->post('/api/eightprovider/test', 'EightProviderController@testcall'); // TEST
+
+
 $app->post('/api/eightprovider/getlist', 'EightProviderController@getGames');
-$app->post('/api/eightprovider/geturl', 'EightProviderController@gameUrl');
-$app->post('/api/eightprovider/registerbunos', 'EightProviderController@registerBunos');
-$app->post('/api/eightprovider/init', 'EightProviderController@gameInit');
-$app->post('/api/eightprovider/bet', 'EightProviderController@gameBet');
-$app->post('/api/eightprovider/win', 'EightProviderController@gameWin');
-$app->post('/api/eightprovider/refund', 'EightProviderController@gameRefund');
-$app->post('/api/eightprovider/deposit', 'EightProviderController@gameDeposit');
-$app->post('/api/eightprovider/withdrawal', 'EightProviderController@gameWithdrawal');
+$app->post('/api/eightprovider/geturl', 'EightProviderController@gameUrl'); // DEPRECATED
+$app->post('/api/eightprovider/registerbunos', 'EightProviderController@registerBunos'); // DEPRECATED
+$app->post('/api/eightprovider/init', 'EightProviderController@gameInit'); // DEPRECATED
+$app->post('/api/eightprovider/bet', 'EightProviderController@gameBet'); // DEPRECATED
+$app->post('/api/eightprovider/win', 'EightProviderController@gameWin'); // DEPRECATED
+$app->post('/api/eightprovider/refund', 'EightProviderController@gameRefund'); // DEPRECATED
+$app->post('/api/eightprovider/deposit', 'EightProviderController@gameDeposit'); // DEPRECATED
+$app->post('/api/eightprovider/withdrawal', 'EightProviderController@gameWithdrawal'); // DEPRECATED
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 

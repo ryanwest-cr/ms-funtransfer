@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
 use App\Helpers\CallParameters;
+use App\Helpers\ProviderHelper;
 
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
@@ -48,120 +49,130 @@ class EightProviderController extends Controller
 	    };
 	    $md5[] = $system_key;
 	    $md5_str = implode('*', $md5);
-	    // return $md5_str;	
 	    $md5 = md5($md5_str);
-
 	    return $md5;
 	}
 
+	/**
+	 * @author's note single method that will consume different API call
+	 * @param name = bet, win, refund,
+	 * 
+	 */
 	public function index(Request $request){
-		Helper::saveLog('8P index', 19, 19, 'ENDPOINT HIT');
-		Helper::saveLog('8P index', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
-		Helper::saveLog('8P index getcontent', 19, json_encode($request->getContent()), 'ENDPOINT HIT');
+
 		Helper::saveLog('8P index FORMDATA', 19, json_encode($request->all()), 'ENDPOINT HIT');
+		if($request->name == 'init'){
 
-		return 'endpoint reached';
-	}
+			$game_init = $this->gameInitialize($request->all());
+			return json_encode($game_init);
+
+		}elseif($request->name == 'bet'){
+				
+			$bet_handler = $this->gameBet($request->all());
+			return json_encode($bet_handler);
+
+		}elseif($request->name == 'win'){
 
 
-	public function getGames(){
+		}elseif($request->name == 'refund'){
 
-		$requesttosend = [
-		  "project" => $this->project_id,
-		  "version" => 2,
-		];
-		$signature = $this->getSignature($requesttosend, $this->secret_key);
-		$requesttosend['signature'] = $signature;
-		$client = new Client();
-		$response = $client->post('http://api.8provider.com/game/getlist',[
-				'form_params' => $requesttosend,
-		]);
-
-        return $res = json_decode($response->getBody(),TRUE);
+			return json_encode('refund');
+		}
 
 	}
 
-	//http://api.8provider.com/game/getlist?project=1&version=1&signature=5a4174196eb3b134f23c56deac02ac53 
-	// public function gameUrl(Request $request){
-	// 	Helper::saveLog('8P Game Init', 14, 14, 'ENDPOINT HIT');
-	// 	$requesttosend = [
-	// 	  "project" => $this->project_id,
- //          "version" => 1,
-	// 	  "token" => 'j45h67j45h7g45k45j7hk45j74k57g4k5jg74k574k7j4k57',
-	// 	  "game" => '98',
-	// 	  "settings" =>  ['user_id'=>'61','language'=>'en'],
-	// 	  "denomination" => '0.1',
-	// 	  "currency" => "USD",
-	// 	  "return_url_info" => true,
- //          "callback_version" => 2,
-	// 	  "settings" =>  [
-	// 		  "user_id"=>'61',
-	// 		  "language"=>'en',
-	// 	   ],
-	// 	];
-	// 	$signature = $this->getSignature($requesttosend, $this->secret_key);
-	// 	$requesttosend['signature'] = $signature;
- //        $client = new Client([
- //            'headers' => [ 
- //                'Content-Type' => 'application/x-www-form-urlencoded',
- //            ]
- //        ]);
- //        $response = $client->post('http://api.8provider.com/game/geturl',[
-	// 		'form_params' => $requesttosend,
-	// 	]);
- //        $res = json_decode($response->getBody(),TRUE);
- //        dd($res);
-	// }
+	/**
+	 * @param data [array]
+	 * 
+	 */
+	public function gameBet($data){
 
+		    // return $details = $data;
+		    // $newStr = str_replace("\\", '', $details);
+		    // $fist_encode = json_encode($newStr, false);
+		    // return gettype($fourth_encode);
 
-	public function registerBunos(){
-		$client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ]
-        ]);
-		$response = $client->post('http://api.8provider.com/game/registerbonus',[
-			'form_params' => [
-				  "project" => $this->project_id,
-	              "version" => 2,
-				  "token" => 'j45h67j45h7g45k45j7hk45j74k57g4k5jg74k574k7j4k57',
-				  "game" => '99',
-				  'currency'=>'USD',
-				  "settings" => ['user_id' => '61'],
-				  "extra_bonuses" => [],
-				  "signature" => md5('1042*2*j45hg67j45h7g45k45j7hk45j74k57g4k5jg74k574k7j4k57*USD*99*61*c270d53d4d83d69358056dbca870c0ce'),
-			],
-		]);
-        $res = json_decode($response->getBody(),TRUE);
-         return $res;
+		    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+		    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
+		  	$requesttosend = [
+			  "access_token" => $client_details->client_access_token,
+			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			  "type" => "fundtransferrequest",
+			  "datesent" => Helper::datesent(),
+			  "gamedetails" => [
+			    "gameid" =>  "",
+			    "gamename" => ""
+			  ],
+			  "fundtransferrequest" => [
+					"playerinfo" => [
+					"token" => $data['token'],
+				],
+				"fundinfo" => [
+				      "gamesessionid" => "",
+				      "transactiontype" => 'debit',
+				      "rollback" => "false",
+				      "currencycode" => $client_details->default_currency,
+				      "amount" => $data['data']['amount']
+				]
+			  ]
+			];
+			try {
+				$client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.$client_details->client_access_token
+                    ]
+                ]);
+				$guzzle_response = $client->post($client_details->fund_transfer_url,
+					['body' => json_encode($requesttosend)]
+				);
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => $client_response->fundtransferresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+			 	 );
+			  	return $response;
+
+			}catch(\Exception $e){
+				return array(
+					"status" => 'failed',
+					"message" => $e->getMessage(),
+				);
+			}
 	}
 
-	public function gameBet(Request $request){
-		Helper::saveLog('8P gameBet', 19, 19, 'ENDPOINT HIT');
-			
-		Helper::saveLog('8P BET', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
 
-		Helper::saveLog('8P BET FORMDATA', 19, json_encode($request->all()), 'ENDPOINT HIT');
+	public function gameInitialize($data){
 
+		$player_details = ProviderHelper::playerDetailsCall($data['token']);
+		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
 
-		return 'endpoint reached';
-
-		// $guzzle_response = $client->post($client_details->fund_transfer_url,
-		// 		['body' => json_encode($requesttosend)]
-		// );
-	}
-
-	public function gameWin(Request $request){
-		Helper::saveLog('8P gameWin', 19, 19, 'ENDPOINT HIT');
-		Helper::saveLog('8P WIN', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$response = array(
 			'status' => 'ok',
 			'data' => [
-				'balance' => 456455.66,
-				'currency' => 'USD',
+				'balance' => $player_details->playerdetailsresponse->balance,
+				'currency' => $client_details->default_currency,
 			],
-		);
-		return $response;
+	 	 );
+	  	return $response;
+	}
+
+
+
+	public function gameWin(Request $request){
+		// Helper::saveLog('8P gameWin', 19, 19, 'ENDPOINT HIT');
+		// Helper::saveLog('8P WIN', 19, file_get_contents("php://input"), 'ENDPOINT HIT');
+		// $response = array(
+		// 	'status' => 'ok',
+		// 	'data' => [
+		// 		'balance' => 456455.66,
+		// 		'currency' => 'USD',
+		// 	],
+		// );
+		// return $response;
 	}
 	
 	public function gameRefund(Request $request){
@@ -176,20 +187,42 @@ class EightProviderController extends Controller
 		return $response;
 	}
 
+	public function registerBunos(){
+		// $client = new Client([
+  //           'headers' => [ 
+  //               'Content-Type' => 'application/x-www-form-urlencoded',
+  //           ]
+  //       ]);
+		// $response = $client->post('http://api.8provider.com/game/registerbonus',[
+		// 	'form_params' => [
+		// 		  "project" => $this->project_id,
+	 //              "version" => 2,
+		// 		  "token" => 'j45h67j45h7g45k45j7hk45j74k57g4k5jg74k574k7j4k57',
+		// 		  "game" => '99',
+		// 		  'currency'=>'USD',
+		// 		  "settings" => ['user_id' => '61'],
+		// 		  "extra_bonuses" => [],
+		// 		  "signature" => md5('1042*2*j45hg67j45h7g45k45j7hk45j74k57g4k5jg74k574k7j4k57*USD*99*61*c270d53d4d83d69358056dbca870c0ce'),
+		// 	],
+		// ]);
+  //       $res = json_decode($response->getBody(),TRUE);
+  //        return $res;
+	}
+
 
 	/**
 	 *  TEST
 	 * 
 	 */
 	public function gameDeposit(Request $request){
-		Helper::saveLog('8P Deposit', 19, 19, 'ENDPOINT HIT');
-		$response = array(
-			'status' => 'ok',
-			'data' => [
-				'balance' => 456455.66,
-				'currency' => 'USD',
-			],
-		);
+		// Helper::saveLog('8P Deposit', 19, 19, 'ENDPOINT HIT');
+		// $response = array(
+		// 	'status' => 'ok',
+		// 	'data' => [
+		// 		'balance' => 456455.66,
+		// 		'currency' => 'USD',
+		// 	],
+		// );
 	
 		return $response;
 	}
