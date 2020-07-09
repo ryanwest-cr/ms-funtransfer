@@ -118,10 +118,10 @@ class ProviderHelper{
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
 			 	return $client_response;
             }catch (\Exception $e){
-               return false;
+               return 'false';
             }
 		}else{
-			return false;
+			return 'false';
 		}
 	}
 }
