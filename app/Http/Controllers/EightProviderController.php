@@ -36,28 +36,14 @@ class EightProviderController extends Controller
      * @return string
      *
      */
-	// public function getSignature(array $args, $system_key){
-	//     $md5 = array();
-	//     $args = array_filter($args, function($val){ return !($val === null || (is_array($val) && !$val));});
-	//     foreach ($args as $required_arg) {
-	//         $arg = $required_arg;
-	//         if (is_array($arg)) {
-	//             $md5[] = implode(':', array_filter($arg, function($val){ return !($val === null || (is_array($val) && !$val));}));
-	//         } else {
-	//             $md5[] = $arg;
-	//         }
-	//     };
-	//     $md5[] = $system_key;
-	//     $md5_str = implode('*', $md5);
-	//     return $md5_str;
-	//     $md5 = md5($md5_str);
-	//     return $md5;
-	// }
-
 	public function getSignature($system_id, $callback_version, array $args, $system_key){
 	    $md5 = array();
 	    $md5[] = $system_id;
 	    $md5[] = $callback_version;
+
+	    $signature = $args['signature']; // store the signature
+	    unset($args['signature']); // remove signature from the array
+
 	    $args = array_filter($args, function($val){ return !($val === null || (is_array($val) && !$val));});
 	    foreach ($args as $required_arg) {
 	        $arg = $required_arg;
@@ -70,9 +56,13 @@ class EightProviderController extends Controller
 
 	    $md5[] = $system_key;
 	    $md5_str = implode('*', $md5);
-	    return $md5_str;
 	    $md5 = md5($md5_str);
-	    return $md5;
+
+	    if($md5 == $signature){  // Generate Hash And Check it also!
+	    	return 'true';
+	    }else{
+	    	return 'false';
+	    }
 	}
 
 	/**
@@ -82,6 +72,17 @@ class EightProviderController extends Controller
 	 */
 	public function index(Request $request){
 		Helper::saveLog('8P index '.$request->name, 19, json_encode($request->all()), 'ENDPOINT HIT');
+
+		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->secret_key);
+		if($signature_checker == 'false'):
+			$msg = array(
+						"status" => 'error',
+						"error" => ["scope" => "user","no_refund" => 1,"message" => "Signature is invalid!"]
+					);
+			Helper::saveLog('8P Signature Failed '.$request->name, 19, json_encode($request->all()), $msg);
+			return $msg;
+		endif;
+
 		if($request->name == 'init'){
 
 			$game_init = $this->gameInitialize($request->all());
@@ -89,16 +90,11 @@ class EightProviderController extends Controller
 
 		}elseif($request->name == 'bet'){
 
+
 			$bet_handler = $this->gameBet($request->all());
 			return json_encode($bet_handler);
 
 		}elseif($request->name == 'win'){
-
-			// return json_encode(md5('1042*1*n58ec5e159f769ae0b7b3a0774fdbf80*1uvi1gcdwspp1*win*0318b8a04a49599a1c8b660968c0c0f49dc3d64466b445a7:356176b054ccad86dd28edf9b25f7cd607ea17706b6b83af:1:400:USD:{"game":{"game_id":104,"absolute_name":"fullstate\html5\evoplay\basketball"},"currency_rate":{"currency":"USD","rate":1},"bet":1,"lines":122,"total_bet":122,"balance_before_pay":"122222.0000","pay_for_action_this_round":122};*c270d53d4d83d69358056dbca870c0ce'));
-
-			// return json_encode(md5('1042*2*n58ec5e159f769ae0b7b3a0774fdbf80*1uvi1gcdwspp1*win*0318b8a04a49599a1c8b660968c0c0f49dc3d64466b445a7:356176b054ccad86dd28edf9b25f7cd607ea17706b6b83af:1:400:USD:104:fullstate\html5\evoplay\basketball:USD:1:1:122:122:122222.0000:122*c270d53d4d83d69358056dbca870c0ce'));
-		
-			// return json_encode($this->getSignature($this->project_id, 2, $request->all(), $this->secret_key));
 
 			$win_handler = $this->gameWin($request->all());
 			return json_encode($win_handler);
