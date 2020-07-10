@@ -217,14 +217,15 @@ class EightProviderController extends Controller
 				}
 		    else:
 		    	// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-				// $msg = array(
-				// 		"status" => 'error',
-				// 		"error" => [
-				// 			 "scope" => "user",
-				// 	         "no_refund" => 1, 
-				// 	         "message" => "Bet Already Processed",
-				// 		]
-				// );
+				$msg = array(
+						"status" => 'error',
+						"error" => [
+							 "scope" => "user",
+					         "no_refund" => 1, 
+					         "message" => "Bet Already Processed",
+						]
+				);
+				Helper::saveLog('8Provider'.$data['data']['round_id'], 19, json_encode($data), json_encode($msg));
 				// return $msg;
 		    endif;
 	}
@@ -307,6 +308,7 @@ class EightProviderController extends Controller
 						return $msg;
 					}
 			else:
+				// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 				$msg = array(
 					"status" => 'error',
 					"error" => [
@@ -315,19 +317,21 @@ class EightProviderController extends Controller
 				         "message" => "No Bet record was found!",
 					]
 				);
-				return $msg;
+				Helper::saveLog('8Provider No Log Win'.$data['data']['round_id'], 19, json_encode($data), json_encode($msg));
+				// return $msg; // RETURN NOTHING!
 			endif;
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			// $msg = array(
-			// 		"status" => 'error',
-			// 		"error" => [
-			// 			 "scope" => "user",
-			// 	         "no_refund" => 1, 
-			// 	         "message" => "Win Already Processed",
-			// 		]
-			// );
-			// return $msg;
+			$msg = array(
+					"status" => 'error',
+					"error" => [
+						 "scope" => "user",
+				         "no_refund" => 1, 
+				         "message" => "Win Already Processed",
+					]
+			);
+			Helper::saveLog('8Provider Win'.$data['data']['round_id'], 19, json_encode($data), json_encode($msg));
+			// return $msg; // RETURN NOTHING!
 		endif;
 	}
 
@@ -410,18 +414,28 @@ class EightProviderController extends Controller
 				return $msg;
 			}
 		else:
-			// DO NOTHING
+			// NO BET WAS FOUND DO NOTHING
+			$msg = array(
+					"status" => 'error',
+					"error" => [
+						 "scope" => "user",
+				         "no_refund" => 1, 
+				         "message" => "No Transaction Was Found",
+					]
+			);
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], 19, json_encode($data), json_encode($msg));
 		endif;
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS/DUPLICATE PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			// $msg = array(
-			// 		"status" => 'error',
-			// 		"error" => [
-			// 			 "scope" => "user",
-			// 	         "no_refund" => 1, 
-			// 	         "message" => "No Transaction Was Found",
-			// 		]
-			// );
+			$msg = array(
+					"status" => 'error',
+					"error" => [
+						 "scope" => "user",
+				         "no_refund" => 1, 
+				         "message" => "No Transaction Was Found",
+					]
+			);
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], 19, json_encode($data), json_encode($msg));
 			// return $msg;
 		endif;
 	}

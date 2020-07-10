@@ -110,7 +110,7 @@ class GameLobby{
             'form_params' => $requesttosend,
         ]);
         $res = json_decode($response->getBody(),TRUE);
-        Helper::saveLog('P8 GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
+        Helper::saveLog('8Provider GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
         return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 
