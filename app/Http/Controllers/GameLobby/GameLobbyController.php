@@ -58,7 +58,7 @@ class GameLobbyController extends Controller
                                     "games_list" => array(),
                                 );
                                 foreach($provider->games as $game){
-                                    if($game->sub_provider_id == 0){
+                                    // if($game->sub_provider_id == 0){   // COMMENTED RiAN
                                         $game = array(
                                             "game_id" => $game->game_id,
                                             "game_name"=>$game->game_name,
@@ -69,7 +69,7 @@ class GameLobbyController extends Controller
                                             "game_icon" => $game->icon,
                                         );
                                         array_push($providerdata["games_list"],$game);
-                                    }
+                                    // }
                                 }
                                 array_push($data,$providerdata);
                     }
@@ -127,15 +127,15 @@ class GameLobbyController extends Controller
             }
 
             // CLIENT SUBSCRIPTION FILTER
-            // $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
-            // if(!$subscription_checker){
-            //     $msg = array(
-            //         "game_code" => $request->input("game_code"),
-            //         "game_launch" => false
-            //     );
-            //     return $msg;
-            // }
-            ///
+            $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
+            if(!$subscription_checker){
+                $msg = array(
+                    "game_code" => $request->input("game_code"),
+                    "game_launch" => false
+                );
+                return $msg;
+            }
+            //
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
@@ -205,11 +205,19 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider')=="EVOPLAY 8Provider"){
-                    $msg = array(
-                        "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::evoplayLunchUrl($request->token,$request->game_code), //TEST
-                        "game_launch" => true
-                    );
+                    $url = GameLobby::evoplayLunchUrl($request->token,$request->game_code);
+                    if($url){
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $url,
+                            "game_launch" => true
+                        );
+                    }else{
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "game_launch" => false
+                        );
+                    }
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
@@ -349,7 +357,7 @@ class GameLobbyController extends Controller
                 $data = array();
                 foreach($providers as $provider){
                     foreach($provider->games as $game){
-                        // if($game->sub_provider_id == 0){
+                        // if($game->sub_provider_id == 0){   // COMMENTED RiAN
                             $game = $game->game_code;
                             array_push($data,$game);
                         // }

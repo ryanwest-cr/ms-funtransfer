@@ -110,9 +110,8 @@ class GameLobby{
             'form_params' => $requesttosend,
         ]);
         $res = json_decode($response->getBody(),TRUE);
-        // return $res;
         Helper::saveLog('P8 GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
-        return $res['data']['link'];
+        return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 
     public static function betrnkLaunchUrl($token){
