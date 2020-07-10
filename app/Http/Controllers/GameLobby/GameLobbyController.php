@@ -127,14 +127,14 @@ class GameLobbyController extends Controller
             }
 
             // CLIENT SUBSCRIPTION FILTER
-            $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
-            if(!$subscription_checker){
-                $msg = array(
-                    "game_code" => $request->input("game_code"),
-                    "game_launch" => false
-                );
-                return $msg;
-            }
+            // $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
+            // if(!$subscription_checker){
+            //     $msg = array(
+            //         "game_code" => $request->input("game_code"),
+            //         "game_launch" => false
+            //     );
+            //     return $msg;
+            // }
             //
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
