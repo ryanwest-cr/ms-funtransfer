@@ -96,7 +96,7 @@ class DigitainController extends Controller
 							"userName" => $client_response->playerdetailsresponse->accountname,
 							// "currencyId" => $client_response->playerdetailsresponse->currencycode,
 							"currencyId" => $client_details->default_currency,
-							"balance" => $client_response->playerdetailsresponse->balance,
+							"balance" => floatval($client_response->playerdetailsresponse->balance),
 							"birthDate" => '', // Optional
 							"firstName" => $client_response->playerdetailsresponse->firstname, // required
 							"lastName" => $client_response->playerdetailsresponse->lastname, // required
@@ -157,7 +157,7 @@ class DigitainController extends Controller
 							"timestamp" => date('YmdHisms'),
 							"signature" => $this->createSignature(date('YmdHisms')),
 							"errorCode" => 1,
-							"balance" => $client_response->playerdetailsresponse->balance,
+							"balance" => floatval($client_response->playerdetailsresponse->balance),
 						];
 					else:
 						$response = [
@@ -349,7 +349,7 @@ class DigitainController extends Controller
 
 		        	    $items_array[] = [
 		        	    	 "externalTxId" => $game_trans, // MW Game Transaction Id
-							 "balance" => $client_response->fundtransferresponse->balance,
+							 "balance" => floatval($client_response->fundtransferresponse->balance),
 							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 							 "errorCode" => 1, // No Problem
 							 "metadata" => "" // Optional but must be here!
@@ -603,7 +603,7 @@ class DigitainController extends Controller
 						 	
 				        	    $items_array[] = [
 				        	    	 "externalTxId" => $datatrans->game_trans_id, // MW Game Transaction Id
-									 "balance" => $client_response->fundtransferresponse->balance,
+									 "balance" => floatval($client_response->fundtransferresponse->balance),
 									 "betsAmount" => array_sum($total_bets),
 									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 									 "errorCode" => 1,
@@ -612,7 +612,7 @@ class DigitainController extends Controller
 				        	else:
 		        		 	    $items_array[] = [
 				        	    	 "externalTxId" => $datatrans->game_trans_id, // MW Game Transaction Id
-									 "balance" => $client_response->fundtransferresponse->balance,
+									 "balance" => floatval($client_response->fundtransferresponse->balance),
 									 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 									 "errorCode" => 1,
 									 "metadata" => "", // Optional but must be here!
@@ -855,7 +855,7 @@ class DigitainController extends Controller
 
 		        	    $items_array[] = [
 		        	    	 "externalTxId" => $game_trans, // MW Game Transaction Only Save The Last Game Transaction Which is the credit!
-							 "balance" => $client_response_ii->fundtransferresponse->balance,
+							 "balance" => floatval($client_response_ii->fundtransferresponse->balance),
 							 "betInfo" => $key['betInfo'], // Betinfo
 							 "winInfo" => $key['winInfo'], // IWininfo
 							 "errorCode" => 1,
@@ -1067,7 +1067,7 @@ class DigitainController extends Controller
 
 							   		$items_array[] = [
 					        	    	 "externalTxId" => $datatrans->game_trans_id, // MW Game Transaction Id
-										 "balance" => $balance_reply,
+										 "balance" => floatval($balance_reply),
 										 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 										 "errorCode" => 1,
 										 "metadata" => "" // Optional but must be here!
@@ -1275,7 +1275,7 @@ class DigitainController extends Controller
 
 		        	    $items_array[] = [
 		        	    	 "externalTxId" => $gametransaction_details->game_trans_id, // MW Game Transaction Id
-							 "balance" => $client_response->fundtransferresponse->balance,
+							 "balance" => floatval($client_response->fundtransferresponse->balance),
 							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 							 "errorCode" => 1,
 							 "metadata" => "" // Optional but must be here!
