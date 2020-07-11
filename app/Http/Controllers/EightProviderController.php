@@ -234,6 +234,15 @@ class EightProviderController extends Controller
 	 *
 	 */
 	public function gameWin($data){
+
+		$array = (array)$data['data']['details'];
+	    $newStr = str_replace("\\", '', $array[0]);
+	    $newStr2 = str_replace(';', '', $newStr);
+	    $string_to_obj = json_decode($newStr2);
+	    $game_id = $string_to_obj->game->game_id;
+	    $game_details = Helper::findGameDetails('game_code', 19, $game_id);
+	    // return $game_details;
+
 		$existing_bet = $this->findGameTransaction($data['data']['round_id'], 'round_id', 1); // Find if win has bet record
 		$game_ext = $this->findGameExt($data['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
 		if($game_ext == 'false'):
@@ -304,18 +313,82 @@ class EightProviderController extends Controller
 						Helper::saveLog('8P ERROR WIN', 19, json_encode($data), $e->getMessage());
 						return $msg;
 					}
-			else:
-				// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-				$msg = array(
-					"status" => 'error',
-					"error" => [
-						 "scope" => "user",
-				         "no_refund" => 1, 
-				         "message" => "No Bet record was found!",
-					]
-				);
-				Helper::saveLog('8Provider No Log Win'.$data['data']['round_id'], 19, json_encode($data), json_encode($msg));
-				// return $msg; // RETURN NOTHING!
+			else: 
+				    // No Bet was found check if this is a free spin and proccess it!
+				    if($string_to_obj->game->action == 'freespin'):
+				  	    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+						$requesttosend = [
+							  "access_token" => $client_details->client_access_token,
+							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+							  "type" => "fundtransferrequest",
+							  "datesent" => Helper::datesent(),
+							  "gamedetails" => [
+							    "gameid" =>  "",
+							    "gamename" => ""
+							  ],
+							  "fundtransferrequest" => [
+									"playerinfo" => [
+									"token" => $data['token'],
+								],
+								"fundinfo" => [
+								      "gamesessionid" => "",
+								      "transactiontype" => 'credit',
+								      "rollback" => "false",
+								      "currencycode" => $client_details->default_currency,
+								      "amount" => $data['data']['amount']
+								]
+							  ]
+						];
+							try {
+								$client = new Client([
+				                    'headers' => [ 
+				                        'Content-Type' => 'application/json',
+				                        'Authorization' => 'Bearer '.$client_details->client_access_token
+				                    ]
+				                ]);
+								$guzzle_response = $client->post($client_details->fund_transfer_url,
+									['body' => json_encode($requesttosend)]
+								);
+								$client_response = json_decode($guzzle_response->getBody()->getContents());
+
+								$response = array(
+									'status' => 'oka',
+									'data' => [
+										'balance' => $client_response->fundtransferresponse->balance,
+										'currency' => $client_details->default_currency,
+									],
+							 	 );
+								$payout_reason = 'Free Spin';
+						 		$win_or_lost = 1; // 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
+						 		$method = 2; // 1 bet, 2 win
+						 	    $token_id = $client_details->token_id;
+						 	    $bet_payout = 0; // Bet always 0 payout!
+						 	    $income = '-'.$data['data']['amount']; // NEgative
+						 	    $provider_trans_id = $data['callback_id'];
+						 	    $round_id = $data['data']['round_id'];
+								$game_trans = Helper::saveGame_transaction($token_id, $game_details->game_id, 0, $data['data']['amount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+			   					$trans_ext = $this->create8PTransactionExt($game_trans, $data, $requesttosend, $client_response, $client_response,$data, 5, $data['data']['amount'], $provider_trans_id,$round_id);
+							  	return $response;
+							}catch(\Exception $e){
+								$msg = array(
+									"status" => 'error',
+									"message" => $e->getMessage(),
+								);
+								Helper::saveLog('8P ERROR FREE SPIN', 19, json_encode($data), $e->getMessage());
+								return $msg;
+							}
+				    else:
+				            //NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
+							$msg = array(
+								"status" => 'error',
+								"error" => [
+									 "scope" => "user",
+							         "no_refund" => 1, 
+							         "message" => "No Bet record was found and not a free spin!",
+								]
+							);
+							Helper::saveLog('8Provider No Log Win'.$data['data']['round_id'], 19, json_encode($data), $msg);
+				    endif;
 			endif;
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
@@ -332,7 +405,6 @@ class EightProviderController extends Controller
 		endif;
 	}
 
-	
 	/**
 	 * [GAME REFUND]
 	 * @author's note [if bet was found send it as credit, and if win was found send it as debit]
