@@ -132,7 +132,8 @@ class IAESportsController extends Controller
 		// dd($prefixed_username[1]);
 		// $player = $this->_getClientDetails('username_and_cid', $request->username, $request->client_id);
 		// $currency_code = $request->has('currency_code') ? $request->currency_code : 'RMB'; 
-		$currency_code = $request->has('currency_code') ? $request->currency_code : 'USD'; 
+		// $currency_code = $request->has('currency_code') ? $request->currency_code : 'USD'; 
+		$currency_code = isset($player_details->default_currency) ? $player_details->default_currency : 'USD'; 
 		// $this->currencyCheck('USD'); // Check if currency is available
 	    $params = [
 				"register_username" => $username,
@@ -293,7 +294,7 @@ class IAESportsController extends Controller
 				"message" => "Insufficient balance",
 	        ];
 		endif;
-		Helper::saveLog('IA Deposit Request And Response', 2,json_encode($cha), json_encode($params));
+		Helper::saveLog('IA Deposit Response', 2,json_encode($cha), json_encode($params));
 		return $params;
 	}
 
@@ -338,11 +339,11 @@ class IAESportsController extends Controller
 		$transaction_type = 'debit';
 		$token_id = $client_details->token_id;
 		// $game_details = Game::find($json_data->game_code);
-		$game_details = 1; // TEST //$game_details->game_id
+		$game_details = 1187; // TEST //$game_details->game_id  // HARD CODED GAME ID!
 		$bet_amount = $cha->money;
 		$pay_amount = 0; // Zero Payout
 		$method = $transaction_type == 'debit' ? 1 : 2;
-		$win_or_lost = 0;
+		$win_or_lost = 0; // 0 lost, 
 		$payout_reason = $this->getCodeType($desc_json['code']) .' : '.$desc_json['message'];
 		$income = $cha->money;	
 		$provider_trans_id = $cha->orderId;
@@ -408,7 +409,7 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 
-		Helper::saveLog('IA Withrawal Request And Response', 2,json_encode($cha), $params);
+		Helper::saveLog('IA Withrawal Response', 2,json_encode($cha), $params);
 		return $params;
 	}
 
@@ -419,7 +420,7 @@ class IAESportsController extends Controller
 	public function seamlessBalance(Request $request)
 	{	
 
-		Helper::saveLog('IA Balance', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		// Helper::saveLog('IA Balance', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data_received = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data_received, true));
 		// dd(gettype($cha));
