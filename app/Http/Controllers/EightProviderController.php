@@ -18,7 +18,10 @@ use DB;
  * 8Provider (API Version 2 POST DATA METHODS)
  *
  * @version 1.0
- * @method register
+ * @method index
+ * @method gameBet
+ * @method gameWin
+ * @method gameRefund
  *
  */
 class EightProviderController extends Controller
@@ -28,11 +31,8 @@ class EightProviderController extends Controller
 	public $secret_key = 'c270d53d4d83d69358056dbca870c0ce';
 	public $project_id = '1042';
 
-	// return md5('1042*1*c270d53d4d83d69358056dbca870c0ce');
-	// 97e464b9b6e4d2de3b5d36facffa9556
 
     /**
-     * GetSignature  NOT FULLY IMPLEMENTED
      * @return string
      *
      */
@@ -117,7 +117,7 @@ class EightProviderController extends Controller
 		$response = array(
 			'status' => 'ok',
 			'data' => [
-				'balance' => $player_details->playerdetailsresponse->balance,
+				'balance' => floatval($player_details->playerdetailsresponse->balance),
 				'currency' => $client_details->default_currency,
 			],
 	 	 );
@@ -189,7 +189,7 @@ class EightProviderController extends Controller
 					$response = array(
 						'status' => 'ok',
 						'data' => [
-							'balance' => $client_response->fundtransferresponse->balance,
+							'balance' => floatval($client_response->fundtransferresponse->balance),
 							'currency' => $client_details->default_currency,
 						],
 				 	 );
@@ -284,7 +284,7 @@ class EightProviderController extends Controller
 						$response = array(
 							'status' => 'ok',
 							'data' => [
-								'balance' => $client_response->fundtransferresponse->balance,
+								'balance' => floatval($client_response->fundtransferresponse->balance),
 								'currency' => $client_details->default_currency,
 							],
 					 	 );
@@ -354,7 +354,7 @@ class EightProviderController extends Controller
 								$response = array(
 									'status' => 'ok',
 									'data' => [
-										'balance' => $client_response->fundtransferresponse->balance,
+										'balance' => floatval($client_response->fundtransferresponse->balance),
 										'currency' => $client_details->default_currency,
 									],
 							 	 );
@@ -466,7 +466,7 @@ class EightProviderController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => $client_response->fundtransferresponse->balance,
+						'balance' => floatval($client_response->fundtransferresponse->balance),
 						'currency' => $client_details->default_currency,
 					],
 			 	 );
