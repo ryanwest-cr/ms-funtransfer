@@ -352,7 +352,7 @@ class EightProviderController extends Controller
 								$client_response = json_decode($guzzle_response->getBody()->getContents());
 
 								$response = array(
-									'status' => 'oka',
+									'status' => 'ok',
 									'data' => [
 										'balance' => $client_response->fundtransferresponse->balance,
 										'currency' => $client_details->default_currency,
