@@ -121,6 +121,7 @@ class EightProviderController extends Controller
 				'currency' => $client_details->default_currency,
 			],
 	 	 );
+		Helper::saveLog('8P GAME INIT', 19, json_encode($data), $response);
 	  	return $response;
 	}
 
