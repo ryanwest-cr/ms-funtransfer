@@ -22,7 +22,8 @@ use DB;
  * @method gameBet
  * @method gameWin
  * @method gameRefund
- *
+ * Available Currencies
+ * AUD,BRL,BTC,CAD,CNY,COP,CZK,EUR,GBP,GHS,HKD,HRK,IDR,INR,IRR,JPY,KRW,KZT,MDL,MMK,MYR,NOK,PLN,RUB,SEK,THB,TRY,TWD,UAH,USD,VND,XOF,ZAR
  */
 class EightProviderController extends Controller
 {
