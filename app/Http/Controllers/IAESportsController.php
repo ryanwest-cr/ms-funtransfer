@@ -175,16 +175,16 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessDeposit(Request $request)
 	{
-		Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		// Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
-
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
+		$transaction_code = $desc_json['code']; // 13,15 refund, 
+		$rollback = $transaction_code == 13 || $transaction_code == 15 ? 'true' : 'false';
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
 		Helper::saveLog('IA Deposit DECODED', 2,json_encode($cha), $data);
 		// dd($client_details);
-
 		if(empty($client_details)):
 			$params = [
 	            "code" => 111003,
@@ -193,7 +193,8 @@ class IAESportsController extends Controller
 	        ];	
 			return $params;
 		endif;	
-		if($this->getOrder($cha->orderId)):
+		// if($this->getOrder($cha->orderId)):
+		if($this->findGameExt($cha->orderId, 2, 'transaction_id') != 'false'):
 			$params = [
 	            "code" => 111007,
 	            "data" => [],
@@ -201,7 +202,6 @@ class IAESportsController extends Controller
 	        ];	
 			return $params;
 		endif;
-
 		
 		// $cha_data = $cha->currencyInfo;
 		// $chachi = json_decode($cha_data,JSON_UNESCAPED_SLASHES);
@@ -211,7 +211,7 @@ class IAESportsController extends Controller
 		$transaction_type = 'credit';
 		$token_id = $client_details->token_id;
 		// $game_details = Game::find($json_data->game_code);
-		$game_details = 1; // TEST //$game_details->game_id
+		$game_details = 1187; // TEST //$game_details->game_id
 		$bet_amount = $cha->money;
 		$pay_amount = $cha->money; // Zero Payout
 		$method = $transaction_type == 'debit' ? 1 : 2;
@@ -231,7 +231,6 @@ class IAESportsController extends Controller
 			    ]
 			]);
 
-
 			$requesttosend = [
 			  "access_token" => $client_details->client_access_token,
 			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -249,7 +248,7 @@ class IAESportsController extends Controller
 				      "gamesessionid" => "",
 				      "transactiontype" => $transaction_type,
 				      "transferid" => "",
-				      "rollback" => "false",
+				      "rollback" => $rollback,
 				      "currencycode" => $client_details->currency,
 				      "amount" => $cha->money // Amount to be send!
 				]
@@ -271,7 +270,8 @@ class IAESportsController extends Controller
 				"message" => "Success",
 	        ];	
 
-        	$bet_details = $this->getOrderData($cha->orderId);
+        	$bet_details = $this->getOrderData($cha->projectId);
+        	// dd($bet_details);
 	        if($bet_details->bet_amount){
  	  			if($bet_details->bet_amount > $cha->money){
  	  				$win = 0; // lost
@@ -282,10 +282,12 @@ class IAESportsController extends Controller
  	  				$entry_id = 2; //win
  	  				$income = $bet_details->bet_amount - $cha->money;
  	  			}
-			    $this->updateBetToWin(1, $pay_amount, $income, $win, $entry_id);
+
+ 	  			$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
+			    $this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
  	  		}
 	     
-		    $game_transextension = $this->createGameTransExt($bet_details->game_trans_id ,$cha->orderId, 1, $cha->money, 2, $cha, $params, $requesttosend, $client_response, $params);
+		    $game_transextension = $this->createGameTransExt($bet_details->game_trans_id ,$cha->orderId, $cha->projectId, $cha->money, 2, $cha, $params, $requesttosend, $client_response, $params);
 
 		  
 	     else:
@@ -295,7 +297,7 @@ class IAESportsController extends Controller
 				"message" => "Insufficient balance",
 	        ];
 		endif;
-		Helper::saveLog('IA Deposit Response', 2,json_encode($cha), json_encode($params));
+		Helper::saveLog('IA Deposit Response', 2,json_encode($cha), $params);
 		return $params;
 	}
 
@@ -306,13 +308,14 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessWithdrawal(Request $request)
 	{
-		Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		// Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
 		// dd($cha);
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES);
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
+		Helper::saveLog('IA Withdrawal DECODED', 2,json_encode($cha), $data);
 		// $cha_data = $cha->currencyInfo;
 		// $chachi = json_decode($cha_data,JSON_UNESCAPED_SLASHES);
 		// return $chachi['short_name'];
@@ -325,8 +328,8 @@ class IAESportsController extends Controller
 	        ];	
 			return $params;
 		endif;	
-		// dd($cha->orderId);
-		if($this->getOrder($cha->orderId)):
+		// if($this->getOrder($cha->orderId)):
+		if($this->findGameExt($cha->orderId, 1, 'transaction_id') != 'false'):
 			$params = [
 	            "code" => 111007,
 	            "data" => [],
@@ -397,9 +400,8 @@ class IAESportsController extends Controller
 				"message" => "Success",
 	        ];	
 
-		    $gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
-
-		    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, 1, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
+		    $gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+		    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
 
 
 		else:
@@ -476,6 +478,7 @@ class IAESportsController extends Controller
 		Helper::saveLog('IA Search Order', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data_received = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data_received, true));
+		Helper::saveLog('IA Search DECODED', 2,json_encode($cha), $data_received);
 		if($this->getOrder($cha->orderId)):
 			$params = [
 	            "code" => 200,
@@ -630,12 +633,42 @@ class IAESportsController extends Controller
 
      public  function getOrderData($order_id) 
     {
+		// $game_transactions = DB::table("game_transactions")
+		// 			->where('provider_trans_id', $order_id)
+		// 		    ->latest()
+		// 		    ->first();
 		$game_transactions = DB::table("game_transactions")
-					->where('provider_trans_id', $order_id)
+					->where('round_id', $order_id)
 				    ->latest()
-				    ->first();
+				    ->first();		    
 		return $game_transactions ? $game_transactions : false;
     }
+
+
+    /**
+	 * Find Game Transaction Ext
+	 * @param [string] $[provider_transaction_id] [<provider transaction id>]
+	 * @param [int] $[game_transaction_type] [<1 bet, 2 win, 3 refund>]
+	 * @param [string] $[type] [<transaction_id, round_id>]
+	 * 
+	 */
+	public  function findGameExt($provider_transaction_id, $game_transaction_type, $type) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+        if ($type == 'transaction_id') {
+			$transaction_db->where([
+		 		["gte.provider_trans_id", "=", $provider_transaction_id],
+		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 	]);
+		}
+		if ($type == 'round_id') {
+			$transaction_db->where([
+		 		["gte.round_id", "=", $provider_transaction_id],
+		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 	]);
+		}  
+		$result= $transaction_db->first();
+		return $result ? $result : 'false';
+	}
 
 
 	/**
