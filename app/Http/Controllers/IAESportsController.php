@@ -182,6 +182,7 @@ class IAESportsController extends Controller
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
+		Helper::saveLog('IA Deposit DECODED', 2,json_encode($cha), $data);
 		// dd($client_details);
 
 		if(empty($client_details)):
