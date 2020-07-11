@@ -132,7 +132,8 @@ class IAESportsController extends Controller
 		// dd($prefixed_username[1]);
 		// $player = $this->_getClientDetails('username_and_cid', $request->username, $request->client_id);
 		// $currency_code = $request->has('currency_code') ? $request->currency_code : 'RMB'; 
-		$currency_code = $request->has('currency_code') ? $request->currency_code : 'USD'; 
+		// $currency_code = $request->has('currency_code') ? $request->currency_code : 'USD'; 
+		$currency_code = isset($player_details->default_currency) ? $player_details->default_currency : 'USD'; 
 		// $this->currencyCheck('USD'); // Check if currency is available
 	    $params = [
 				"register_username" => $username,
