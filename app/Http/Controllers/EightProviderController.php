@@ -436,6 +436,22 @@ class EightProviderController extends Controller
 			return $response;
 		endif;
 
+		$game_transaction_ext_refund = $this->findGameExt($data['data']['refund_round_id'], 4, 'round_id'); // Find GameEXT
+		if($game_transaction_ext_refund != 'false'):
+		    $player_details = ProviderHelper::playerDetailsCall($data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$response = array(
+				'status' => 'ok',
+				'data' => [
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'currency' => $client_details->default_currency,
+				],
+		 	);
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], 19, json_encode($data), $response);
+			return $response;
+		endif;
+
+
 		$existing_transaction = $this->findGameTransaction($game_transaction_ext->game_trans_id, 'game_transaction');
 		if($existing_transaction != 'false'): // IF BET WAS FOUND PROCESS IT!
 			$transaction_type = $game_transaction_ext->game_transaction_type == 1 ? 'credit' : 'debit'; // 1 Bet
