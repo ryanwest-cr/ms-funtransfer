@@ -345,7 +345,7 @@ class SolidGamingController extends Controller
 										      "transferid" => "",
 										      "rollback" => "false",
 										      "currencycode" => $client_details->currency,
-										      "amount" => "-".$json_data["amount"]
+										      "amount" => $json_data["amount"]
 										]
 									  ]
 									]
@@ -606,7 +606,7 @@ class SolidGamingController extends Controller
 											      "transferid" => "",
 											      "rollback" => "false",
 											      "currencycode" => $client_details->currency,
-											      "amount" => "-".$json_data["betamount"]
+											      "amount" => $json_data["betamount"]
 											]
 										  ]
 										]
