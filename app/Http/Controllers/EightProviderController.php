@@ -432,7 +432,7 @@ class EightProviderController extends Controller
 					'currency' => $client_details->default_currency,
 				],
 		 	);
-			Helper::saveLog('8Provider'.$data['data']['round_id'], 19, json_encode($data), $response);
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], 19, json_encode($data), $response);
 			return $response;
 		endif;
 
