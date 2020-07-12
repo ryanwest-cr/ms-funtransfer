@@ -118,7 +118,7 @@ class EightProviderController extends Controller
 		$response = array(
 			'status' => 'ok',
 			'data' => [
-				'balance' => floatval($player_details->playerdetailsresponse->balance),
+				'balance' => $player_details->playerdetailsresponse->balance,
 				'currency' => $client_details->default_currency,
 			],
 	 	 );
@@ -190,7 +190,7 @@ class EightProviderController extends Controller
 					$response = array(
 						'status' => 'ok',
 						'data' => [
-							'balance' => floatval($client_response->fundtransferresponse->balance),
+							'balance' => $client_response->fundtransferresponse->balance,
 							'currency' => $client_details->default_currency,
 						],
 				 	 );
@@ -285,7 +285,7 @@ class EightProviderController extends Controller
 						$response = array(
 							'status' => 'ok',
 							'data' => [
-								'balance' => floatval($client_response->fundtransferresponse->balance),
+								'balance' => $client_response->fundtransferresponse->balance,
 								'currency' => $client_details->default_currency,
 							],
 					 	 );
@@ -355,7 +355,7 @@ class EightProviderController extends Controller
 								$response = array(
 									'status' => 'ok',
 									'data' => [
-										'balance' => floatval($client_response->fundtransferresponse->balance),
+										'balance' => $client_response->fundtransferresponse->balance,
 										'currency' => $client_details->default_currency,
 									],
 							 	 );
@@ -467,7 +467,7 @@ class EightProviderController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => floatval($client_response->fundtransferresponse->balance),
+						'balance' => $client_response->fundtransferresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 			 	 );
