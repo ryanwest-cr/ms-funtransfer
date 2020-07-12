@@ -118,7 +118,7 @@ class EightProviderController extends Controller
 		$response = array(
 			'status' => 'ok',
 			'data' => [
-				'balance' => $player_details->playerdetailsresponse->balance,
+				'balance' => (string)$player_details->playerdetailsresponse->balance,
 				'currency' => $client_details->default_currency,
 			],
 	 	 );
@@ -190,7 +190,7 @@ class EightProviderController extends Controller
 					$response = array(
 						'status' => 'ok',
 						'data' => [
-							'balance' => $client_response->fundtransferresponse->balance,
+							'balance' => (string)$client_response->fundtransferresponse->balance,
 							'currency' => $client_details->default_currency,
 						],
 				 	 );
@@ -215,16 +215,17 @@ class EightProviderController extends Controller
 				}
 		    else:
 		    	// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-				$msg = array(
-						"status" => 'error',
-						"error" => [
-							 "scope" => "user",
-					         "no_refund" => 1, 
-					         "message" => "Bet Already Processed",
-						]
-				);
-				Helper::saveLog('8Provider'.$data['data']['round_id'], 19, json_encode($data), json_encode($msg));
-				// return $msg;
+		    	$player_details = ProviderHelper::playerDetailsCall($data['token']);
+				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+			 	 );
+				Helper::saveLog('8Provider'.$data['data']['round_id'], 19, json_encode($data), $response);
+				return $response;
 		    endif;
 	}
 
@@ -285,7 +286,7 @@ class EightProviderController extends Controller
 						$response = array(
 							'status' => 'ok',
 							'data' => [
-								'balance' => $client_response->fundtransferresponse->balance,
+								'balance' => (string)$client_response->fundtransferresponse->balance,
 								'currency' => $client_details->default_currency,
 							],
 					 	 );
@@ -355,7 +356,7 @@ class EightProviderController extends Controller
 								$response = array(
 									'status' => 'ok',
 									'data' => [
-										'balance' => $client_response->fundtransferresponse->balance,
+										'balance' => (string)$client_response->fundtransferresponse->balance,
 										'currency' => $client_details->default_currency,
 									],
 							 	 );
@@ -380,29 +381,32 @@ class EightProviderController extends Controller
 							}
 				    else:
 				            //NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-							$msg = array(
-								"status" => 'error',
-								"error" => [
-									 "scope" => "user",
-							         "no_refund" => 1, 
-							         "message" => "No Bet record was found and not a free spin!",
-								]
-							);
-							Helper::saveLog('8Provider No Log Win'.$data['data']['round_id'], 19, json_encode($data), $msg);
+							$player_details = ProviderHelper::playerDetailsCall($data['token']);
+							$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+							$response = array(
+								'status' => 'ok',
+								'data' => [
+									'balance' => (string)$player_details->playerdetailsresponse->balance,
+									'currency' => $client_details->default_currency,
+								],
+						 	 );
+							Helper::saveLog('8Provider'.$data['data']['round_id'], 19, json_encode($data), $response);
+							return $response;
 				    endif;
 			endif;
 		else:
-			// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			$msg = array(
-					"status" => 'error',
-					"error" => [
-						 "scope" => "user",
-				         "no_refund" => 1, 
-				         "message" => "Win Already Processed",
-					]
-			);
-			Helper::saveLog('8Provider Win'.$data['data']['round_id'], 19, json_encode($data), json_encode($msg));
-			// return $msg; // RETURN NOTHING!
+			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
+			    $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+			 	);
+				Helper::saveLog('8Provider'.$data['data']['round_id'], 19, json_encode($data), $response);
+				return $response;
 		endif;
 	}
 
@@ -467,7 +471,7 @@ class EightProviderController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => $client_response->fundtransferresponse->balance,
+						'balance' => (string)$client_response->fundtransferresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 			 	 );
@@ -485,28 +489,31 @@ class EightProviderController extends Controller
 			}
 		else:
 			// NO BET WAS FOUND DO NOTHING
-			$msg = array(
-					"status" => 'error',
-					"error" => [
-						 "scope" => "user",
-				         "no_refund" => 1, 
-				         "message" => "No Transaction Was Found",
-					]
-			);
-			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], 19, json_encode($data), json_encode($msg));
+			$player_details = ProviderHelper::playerDetailsCall($data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$response = array(
+				'status' => 'ok',
+				'data' => [
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'currency' => $client_details->default_currency,
+				],
+		 	 );
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], 19, json_encode($data), $response);
+			return $response;
 		endif;
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS/DUPLICATE PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			$msg = array(
-					"status" => 'error',
-					"error" => [
-						 "scope" => "user",
-				         "no_refund" => 1, 
-				         "message" => "No Transaction Was Found",
-					]
-			);
-			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], 19, json_encode($data), json_encode($msg));
-			// return $msg;
+			$player_details = ProviderHelper::playerDetailsCall($data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$response = array(
+				'status' => 'ok',
+				'data' => [
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'currency' => $client_details->default_currency,
+				],
+		 	 );
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], 19, json_encode($data), $response);
+			return $response;
 		endif;
 	}
 
