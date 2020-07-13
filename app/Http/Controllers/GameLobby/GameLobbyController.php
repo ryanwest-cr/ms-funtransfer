@@ -97,6 +97,7 @@ class GameLobbyController extends Controller
             else{
                 $ip_address = "127.0.0.1";
             }
+            Helper::saveLog('GAMELAUNCH ICG', 11, json_encode($request->getContent()), json_encode("test"));
 
             // CLIENT SUBSCRIPTION FILTER
             // $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
@@ -145,7 +146,7 @@ class GameLobbyController extends Controller
                     }
                     return $msg;
                 }
-                elseif($request->input('game_provider')=="RSG Gaming"){ // request->token
+                elseif($request->input('game_provider')=="Digitain"){ // request->token
                     Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
                     $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
                     $msg = array(
