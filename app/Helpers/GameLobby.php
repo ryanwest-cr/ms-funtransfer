@@ -18,7 +18,7 @@ class GameLobby{
             if($game["productId"] == $game_code){
                 $lang = GameLobby::getLanguage("Iconic Gaming",$lang);
                 Helper::savePLayerGameRound($game["productId"],$token);
-                Helper::saveLog('GAMELAUNCH ICG', 11, json_encode($game_code), json_encode($game["href"].'&token='.$token.'&lang='.$lang.'&home_URL='.$exitUrl));
+                Helper::saveLog('GAMELAUNCH ICG', 11, json_encode($game_code), json_encode($game["href"]));
                 return $game["href"].'&token='.$token.'&lang='.$lang.'&home_URL='.$exitUrl;
                 
             }
