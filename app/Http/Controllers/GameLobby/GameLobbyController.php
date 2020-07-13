@@ -59,6 +59,7 @@ class GameLobbyController extends Controller
                                     "game_id" => $game->game_id,
                                     "game_name"=>$game->game_name,
                                     "game_code"=>$game->game_code,
+                                    "game_provider"=>$sub_provider->sub_provider_name,
                                     "game_type" => $game->game_type->game_type_name,
                                     "game_icon" => $game->icon,
                                 );
