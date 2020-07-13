@@ -298,6 +298,7 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 		Helper::saveLog('IA Deposit Response', 2,json_encode($cha), $params);
+		$this->userWager();
 		return $params;
 	}
 
@@ -347,7 +348,7 @@ class IAESportsController extends Controller
 		$bet_amount = $cha->money;
 		$pay_amount = 0; // Zero Payout
 		$method = $transaction_type == 'debit' ? 1 : 2;
-		$win_or_lost = 0; // 0 lost, 
+		$win_or_lost = 5; // 0 lost,  5 processing
 		$payout_reason = $this->getCodeType($desc_json['code']) .' : '.$desc_json['message'];
 		$income = $cha->money;	
 		$provider_trans_id = $cha->orderId;
@@ -403,7 +404,6 @@ class IAESportsController extends Controller
 		    $gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
 		    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
 
-
 		else:
 		    $params = [
 	            "code" => $status_code,
@@ -413,6 +413,7 @@ class IAESportsController extends Controller
 		endif;
 
 		Helper::saveLog('IA Withrawal Response', 2,json_encode($cha), $params);
+		$this->userWager();
 		return $params;
 	}
 
@@ -500,6 +501,70 @@ class IAESportsController extends Controller
 		return $params;
 	}
 
+
+	/**
+	 * Deprecated But Dont Remove!
+	 * 
+	 */
+	public function getHotGames(Request $request)
+	{
+		// return 'ASHEN';
+		$header = ['pch:'. $this->pch];
+        $params = array();
+        $uhayuu = $this->hashen($params);
+		$timeout = 5;
+		$client_response = $this->curlData($this->url_hotgames, $uhayuu, $header, $timeout);
+		$data = json_decode($this->rehashen($client_response[1], true));
+		dd($data);
+	}
+
+	/**
+	 * Check All Settled Matches
+	 * Look for prize_status :2, //1 is win, 2 is lose
+	 * IA Store matches for maximum of 3 Days Only
+	 * 
+	 */
+	public function userWager()
+	{
+		$start_time = strtotime('-3 day'); 
+		$end_time = strtotime('+3 day'); 
+		$header = ['pch:'. $this->pch];
+        $params = array(
+			"start_time" => $start_time, // 1523600346
+			"end_time" => $end_time, // 2023604346
+			"page" => 1,
+			"limit" =>10000,
+			"is_settle" => 1, // Default:1, 1 is settled,0 is not ,-1 is all.
+			// "is_cancel" => 1, // Optional
+			// "receive_status" => 0 // Optional
+        );
+        $uhayuu = $this->hashen($params);
+		$timeout = 5;
+		$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
+		$data = json_decode($this->rehashen($client_response[1], true));
+		$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
+		if($data):
+			foreach ($data->data->list as $matches):
+				if($matches->prize_status == 2):
+					array_push($order_ids, $matches->order_id);
+				endif;
+			endforeach;
+		endif;
+		if(count($order_ids) > 0):
+			$update = $this->getAllGameTransaction($order_ids, 5);
+			if($update != 'false'):
+			    foreach($update as $up):
+			    	DB::table('game_transactions')
+	                ->where('round_id', $up->round_id)
+	                ->update([
+	        		  'win' => 0, 
+	        		  'transaction_reason' => 'Bet updated'
+		    		]);
+			    endforeach;
+			endif;
+		endif;
+	}
+
 	public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
 
 		$gametransactionext = array(
@@ -518,7 +583,6 @@ class IAESportsController extends Controller
 		return $gametransactionext;
 
 	}
-
 
 	/**
 	 * Find bet and update to win 
@@ -616,6 +680,21 @@ class IAESportsController extends Controller
 	}
 
 
+    /**
+	 * Find Game Transaction Ext
+	 * @param [string] $[round_ids] [<round id for bets>]
+	 * @param [string] $[type] [<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
+	 * 
+	 */
+    public  function getAllGameTransaction($round_ids, $type) 
+    {
+		$game_transactions = DB::table("game_transactions")
+					->where('win', $type)
+				    ->whereIn('round_id', $round_ids)
+				    ->get();
+	    return (count($game_transactions) > 0 ? $game_transactions : 'false');
+    }
+
 	/**
 	 * Check order
 	 * @return Code Type!
@@ -633,10 +712,6 @@ class IAESportsController extends Controller
 
      public  function getOrderData($order_id) 
     {
-		// $game_transactions = DB::table("game_transactions")
-		// 			->where('provider_trans_id', $order_id)
-		// 		    ->latest()
-		// 		    ->first();
 		$game_transactions = DB::table("game_transactions")
 					->where('round_id', $order_id)
 				    ->latest()
