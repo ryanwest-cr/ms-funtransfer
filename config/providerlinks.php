@@ -68,6 +68,11 @@ return [
     	'login_url' => 'https://api.cdmolo.com:16800/v1/player/login',
     	'logout_url' => 'https://api.cdmolo.com:16800/v1/player/logout',
     ],
+    'aws' => [
+        'api_url' => 'https://sapi.shisaplay.com',
+        'merchant_id' => 'TGUSD',
+        'merchant_key' => '7e7b86f44fa240ccffaee944e190cce9d99d0510debf357a073b915eff301d2573ea38c98dd0b30cae7cb4f9d32299281ca132698e2b2a7dc503f28ce9135a3c',
+    ],
     'iagaming' => [
         'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
         'pch' => 'BRNK',
