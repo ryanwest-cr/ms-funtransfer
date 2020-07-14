@@ -59,7 +59,7 @@ return [
     'endorphina' => [
         'url' => 'https://test.endorphina.network/api/sessions/seamless/rest/v1',
         'nodeId' => 1002,
-        'secretkey' => 'E5A8E26AEA2D4F2C9D2BB9BBC6B9A715',
+        'secretkey' => '67498C0AD6BD4D2DB8FDFE59BD9039EB',
     ],
     'bolegaming' => [
     	'AccessKeyId' => '9048dbaa-b489-4b32-9a29-149240a5cefe',
