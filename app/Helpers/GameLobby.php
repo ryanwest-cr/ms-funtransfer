@@ -96,7 +96,7 @@ class GameLobby{
             'user_id'=> $client_player_details->player_id,
             'language'=> $client_player_details->language ? $client_player_details->language : 'en',
           ],
-          "denomination" => '1.0', // game to be launched with
+          "denomination" => '1', // game to be launched with values like 1.0, 1, default
           "currency" => $client_player_details->default_currency,
           "return_url_info" => true, // url link
           "callback_version" => 2, // POST CALLBACK
