@@ -170,7 +170,6 @@ class GameInfoController extends Controller
 	 *	@param accept player_id, token
 	 */
 	public function getClientPlayerDetails(Request $request){
-
 			if($request->has('player_id')){
 				$client_details = $this->_getClientDetails('player_id', $request->player_id);
 			}else if($request->has('token')){
@@ -195,11 +194,10 @@ class GameInfoController extends Controller
 					"token" => $client_details->player_token ? $client_details->player_token : '',
 					"username" => $client_details->username ? $client_details->username : '',
 					"gamelaunch" => false,
-					"refreshtoken" => true,
+					"refreshtoken" => $request->has('refreshtoken') ? true : false,
 				]
 			];
 
-			// dd($datatosend);
 			$guzzle_response = $client->post($client_details->player_details_url,
 				['body' => json_encode($datatosend)]
 			);
@@ -223,7 +221,7 @@ class GameInfoController extends Controller
 					if ($type == 'token') {
 						$query->where([
 					 		["pst.player_token", "=", $value],
-					 		["pst.status_id", "=", 1]
+					 		// ["pst.status_id", "=", 1]
 					 	]);
 					}
 					if ($type == 'player_id') {
