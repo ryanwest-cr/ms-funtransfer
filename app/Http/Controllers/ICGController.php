@@ -31,7 +31,7 @@ class ICGController extends Controller
     public function getGameList(){
         $http = new Client();
 
-        $response = $http->get('https://admin-stage.iconic-gaming.com/service/api/v1/games?type=all&lang=en', [
+        $response = $http->get('https://admin-stage.iconic-gaming.com/service/api/v1/games?type=all&lang=zh', [
             'headers' =>[
                 'Authorization' => 'Bearer '.$this->index(),
                 'Accept'     => 'application/json' 
