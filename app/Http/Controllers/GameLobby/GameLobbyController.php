@@ -169,13 +169,31 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($request->input('game_provider')=="Betrnk"){
+                elseif($request->input('game_provider')=="Betrnk"){ // TEST LOTTERY
                     // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::betrnkLaunchUrl($request->token), //TEST
+                        "url" => GameLobby::betrnkLaunchUrl($request->token, $request->game_code), //TEST
                         "game_launch" => true
                     );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="All Way Spin"){
+                    $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
+                    $url = GameLobby::awsLaunchUrl($request->token,$request->game_code,$lang);
+                    if($url){
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $url,
+                            "game_launch" => true
+                        );
+                    }else{
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "game_launch" => false
+                        );
+                    }
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }

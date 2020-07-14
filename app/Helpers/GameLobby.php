@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use App\Helpers\Helper;
 use App\Helpers\IAHelper;
+use App\Helpers\AWSHelper;
 use App\Helpers\ProviderHelper;
 use DB;             
 class GameLobby{
@@ -116,6 +117,36 @@ class GameLobby{
         $res = json_decode($response->getBody(),TRUE);
         Helper::saveLog('8Provider GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
         return isset($res['data']['link']) ? $res['data']['link'] : false;
+    }
+
+     public static function awsLaunchUrl($token,$game_code, $lang){
+        $register_player = AWSHelper::playerRegister($token);
+        if($register_player->code == 2217 || $register_player->code == 0){
+            $client_details = ProviderHelper::getClientDetails('token', $token);
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                ]
+            ]);
+            $requesttosend = [
+                "merchantId" => config('providerlinks.aws.merchant_id'),
+                "currentTime" => AWSHelper::currentTimeMS(),
+                "username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
+                "playmode" => 0, // Mode of gameplay, 0: official
+                "device" => 1, // Identifying the device. Device, 0: mobile device 1: webpage
+                "gameId" => $game_code,
+                "language" => $lang,
+            ];
+            $requesttosend['sign'] = AWSHelper::hashen($requesttosend);
+            $guzzle_response = $client->post(config('providerlinks.aws.api_url').'/api/login',
+                ['body' => json_encode($requesttosend)]
+            );
+            $provider_response = json_decode($guzzle_response->getBody()->getContents());
+            Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
+            return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
+        }else{
+            return 'false';
+        }
     }
 
     public static function betrnkLaunchUrl($token){
