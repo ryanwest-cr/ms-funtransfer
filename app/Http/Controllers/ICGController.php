@@ -76,7 +76,7 @@ class ICGController extends Controller
                         if($game["productId"] == $request->game_code){
                             Helper::savePLayerGameRound($game["productId"],$token);
                             $msg = array(
-                                "url" => $game["href"].'&token='.$token.'&lang=en&home_URL=http://demo.freebetrnk.com/icgaming',
+                                "url" => $game["href"].'&token='.$token.'&lang=zh&home_URL=http://demo.freebetrnk.com/icgaming',
                                 "game_launch" => true
                             );
                             return response($msg,200)
