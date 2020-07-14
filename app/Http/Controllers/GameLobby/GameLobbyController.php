@@ -109,6 +109,8 @@ class GameLobbyController extends Controller
             //     return $msg;
             // }
             //
+           
+           $solid_gamings = ['Solid Gaming', 'Booongo', 'Concept', 'Espresso', 'EvoPlay', 'GameArt', 'Habanero', 'MultiSlot', 'NetEnt', 'Omi Gaming', 'Oryx Gaming', 'Push Gaming', 'Revolver Gaming', 'RTG Asia', 'TPG', '1X2 Network', 'BetSoft', 'Booming', 'Leander', 'Lotus Gaming', 'No Limit City', 'One Touch', 'Quick Fire', 'Relax', 'Wazdan', 'Yggdrasil'];
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
@@ -194,7 +196,8 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($request->input('game_provider')=="Solid Gaming"){
+                // elseif($request->input('game_provider')=="Solid Gaming"){
+                elseif(in_array($request->input('game_provider'), $solid_gamings)){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::solidLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
