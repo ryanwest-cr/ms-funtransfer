@@ -164,7 +164,7 @@ class ICGController extends Controller
     public function playerDetails(Request $request){
         if($request->has("token")){
             $client_details = $this->_getClientDetails('token', $request->token);
-            Helper::saveLog('AuthPlayer(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
+            //Helper::saveLog('PlayerDetails(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
@@ -200,7 +200,7 @@ class ICGController extends Controller
                         "hash" => md5($this->changeSecurityCode($client_details->default_currency).$client_details->username."".$balance),
                     ),
                 );
-                Helper::saveLog('PlayerBalance(ICG)', 12, json_encode(array("token"=>$request->token)), $msg);
+                Helper::saveLog('PlayerBalance(ICG)', 12, json_encode(array("token"=>$request->token)), $client_response);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
             else{
