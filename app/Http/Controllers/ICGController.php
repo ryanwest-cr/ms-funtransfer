@@ -268,6 +268,7 @@ class ICGController extends Controller
                     ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
+                          "client_player_id"=>$client_details->client_player_id,
                           "token" => $client_details->player_token
                       ],
                       "fundinfo" => [
@@ -370,6 +371,7 @@ class ICGController extends Controller
                     ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
+                          "client_player_id"=>$client_details->client_player_id,
                           "token" => $client_details->player_token
                       ],
                       "fundinfo" => [
@@ -498,6 +500,7 @@ class ICGController extends Controller
                         ],
                         "fundtransferrequest" => [
                               "playerinfo" => [
+                              "client_player_id"=>$client_details->client_player_id,
                               "token" => $client_details->player_token
                           ],
                           "fundinfo" => [
@@ -597,6 +600,7 @@ class ICGController extends Controller
                         ],
                         "fundtransferrequest" => [
                               "playerinfo" => [
+                              "client_player_id"=>$client_details->client_player_id,
                               "token" => $client_details->player_token
                           ],
                           "fundinfo" => [
