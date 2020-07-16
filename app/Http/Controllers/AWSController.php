@@ -12,49 +12,99 @@ use GuzzleHttp\Client;
 use Carbon\Carbon;
 use DB;
 
-
 /**
  * @author's note : There are two kinds of method in here Single Wallet Callback and Backoffice Calls
- * @author's note : Backoffice call for directly communicate the Provider Backoffice!
+ * @author's note : Backoffice call for directly communicate to the Provider Backoffice!
  * @author's note : Single Wallet call is the main methods tobe checked!
  * @author's note : Username/Player is Prefixed with the merchant_id_TG(player_id)
- * 
+ * @method  [playerRegister] Register The Player to AWS Provider (DEPRECATED CENTRALIZED) (BO USED)
+ * @method  [launchGame] Request Gamelaunch (DEPRECATED CENTRALIZED) (BO USED)
+ * @method  [gameList] List Of All Gamelist (DEPRECATED CENTRALIZED)
+ * @method  [playerManage] Disable/Enable a player in AWS Backoffice
+ * @method  [playerStatus] Check Player Status in AWS Backoffice (BO USED)
+ * @method  [playerBalance] Check Player Balance in AWS Backoffice (BO USED)
+ * @method  [fundTransfer] Transfer fund to Player in AWS Backoffice (BO USED) (NOT USED)
+ * @method  [queryStatus] Check the fund stats of a Player in AWS Backoffice (BO USED) (NOT USED)
+ * @method  [queryOrder] Check the order stats in AWS Backoffice (BO USED) (NOT USED)
+ * @method  [playerLogout] Logout the player
+ * @method  [singleBalance] Single Wallet : Check Player Balance
+ * @method  [singleFundTransfer] Single Fund Transfer : Transfer fund Debit/Credit
+ * @method  [singleFundQuery] Check Fund
+ *
+ * 01_User Registration, 02_User Enablement, 03_User Status, 07_Launch Game 26, 08_User Kick-out (BO METHOD WE ONLY NEED)
  */
 class AWSController extends Controller
 {
 
-	public $api_url = 'https://sapi.shisaplay.com';
-    public $merchant_id = 'TGUSD';
-    public $merchant_key = '7e7b86f44fa240ccffaee944e190cce9d99d0510debf357a073b915eff301d2573ea38c98dd0b30cae7cb4f9d32299281ca132698e2b2a7dc503f28ce9135a3c';
+	public $api_url, $merchant_id, $merchant_key = '';
+
+    public function __construct(){
+    	$this->api_url = config('providerlinks.aws.api_url');
+    	$this->merchant_id = config('providerlinks.aws.merchant_id');
+    	$this->merchant_key = config('providerlinks.aws.merchant_key');
+    }
+
+    /**
+	 * SINGLE WALLET
+	 * @author's Signature combination for every callback
+	 * @param [obj] $[details] [<json to obj>]
+	 * @param [int] $[signature_type] [<1 = balance, 2 = fundtransfer, fundquery>]
+	 *
+	 */
+    public function signatureCheck($details, $signature_type){
+    	if($signature_type == 1){
+    		$signature = md5($this->merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($this->merchant_key));
+    	}elseif($signature_type == 2){
+    		$signature = md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
+    	}
+    	if($signature == $details->sign){
+    		return true;
+    	}else{
+    		return false;
+    	}
+    }
 
 	/**
 	 * SINGLE WALLET
 	 * @author's note : Player Single Balance 
 	 *
 	 */
-	public function singleBalance(Request $request)
-	{
+	public function singleBalance(Request $request){
+
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
-		Helper::saveLog('AWS Single Balance', 21, $data, 'ENDPOINT HIT');
+		// dd($this->signatureCheck($details, 1));
+		$data = file_get_contents("php://input");
+		$details = json_decode($data);
+		// Helper::saveLog('AWS Single Balance', 21, $data, 'ENDPOINT HIT');
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
+		// dd($client_details);
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-		$response = [
-			"msg"=> "success",
-			"code"=> 0,
-			"data"=> [
-				"currency"=> $client_details->default_currency,
-				"balance"=> $player_details->playerdetailsresponse->balance,
-				"bonusBalance"=> 0
-			]
-		];
+		if($player_details != 'false'){
+			$response = [
+				"msg"=> "success",
+				"code"=> 0,
+				"data"=> [
+					"currency"=> $client_details->default_currency,
+					"balance"=> $player_details->playerdetailsresponse->balance,
+					"bonusBalance"=> 0
+				]
+			];
+		}else{
+			$response = [
+				"msg"=> "User balance retrieval error",
+				"code"=> 2211,
+				"data"=> []
+			];
+		}
 		return $response;
 	}
 
 	/**
 	 * SINGLE WALLET
 	 * @author's note : Player Single Fund Transfer 
+	 * @author's note : Transfer amount, support 2 decimal places, negative number is withdraw, positive number is deposit
 	 *
 	 */
 	public function singleFundTransfer(Request $request){
@@ -64,25 +114,118 @@ class AWSController extends Controller
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-		$response = [
-			"msg"=> "success",
-			"code"=> 0,
+		// dd($player_details->playerdetailsresponse->balance);
+
+		$transaction_type = $details->amount > 0 ? 'credit' : 'debit';
+		$game_transaction_type = $transaction_type == 'debit' ? 1 : 2; // 1 Bet, 2 Win
+
+		$game_code = $details->gameId;
+		$token_id = $client_details->token_id;
+		$bet_amount = abs($details->amount);
+		$pay_amount = 0; // Zero Payout
+		$method = $transaction_type == 'debit' ? 1 : 2;
+		$win_or_lost = 5; // 0 lost,  5 processing
+		$payout_reason = $this->getOperationType($details->txnTypeId);
+		$income = $bet_amount - $pay_amount;	
+		$provider_trans_id = $details->txnId;
+
+		$game_ext_check = $this->findGameExt($details->txnId, $game_transaction_type, 'transaction_id');
+		if($game_ext_check != 'false'){
+			$response = [
+			"msg"=> "marchantTransId already exist",
+			"code"=> 2200,
 			"data"=> [
-				"currency"=> "CNY",
-				"amount"=> 0.1,
-				"accountId"=> "AWS_A1234",
-				"txnId"=> "AWS_1362340549386498",
-				"eventTime"=> "2019-09-27 16=>50:53",
-				"balance" => 91263.98,
-				"bonusBalance" => 0
-			]
-		];
-		return $response;
+					"currency"=> $client_details->default_currency,
+					"balance"=> $player_details->playerdetailsresponse->balance,
+					"bonusBalance"=> 0
+				]
+			];
+			Helper::saveLog('AWS Single Fund Failed', 21, $data, $response);
+			return $response;
+		}
+		if($transaction_type == 'debit'){
+			if($bet_amount > $player_details->playerdetailsresponse->balance){
+				$response = [
+					"msg"=> "Insufficient balance",
+					"code"=> 1201,
+					"data"=> []
+				];
+				Helper::saveLog('AWS Single Fund Failed', 21, $data, $response);
+				return $response;
+			}
+		}
+
+		try {
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			$requesttosend = [
+				  "access_token" => $client_details->client_access_token,
+				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				  "type" => "fundtransferrequest",
+				  "datesent" => Helper::datesent(),
+				  "gamedetails" => [
+				    "gameid" => $game_code,
+				    "gamename" => ""
+				  ],
+				  "fundtransferrequest" => [
+					  "playerinfo" => [
+						"token" => $client_details->player_token,
+					  ],
+					  "fundinfo" => [
+						      "gamesessionid" => "",
+						      "transactiontype" => $transaction_type,
+						      "transferid" => "",
+						      "rollback" => false,
+						      "currencycode" => $client_details->currency,
+						      "amount" => $bet_amount
+					   ],
+				  ],
+			];
+			$guzzle_response = $client->post($client_details->fund_transfer_url,
+			    ['body' => json_encode($requesttosend)]
+			);
+		    $client_response = json_decode($guzzle_response->getBody()->getContents());
+			$response = [
+				"msg"=> "success",
+				"code"=> 0,
+				"data"=> [
+					"currency"=> $client_details->default_currency,
+					"amount"=> (double)$bet_amount,
+					"accountId"=> $details->accountId,
+					"txnId"=> $details->txnId,
+					"eventTime"=> date('Y-m-d H:i:s'),
+					"balance" => $client_response->fundtransferresponse->balance,
+					"bonusBalance" => 0
+				]
+			];
+			$gamerecord  = $this->createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
+		    $game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $bet_amount, $game_transaction_type, $details, $response, $requesttosend, $client_response, $response);
+			return $response;
+		} catch (Exception $e) {
+			$response = [
+				"msg"=> "Fund transfer encountered error",
+				"code"=> 2205,
+				"data"=> [
+					"currency"=> $client_details->default_currency,
+					"amount"=> (double)$bet_amount,
+					"accountId"=> $details->accountId,
+					"txnId"=> $details->txnId,
+					"eventTime"=> date('Y-m-d H:i:s'),
+				]
+			];
+			Helper::saveLog('AWS Single Fund Failed', 21, $data, $response);
+			return $response;
+		}
 	}
 
 	/**
 	 * SINGLE WALLET
-	 * @author's note : Player Single Fund Query 
+	 * @author's note : PROVDER NOTE Query is prepare for if have transfer error, we can call "Query" to merchant to  make sure merchant received or not
+	 * this function just check order not increase or decrease action.  (Debit/Credit)
 	 *
 	 */
 	public function singleFundQuery(Request $request){
@@ -92,31 +235,55 @@ class AWSController extends Controller
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-		$response = [
-			"msg"=> "success",
-			"code"=> 0,
+
+		$transaction_type = $details->amount > 0 ? 'credit' : 'debit';
+		$game_transaction_type = $transaction_type == 'debit' ? 1 : 2; // 1 Bet, 2 Win
+		$game_ext_check = $this->findGameExt($details->txnId, $game_transaction_type, 'transaction_id');
+		// dd($game_ext_check);
+		if($game_ext_check != 'false'){ // No Transaction Was Found
+			$response = [
+				"msg"=> "success",
+				"code"=> 0,
+				"data"=> [
+					"currency"=> $client_details->default_currency,
+					"amount"=> (double)$details->amount,
+					"accountId"=> $details->accountId,
+					"txnId"=> $details->txnId,
+					"eventTime"=> date('Y-m-d H:i:s'),
+					"balance" => $player_details->playerdetailsresponse->balance,
+					"bonusBalance" => 0
+				]
+			];
+			return $response;
+		}else{   // The Transaction Has Been Processed!
+			$response = [
+			"msg"=> "Transfer history record not found",
+			"code"=> 106,
 			"data"=> [
-				"currency"=> "CNY",
-				"amount"=> 0.1,
-				"accountId"=> "AWS_A1234",
-				"txnId"=> "AWS_1362340549386498",
-				"eventTime"=> "2019-09-27 16=>50:53",
-				"balance" => 91263.98,
-				"bonusBalance" => 0
-			]
-		];
+					"currency"=> $client_details->default_currency,
+					"amount"=> (double)$details->amount,
+					"accountId"=> $details->accountId,
+					"txnId"=> $details->txnId,
+					"eventTime"=> date('Y-m-d H:i:s'),
+					"balance" => $player_details->playerdetailsresponse->balance,
+					"bonusBalance" => 0
+				]
+			];
+		}
+		Helper::saveLog('AWS Single Fund Query', 21, $data, $response);
 		return $response;
 	}
 
 	/**
 	 * MERCHANT BACKOFFICE
-	 * @author's note : this is centralized in the gamelaunch (DEPRECATED) 
+	 * @author's note : this is centralized in the gamelaunch (DEPRECATED/CENTRALIZED)
 	 *
 	 */
 	public function playerRegister(Request $request)
 	{
 	   $register_player = AWSHelper::playerRegister($request->token);
-	   $register_player->code == 2217 || $register_player->code == 0;
+	    // dd($register_player);
+	   // $register_player->code == 2217 || $register_player->code == 0;
 	}
 	
 	/**
@@ -153,7 +320,7 @@ class AWSController extends Controller
 
 	/**
 	 * MERCHANT BACKOFFICE
-	 * @author's NOTE : Get All Game List
+	 * @author's NOTE : Get All Game List (NOT/USED)
 	 *
 	 */
 	public function gameList(Request $request){
@@ -177,7 +344,7 @@ class AWSController extends Controller
 
 
 	/**
-	 * MERCHANT BACKOFFICE
+	 * MERCHANT BACKOFFICE (NOT/USED)
 	 * @author's NOTE : This is only if we want to disable/enable a player on this provider 
 	 * @param   $[request->status] [<enable or disable>]
 	 *
@@ -205,7 +372,7 @@ class AWSController extends Controller
 	}
 
 	/**
-	 * MERCHANT BACKOFFICE
+	 * MERCHANT BACKOFFICE (NOT/USED)
 	 * @author's NOTE : This is only if we want to check the player status on this provider
 	 *
 	 */
@@ -232,7 +399,7 @@ class AWSController extends Controller
 	}
 
 	/**
-	 * MERCHANT BACKOFFICE
+	 * MERCHANT BACKOFFICE (NOT/USED)
 	 * @author's NOTE : This is only if we want to check the player balance on this provider
 	 *
 	 */
@@ -258,7 +425,7 @@ class AWSController extends Controller
 	}
 
 	/**
-	 * MERCHANT BACKOFFICE
+	 * MERCHANT BACKOFFICE (NOT/USED) (NOT APLLICABLE IN THE SINGLE WALLET)
 	 * @author's NOTE : Fund Transfer
 	 *
 	 */
@@ -286,7 +453,7 @@ class AWSController extends Controller
 	}
 
 	/**
-	 * MERCHANT BACKOFFICE
+	 * MERCHANT BACKOFFICE (NOT/USED) (NOT APLLICABLE IN THE SINGLE WALLET)
 	 * @author's NOTE : Query status of fund transfer
 	 *
 	 */
@@ -313,7 +480,7 @@ class AWSController extends Controller
 	}
 
 	/**
-	 * MERCHANT BACKOFFICE
+	 * MERCHANT BACKOFFICE (NOT/USED) (NOT APLLICABLE IN THE SINGLE WALLET)
 	 * @author's NOTE : Query status of fund transfer
 	 *
 	 */
@@ -365,5 +532,115 @@ class AWSController extends Controller
 	    return $client_response;
 	}
 
+
+	/**
+	 * HELPER
+	 * Find The Transactions For Refund, Providers Transaction ID
+	 * @return  [<string>]
+	 * 
+	 */
+    public  function getOperationType($operation_type) {
+    	$operation_types = [
+    		'100' => 'Bet',
+    		'200' => 'Adjust',
+    		'300' => 'Lucky Dtaw',
+    		'400' => 'Tournament',
+    	];
+    	if(array_key_exists($operation_type, $operation_types)){
+    		return $operation_types[$operation_type];
+    	}else{
+    		return 'Operation Type is unknown!!';
+    	}
+
+	}
+
+	/**
+	 * HELPER
+	 * Find Game Transaction Ext
+	 * @param [string] $[provider_transaction_id] [<provider transaction id>]
+	 * @param [int] $[game_transaction_type] [<1 bet, 2 win, 3 refund>]
+	 * @param [string] $[type] [<transaction_id, round_id>]
+	 * 
+	 */
+	public  function findGameExt($provider_transaction_id, $game_transaction_type, $type) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+        if ($type == 'transaction_id') {
+			$transaction_db->where([
+		 		["gte.provider_trans_id", "=", $provider_transaction_id],
+		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 	]);
+		}
+		if ($type == 'round_id') {
+			$transaction_db->where([
+		 		["gte.round_id", "=", $provider_transaction_id],
+		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 	]);
+		}  
+		$result= $transaction_db->first();
+		return $result ? $result : 'false';
+	}
+
+	/**
+	 * HELPER
+	 * Find Game Transaction
+	 * @param [string] $[round_ids] [<round id for bets>]
+	 * @param [string] $[type] [<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
+	 * 
+	 */
+    public  function getAllGameTransaction($round_ids, $type) 
+    {
+		$game_transactions = DB::table("game_transactions")
+					->where('win', $type)
+				    ->whereIn('round_id', $round_ids)
+				    ->get();
+	    return (count($game_transactions) > 0 ? $game_transactions : 'false');
+    }
+
+	/**
+	 * HELPER
+	 * Create Game Transaction
+	 * 
+	 */
+	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
+		$data = [
+					"token_id" => $token_id,
+					"game_id" => $game_id,
+					"round_id" => $round_id,
+					"bet_amount" => $bet_amount,
+					"provider_trans_id" => $provider_trans_id,
+					"pay_amount" => $payout,
+					"income" => $income,
+					"entry_id" => $entry_id,
+					"win" => $win,
+					"transaction_reason" => $transaction_reason,
+					"payout_reason" => $payout_reason
+				];
+		$data_saved = DB::table('game_transactions')->insertGetId($data);
+		return $data_saved;
+	}
+
+	/**
+	 * HELPER
+	 * Create Game Transaction Extension
+	 * 
+	 */
+	public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
+
+		$gametransactionext = array(
+			"game_trans_id" => $game_trans_id,
+			"provider_trans_id" => $provider_trans_id,
+			"round_id" => $round_id,
+			"amount" => $amount,
+			"game_transaction_type"=>$game_type,
+			"provider_request" => json_encode($provider_request),
+			"mw_response" =>json_encode($mw_response),
+			"mw_request"=>json_encode($mw_request),
+			"client_response" =>json_encode($client_response),
+			"transaction_detail" =>json_encode($transaction_detail),
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		return $gametransactionext;
+
+	}
 	
 }

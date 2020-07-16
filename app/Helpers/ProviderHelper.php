@@ -7,7 +7,6 @@ use App\Helpers\Helper;
 use DB; 
 
 class ProviderHelper{
-
 	
 	/**
 	 * EVOPLAY ONLY
