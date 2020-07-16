@@ -190,7 +190,7 @@ class ICGController extends Controller
                     )]
                 );
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                
+                Helper::saveLog('PlayerBalance(ICG)AfterClient', 12, json_encode(array("token"=>$request->token)), $client_response);
                 $balance = round($client_response->playerdetailsresponse->balance*100,2);
                 $msg = array(
                     "data" => array(
@@ -200,7 +200,6 @@ class ICGController extends Controller
                         "hash" => md5($this->changeSecurityCode($client_details->default_currency).$client_details->username."".$balance),
                     ),
                 );
-                Helper::saveLog('PlayerBalance(ICG)', 12, json_encode(array("token"=>$request->token)), $client_response);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
             else{
