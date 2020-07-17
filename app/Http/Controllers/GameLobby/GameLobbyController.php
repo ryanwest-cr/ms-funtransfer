@@ -50,7 +50,7 @@ class GameLobbyController extends Controller
                         $subproviderdata = array(
                             "provider_id" => "sp".$sub_provider->sub_provider_id,
                             "provider_name" => $sub_provider->sub_provider_name,
-                            "icon" => $this->image_url.$sub_provider->icon,
+                            "icon" => $sub_provider->icon,
                             "games_list" => array(),
                         );
                         foreach($sub_provider->games as $game){

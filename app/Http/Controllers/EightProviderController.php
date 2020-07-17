@@ -72,6 +72,7 @@ class EightProviderController extends Controller
 	 * 
 	 */
 	public function index(Request $request){
+
 		Helper::saveLog('8P index '.$request->name, 19, json_encode($request->all()), 'ENDPOINT HIT');
 
 		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->secret_key);
@@ -165,6 +166,7 @@ class EightProviderController extends Controller
 				  ],
 				  "fundtransferrequest" => [
 						"playerinfo" => [
+						"client_player_id" => $client_details->client_player_id,
 						"token" => $data['token'],
 					],
 					"fundinfo" => [
@@ -261,6 +263,7 @@ class EightProviderController extends Controller
 					  ],
 					  "fundtransferrequest" => [
 							"playerinfo" => [
+							"client_player_id" => $client_details->client_player_id,
 							"token" => $data['token'],
 						],
 						"fundinfo" => [
@@ -330,6 +333,7 @@ class EightProviderController extends Controller
 							  ],
 							  "fundtransferrequest" => [
 									"playerinfo" => [
+									"client_player_id" => $client_details->client_player_id,
 									"token" => $data['token'],
 								],
 								"fundinfo" => [
@@ -477,6 +481,7 @@ class EightProviderController extends Controller
 			  ],
 			  "fundtransferrequest" => [
 					"playerinfo" => [
+					"client_player_id" => $client_details->client_player_id,
 					"token" => $data['token'],
 				],
 				"fundinfo" => [

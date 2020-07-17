@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use DB;
 
 /**
+ * @author's note : Provider has feature Front End and API Blocking IP
  * @author's note : There are two kinds of method in here Single Wallet Callback and Backoffice Calls
  * @author's note : Backoffice call for directly communicate to the Provider Backoffice!
  * @author's note : Single Wallet call is the main methods tobe checked!
@@ -57,6 +58,8 @@ class AWSController extends Controller
     	}elseif($signature_type == 2){
     		$signature = md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
     	}
+
+    	return $signature;
     	if($signature == $details->sign){
     		return true;
     	}else{
@@ -73,14 +76,12 @@ class AWSController extends Controller
 
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
-		// dd($this->signatureCheck($details, 1));
-		$data = file_get_contents("php://input");
-		$details = json_decode($data);
 		// Helper::saveLog('AWS Single Balance', 21, $data, 'ENDPOINT HIT');
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
 		// dd($client_details);
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+		// dd($player_details);
 		if($player_details != 'false'){
 			$response = [
 				"msg"=> "success",
@@ -110,19 +111,29 @@ class AWSController extends Controller
 	public function singleFundTransfer(Request $request){
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
-		Helper::saveLog('AWS Single Fund Transfer', 21, $data, 'ENDPOINT HIT');
+
+		Helper::saveLog('AWS Single Fund Transfer', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-		// dd($player_details->playerdetailsresponse->balance);
+		$game_details = Helper::findGameDetails('game_code', 21, $details->gameId);
+		if($game_details == null){
+			$response = [
+			"msg"=> "Game not found",
+			"code"=> 1100,
+			"data"=> []	
+			];
+			Helper::saveLog('AWS Single Fund Failed Game Not FOund', 21, $data, $response);
+			return $response;
+		}
 
 		$transaction_type = $details->amount > 0 ? 'credit' : 'debit';
 		$game_transaction_type = $transaction_type == 'debit' ? 1 : 2; // 1 Bet, 2 Win
 
-		$game_code = $details->gameId;
+		$game_code = $game_details->game_id;
 		$token_id = $client_details->token_id;
-		$bet_amount = abs($details->amount);
-		$pay_amount = 0; // Zero Payout
+		$bet_amount = abs($details->betAmount);
+		$pay_amount = abs($details->winAmount); // Zero Payout
 		$method = $transaction_type == 'debit' ? 1 : 2;
 		$win_or_lost = 5; // 0 lost,  5 processing
 		$payout_reason = $this->getOperationType($details->txnTypeId);
@@ -173,6 +184,7 @@ class AWSController extends Controller
 				  ],
 				  "fundtransferrequest" => [
 					  "playerinfo" => [
+						"client_player_id" => $client_details->client_player_id,
 						"token" => $client_details->player_token,
 					  ],
 					  "fundinfo" => [

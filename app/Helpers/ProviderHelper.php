@@ -102,12 +102,13 @@ class ProviderHelper{
 				$datatosend = ["access_token" => $client_details->client_access_token,
 					"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 					"type" => "playerdetailsrequest",
+					"datesent" => Helper::datesent(),
+                    "gameid" => "",
 					"clientid" => $client_details->client_id,
 					"playerdetailsrequest" => [
+						"client_player_id" => $client_details->client_player_id,
 						"token" => $player_token,
-						// "playerId" => $client_details->client_player_id,
-						"currencyId" => $client_details->currency,
-						"gamelaunch" => false,
+						"gamelaunch" => true,
 						"refreshtoken" => $refreshtoken
 					]
 				];
