@@ -399,7 +399,7 @@ class GameLobby{
      */
     public static function playerDetailsCall($player_token, $refreshtoken=false){
         $client_details = DB::table("clients AS c")
-                     ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+                     ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
                      ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
                      ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
                      ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -420,9 +420,10 @@ class GameLobby{
                     "type" => "playerdetailsrequest",
                     "clientid" => $client_details->client_id,
                     "playerdetailsrequest" => [
+                        "client_player_id" => $client_details->client_player_id,
                         "token" => $player_token,
                         // "playerId" => $client_details->client_player_id,
-                        "currencyId" => $client_details->currency,
+                        // "currencyId" => $client_details->currency,
                         "gamelaunch" => false,
                         "refreshtoken" => $refreshtoken
                     ]
