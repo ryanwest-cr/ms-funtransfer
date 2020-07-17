@@ -52,13 +52,23 @@ class AWSController extends Controller
 	 * @param [int] $[signature_type] [<1 = balance, 2 = fundtransfer, fundquery>]
 	 *
 	 */
-    public function signatureCheck($details, $signature_type, $sign){
+    public function signatureCheck($details, $signature_type){
     	if($signature_type == 1){
     		$signature = md5($this->merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($this->merchant_key));
     	}elseif($signature_type == 2){
-    		$signature = $details;
+    		$signature = false;
+			$signature_combo = [ // Only In Amount Sometimes has .0 sometimes it has nothing!
+				'one' => md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
+				'two' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
+				'three' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key))
+			];
+			foreach ($signature_combo as $key) {
+				if($key == $details->sign){
+					$signature = $key;
+				}
+			}
     	}
-    	if($signature == $sign){
+    	if($signature == $details->sign){
     		return true;
     	}else{
     		return false;
@@ -75,7 +85,7 @@ class AWSController extends Controller
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 
-		$verify = $this->signatureCheck($details, 1, $details->sign);
+		$verify = $this->signatureCheck($details, 1);
 		if(!$verify){
 			$response = [
 				"msg"=> "Sign check encountered error, please verify sign is correct",
@@ -117,23 +127,16 @@ class AWSController extends Controller
 	public function singleFundTransfer(Request $request){
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
-
-		$decimal = explode(".",$details->amount);
-		if(count($decimal) == 1){ // IF it has decimal value of zero
-			$signature = md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
-		}else{
-			$signature = md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
+		$verify = $this->signatureCheck($details, 2);
+		if(!$verify){
+			$response = [
+				"msg"=> "Sign check encountered error, please verify sign is correct",
+				"code"=> 9200
+			];
+			Helper::saveLog('AWS Single Error Sign', 21, $data, $response);
+			return $response;
 		}
-		$verify = $this->signatureCheck($signature, 2, $details->sign);
-		// if(!$verify){
-		// 	$response = [
-		// 		"msg"=> "Sign check encountered error, please verify sign is correct",
-		// 		"code"=> 9200
-		// 	];
-		// 	Helper::saveLog('AWS Single Error Sign', 21, $data, $response);
-		// 	return $response;
-		// }
-		
+
 		Helper::saveLog('AWS Single Fund Transfer', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
@@ -156,14 +159,16 @@ class AWSController extends Controller
 		$token_id = $client_details->token_id;
 		$bet_amount = abs($details->betAmount);
 
-		if($details->betAmount > $details->winAmount){
-			$win_type = 0; // lost
-		}else{
-			$win_type = 1; // win
-		}
+		$win_type = $transaction_type == 'debit'? 0 : 1;
+
+		// if($details->betAmount > $details->winAmount){
+		// 	$win_type = 0; // lost
+		// }else{
+		// 	$win_type = 1; // win
+		// }
 		// $pay_amount = $win_type == 0 ? $details->winAmount : $details->amount; // Zero Payout
 		$pay_amount = $win_type == 0 ? $details->winAmount : $details->amount; // Zero Payout
-		$income = $win_type == 0 ? $bet_amount : '-'.$details->amount;
+		$income = $pay_amount - $bet_amount;
 
 		// if($win_type == 0){
 		// 	$income = $bet_amount;	
@@ -280,13 +285,7 @@ class AWSController extends Controller
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 		Helper::saveLog('AWS Single Fund Query', 21, $data, 'ENDPOINT HIT');
-		$decimal = explode(".",$details->amount);
-		if(count($decimal) == 1){ // IF it has decimal value of zero
-			$signature = md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
-		}else{
-			$signature = md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
-		}
-		$verify = $this->signatureCheck($signature, 2, $details->sign);
+		$verify = $this->signatureCheck($details, 2);
 		if(!$verify){
 			$response = [
 				"msg"=> "Sign check encountered error, please verify sign is correct",
