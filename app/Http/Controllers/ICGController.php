@@ -114,6 +114,7 @@ class ICGController extends Controller
                                 "gameid" => "",
                                 "clientid" => $client_details->client_id,
                                 "playerdetailsrequest" => [
+                                    "client_player_id"=>$client_details->client_player_id,
                                     "token" => $client_details->player_token,
                                     "gamelaunch" => "true"
                                 ]]
@@ -163,7 +164,7 @@ class ICGController extends Controller
     public function playerDetails(Request $request){
         if($request->has("token")){
             $client_details = $this->_getClientDetails('token', $request->token);
-            Helper::saveLog('AuthPlayer(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
+            //Helper::saveLog('PlayerDetails(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
@@ -182,13 +183,14 @@ class ICGController extends Controller
                                 "gameid" => "",
                                 "clientid" => $client_details->client_id,
                                 "playerdetailsrequest" => [
+                                    "client_player_id"=>$client_details->client_player_id,
                                     "token" => $client_details->player_token,
                                     "gamelaunch" => "false"
                                 ]]
                     )]
                 );
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                
+                Helper::saveLog('PlayerBalance(ICG)AfterClient', 12, json_encode(array("token"=>$request->token)), $client_response);
                 $balance = round($client_response->playerdetailsresponse->balance*100,2);
                 $msg = array(
                     "data" => array(
@@ -198,7 +200,6 @@ class ICGController extends Controller
                         "hash" => md5($this->changeSecurityCode($client_details->default_currency).$client_details->username."".$balance),
                     ),
                 );
-                Helper::saveLog('PlayerBalance(ICG)', 12, json_encode(array("token"=>$request->token)), $msg);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
             else{
@@ -266,6 +267,7 @@ class ICGController extends Controller
                     ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
+                          "client_player_id"=>$client_details->client_player_id,
                           "token" => $client_details->player_token
                       ],
                       "fundinfo" => [
@@ -368,6 +370,7 @@ class ICGController extends Controller
                     ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
+                          "client_player_id"=>$client_details->client_player_id,
                           "token" => $client_details->player_token
                       ],
                       "fundinfo" => [
@@ -496,6 +499,7 @@ class ICGController extends Controller
                         ],
                         "fundtransferrequest" => [
                               "playerinfo" => [
+                              "client_player_id"=>$client_details->client_player_id,
                               "token" => $client_details->player_token
                           ],
                           "fundinfo" => [
@@ -595,6 +599,7 @@ class ICGController extends Controller
                         ],
                         "fundtransferrequest" => [
                               "playerinfo" => [
+                              "client_player_id"=>$client_details->client_player_id,
                               "token" => $client_details->player_token
                           ],
                           "fundinfo" => [
