@@ -129,7 +129,7 @@ class AWSController extends Controller
 	/**
 	 * SINGLE WALLET
 	 * @author's note : Player Single Fund Transfer 
-	 * @author's note : Transfer amount, support 2 decimal places, negative number is withdraw, positive number is deposit
+	 * @author's note : Transfer amount, support 2 decimal places, negative number is withdraw/debit, positive number is deposit/credit
 	 *
 	 */
 	public function singleFundTransfer(Request $request){
@@ -171,10 +171,25 @@ class AWSController extends Controller
 		$token_id = $client_details->token_id;
 		$bet_amount = abs($details->betAmount);
 
-		$win_type = $transaction_type == 'debit'? 0 : 1;
-	
-		$pay_amount = $win_type == 0 ? $details->winAmount : $details->amount; // Zero Payout
-		$income = $pay_amount - $bet_amount;
+		
+		// OLD
+		// $win_type = $transaction_type == 'debit'? 0 : 1;
+		// $pay_amount = $win_type == 0 ? $details->winAmount : $details->amount; // Zero Payout
+		// $income = $pay_amount - $bet_amount;
+		// OLD
+
+		// TEST
+		if($transaction_type == 'credit'){
+			$pay_amount =  abs($details->amount);
+			$income = $bet_amount - $pay_amount;
+			$win_type = $income > 0 ? 0 : 1;
+		}else{
+			$pay_amount = abs($details->amount);
+			$income = $bet_amount - $details->winAmount;
+			$win_type = 0;
+		}
+		// TEST
+
 
 		$method = $transaction_type == 'debit' ? 1 : 2;
 		$win_or_lost = $win_type; // 0 lost,  5 processing
@@ -619,7 +634,7 @@ class AWSController extends Controller
     	$operation_types = [
     		'100' => 'Bet',
     		'200' => 'Adjust',
-    		'300' => 'Lucky Dtaw',
+    		'300' => 'Lucky Draw',
     		'400' => 'Tournament',
     	];
     	if(array_key_exists($operation_type, $operation_types)){
