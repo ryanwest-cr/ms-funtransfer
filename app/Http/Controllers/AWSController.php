@@ -59,8 +59,9 @@ class AWSController extends Controller
     		$signature = false;
 			$signature_combo = [ // Only In Amount Sometimes has .0 sometimes it has nothing!
 				'one' => md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-				'two' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-				'three' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key))
+				'two' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
+				'three' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
+				'four' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key))
 			];
 			foreach ($signature_combo as $key) {
 				if($key == $details->sign){
@@ -68,6 +69,7 @@ class AWSController extends Controller
 				}
 			}
     	}
+
     	if($signature == $details->sign){
     		return true;
     	}else{
