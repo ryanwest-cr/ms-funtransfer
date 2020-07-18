@@ -184,7 +184,7 @@ class AWSController extends Controller
 			$income = $bet_amount - $pay_amount;
 			$win_type = $income > 0 ? 0 : 1;
 		}else{
-			$pay_amount = abs($details->amount);
+			$pay_amount = $details->winAmount;
 			$income = $bet_amount - $details->winAmount;
 			$win_type = 0;
 		}
