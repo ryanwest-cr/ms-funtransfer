@@ -412,7 +412,7 @@ class AWSController extends Controller
 		    ['body' => json_encode($requesttosend)]
 		);
 	    $client_response = json_decode($guzzle_response->getBody()->getContents());
-	    dd($requesttosend);
+	    dd($client_response);
 	}
 
 
