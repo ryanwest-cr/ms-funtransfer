@@ -135,7 +135,6 @@ class AWSController extends Controller
 	public function singleFundTransfer(Request $request){
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
-		$verify = $this->signatureCheck($details, 2);
 
 		$explode1 = explode('"betAmount":', $data);
 		$explode2 = explode('amount":', $explode1[0]);
