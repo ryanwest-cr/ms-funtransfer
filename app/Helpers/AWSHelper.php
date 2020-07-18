@@ -46,8 +46,16 @@ class AWSHelper{
 	 */
 	public static function hashen($data, $merchant_id=false)
 	{	
-		$signature = implode('', array_filter($data, function($val){ return !($val === null || (is_array($val) && !$val));}));
-	    $hashen = md5($merchant_id!=false?config('providerlinks.aws.merchant_id'):''.$signature.base64_encode(config('providerlinks.aws.merchant_key')));
+		if(is_array($data)) {
+			$signature = implode('', array_filter($data, function($val){ return !($val === null || (is_array($val) && !$val));}));
+        } else {
+            $signature = $data;
+        }
+        // return $signature;
+	    // $hashen = md5($merchant_id!=false?config('providerlinks.aws.merchant_id'):''.$signature.base64_encode(config('providerlinks.aws.merchant_key')));
+	    $merchant_id = $merchant_id!=false?config('providerlinks.aws.merchant_id'):'';
+	    // $hashen = $merchant_id.$signature.base64_encode(config('providerlinks.aws.merchant_key'));
+	    $hashen = md5($merchant_id.$signature.base64_encode(config('providerlinks.aws.merchant_key')));
 		return $hashen;
 	}
 
