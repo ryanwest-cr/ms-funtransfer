@@ -406,7 +406,7 @@ class AWSController extends Controller
 			"currentTime" => AWSHelper::currentTimeMS(),
 			"language" => 'en_US'
 		];
-		$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
+		$requesttosend['sign'] = AWSHelper::hashen(AWSHelper::currentTimeMS());
 		
 		$guzzle_response = $client->post($this->api_url.'/game/list',
 		    ['body' => json_encode($requesttosend)]
