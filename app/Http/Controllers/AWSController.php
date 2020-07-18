@@ -49,25 +49,31 @@ class AWSController extends Controller
 	 * SINGLE WALLET
 	 * @author's Signature combination for every callback
 	 * @param [obj] $[details] [<json to obj>]
-	 * @param [int] $[signature_type] [<1 = balance, 2 = fundtransfer, fundquery>]
+	 * @param [int] $[signature_type] [<1 = balance, 2 = fundtransfer, fundquery>] // SIGNATURE TYPE 2 REMOVED
 	 *
 	 */
     public function signatureCheck($details, $signature_type){
     	if($signature_type == 1){
     		$signature = md5($this->merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($this->merchant_key));
     	}elseif($signature_type == 2){
-    		$signature = false;
-			$signature_combo = [ // Only In Amount Sometimes has .0 sometimes it has nothing!
-				'one' => md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-				'two' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-				'three' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-				'four' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key))
-			];
-			foreach ($signature_combo as $key) {
-				if($key == $details->sign){
-					$signature = $key;
-				}
-			}
+    		// $signature = false;
+    		// $signature = array();
+			// $signature_combo = [ // Only In Amount Sometimes has .0 sometimes it has nothing!
+		  //   	'one' => $this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
+				// 'two' =>  $this->merchant_id.$details->currentTime.$details->amount.'0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
+				// 'three' =>  $this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
+				// 'four' =>  $this->merchant_id.$details->currentTime.$details->amount.'00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)
+				// 'one' => md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
+				// 'two' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
+				// 'three' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
+				// 'four' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key))
+			// ];
+			// foreach ($signature_combo as $key) {
+			// 	// array_push($signature, $key);
+			// 	// if($key == $details->sign){
+			// 	// 	$signature = $key;
+			// 	// }
+			// }
     	}
 
     	if($signature == $details->sign){
@@ -130,7 +136,13 @@ class AWSController extends Controller
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 		$verify = $this->signatureCheck($details, 2);
-		if(!$verify){
+
+		$explode1 = explode('"betAmount":', $data);
+		$explode2 = explode('amount":', $explode1[0]);
+		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
+		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
+		
+		if($signature != $details->sign){
 			$response = [
 				"msg"=> "Sign check encountered error, please verify sign is correct",
 				"code"=> 9200
@@ -156,28 +168,14 @@ class AWSController extends Controller
 		$transaction_type = $details->amount > 0 ? 'credit' : 'debit';
 		$game_transaction_type = $transaction_type == 'debit' ? 1 : 2; // 1 Bet, 2 Win
 
-
 		$game_code = $game_details->game_id;
 		$token_id = $client_details->token_id;
 		$bet_amount = abs($details->betAmount);
 
 		$win_type = $transaction_type == 'debit'? 0 : 1;
-
-		// if($details->betAmount > $details->winAmount){
-		// 	$win_type = 0; // lost
-		// }else{
-		// 	$win_type = 1; // win
-		// }
-		// $pay_amount = $win_type == 0 ? $details->winAmount : $details->amount; // Zero Payout
+	
 		$pay_amount = $win_type == 0 ? $details->winAmount : $details->amount; // Zero Payout
 		$income = $pay_amount - $bet_amount;
-
-		// if($win_type == 0){
-		// 	$income = $bet_amount;	
-		// }else{
-		// 	$income = '-'.$details->amount;	
-		// }
-
 
 		$method = $transaction_type == 'debit' ? 1 : 2;
 		$win_or_lost = $win_type; // 0 lost,  5 processing
@@ -222,8 +220,8 @@ class AWSController extends Controller
 				  "type" => "fundtransferrequest",
 				  "datesent" => Helper::datesent(),
 				  "gamedetails" => [
-				    "gameid" => $game_code,
-				    "gamename" => ""
+				    "gameid" => $game_details->game_code, // $game_details->game_code
+				    "gamename" => $game_details->game_name
 				  ],
 				  "fundtransferrequest" => [
 					  "playerinfo" => [
@@ -236,7 +234,7 @@ class AWSController extends Controller
 						      "transferid" => "",
 						      "rollback" => false,
 						      "currencycode" => $client_details->currency,
-						      "amount" => $details->amount
+						      "amount" => abs($details->amount)
 					   ],
 				  ],
 			];
@@ -287,8 +285,13 @@ class AWSController extends Controller
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 		Helper::saveLog('AWS Single Fund Query', 21, $data, 'ENDPOINT HIT');
-		$verify = $this->signatureCheck($details, 2);
-		if(!$verify){
+
+		$explode1 = explode('"betAmount":', $data);
+		$explode2 = explode('amount":', $explode1[0]);
+		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
+		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
+		
+		if($signature != $details->sign){
 			$response = [
 				"msg"=> "Sign check encountered error, please verify sign is correct",
 				"code"=> 9200
