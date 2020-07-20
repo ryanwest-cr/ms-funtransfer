@@ -123,7 +123,7 @@ class BNGController extends Controller
                 $msg = array(
                     "uid" => $data["uid"],
                     "player"=>array(
-                        "id"=> $client_details->player_id,         
+                        "id"=> (string)$client_details->player_id,         
                         "brand"=> "BOONGO",      
                         "currency"=> $client_details->default_currency,   
                         "mode"=> "REAL",       
