@@ -32,6 +32,48 @@ class BNGController extends Controller
             return $this->_rollbackGame($data);
         }
     }
+    public function generateGame(Request $request){
+        $url = "https://gate-stage.betsrv.com/op/tigergames-stage/api/v1/game/list/";
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json'
+            ]
+        ]);
+        $guzzle_response = $client->post($url,
+                    ['body' => json_encode(
+                            [
+                                "api_token" => "hj1yPYivJmIX4X1I1Z57494re",
+                                "provider_id" => $request->id
+                            ]
+                    )]
+                );
+        $client_response = json_decode($guzzle_response->getBody()->getContents(),TRUE);
+        $data = array();
+        foreach($client_response["items"] as $game_data){
+            if($game_data["type"]=="SLOT"){
+                $game = array(
+                    "game_type_id"=>1,
+                    "provider_id"=>22,
+                    "sub_provider_id"=>44,
+                    "game_name"=>$game_data["i18n"]["en"]["title"],
+                    "game_code"=>$game_data["game_id"]
+                );
+                array_push($data,$game);
+            }
+            elseif($game_data["type"]=="TABLE"){
+                $game = array(
+                    "game_type_id"=>5,
+                    "provider_id"=>22,
+                    "sub_provider_id"=>44,
+                    "game_name"=>$game_data["i18n"]["en"]["title"],
+                    "game_code"=>$game_data["game_id"]
+                );
+                array_push($data,$game);
+            }
+        }
+        DB::table('games')->insert($data);
+        return $data;
+    }
     public function gameLaunchUrl(Request $request){
         $token = $request->input('token');
         $game = $request->input('game_code');

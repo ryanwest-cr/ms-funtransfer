@@ -177,7 +177,7 @@ $app->post('/api/eightprovider/withdrawal', 'EightProviderController@gameWithdra
 //BNG Endpoints
 $app->post('/api/bng', 'BNGController@index');
 $app->post('/api/bng/gamelaunch', 'BNGController@gameLaunchUrl');
-
+$app->post('/api/bng/generateGame','BNGController@generateGame');
 
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');

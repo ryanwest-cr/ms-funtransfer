@@ -97,7 +97,6 @@ class GameLobbyController extends Controller
             else{
                 $ip_address = "127.0.0.1";
             }
-
             // CLIENT SUBSCRIPTION FILTER
             // $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
             // if(!$subscription_checker){
@@ -117,6 +116,15 @@ class GameLobbyController extends Controller
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$lang),
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="Booongo"){
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::booongoLaunchUrl($request->game_code,$token,$request->exitUrl),
                         "game_launch" => true
                     );
                     return response($msg,200)
