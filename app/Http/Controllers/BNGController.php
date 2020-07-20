@@ -43,7 +43,7 @@ class BNGController extends Controller
                     ['body' => json_encode(
                             [
                                 "api_token" => "hj1yPYivJmIX4X1I1Z57494re",
-                                "provider_id" => $request->id
+                                "provider_id" => 2
                             ]
                     )]
                 );
@@ -51,26 +51,30 @@ class BNGController extends Controller
         $data = array();
         foreach($client_response["items"] as $game_data){
             if($game_data["type"]=="SLOT"){
-                $game = array(
-                    "game_type_id"=>1,
-                    "provider_id"=>22,
-                    "sub_provider_id"=>45,
-                    "game_name"=>$game_data["i18n"]["en"]["title"],
-                    "game_code"=>$game_data["game_id"],
-                    "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
-                );
-                array_push($data,$game);
+                if(array_key_exists("en",$game_data["i18n"])){
+                    $game = array(
+                        "game_type_id"=>1,
+                        "provider_id"=>22,
+                        "sub_provider_id"=>45,
+                        "game_name"=>$game_data["i18n"]["en"]["title"],
+                        "game_code"=>$game_data["game_id"],
+                        "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
+                    );
+                    array_push($data,$game);
+                } 
             }
             elseif($game_data["type"]=="TABLE"){
-                $game = array(
-                    "game_type_id"=>5,
-                    "provider_id"=>22,
-                    "sub_provider_id"=>45,
-                    "game_name"=>$game_data["i18n"]["en"]["title"],
-                    "game_code"=>$game_data["game_id"],
-                    "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
-                );
-                array_push($data,$game);
+                if(array_key_exists("en",$game_data["i18n"])){
+                    $game = array(
+                        "game_type_id"=>5,
+                        "provider_id"=>22,
+                        "sub_provider_id"=>45,
+                        "game_name"=>$game_data["i18n"]["en"]["title"],
+                        "game_code"=>$game_data["game_id"],
+                        "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
+                    );
+                    array_push($data,$game);
+                }
             }
         }
         DB::table('games')->insert($data);
