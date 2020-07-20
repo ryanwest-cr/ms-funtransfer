@@ -89,7 +89,8 @@ class AWSController extends Controller
 	 *
 	 */
 	public function singleBalance(Request $request){
-
+		$client_details = AWSHelper::playerCheck('n58ec5e159f769ae0b7b3a0774fdbf80');
+		dd($client_details);
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 
@@ -382,31 +383,31 @@ class AWSController extends Controller
 	 * @author's NOTE : Launch Game (DEPRECATED/CENTRALIZED)
 	 *
 	 */
-	public function launchGame(Request $request){
-		$lang = GameLobby::getLanguage('All Way Spin','en');
-		$client_details = ProviderHelper::getClientDetails('token', $request->token);
-		$client = new Client([
-		    'headers' => [ 
-		    	'Content-Type' => 'application/json',
-		    ]
-		]);
-		$requesttosend = [
-			"merchantId" => $this->merchant_id,
-			"currentTime" => AWSHelper::currentTimeMS(),
-			"username" => $this->merchant_id.'_TG'.$client_details->player_id,
-			"playmode" => 0, // Mode of gameplay, 0: official
-			"device" => 1, // Identifying the device. Device, 0: mobile device 1: webpage
-			"gameId" => 'AWS_1',
-			"language" => $lang,
-		];
-		$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
-		$guzzle_response = $client->post($this->api_url.'/api/login',
-		    ['body' => json_encode($requesttosend)]
-		);
-	    $provider_response = json_decode($guzzle_response->getBody()->getContents());
-	    Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
-	    return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
-	}
+	// public function launchGame(Request $request){
+	// 	$lang = GameLobby::getLanguage('All Way Spin','en');
+	// 	$client_details = ProviderHelper::getClientDetails('token', $request->token);
+	// 	$client = new Client([
+	// 	    'headers' => [ 
+	// 	    	'Content-Type' => 'application/json',
+	// 	    ]
+	// 	]);
+	// 	$requesttosend = [
+	// 		"merchantId" => $this->merchant_id,
+	// 		"currentTime" => AWSHelper::currentTimeMS(),
+	// 		"username" => $this->merchant_id.'_TG'.$client_details->player_id,
+	// 		"playmode" => 0, // Mode of gameplay, 0: official
+	// 		"device" => 1, // Identifying the device. Device, 0: mobile device 1: webpage
+	// 		"gameId" => 'AWS_1',
+	// 		"language" => $lang,
+	// 	];
+	// 	$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
+	// 	$guzzle_response = $client->post($this->api_url.'/api/login',
+	// 	    ['body' => json_encode($requesttosend)]
+	// 	);
+	//     $provider_response = json_decode($guzzle_response->getBody()->getContents());
+	//     Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
+	//     return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
+	// }
 
 
 	/**

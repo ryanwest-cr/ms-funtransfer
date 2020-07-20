@@ -15,7 +15,7 @@ class AWSHelper{
 	 * @return object
 	 * 
 	 */
-    public static function playerRegister($token, $provider='All Way Spin', $lang='en')
+    public static function playerRegister($token, $provider='AllWaySpin', $lang='en')
 	{
 		$lang = GameLobby::getLanguage($provider,$lang);
 		$client_details = ProviderHelper::getClientDetails('token', $token);
@@ -32,6 +32,35 @@ class AWSHelper{
 		$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
 		$requesttosend['language'] = $lang;
 		$guzzle_response = $client->post(config('providerlinks.aws.api_url').'/api/register',
+		    ['body' => json_encode($requesttosend)]
+		);
+
+	    $client_response = json_decode($guzzle_response->getBody()->getContents());
+	    return $client_response;
+	}
+
+
+	/**
+	 * MERCHANT BACKOFFICE
+	 * @author's note : Check Player Status If Not In Register It
+	 * 
+	 */
+    public static function playerCheck($token)
+	{
+		$client_details = ProviderHelper::getClientDetails('token', $token);
+		$client = new Client([
+		    'headers' => [ 
+		    	'Content-Type' => 'application/json',
+		    ]
+		]);
+		$requesttosend = [
+			"merchantId" => config('providerlinks.aws.merchant_id'),
+			"currentTime" => AWSHelper::currentTimeMS(),
+			"username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
+		];
+		$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
+		// $requesttosend['language'] = $lang;
+		$guzzle_response = $client->post(config('providerlinks.aws.api_url').'/user/status',
 		    ['body' => json_encode($requesttosend)]
 		);
 

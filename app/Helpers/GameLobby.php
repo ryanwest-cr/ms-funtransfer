@@ -119,34 +119,37 @@ class GameLobby{
         return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 
-     public static function awsLaunchUrl($token,$game_code, $lang){
-        $register_player = AWSHelper::playerRegister($token);
-        if($register_player->code == 2217 || $register_player->code == 0){
-            $client_details = ProviderHelper::getClientDetails('token', $token);
-            $client = new Client([
-                'headers' => [ 
-                    'Content-Type' => 'application/json',
-                ]
-            ]);
-            $requesttosend = [
-                "merchantId" => config('providerlinks.aws.merchant_id'),
-                "currentTime" => AWSHelper::currentTimeMS(),
-                "username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
-                "playmode" => 0, // Mode of gameplay, 0: official
-                "device" => 1, // Identifying the device. Device, 0: mobile device 1: webpage
-                "gameId" => $game_code,
-                "language" => $lang,
-            ];
-            $requesttosend['sign'] = AWSHelper::hashen($requesttosend);
-            $guzzle_response = $client->post(config('providerlinks.aws.api_url').'/api/login',
-                ['body' => json_encode($requesttosend)]
-            );
-            $provider_response = json_decode($guzzle_response->getBody()->getContents());
-            Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
-            return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
-        }else{
-            return 'false';
+     public static function awsLaunchUrl($token,$game_code,$lang){
+        $player_check = AWSHelper::playerCheck($token);
+        if($player_check->code == 100){ // Not Registered!
+            $register_player = AWSHelper::playerRegister($token);
+            if($register_player->code != 2217 || $register_player->code != 0){
+                 Helper::saveLog('AWS BO Launch Game Failed', 21, $register_player, $register_player);
+                 return 'false';
+            }
         }
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+            ]
+        ]);
+        $requesttosend = [
+            "merchantId" => config('providerlinks.aws.merchant_id'),
+            "currentTime" => AWSHelper::currentTimeMS(),
+            "username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
+            "playmode" => 0, // Mode of gameplay, 0: official
+            "device" => 1, // Identifying the device. Device, 0: mobile device 1: webpage
+            "gameId" => $game_code,
+            "language" => $lang,
+        ];
+        $requesttosend['sign'] = AWSHelper::hashen($requesttosend);
+        $guzzle_response = $client->post(config('providerlinks.aws.api_url').'/api/login',
+            ['body' => json_encode($requesttosend)]
+        );
+        $provider_response = json_decode($guzzle_response->getBody()->getContents());
+        Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
+        return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
     }
 
     public static function betrnkLaunchUrl($token){
