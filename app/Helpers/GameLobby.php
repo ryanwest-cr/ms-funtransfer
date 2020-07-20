@@ -31,6 +31,7 @@ class GameLobby{
         $lang = "en";
         $timestamp = Carbon::now()->timestamp;
         $exit_url = $exitUrl;
+        Helper::savePLayerGameRound($game_code,$token);
         $gameurl =  config("providerlinks.boongo.PLATFORM_SERVER_URL")
                   .config("providerlinks.boongo.PROJECT_NAME").
                   "/game.html?wl=".config("providerlinks.boongo.WL").
