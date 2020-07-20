@@ -57,7 +57,7 @@ class BNGController extends Controller
                     "sub_provider_id"=>44,
                     "game_name"=>$game_data["i18n"]["en"]["title"],
                     "game_code"=>$game_data["game_id"],
-                    "game_icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
+                    "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
                 );
                 array_push($data,$game);
             }
@@ -68,7 +68,7 @@ class BNGController extends Controller
                     "sub_provider_id"=>44,
                     "game_name"=>$game_data["i18n"]["en"]["title"],
                     "game_code"=>$game_data["game_id"],
-                    "game_icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
+                    "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
                 );
                 array_push($data,$game);
             }
