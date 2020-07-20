@@ -54,7 +54,7 @@ class BNGController extends Controller
                 $game = array(
                     "game_type_id"=>1,
                     "provider_id"=>22,
-                    "sub_provider_id"=>44,
+                    "sub_provider_id"=>45,
                     "game_name"=>$game_data["i18n"]["en"]["title"],
                     "game_code"=>$game_data["game_id"],
                     "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
@@ -65,7 +65,7 @@ class BNGController extends Controller
                 $game = array(
                     "game_type_id"=>5,
                     "provider_id"=>22,
-                    "sub_provider_id"=>44,
+                    "sub_provider_id"=>45,
                     "game_name"=>$game_data["i18n"]["en"]["title"],
                     "game_code"=>$game_data["game_id"],
                     "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
