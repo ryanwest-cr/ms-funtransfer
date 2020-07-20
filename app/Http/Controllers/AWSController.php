@@ -89,8 +89,8 @@ class AWSController extends Controller
 	 *
 	 */
 	public function singleBalance(Request $request){
-		$client_details = AWSHelper::playerCheck('n58ec5e159f769ae0b7b3a0774fdbf80');
-		dd($client_details);
+		// $client_details = AWSHelper::playerCheck('n58ec5e159f769ae0b7b3a0774fdbf80');
+		// dd($client_details);
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 
@@ -371,12 +371,12 @@ class AWSController extends Controller
 	 * @author's note : this is centralized in the gamelaunch (DEPRECATED/CENTRALIZED)
 	 *
 	 */
-	public function playerRegister(Request $request)
-	{
-	   $register_player = AWSHelper::playerRegister($request->token);
-	    // dd($register_player);
-	   // $register_player->code == 2217 || $register_player->code == 0;
-	}
+	// public function playerRegister(Request $request)
+	// {
+	//    $register_player = AWSHelper::playerRegister($request->token);
+	//     // dd($register_player);
+	//    // $register_player->code == 2217 || $register_player->code == 0;
+	// }
 	
 	/**
 	 * MERCHANT BACKOFFICE
