@@ -450,11 +450,11 @@ class BNGController extends Controller
 		return $result;
     }
     private function _getExtParameter(){
-        $provider = DB::table("providers")->where("provider_name","Booongo")->first();
+        $provider = DB::table("providers")->where("provider_id",22)->first();
         $ext_parameter = json_decode($provider->ext_parameter,TRUE);
         return $ext_parameter["version"];
     }
     private function _setExtParameter($newversion){
-        DB::table("providers")->where("provider_name","Booongo")->update(['ext_parameter->version'=>$newversion]);
+        DB::table("providers")->where("provider_id",22)->update(['ext_parameter->version'=>$newversion]);
     }
 }
