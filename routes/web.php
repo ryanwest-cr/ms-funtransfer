@@ -173,6 +173,12 @@ $app->post('/api/eightprovider/refund', 'EightProviderController@gameRefund'); /
 $app->post('/api/eightprovider/deposit', 'EightProviderController@gameDeposit'); // DEPRECATED
 $app->post('/api/eightprovider/withdrawal', 'EightProviderController@gameWithdrawal'); // DEPRECATED
 
+
+//BNG Endpoints
+$app->post('/api/bng', 'BNGController@index');
+$app->post('/api/bng/gamelaunch', 'BNGController@gameLaunchUrl');
+
+
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 

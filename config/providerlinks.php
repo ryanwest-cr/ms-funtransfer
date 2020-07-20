@@ -95,7 +95,13 @@ return [
             'platformKey'=>'3a3343c316d947f68841fd7fd7c35636',
             'sign'=> 'WamRAOjZxH8vYG4rJU1',
         ]
-    ]
+        ],
+    'boongo'=>[
+        'PLATFORM_SERVER_URL'=>'https://gate-stage.betsrv.com/op/',
+        'PROJECT_NAME'=>'tigergames-stage',
+        'WL'=>'prod',
+        'API_TOKEN'=>'hj1yPYivJmIX4X1I1Z57494re',
+    ],
     
 ];
 
