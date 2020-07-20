@@ -10,6 +10,7 @@ use App\Helpers\IAHelper;
 use App\Helpers\AWSHelper;
 use App\Helpers\ProviderHelper;
 use DB;             
+use Carbon\Carbon;
 class GameLobby{
     public static function icgLaunchUrl($game_code,$token,$exitUrl,$lang="en"){
         $client = GameLobby::getClientDetails("token",$token);
@@ -25,6 +26,18 @@ class GameLobby{
                 
             }
         }
+    }
+    public static function booongoLaunchUrl($game_code,$token,$exitUrl){
+        $lang = "en";
+        $timestamp = Carbon::now()->timestamp;
+        $exit_url = $exitUrl;
+        $gameurl =  config("providerlinks.boongo.PLATFORM_SERVER_URL")
+                  .config("providerlinks.boongo.PROJECT_NAME").
+                  "/game.html?wl=".config("providerlinks.boongo.WL").
+                  "&token=".$token."&game=".$game_code."&lang=".$lang."&sound=1&ts=".
+                  $timestamp."&quickspin=1&platform=desktop".
+                  "&exir_url=".urlencode($exit_url);
+        return $gameurl;
     }
     public static function edpLaunchUrl($game_code,$token,$exitUrl){
         $profile = "nofullscreen_money.xml";
