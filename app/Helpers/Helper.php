@@ -105,7 +105,7 @@ class Helper
 		$player = DB::table('players')
 					->where('client_id',$client_id)
 					->where('client_player_id',$client_player_id)
-					->where('username',$username)
+					// ->where('username',$username)
 					->first();
 		if($player){
 			return Helper::createPlayerSessionToken($player->player_id,$token,$player_ip_address);
