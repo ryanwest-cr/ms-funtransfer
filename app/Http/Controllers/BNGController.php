@@ -123,7 +123,7 @@ class BNGController extends Controller
                 );
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
                 Helper::saveLog('AuthPlayer(BNG)', 12, json_encode(array("token"=>$data)),$client_response);
-                $balance = round($client_response->playerdetailsresponse->balance*100,2);
+                //$balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $msg = array(
                     "uid" => $data["uid"],
                     "player"=>array(
@@ -134,7 +134,7 @@ class BNGController extends Controller
                         "is_test"=> false
                     ),
                     "balance"=>array(
-                        "value"=> number_format($client_response->playerdetailsresponse->balance*100,2,'.', ''),
+                        "value"=> number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
                         "version"=> $this->_getExtParameter()
                     ),
                     "tag"=>""
@@ -305,7 +305,7 @@ class BNGController extends Controller
                 );
                 $win = $data["args"]["win"] == 0 ? 0 : 1;
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = number_format($client_response->fundtransferresponse->balance * 100,2,'.', '');
+                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
                 $json_data = array(
                     "transid" => $data["uid"],
@@ -388,7 +388,7 @@ class BNGController extends Controller
                 );
                 $win = $data["args"]["win"] == 0 ? 0 : 1;
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = number_format($client_response->fundtransferresponse->balance * 100,2,'.', '');
+                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
                 $json_data = array(
                     "transid" => $data["uid"],
