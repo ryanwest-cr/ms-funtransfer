@@ -159,6 +159,19 @@ class PaymentLobbyController extends Controller
                         $player_details = $this->_getClientDetails("token",$token);
                         $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,14,$request->input("amount"),2,1,$request->input("callBackUrl"),6);
                     }
+                    elseif($request->payment_method == "WMT")
+                    {
+                        /*
+                        entry type 2 = credit
+                        transaction type 1 = deposit
+                        status 6 = pending
+                        method_id = 10 IWALLET
+                        */
+                        $payment_method = "wmt";
+                        $payment_method_code = "WMT";
+                        $player_details = $this->_getClientDetails("token",$token);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("orderId"),null,15,$request->input("amount"),2,1,$request->input("callBackUrl"),6);
+                    }
                     else{
                         $response = array(
                             "error" => "INVALID_METHOD",
