@@ -259,7 +259,7 @@ $app->post('api/iwallet/makesettlement','IWalletController@makeSettlement');
 // $app->post('api/iwallet/makepayment','IWalletController@makePayment');
 $app->post('api/iwallet/makeremittance','IWalletController@makeRemittance');
 //WMT
-$app->post('api/wmt/makesettlement','IWalletController@makeSettlement');
+$app->post('api/wmt/makesettlement','Payments\WMTController@makeSettlement');
 
 $app->post('game/lang','GameLobby\GameLobbyController@getLanguage');
 
