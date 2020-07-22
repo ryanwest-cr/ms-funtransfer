@@ -21,7 +21,7 @@ class WMTController extends Controller
             $converted = $this->currencyConverter($player_details->default_currency,$requestfromprovider["currency"],$requestfromprovider["amount"]);
             $update_deposit = DB::table('pay_transactions')
 					    ->where('token_id', $player_details->token_id)
-					    ->where('payment_id', 10) 
+					    ->where('payment_id', 15) 
 					    ->update(
 					 	array(
                             'status_id'=> 5,
