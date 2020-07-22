@@ -13,8 +13,8 @@ class WMTController extends Controller
 {
     //
     public function makeSettlement(Request $request){
-        $requestfromclient = json_encode($request->getContent());
-        Helper::saveLog("WMT LOGS TEST",15,$request,"test");
+        $requestfromclient = $request->getContent();
+        Helper::saveLog("WMT LOGS TEST",15,$requestfromclient,"test");
         return 0;
     }
 }
