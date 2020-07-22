@@ -50,6 +50,17 @@ class WMTController extends Controller
                     'AuthenticationCode' => $authenticationCode
                 ],
             ]); 
+            $requesttoclient = [
+                'transaction_id' => $transaction->id,
+                'transaction_type'=>'DEPOSIT',
+                'order_id' => $transaction->orderId,
+                'amount'=>$transaction->amount,
+                'client_player_id' => $player_details->client_player_id,
+                'status' => "SUCCESS",
+                'message' => 'Thank you! Your Payment using TigerPay has successfully completed.',
+                'AuthenticationCode' => $authenticationCode
+            ];
+            PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),json_encode($transaction),"WMT Update Payment Transaction");
         }
         else{
             Helper::saveLog("WMT LOGS TEST",15,json_encode($requestfromprovider["txn_status"]),"test");
