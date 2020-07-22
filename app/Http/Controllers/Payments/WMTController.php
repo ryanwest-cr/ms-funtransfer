@@ -51,6 +51,9 @@ class WMTController extends Controller
                 ],
             ]); 
         }
+        else{
+            Helper::saveLog("WMT LOGS TEST",15,json_encode($requestfromprovider["txn_status"]),"test");
+        }
         return 0;
     }
 
