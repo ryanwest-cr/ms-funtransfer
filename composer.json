@@ -12,7 +12,9 @@
         "laravel/homestead": "^5.0",
         "lucadegasperi/oauth2-server-laravel": "^5.2",
         "flipbox/lumen-generator": "^6.0",
-        "guzzlehttp/guzzle": "^6.5"
+        "guzzlehttp/guzzle": "^6.5",
+        "firebase/php-jwt": "^5.0",
+        "curl/curl": "^2.2"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

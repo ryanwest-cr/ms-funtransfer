@@ -26,6 +26,7 @@ class AWSHelper{
 		]);
 		$requesttosend = [
 			"merchantId" => config('providerlinks.aws.merchant_id'),
+			"currency" => $client_details->default_currency,
 			"currentTime" => AWSHelper::currentTimeMS(),
 			"username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
 		];
@@ -55,6 +56,7 @@ class AWSHelper{
 		]);
 		$requesttosend = [
 			"merchantId" => config('providerlinks.aws.merchant_id'),
+			"currency" => $client_details->default_currency,
 			"currentTime" => AWSHelper::currentTimeMS(),
 			"username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
 		];
@@ -80,10 +82,7 @@ class AWSHelper{
         } else {
             $signature = $data;
         }
-        // return $signature;
-	    // $hashen = md5($merchant_id!=false?config('providerlinks.aws.merchant_id'):''.$signature.base64_encode(config('providerlinks.aws.merchant_key')));
 	    $merchant_id = $merchant_id!=false?config('providerlinks.aws.merchant_id'):'';
-	    // $hashen = $merchant_id.$signature.base64_encode(config('providerlinks.aws.merchant_key'));
 	    $hashen = md5($merchant_id.$signature.base64_encode(config('providerlinks.aws.merchant_key')));
 		return $hashen;
 	}

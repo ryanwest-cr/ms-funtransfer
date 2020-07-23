@@ -6,6 +6,11 @@ use GuzzleHttp\Exception\GuzzleException;
 use App\Helpers\Helper;
 use DB; 
 
+
+/**
+ * @author's note : if you changed something please add comments thanks - RiAN
+ * 
+ */
 class ProviderHelper{
 	
 	/**
@@ -32,7 +37,6 @@ class ProviderHelper{
 
 	    return $md5;
     }
-
 
     /**
 	 * GLOBAL
@@ -78,8 +82,6 @@ class ProviderHelper{
 			    return $result;
 	}
 
-
-
 	/**
 	 * GLOBAL
 	 * Client Player Details API Call
@@ -124,4 +126,125 @@ class ProviderHelper{
 			return 'false';
 		}
 	}
+
+	/**
+	 * GLOBAL
+     * Find Game Transaction
+     * @param [string] $[identifier] [<ID of the game transaction>]
+     * @param [int] $[type] [<transaction_id, round_id, refundbet>]
+     * @param [int] $[entry_type] [<1 bet/debit, 2 win/credit>]
+     * 
+     */
+    public  static function findGameTransaction($identifier, $type, $entry_type='') {
+        $transaction_db = DB::table('game_transactions as gt')
+                        ->select('gt.*', 'gte.transaction_detail')
+                        ->leftJoin("game_transaction_ext AS gte", "gte.game_trans_id", "=", "gt.game_trans_id");
+                       
+        if ($type == 'transaction_id') {
+            $transaction_db->where([
+                ["gt.provider_trans_id", "=", $identifier],
+                ["gt.entry_id", "=", $entry_type],
+            ]);
+        }
+        if ($type == 'game_transaction') {
+            $transaction_db->where([
+                ["gt.game_trans_id", "=", $identifier],
+            ]);
+        }
+        if ($type == 'round_id') {
+            $transaction_db->where([
+                ["gt.round_id", "=", $identifier],
+                ["gt.entry_id", "=", $entry_type],
+            ]);
+        }
+        if ($type == 'refundbet') { // TEST
+            $transaction_db->where([
+                ["gt.round_id", "=", $identifier],
+                ["gt.entry_id", "=", $entry_type],
+            ]);
+        }
+        $result= $transaction_db
+            ->first();
+        return $result ? $result : 'false';
+    }
+
+    /**
+     * GLOBAL
+	 * Find Game Transaction Ext
+	 * @param [string] $[provider_transaction_id] [<provider transaction id>]
+	 * @param [int] $[game_transaction_type] [<1 bet, 2 win, 3 refund>]
+	 * @param [string] $[type] [<transaction_id, round_id>]
+	 * 
+	 */
+	public  static function findGameExt($provider_identifier, $game_transaction_type, $type) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+        if ($type == 'transaction_id') {
+			$transaction_db->where([
+		 		["gte.provider_trans_id", "=", $provider_identifier],
+		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 	]);
+		}
+		if ($type == 'round_id') {
+			$transaction_db->where([
+		 		["gte.round_id", "=", $provider_identifier],
+		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 	]);
+		}  
+		$result= $transaction_db->first();
+		return $result ? $result : 'false';
+	}
+
+
+	/**
+	 * GLOBAL
+	 * Find bet and update to win 
+	 * @param [int] $[win] [< Win TYPE>][<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
+	 * 
+	 */
+	public static function updateReason($win) {
+		$win_type = [
+		 "1" => 'Transaction updated to Win',
+		 "2" => 'Transaction updated to Bet',
+		 "3" => 'Transaction updated to Draw',
+		 "4" => 'Transaction updated to Refund',
+		 "5" => 'Transaction updated to Processing',
+		];
+		if(array_key_exists($win, $win_type)){
+    		return $win_type[$win];
+    	}else{
+    		return 'Transaction Was Updated!';
+    	}
+	}
+
+	/**
+	 * GLOBAL
+	 * Check Provider if currency is registered 
+	 *  CURRENCY IN UPPERCASE
+	 */
+	public static function getProviderCurrency($provider_id,$currency){
+        $provider_currencies = DB::table("providers")->where("provider_id",$provider_id)->get();
+        $currencies = json_decode($provider_currencies[0]->currencies,TRUE);
+        if(array_key_exists($currency,$currencies)){
+            return $currencies[$currency];
+        }
+        else{
+            return 'false';
+        }
+    }
+
+    /**
+	 * GLOBAL
+	 * Check Provider languages
+	 * 
+	 */
+    public static function getLanguage($provider_id,$language){
+        $provider_language = DB::table("providers")->where("provider_id",$provider_id)->get();
+        $languages = json_decode($provider_language[0]->languages,TRUE);
+        if(array_key_exists($language,$languages)){
+            return $languages[$language];
+        }
+        else{
+            return $languages["en"];
+        }
+    }
 }

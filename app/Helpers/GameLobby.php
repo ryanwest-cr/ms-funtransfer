@@ -134,6 +134,11 @@ class GameLobby{
     }
 
      public static function awsLaunchUrl($token,$game_code,$lang){
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        $provider_reg_currency = Providerhelper::getProviderCurrency(21, $client_details->default_currency);
+        if($provider_reg_currency == 'false'){
+            return 'false';
+        }
         $player_check = AWSHelper::playerCheck($token);
         if($player_check->code == 100){ // Not Registered!
             $register_player = AWSHelper::playerRegister($token);
@@ -142,7 +147,6 @@ class GameLobby{
                  return 'false';
             }
         }
-        $client_details = ProviderHelper::getClientDetails('token', $token);
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
@@ -150,6 +154,7 @@ class GameLobby{
         ]);
         $requesttosend = [
             "merchantId" => config('providerlinks.aws.merchant_id'),
+            "currency" => $client_details->default_currency,
             "currentTime" => AWSHelper::currentTimeMS(),
             "username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
             "playmode" => 0, // Mode of gameplay, 0: official

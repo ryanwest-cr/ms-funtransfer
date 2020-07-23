@@ -69,9 +69,9 @@ return [
     	'logout_url' => 'https://api.cdmolo.com:16800/v1/player/logout',
     ],
     'aws' => [
-        'api_url' => 'https://sapi.shisaplay.com',
-        'merchant_id' => 'TGUSD',
-        'merchant_key' => '7e7b86f44fa240ccffaee944e190cce9d99d0510debf357a073b915eff301d2573ea38c98dd0b30cae7cb4f9d32299281ca132698e2b2a7dc503f28ce9135a3c',
+        'api_url' => 'https://sapi.awsxpartner.com/b2b',
+        'merchant_id' => 'TG',
+        'merchant_key' => '5819e7a6d0683606e60cd6294edfc4c557a2dd8c9128dd6fbe1d58e77cd8067fead68c48cdb3ea85dcb2e05518bac60412a0914d156a36b4a2ecab359c7adfad',
     ],
     'iagaming' => [
         'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
@@ -85,6 +85,14 @@ return [
         'api_url' => 'http://api.8provider.com',
         'project_id' => '1042',
         'secretkey' => 'c270d53d4d83d69358056dbca870c0ce',
+    ],
+    'skywind' => [
+        'api_url' => 'https://api.gcpstg.m27613.com',
+        'seamless_key' => '47138d18-6b46-4bd4-8ae1-482776ccb82d',
+        'seamless_username' => 'TGAMESU_USER',
+        'seamless_password' => 'Tgames1234',
+        'merchant_data' => 'TIGERGAMESU',
+        'merchant_password' => 'LmJfpioowcD8gspb',
     ],
     'payment'=>[
         'catpay'=>[

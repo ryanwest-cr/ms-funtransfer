@@ -89,8 +89,6 @@ class AWSController extends Controller
 	 *
 	 */
 	public function singleBalance(Request $request){
-		// $client_details = AWSHelper::playerCheck('n58ec5e159f769ae0b7b3a0774fdbf80');
-		// dd($client_details);
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 
@@ -106,6 +104,16 @@ class AWSController extends Controller
 
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
+		$provider_reg_currency = Providerhelper::getProviderCurrency(21, $client_details->default_currency);
+		if($provider_reg_currency == 'false'){
+			$response = [
+				"msg"=> "Currency not found",
+				"code"=> 102
+			];
+			Helper::saveLog('AWS Single Currency Not Found', 21, $data, $response);
+			return $response;
+		}
+
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 		if($player_details != 'false'){
 			$response = [
@@ -137,6 +145,9 @@ class AWSController extends Controller
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 
+		Helper::saveLog('AWS Single Fund Transfer', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
+		$prefixed_username = explode("_TG", $details->accountId);
+		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
 		$explode1 = explode('"betAmount":', $data);
 		$explode2 = explode('amount":', $explode1[0]);
 		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
@@ -151,9 +162,16 @@ class AWSController extends Controller
 			return $response;
 		}
 
-		Helper::saveLog('AWS Single Fund Transfer', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
-		$prefixed_username = explode("_TG", $details->accountId);
-		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
+		$provider_reg_currency = Providerhelper::getProviderCurrency(21, $client_details->default_currency);
+		if($provider_reg_currency == 'false'){
+			$response = [
+				"msg"=> "Currency not found",
+				"code"=> 102
+			];
+			Helper::saveLog('AWS Single Currency Not Found', 21, $data, $response);
+			return $response;
+		}
+
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', 21, $details->gameId);
 		if($game_details == null){
@@ -172,14 +190,7 @@ class AWSController extends Controller
 		$token_id = $client_details->token_id;
 		$bet_amount = abs($details->betAmount);
 
-		
-		// OLD
-		// $win_type = $transaction_type == 'debit'? 0 : 1;
-		// $pay_amount = $win_type == 0 ? $details->winAmount : $details->amount; // Zero Payout
-		// $income = $pay_amount - $bet_amount;
-		// OLD
 
-		// TEST
 		if($transaction_type == 'credit'){
 			$pay_amount =  abs($details->amount);
 			$income = $bet_amount - $pay_amount;
@@ -189,7 +200,6 @@ class AWSController extends Controller
 			$income = $bet_amount - $details->winAmount;
 			$win_type = 0;
 		}
-		// TEST
 
 
 		$method = $transaction_type == 'debit' ? 1 : 2;
@@ -412,7 +422,7 @@ class AWSController extends Controller
 
 	/**
 	 * MERCHANT BACKOFFICE
-	 * @author's NOTE : Get All Game List (NOT/USED)
+	 * @author's NOTE : Get All Game List (NOT/USED) ONE TIME USAGE ONLY
 	 *
 	 */
 	public function gameList(Request $request){
