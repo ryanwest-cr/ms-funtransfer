@@ -1003,6 +1003,20 @@ class PaymentLobbyController extends Controller
                         $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("payoutId"),null,12,$request->input("amount"),1,2,$request->input("callBackUrl"),6);           
                         
                     }
+                    elseif($request->payout_method  == "WMTPAYOUT"){
+                        
+                        /*
+                        entry type 1 = debit
+                        transaction type 2 = withdraw
+                        status 6 = pending
+                        method_id = 12 iwallet payout
+                        */
+                        $payout_method = "wmtpayout";
+                        $payout_method_code = "WMTPAYOUT";
+                        $player_details = $this->_getClientDetails("token",$token);
+                        $transaction = PaymentHelper::payTransactions($player_details->token_id,$request->input("payoutId"),null,16,$request->input("amount"),1,2,$request->input("callBackUrl"),6);           
+                        
+                    }
                     else{
                         $response = array(
                             "error" => "INVALID_METHOD",
@@ -1143,6 +1157,79 @@ class PaymentLobbyController extends Controller
                                 'client_player_id' => $player_details->player_id,
                                 'status' => $status,
                                 'message' => "Hi! Thank you for choosing iWallet. We will check and verify first you request. And then we will send you notification and email about the status of your request. Have a good day!",
+                                'AuthenticationCode' => $authenticationCode
+                        );
+                        $data_saved = DB::table('withdraw')->insertGetId($widthdraw_table);
+                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($request->all(), true),'NO RESPONSE EXPECTED',"IWALLET Payout Request");  
+                        PaymentHelper::savePayTransactionLogs($transaction->id,json_encode($requesttoclient),$responsefromclient->getBody(),"IWALLET Payout Request");
+                        
+
+                        return array(
+                                "transaction_id"=> $transaction->id,
+                                "order_id" => $transaction->orderId,
+                                "status"=> 'PENDING'
+                        );
+
+                    }
+                    else{
+                        $response = array(
+                            "error" => "INVALID_REQUEST",
+                            "message" => "Invalid input / missing input in iwallet"
+                        );
+                        return response($response,401)->header('Content-Type', 'application/json');
+                    }
+                }
+                elseif($request->input("payout_method") == "WMTPAYOUT"){
+
+                    if($request->has("amount")&&$request->has("currency")){
+
+                        $player_details = $this->_getClientDetails("token",$request->input("token"));
+
+                        $transaction =   DB::table('pay_transactions as pt')
+                        ->where("pt.token_id",$player_details->token_id)
+                        ->first();
+
+                        // UPDATE THE STATUS TO HELD AND ADD THE ACCOUNT_NUMBER
+                        // status_id = 7 #HELD
+                        $update_deposit = DB::table('pay_transactions')
+                            ->where('orderId', $transaction->orderId)
+                            ->where('token_id', $transaction->token_id)
+                            ->where('id', $transaction->id)
+                            ->update(
+                                array(
+                                     'status_id'=> 7,
+                                     'to_acc_number'=> $request->input("to_account")
+                        ));
+
+                        $widthdraw_table = [
+                            "user_id" => $player_details->player_id,
+                            "order_id" => $transaction->orderId,
+                            "payment_id" => $transaction->payment_id,
+                            "amount" => $transaction->amount,
+                            "status_id" => 7, 
+                        ];
+                        $status="HELD";
+                        $key = $transaction->id.'|'.$player_details->player_id.'|'.$status;
+                        $authenticationCode = hash_hmac("sha256",$player_details->client_id,$key);
+                        $http = new Client();
+                        $responsefromclient = $http->post($transaction->trans_update_url,[
+                            'form_params' => [
+                                'transaction_id' => $transaction->id,
+                                'payoutId' => $transaction->orderId,
+                                'amount'=> $transaction->amount,
+                                'client_player_id' => $player_details->player_id,
+                                'status' => $status,
+                                'message' => "Hi! Thank you for choosing Tiger Pay. We will check and verify first you request. And then we will send you notification and email about the status of your request. Have a good day!",
+                                'AuthenticationCode' => $authenticationCode
+                            ],
+                        ]);
+                        $requesttoclient = array(
+                                'transaction_id' => $transaction->id,
+                                'orderId' => $transaction->orderId,
+                                'amount'=> $transaction->amount,
+                                'client_player_id' => $player_details->player_id,
+                                'status' => $status,
+                                'message' => "Hi! Thank you for choosing Tiger Pay. We will check and verify first you request. And then we will send you notification and email about the status of your request. Have a good day!",
                                 'AuthenticationCode' => $authenticationCode
                         );
                         $data_saved = DB::table('withdraw')->insertGetId($widthdraw_table);
