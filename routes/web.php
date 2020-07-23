@@ -163,7 +163,7 @@ $app->post('skywind/api/credit', 'SkyWindController@gameCredit');
 $app->post('skywind/api/rollback', 'SkyWindController@gameRollback');
 $app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
 $app->post('skywind/api/getauth', 'SkyWindController@getAuth');
-$app->post('skywind/api/getauth', 'SkyWindController@getAuth2');
+$app->post('skywind/api/getauth2', 'SkyWindController@getAuth2');
 //Player API
 //Operator API
 //Lobby API
