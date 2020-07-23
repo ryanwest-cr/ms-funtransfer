@@ -868,7 +868,6 @@ class PaymentGatewayController extends Controller
                              ->first();
                         $pay_body = json_decode($transaction_ext->request);
                         Helper::saveLog('WMT REMITTANCE', 2, json_encode($pay_body), 'Settled');
-                        return 0;
                         if ($transaction_ext){
                             $client_player_id = DB::table('player_session_tokens as pst')
                             ->select("p.client_player_id","p.client_id")
