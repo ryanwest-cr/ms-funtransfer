@@ -7,14 +7,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
-// use App\Helpers\GameSubscription;
-// use GuzzleHttp\Exception\GuzzleException;
+
 use GuzzleHttp\Client;
 use Carbon\Carbon;
-
-use \Firebase\JWT\JWT;
-use \Curl\Curl;
-
+use App\Helpers\TidyHelper;
 use DB;
 
 
@@ -31,7 +27,7 @@ class TidyController extends Controller
  //    }
 	 public function conecteccc(Request $request){
 	 	//return self::decodeToken(array('username' => 'tidyname'));
-	 	$data = self::auth(
+	 	$data = ProviderHelper::auth(
 		 	'/api/user/outside/info', 'GET', array('username' => $request->username, 'client_id' => $request->client_id)
 		);
 	 	
@@ -75,54 +71,10 @@ class TidyController extends Controller
 	 }
 
 
-	 public function auth($uri, $method = 'GET', Array $data = []) {
-		 $curl = new Curl();
-		 $data['client_id'] = self::CLIENT_ID;
-		 $curl->setHeader(
-		 		'Authorization' ,'Bearer ' . self::generateToken($data),
-		 		'Accept', 'application/json'
-		 );
-
-
-		 $method = strtolower($method);
-		 $curl->{$method}(self::API_URL . $uri, $data);
-		 return json_decode($curl->response, true);
-	 }
-
-	 public function generateToken(Array $data) {
-		 $data['iat'] = (int)microtime(true);
-		 $jwt = JWT::encode($data, self::SECRET_KEY);
-		 return $jwt;
-	 }
-
-	 // JWT VERIFICATION
-	 public function decodeToken(Array $data){//array('username' => 'tidyname')
-		
-		$token = self::generateToken($data);
-		try {
-			$decoded = JWT::decode($token, self::SECRET_KEY, array('HS256'));
-			return json_encode($decoded);
-		} catch(Exception $e) {
-			$response = [
-						"errorcode" =>  "authorization_error",
-						"errormessage" => "Verification is failed.",
-					];
-		}
-		
-	 }
-
-	 public function getGamelist(Request $request){
-
-	 	$data = self::auth(
-		 '/api/game/outside/list', 'GET', array('username' => $request->username, 'client_id' => $request->client_id)
-		 	  );
-	 	
-	 	return $data;
-	 // 	$curl = new Curl();
-	 // 	$method = 'GET'; $uri = '/api/game/outside/list';
-		// $data['client_id'] = $request->client_id;
-
-		// $curl->setHeader(
+	 // public function auth($uri, $method = 'GET', Array $data = []) {
+		//  $curl = new Curl();
+		//  $data['client_id'] = self::CLIENT_ID;
+		//  $curl->setHeader(
 		//  		'Authorization' ,'Bearer ' . self::generateToken($data),
 		//  		'Accept', 'application/json'
 		//  );
@@ -131,7 +83,37 @@ class TidyController extends Controller
 		//  $method = strtolower($method);
 		//  $curl->{$method}(self::API_URL . $uri, $data);
 		//  return json_decode($curl->response, true);
+	 // }
 
+	 // public function generateToken(Array $data) {
+		//  $data['iat'] = (int)microtime(true);
+		//  $jwt = JWT::encode($data, self::SECRET_KEY);
+		//  return $jwt;
+	 // }
+
+	 // JWT VERIFICATION
+	 // public function decodeToken(Array $data){//array('username' => 'tidyname')
+		
+		// $token = self::generateToken($data);
+		// try {
+		// 	$decoded = JWT::decode($token, self::SECRET_KEY, array('HS256'));
+		// 	return json_encode($decoded);
+		// } catch(Exception $e) {
+		// 	$response = [
+		// 				"errorcode" =>  "authorization_error",
+		// 				"errormessage" => "Verification is failed.",
+		// 			];
+		// }
+		
+	 // }
+
+	 public function getGamelist(Request $request){
+
+	 	$data = ProviderHelper::auth(
+		 '/api/game/outside/list', 'GET', array('username' => $request->username, 'client_id' => $request->client_id)
+		 	  );
+	 	
+	 	return $data;
 	 }
 
 	 //  public function gameUrl(Request $request){
