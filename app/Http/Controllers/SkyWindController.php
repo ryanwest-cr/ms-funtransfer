@@ -50,19 +50,26 @@ class SkyWindController extends Controller
     }
 
     public function getAuth2(Request $request){
-         $http = new Client();
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+            ]
+        ]);
          $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
              "username" => "TGAMESU_USER",
              "password" => "Tgames1234"
          ];
 
-        $guzzle_response = $http->post('https://api.gcpstg.m27613.com/login',
+        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/login',
                 ['body' => json_encode($requesttosend)]
         );
         $client_response = json_decode($guzzle_response->getBody()->getContents());
         return $client_response;
     }
+
+
+
 
     /* TEST */
     public function getGameUrl(Request $request){
