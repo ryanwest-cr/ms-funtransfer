@@ -33,6 +33,37 @@ class SkyWindController extends Controller
         $this->merchant_password = config('providerlinks.skywind.merchant_password');
     }
 
+    public function getAuth(Request $request){
+         $http = new Client();
+         $requesttosend = [
+             "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+             "username" => "TGAMESU_USER",
+             "password" => "Tgames1234"
+         ];
+         $response = $http->post('https://api.gcpstg.m27613.com/login', [
+            'form_params' => $requesttosend,
+         ]);
+
+        $response = $response->getBody()->getContents();
+        Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
+        return $response;
+    }
+
+    public function getAuth2(Request $request){
+         $http = new Client();
+         $requesttosend = [
+             "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+             "username" => "TGAMESU_USER",
+             "password" => "Tgames1234"
+         ];
+
+        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/login',
+                ['body' => json_encode($requesttosend)]
+        );
+        $client_response = json_decode($guzzle_response->getBody()->getContents());
+        return $client_response;
+    }
+
     /* TEST */
     public function getGameUrl(Request $request){
          $http = new Client();
