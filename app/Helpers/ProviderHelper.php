@@ -48,7 +48,7 @@ class ProviderHelper{
 	 */
     public static function getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url','p.created_at')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -101,6 +101,7 @@ class ProviderHelper{
 				    	'Authorization' => 'Bearer '.$client_details->client_access_token
 				    ]
 				]);
+				
 				$datatosend = ["access_token" => $client_details->client_access_token,
 					"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 					"type" => "playerdetailsrequest",
@@ -114,12 +115,15 @@ class ProviderHelper{
 						"refreshtoken" => $refreshtoken
 					]
 				];
+
+				// return $datatosend;
+
 				$guzzle_response = $client->post($client_details->player_details_url,
 				    ['body' => json_encode($datatosend)]
 				);
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
 			 	return $client_response;
-            }catch (\Exception $e){
+            }catch (Exception $e){
                return 'false';
             }
 		}else{
