@@ -884,7 +884,7 @@ class PaymentGatewayController extends Controller
                                     $make_remittance = $account_number.$password.$p_num.$pay_body->amount;
                                     $remi_cha1 = hash('sha256', $make_remittance);
                                     $http = new Client();
-                                    $response = $http->post('https://test-wm7.andex.cc/dashboard/api/MoneyRequest.php', [
+                                    $response = $http->post('https://test-wm7.andex.cc/api/MoneyRequest.php', [
                                         'form_params' => [
                                             'p_num' => $p_num,
                                             'signature' => $remi_cha1, 
