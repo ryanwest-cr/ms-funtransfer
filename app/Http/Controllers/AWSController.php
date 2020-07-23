@@ -92,6 +92,7 @@ class AWSController extends Controller
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 
+		Helper::saveLog('AWS Balance', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$verify = $this->signatureCheck($details, 1);
 		if(!$verify){
 			$response = [
