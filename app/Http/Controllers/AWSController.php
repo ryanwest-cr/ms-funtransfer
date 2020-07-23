@@ -152,6 +152,8 @@ class AWSController extends Controller
 		$explode1 = explode('"betAmount":', $data);
 		$explode2 = explode('amount":', $explode1[0]);
 		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
+		$amount_in_string = trim(str_replace('"', '', $amount_in_string));
+
 		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
 		
 		if($signature != $details->sign){
@@ -315,6 +317,7 @@ class AWSController extends Controller
 		$explode1 = explode('"betAmount":', $data);
 		$explode2 = explode('amount":', $explode1[0]);
 		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
+		$amount_in_string = trim(str_replace('"', '', $amount_in_string));
 		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
 		
 		if($signature != $details->sign){
