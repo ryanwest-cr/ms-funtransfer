@@ -57,7 +57,7 @@ class SkyWindController extends Controller
              "password" => "Tgames1234"
          ];
 
-        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/login',
+        $guzzle_response = $http->post('https://api.gcpstg.m27613.com/login',
                 ['body' => json_encode($requesttosend)]
         );
         $client_response = json_decode($guzzle_response->getBody()->getContents());
