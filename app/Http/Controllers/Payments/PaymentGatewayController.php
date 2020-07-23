@@ -846,7 +846,121 @@ class PaymentGatewayController extends Controller
                     return response($response,401)->header('Content-Type', 'application/json');
                 }
 
-            }    
+            }
+            elseif($request->payout_method_code == 'WMTPAYOUT')
+            {
+                 $p_num = '10037'; // P Number
+                 $user_name = 'Tiger202007API'; // Username
+                 $password = '0xYvz4HteKf'; // Iwallet Password
+                 $account_number = '530116'; // Account Number Sa 
+                 $to_account = '65933077'; // Player Account No.
+
+                // dd('yourhere');
+                if($request->has("user_id")
+                   &&$request->has("order_id")
+                   &&$request->has("payment_id")
+                   &&$request->has("status_id")){
+                        
+                        $order_details = $this->_getOrderID($request->order_id, $request->payment_id);
+                        $transaction_ext = DB::table('pay_transaction_logs')
+                             ->where("transaction_id", $order_details->id)
+                             ->latest()
+                             ->first();
+                        $pay_body = json_decode($transaction_ext->request);
+
+                        if ($transaction_ext){
+                            $client_player_id = DB::table('player_session_tokens as pst')
+                            ->select("p.client_player_id","p.client_id")
+                            ->leftJoin("players as p","pst.player_id","=","p.player_id")
+                            ->where("p.player_id",$request->user_id)
+                            ->first();
+
+                            $key = $order_details->id.'|'.$client_player_id->client_player_id.'|SUCCESS';
+                            $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
+
+
+                            if($request->status_id == 5){
+                                    // MAKE DEPOSIT TO THE ACCOUNT OWNER WMT
+                                    $make_remittance = $account_number.$password.$p_num.$pay_body->amount;
+                                    $remi_cha1 = hash('sha256', $make_remittance);
+                                    $http = new Client();
+                                    $response = $http->post('https://test-wm7.andex.cc/dashboard/api/MoneyRequest.php', [
+                                        'form_params' => [
+                                            'p_num' => $p_num,
+                                            'signature' => $remi_cha1, 
+                                            'from_account' => $account_number, 
+                                            'to_account' => $pay_body->to_account, 
+                                            'currency' => $pay_body->currency,
+                                            'amount' =>  $pay_body->amount,
+                                            'debit_currency' => $pay_body->currency,
+                                        ]
+                                    ]);
+                                    $provider_response = json_decode($response->getBody()->getContents(), true);
+                                    Helper::saveLog('WMT REMITTANCE', 2, json_encode($provider_response), 'Settled');
+                                    $this->_updateTransaction($order_details->orderId, $order_details->id, 5);
+                                    $this->_updateWithdraw($order_details->orderId, $request->user_id, 5);
+                                    $http = new Client();
+                                    $responsefromclient = $http->post($order_details->trans_update_url, [
+                                        'form_params' => [
+                                            'transaction_type'=> "PAYOUT",
+                                            'transaction_id' => $order_details->id,
+                                            'payoutId' => $order_details->orderId,
+                                            'amount' => $order_details->amount,
+                                            'client_player_id' => $client_player_id->client_player_id,
+                                            'status' => "SUCCESS",
+                                            'message' => 'Your Tiger Pay withdrawal request with transaction number '.$order_details->id.'  has been approved. The payment has been tranferred to your account. Thank you!',
+                                            'AuthenticationCode' => $authenticationCode
+                                        ]
+                                    ]);
+                                    $requesttoclient = array(
+                                        'transaction_type'=> "PAYOUT",
+                                        'transaction_id' => $order_details->id,
+                                        'payoutId' => $order_details->orderId,
+                                        'amount' => $order_details->amount,
+                                        'client_player_id' => $client_player_id->client_player_id,
+                                        'status' => "SUCCESS",
+                                        'message' => 'Your Tiger Pay withdrawal request with transaction number '.$order_details->id.'  has been approved. The payment has been tranferred to your account. Thank you!',
+                                        'AuthenticationCode' => $authenticationCode
+                                    );
+                                    PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"IWALLETPAYOUT UPDATE TRANSACTION");
+                            }
+                            elseif($request->status_id == 3){
+                                $http = new Client();
+                                $responsefromclient = $http->post($order_details->trans_update_url, [
+                                    'form_params' => [
+                                        'transaction_id' => $order_details->id,
+                                        'payoutId' => $order_details->orderId,
+                                        'amount' => $order_details->amount,
+                                        'client_player_id' => $client_player_id->client_player_id,
+                                        'status' => "FAILED",
+                                        'message' => "Your iWallet withdrawal request with transaction number ".$order_details->id." has been disapproved. Please call Customer Service if you have trouble on this.",
+                                        'AuthenticationCode' => $authenticationCode
+                                    ]
+                                ]);
+                                $requesttoclient = array(
+                                    'transaction_id' => $order_details->id,
+                                    'payoutId' => $order_details->orderId,
+                                    'amount' => $order_details->amount,
+                                    'client_player_id' => $client_player_id->client_player_id,
+                                    'status' => "FAILED",
+                                    'message' => "Your iWallet withdrawal request with transaction number ".$order_details->id." has been disapproved. Please call Customer Service if you have trouble on this.",
+                                    'AuthenticationCode' => $authenticationCode
+                                );
+                                $this->_updateTransaction($order_details->orderId, $order_details->id, 3);
+                                $this->_updateWithdraw($order_details->orderId, $request->user_id, 3);
+                                PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"IWALLETPAYOUT UPDATE TRANSACTION");
+                            }
+                        }
+                }
+                 else{
+                    $response = array(
+                        "error" => "INVALID_REQUEST",
+                        "message" => "Invalid Iwallet input/missing input"
+                    );
+                    return response($response,401)->header('Content-Type', 'application/json');
+                }
+
+            }     
             else
             {
                 return array("error"=>"invalid payout");
