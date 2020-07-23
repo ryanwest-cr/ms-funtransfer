@@ -8,6 +8,7 @@ use GuzzleHttp\Exception\RequestException;
 use App\Helpers\Helper;
 use App\Helpers\IAHelper;
 use App\Helpers\AWSHelper;
+use App\Helpers\TidyHelper;
 use App\Helpers\ProviderHelper;
 use DB;             
 class GameLobby{
@@ -172,6 +173,27 @@ class GameLobby{
         $domain = parse_url($url, PHP_URL_HOST);
         $url = 'https://partnerapirgs.betadigitain.com/GamesLaunch/Launch?gameid='.$game_code.'&playMode=real&token='.$token.'&deviceType=1&lang='.$lang.'&operatorId=B9EC7C0A&mainDomain='.$domain.'';
         return $url;
+    }
+
+    public static function tidylaunchUrl( $game_code = null, $token = null){
+     
+        $client_details = Providerhelper::getClientDetails('token', $token);
+   
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+          
+        $requesttosend = [
+                    'client_id' =>  '8440a5b6',
+                    'game_id' => $game_code,
+                    'username' => $client_details->username,
+                    'token' => $token,
+                    'uid' => 'TG_'.$client_details->player_id
+                    ];
+            
+            $data = TidyHelper::auth(
+                '/api/game/outside/link', 'POST', $requesttosend
+              );
+            return $data['link'];
+
     }
 
 
