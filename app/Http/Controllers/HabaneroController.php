@@ -13,7 +13,7 @@ class HabaneroController extends Controller
 {
     
     public function playerdetailrequest(Request $request){
-        Helper::saveLog('Habanero Gaming Request', 24, file_get_contents("php://input"), 'ENDPOINT HIT');
+        Helper::saveLog('Habanero Gaming Request', 47, file_get_contents("php://input"), 'ENDPOINT HIT');
 
         $data = file_get_contents("php://input");
         $details = json_decode($data);
@@ -46,14 +46,13 @@ class HabaneroController extends Controller
             ];
         }
        
-        Helper::saveLog('Habanero Gaming Response', 24, json_encode($response), 'ENDPOINT HIT');
+        Helper::saveLog('Habanero Gaming Response', 47, json_encode($response), 'ENDPOINT HIT');
 
         return $response;
     }
 
 
     public function responsetosend($client_access_token,$client_api_key,$game_code,$game_name,$client_player_id,$player_token,$amount,$client,$fund_transfer_url,$transtype){
-        Helper::saveLog('Habanero Gaming', 24, file_get_contents("php://input"), 'ENDPOINT HIT');
         $requesttosend = [
             "access_token" => $client_access_token,
             "hashkey" => md5($client_api_key.$client_access_token),
@@ -89,17 +88,16 @@ class HabaneroController extends Controller
     }
 
     public function fundtransferrequest(Request $request){
-
-        Helper::saveLog('Habanero Gaming', 24, file_get_contents("php://input"), 'ENDPOINT HIT');
+        Helper::saveLog('Habanero Gaming', 47, file_get_contents("php://input"), 'ENDPOINT HIT');
 
         $data = file_get_contents("php://input");
         $details = json_decode($data);
-
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-        $game_details = Helper::findGameDetails('game_code', 23, $details->basegame->keyname);
-        
+        $game_details = Helper::findGameDetails('game_code', 24, $details->basegame->keyname);
+      
+
         if($player_details->playerdetailsresponse->balance > abs($details->fundtransferrequest->funds->fundinfo[0]->amount)){
             $client = new Client([
                 'headers' => [ 
@@ -114,8 +112,10 @@ class HabaneroController extends Controller
 
                     if($funds->gamestatemode == 1){
                         $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($funds->amount) , $client, $client_details->fund_transfer_url, "debit");
+
                     }elseif($funds->gamestatemode == 0){
                         $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($funds->amount) , $client, $client_details->fund_transfer_url, "credit");
+
                     }
                 }
                 $response = [
@@ -157,11 +157,11 @@ class HabaneroController extends Controller
                 ]
             ];
         }
-
+        Helper::saveLog('Habanero Gaming Fund Transfer', 47, json_encode($response), 'ENDPOINT HIT');
         return $response;
     }
     public function queryrequest(Request $request){
-        Helper::saveLog('Habanero Gaming', 24, file_get_contents("php://input"), 'ENDPOINT HIT');
+        Helper::saveLog('Habanero Gaming', 47, file_get_contents("php://input"), 'ENDPOINT HIT');
         return "hi";
     }
 
