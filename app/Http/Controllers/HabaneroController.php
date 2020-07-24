@@ -123,33 +123,10 @@ class HabaneroController extends Controller
                     if($funds->gamestatemode == 1){
                         $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($funds->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency);
                         // $gamerecord  = $this->createGameTransaction($client_details->token_id, $game_details->game_code, abs($funds->amount),  0.00, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
-                        $response = [
-                            "fundtransferresponse" => [
-                                "status" => [
-                                    "success" => true,
-                                    "successdebit" => true,
-                                    "successcredit" => true
-                                ],
-                                "balance" => $clientDetalsResponse->fundtransferresponse->balance,
-                                "currencycode" => $client_details->default_currency
-                            ]
-                        ];
-                        Helper::saveLog('fundtransferrequest WIN', 47, json_encode($funds), 'ENDPOINT HIT');
+            
                     }elseif($funds->gamestatemode == 0){
                         $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($funds->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency);
 
-                        $response = [
-                            "fundtransferresponse" => [
-                                "status" => [
-                                    "success" => true,
-                                    "successdebit" => true,
-                                    "successcredit" => true
-                                ],
-                                "balance" => $clientDetalsResponse->fundtransferresponse->balance,
-                                "currencycode" => $client_details->default_currency
-                            ]
-                        ];
-                        Helper::saveLog('fundtransferrequest LOSE', 47, json_encode($funds), 'ENDPOINT HIT');
                     }
 
                     // $gamerecord  = $this->createGameTransaction($client_details->token_id, $game_details->game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
