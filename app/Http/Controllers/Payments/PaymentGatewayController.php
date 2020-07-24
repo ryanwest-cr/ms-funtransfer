@@ -887,6 +887,8 @@ class PaymentGatewayController extends Controller
                                 'currency' => $pay_body->currency,
                                 'amount' =>  $pay_body->amount,
                                 'debit_currency' => $pay_body->currency,
+                                'from_account' => $account_number,
+                                'password' => $password,
                             ];
                             $http = new Client();
                             $response = $http->post('https://test-wm7.andex.cc/api/MoneyRequest.php', [
