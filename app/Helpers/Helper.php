@@ -12,6 +12,37 @@ class Helper
 		return $date->toDateTimeString();
 	}
 
+	public static function tokenCheck($token){
+		$token = DB::table('player_session_tokens')
+			    	->where('player_token', $token)
+			    	->first();
+		$today = strtotime(Helper::datesent());
+		$token_creation = strtotime($token->created_at);
+		$expiration_lenth = strtotime("10 minutes");
+
+			 return $expiration_lenth .' '. $today;
+	    	$mysql_current_timestamp = strtotime($token->created_at);
+			$expiration = strtotime($token->created_at. ' + 10 minutes');
+			return $mysql_current_timestamp . ' '. $expiration;
+
+
+		if($token != null){
+			$mysql_current_timestamp = $token->created_at;
+			$expiration = strtotime($mysql_current_timestamp. ' + 10 minutes');
+			return $mysql_current_timestamp . ' '. $expiration;
+		    // if(strtotime($mysql_current_timestamp) > strtotime("10 minutes")) {
+		    if(strtotime($mysql_current_timestamp) > strtotime("10 minutes")) {
+		        $token = true;
+		    }else{
+		    	$token = false;
+		    }
+		}else{
+			$token = false;
+		}
+		
+	    return $token;
+	}
+
 	public static function auth_key($api_key, $access_token) {
 		$result = false;
 

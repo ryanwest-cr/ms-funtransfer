@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Helpers\AlHelper;
+use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
 use GuzzleHttp\Client;
 use Session;
@@ -16,6 +17,10 @@ use DB;
 class AlController extends Controller
 {
     public function index(Request $request){
+
+      $token = Helper::tokenCheck('n58ec5e159f769ae0b7b3a0774fdbf80');
+
+      dd($token);
 
         // https://asset-dev.betrnk.games/images/games/casino/habanero/Habanero_12Zodiacs_384x216.png
 
