@@ -287,3 +287,9 @@ $app->post('api/wmt/makesettlement','Payments\WMTController@makeSettlement');
 $app->post('game/lang','GameLobby\GameLobbyController@getLanguage');
 
 $app->post('payment/catpay/callBack','Payments\PaymentGatewayController@catpayCallback');
+
+
+// Habanero 
+$app->post('public/hbn/api/auth','HabaneroController@playerdetailrequest');
+$app->post('public/hbn/api/tx','HabaneroController@fundtransferrequest');
+$app->post('public/hbn/api/query','HabaneroController@queryrequest');

@@ -269,6 +269,17 @@ class GameLobbyController extends Controller
 
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
+                }elseif($request->input('game_provider')=="HabaneroGaming"){ 
+                    // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
+                    // $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::habanerolaunchUrl($request->game_code,$request->token), //TEST
+                        "game_launch" => true
+                    );
+
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
                 }
 
             }
