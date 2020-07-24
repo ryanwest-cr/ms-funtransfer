@@ -12,15 +12,16 @@ use Auth;
 use DB;
 
 /**
- *  DEBUGGING! CALLS! -RiAN ONLY!
+ *  DEBUGGING! CALLS! -RiAN ONLY! 10:21:51
  */
 class AlController extends Controller
 {
     public function index(Request $request){
 
-      $token = Helper::tokenCheck('n58ec5e159f769ae0b7b3a0774fdbf80');
+      // $token = Helper::tokenCheck('n58ec5e159f769ae0b7b3a0774fdbf80');
 
-      dd($token);
+      // // dd($token .' ' .Helper::datesent());
+      // dd($token);
 
         // https://asset-dev.betrnk.games/images/games/casino/habanero/Habanero_12Zodiacs_384x216.png
 
