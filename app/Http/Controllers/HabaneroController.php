@@ -53,7 +53,7 @@ class HabaneroController extends Controller
 
 
     public function responsetosend($client_access_token,$client_api_key,$game_code,$game_name,$client_player_id,$player_token,$amount,$client,$fund_transfer_url,$transtype){
-
+        Helper::saveLog('Habanero Gaming', 24, file_get_contents("php://input"), 'ENDPOINT HIT');
         $requesttosend = [
             "access_token" => $client_access_token,
             "hashkey" => md5($client_api_key.$client_access_token),
@@ -161,6 +161,7 @@ class HabaneroController extends Controller
         return $response;
     }
     public function queryrequest(Request $request){
+        Helper::saveLog('Habanero Gaming', 24, file_get_contents("php://input"), 'ENDPOINT HIT');
         return "hi";
     }
 
