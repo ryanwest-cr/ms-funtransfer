@@ -37,7 +37,7 @@ class IAESportsController extends Controller
 {
     
 	// public $url = 'https://middleware.freebetrnk.com/public/game/launchurl';
-	public $prefix = 'BETRNK';
+	public $prefix = 'TGAMES';
 	public $auth_key = '54bc08c471ae3d656e43735e6ffc9bb6';
 	public $pch = 'BRNK';
 	public $iv = '45b80556382b48e5';
@@ -183,7 +183,7 @@ class IAESportsController extends Controller
 		$rollback = $transaction_code == 13 || $transaction_code == 15 ? 'true' : 'false';
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
-		Helper::saveLog('IA Deposit DECODED', 2,json_encode($cha), $data);
+		Helper::saveLog('IA Deposit DECODED', 15,json_encode($cha), $data);
 		// dd($client_details);
 		if(empty($client_details)):
 			$params = [
@@ -237,8 +237,8 @@ class IAESportsController extends Controller
 			  "type" => "fundtransferrequest",
 			  "datesent" => Helper::datesent(),
 			  "gamedetails" => [
-			    "gameid" => $game_code,
-			    "gamename" => ""
+			    "gameid" => 'ia-lobby',
+			    "gamename" => "IA Gaming"
 			  ],
 			  "fundtransferrequest" => [
 					"playerinfo" => [
@@ -298,7 +298,7 @@ class IAESportsController extends Controller
 				"message" => "Insufficient balance",
 	        ];
 		endif;
-		Helper::saveLog('IA Deposit Response', 2,json_encode($cha), $params);
+		Helper::saveLog('IA Deposit Response', 15,json_encode($cha), $params);
 		$this->userWager();
 		return $params;
 	}
@@ -317,7 +317,7 @@ class IAESportsController extends Controller
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES);
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
-		Helper::saveLog('IA Withdrawal DECODED', 2,json_encode($cha), $data);
+		Helper::saveLog('IA Withdrawal DECODED', 15,json_encode($cha), $data);
 		// $cha_data = $cha->currencyInfo;
 		// $chachi = json_decode($cha_data,JSON_UNESCAPED_SLASHES);
 		// return $chachi['short_name'];
@@ -369,8 +369,8 @@ class IAESportsController extends Controller
 				  "type" => "fundtransferrequest",
 				  "datesent" => Helper::datesent(),
 				  "gamedetails" => [
-				    "gameid" => $game_code,
-				    "gamename" => ""
+				    "gameid" => 'ia-lobby',
+			 	    "gamename" => "IA Gaming"
 				  ],
 				  "fundtransferrequest" => [
 						"playerinfo" => [
@@ -414,7 +414,7 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 
-		Helper::saveLog('IA Withrawal Response', 2,json_encode($cha), $params);
+		Helper::saveLog('IA Withrawal Response', 15,json_encode($cha), $params);
 		$this->userWager();
 		return $params;
 	}
@@ -426,11 +426,11 @@ class IAESportsController extends Controller
 	public function seamlessBalance(Request $request)
 	{	
 
-		// Helper::saveLog('IA Balance', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		// Helper::saveLog('IA Balance', 15, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data_received = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data_received, true));
 		// dd(gettype($cha));
-		// Helper::saveLog('IA Balance', 2, json_encode($cha), 'IA CALL DECODED');
+		// Helper::saveLog('IA Balance', 15, json_encode($cha), 'IA CALL DECODED');
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
 		// dd($client_details);
@@ -465,7 +465,7 @@ class IAESportsController extends Controller
             ],
 			"message" => "Success",
         ];	
-        // Helper::saveLog('IA Balance Request & Response',2,json_encode($cha), json_encode($params));
+        // Helper::saveLog('IA Balance Request & Response',15,json_encode($cha), json_encode($params));
         return $params;
 	}
 
