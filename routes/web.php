@@ -290,6 +290,6 @@ $app->post('payment/catpay/callBack','Payments\PaymentGatewayController@catpayCa
 
 
 // Habanero 
-$app->post('public/hbn/api/auth','HabaneroController@playerdetailrequest');
-$app->post('public/hbn/api/tx','HabaneroController@fundtransferrequest');
-$app->post('public/hbn/api/query','HabaneroController@queryrequest');
+$app->post('hbn/api/auth','HabaneroController@playerdetailrequest');
+$app->post('hbn/api/tx','HabaneroController@fundtransferrequest');
+$app->post('hbn/api/query','HabaneroController@queryrequest');
