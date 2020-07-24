@@ -88,25 +88,15 @@ class HabaneroController extends Controller
     }
     
     public function fundtransferrequest(Request $request){
-        Helper::saveLog('fundtransferrequest', 47, file_get_contents("php://input"), 'ENDPOINT HIT');
-
         $data = file_get_contents("php://input");
         $details = json_decode($data);
+        
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         
         $game_details = Helper::findGameDetails('game_code', 24, $details->basegame->keyname);
       
-        // $token_id = $client_details->token_id;
-        // $game_code = $game_details->game_code;
-        // $method = "";
-        // $win_or_lost = ;
-        // $trans_reason = null;
-        // $payout_reason = "";
-        // $income = "";
-        // $provider_trans_id = "";
-        // $provider_trans_id = "";
-
+      
 
         if($player_details->playerdetailsresponse->balance > abs($details->fundtransferrequest->funds->fundinfo[0]->amount)){
             $client = new Client([
@@ -173,7 +163,7 @@ class HabaneroController extends Controller
         }
 
 
-        Helper::saveLog('fundtransferrequest response', 47, json_encode($response), 'ENDPOINT HIT');
+        Helper::saveLog('fundtransferrequest', 47,$data,$response);
         return $response;
     }
     public function queryrequest(Request $request){
