@@ -852,7 +852,7 @@ class PaymentGatewayController extends Controller
                  $p_num = '10037'; // P Number
                  $user_name = 'Tiger202007API'; // Username
                  $password = '0xYvz4HteKf'; // Iwallet Password
-                 $account_number = '530116'; // Account Number Sa 
+                 $account_number = '710954'; // Account Number Sa 
                  $to_account = '65933077'; // Player Account No.
 
                 // dd('yourhere');
