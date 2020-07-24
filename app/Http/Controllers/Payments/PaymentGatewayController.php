@@ -877,7 +877,7 @@ class PaymentGatewayController extends Controller
 
                             $key = $order_details->id.'|'.$client_player_id->client_player_id.'|SUCCESS';
                             $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
-                            $make_remittance = $account_number.$password.$p_num.$pay_body->amount;
+                            $make_remittance = $account_number.$password.$p_num.(int)$pay_body->amount;
                             $remi_cha1 = hash('sha256', $make_remittance);
                             return [
                                 'p_num' => 10037,
@@ -885,9 +885,8 @@ class PaymentGatewayController extends Controller
                                 'from_account' => $account_number, 
                                 'to_account' => $pay_body->to_account, 
                                 'currency' => $pay_body->currency,
-                                'amount' =>  $pay_body->amount,
+                                'amount' =>  (int)$pay_body->amount,
                                 'debit_currency' => $pay_body->currency,
-                                'from_account' => $account_number,
                                 'password' => $password,
                             ];
                             $http = new Client();
