@@ -16,7 +16,12 @@ class Helper
 		$token = DB::table('player_session_tokens')
 			    	->where('player_token', $token)
 			    	->first();
-		$today = strtotime(Helper::datesent());
+
+		$now = time();
+        $ten_minutes = $now + (20 * 60); // Expiration Checker 20 minutes
+        return $now .' ' .$ten_minutes;
+
+		$today = strtotime(Helper::datesent() );
 		$token_creation = strtotime($token->created_at);
 		$expiration_lenth = strtotime("10 minutes");
 
