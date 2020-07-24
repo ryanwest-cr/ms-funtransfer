@@ -198,12 +198,13 @@ class GameLobby{
     }
 
     public static function tidylaunchUrl( $game_code = null, $token = null){
+
         $url = 'http://staging-v1-api.tidy.zone/api/game/outside/link';
-        
+
         $client_details = Providerhelper::getClientDetails('token', $token);
-   
+         
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-          
+           
           // $requesttosend = [
           //           'client_id' =>  '8440a5b6',
           //           'game_id' => $game_code,
@@ -217,14 +218,19 @@ class GameLobby{
           //     );
           //   return $data['link'];
 
-           
+        $get_game_explode = explode("_", $game_code);
+
+                
             $requesttosend = [
                 'client_id' =>  '8440a5b6',
-                'game_id' => $game_code,
+                'game_id' => $get_game_explode[1],
                 'username' => $client_details->username,
                 'token' => $token,
                 'uid' => 'TG_'.$client_details->player_id
             ];
+
+
+           
             $client = new Client([
                 'headers' => [ 
                     'Content-Type' => 'application/json',

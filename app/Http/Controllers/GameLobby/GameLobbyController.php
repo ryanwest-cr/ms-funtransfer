@@ -267,6 +267,8 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 } 
                 elseif($request->input('game_provider')=="Tidy"){ 
+
+                  
                     // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
                     // $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
                     $msg = array(
@@ -274,7 +276,7 @@ class GameLobbyController extends Controller
                         "url" => GameLobby::tidylaunchUrl($request->game_code,$request->token), //TEST
                         "game_launch" => true
                     );
-
+                    
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }elseif($request->input('game_provider')=="HabaneroGaming"){ 

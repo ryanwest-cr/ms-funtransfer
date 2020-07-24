@@ -136,18 +136,75 @@ class TidyController extends Controller
 
 
 	public function gameBet(Request $request){
-		Helper::saveLog('Tidy Game Bet', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
-		Helper::saveLog('Tidy Game Bet', 21, json_encode($request->all()), 'ENDPOINT HIT');
+
+		$data = file_get_contents("php://input");
+		$details = json_decode($data);
+		
+		Helper::saveLog('Tidy Game Bet', 22, file_get_contents("php://input"), 'ENDPOINT HIT');
+		Helper::saveLog('Tidy Game Bet', 22, json_encode($request->all()), 'ENDPOINT HIT');
+		$client_details = ProviderHelper::getClientDetails('token',$details->token);
+		
+		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
+
+		$game_details = Helper::findGameDetails('game_code', 22, $details->game_id);
+
+		
+		$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			$requesttosend = [
+				  "access_token" => $client_details->client_access_token,
+				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				  "type" => "fundtransferrequest",
+				  "datesent" => Helper::datesent(),
+				  "gamedetails" => [
+				    "gameid" => $game_details->game_code, // $game_details->game_code
+				    "gamename" => $game_details->game_name
+				  ],
+				  "fundtransferrequest" => [
+					  "playerinfo" => [
+						"client_player_id" => $client_details->client_player_id,
+						"token" => $client_details->player_token,
+					  ],
+					  "fundinfo" => [
+						      "gamesessionid" => "",
+						      "transactiontype" => "debit",
+						      "transferid" => "",
+						      "rollback" => false,
+						      "currency" => $client_details->currency,
+						      "amount" => abs($details->amount)
+					   ],
+				  ],
+			];
+			$guzzle_response = $client->post($client_details->fund_transfer_url,
+			    ['body' => json_encode($requesttosend)]
+			);
+
+		    $client_response = json_decode($guzzle_response->getBody()->getContents());
+		    $status = json_encode($client_response->fundtransferresponse->status->code);	
+		    $currency_code = $client_details->default_currency;
+
+		    if($status){
+		    	$data_response = [
+		    		"uid" 		   => $details->uid,
+		    		"request_uuid" => $details->request_uuid,
+		    		"currency"	   => $currency_code
+		    	];
+		    }
+		    return $data_response;
 	}
 
 	public function gameRollback(Request $request){
-		Helper::saveLog('Tidy Game Rollback', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
-		Helper::saveLog('Tidy Game Rollback', 21, json_encode($request->all()), 'ENDPOINT HIT');
+		Helper::saveLog('Tidy Game Rollback', 22, file_get_contents("php://input"), 'ENDPOINT HIT');
+		Helper::saveLog('Tidy Game Rollback', 22, json_encode($request->all()), 'ENDPOINT HIT');
 	}
 
 	public function gameWin(Request $request){
-		Helper::saveLog('Tidy Game Win', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
-		Helper::saveLog('Tidy Game Win', 21, json_encode($request->all()), 'ENDPOINT HIT');
+		Helper::saveLog('Tidy Game Win', 22, file_get_contents("php://input"), 'ENDPOINT HIT');
+		Helper::saveLog('Tidy Game Win', 22, json_encode($request->all()), 'ENDPOINT HIT');
 		
 	}
 	
