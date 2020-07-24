@@ -246,8 +246,8 @@ class GameLobby{
         $client_details = Providerhelper::getClientDetails('token', $token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-        $url = "https://app-test.insvr.com/games/?brandid=$brandID&keyname=$game_code&token=$token&mode=real&locale=en&mobile=0";
-        
+        $url = "https://app-test.insvr.com/go.ashx?brandid=$brandID&keyname=$game_code&token=$token&mode=real&locale=en&mobile=0";
+
         return $url;
     }
     
