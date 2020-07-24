@@ -194,7 +194,7 @@ $app->post('/api/bng/generateGame','BNGController@generateGame');
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 
 // TIDY
-$app->post('/tidy/api/auth', 'TidyController@conecteccc');
+// $app->post('/tidy/api/auth', 'TidyController@conecteccc');
 $app->post('/tidy/api/game/outside/link', 'TidyController@getGameUrl');
 $app->post('/tidy/api/checkplayer', 'TidyController@autPlayer');
 $app->post('/tidy/api/gamelist', 'TidyController@getGamelist');
