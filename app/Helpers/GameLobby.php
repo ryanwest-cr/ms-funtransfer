@@ -221,10 +221,13 @@ class GameLobby{
 
     public static function iaLaunchUrl($game_code,$token,$exitUrl)
     {
-        $player_details = GameLobby::getClientDetails('token', $token);
+        $player_details = Providerhelper::getClientDetails('token', $token);
+        $provider_reg_currency = Providerhelper::getProviderCurrency(15, $player_details->default_currency);
+        if($provider_reg_currency == 'false'){
+            return 'false';
+        }
         $username = config('providerlinks.iagaming.prefix').'_'.$player_details->player_id;
-        $currency_code = 'USD'; 
-        // $currency_code = $request->has('currency_code') ? $request->currency_code : 'USD'; 
+        $currency_code = $player_details->default_currency; 
         $params = [
                 "register_username" => $username,
                 "lang" => 2,
@@ -237,23 +240,9 @@ class GameLobby{
         $data = json_decode(IAHelper::rehashen($client_response[1], true));
         if($data->status): // IF status is 1/true //user already register
             $data = IAHelper::userlunch($username);
-            // $msg = array(
-            //     "game_code" =>  $game_code,
-            //     "url" => $data,
-            //     "game_launch" => true
-            // );
-            // return response($msg,200)
-            // ->header('Content-Type', 'application/json');
             return $data;
         else: // Else User is successfull register
             $data = IAHelper::userlunch($username);
-            // $msg = array(
-            //     "game_code" => $game_code,
-            //     "url" => $data,
-            //     "game_launch" => true
-            // );
-            // return response($msg,200)
-            // ->header('Content-Type', 'application/json');
             return $data;
         endif;  
     }
