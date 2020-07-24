@@ -259,7 +259,7 @@ class GameLobby{
         if($provider_reg_currency == 'false'){
             return 'false';
         }
-        $username = config('providerlinks.iagaming.prefix').'_'.$player_details->player_id;
+        $username = config('providerlinks.iagaming.prefix').$player_details->client_id.'_'.$player_details->player_id;
         $currency_code = $player_details->default_currency; 
         $params = [
                 "register_username" => $username,
@@ -270,6 +270,7 @@ class GameLobby{
         $header = ['pch:'. config('providerlinks.iagaming.pch')];
         $timeout = 5;
         $client_response = IAHelper::curlData(config('providerlinks.iagaming.url_register'), $uhayuu, $header, $timeout);
+         Helper::saveLog('IA Launch Game', 15, json_encode($client_response), $params);
         $data = json_decode(IAHelper::rehashen($client_response[1], true));
         if($data->status): // IF status is 1/true //user already register
             $data = IAHelper::userlunch($username);
