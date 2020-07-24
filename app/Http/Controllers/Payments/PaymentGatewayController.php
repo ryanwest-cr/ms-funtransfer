@@ -877,8 +877,9 @@ class PaymentGatewayController extends Controller
 
                             $key = $order_details->id.'|'.$client_player_id->client_player_id.'|SUCCESS';
                             $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
-
-
+                            $make_remittance = $account_number.$password.$p_num.$pay_body->amount;
+                            $remi_cha1 = hash('sha256', $make_remittance);
+                            return $remi_cha1;
                             if($request->status_id == 5){
                                     // MAKE DEPOSIT TO THE ACCOUNT OWNER WMT
                                     $make_remittance = $account_number.$password.$p_num.$pay_body->amount;
