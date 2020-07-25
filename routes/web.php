@@ -169,6 +169,14 @@ $app->post('skywind/api/getauth2', 'SkyWindController@getAuth2');
 //Lobby API
 //Report API
 
+//SAGaming 
+$app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
+$app->post('api/sa/PlaceBet','SAGamingController@PlaceBet');
+$app->post('api/sa/PlayerWin','SAGamingController@PlayerWin');
+$app->post('api/sa/PlayerLost','SAGamingController@PlayerLost');
+$app->post('api/sa/PlaceBetCancel','SAGamingController@PlaceBetCancel');
+
+
 
 // 8PROVIDERS
 $app->post('/api/eightprovider', 'EightProviderController@index'); // Single Route
@@ -194,7 +202,7 @@ $app->post('/api/bng/generateGame','BNGController@generateGame');
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 
 // TIDY
-$app->post('/tidy/api/auth', 'TidyController@conecteccc');
+// $app->post('/tidy/api/auth', 'TidyController@conecteccc');
 $app->post('/tidy/api/game/outside/link', 'TidyController@getGameUrl');
 $app->post('/tidy/api/checkplayer', 'TidyController@autPlayer');
 $app->post('/tidy/api/gamelist', 'TidyController@getGamelist');

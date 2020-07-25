@@ -93,7 +93,11 @@ class ProviderHelper{
 	public static function playerDetailsCall($player_token, $refreshtoken=false){
 
 		$client_details = ProviderHelper::getClientDetails('token', $player_token);
+
+
+
 		if($client_details){
+
 			try{
 				$client = new Client([
 				    'headers' => [ 
@@ -116,18 +120,21 @@ class ProviderHelper{
 					]
 				];
 
-				// return $datatosend;
-
+			
+				
 				$guzzle_response = $client->post($client_details->player_details_url,
 				    ['body' => json_encode($datatosend)]
 				);
+
+			
+
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
 			 	return $client_response;
             }catch (Exception $e){
-               return 'false';
+               return 'falsefdsgdsf';
             }
 		}else{
-			return 'false';
+			return 'falses';
 		}
 	}
 

@@ -12,6 +12,25 @@ class Helper
 		return $date->toDateTimeString();
 	}
 
+	public static function tokenCheck($token){
+		$token = DB::table('player_session_tokens')
+			    	->where('player_token', $token)
+			    	->first();
+		if($token != null){
+			$now = time();
+	        $expiration = $now + (60 * 60); // Expiration Checker 20 minutes x 60 SECOND
+	        $token_created_at = strtotime($token->created_at);
+		    if($token_created_at < $expiration) {
+		        $token = true; // True if Token can still be used!
+		    }else{
+		    	$token = false; // Expired Token
+		    }
+		}else{
+			$token = false; // Not Found Token
+		}
+	    return $token;
+	}
+
 	public static function auth_key($api_key, $access_token) {
 		$result = false;
 
