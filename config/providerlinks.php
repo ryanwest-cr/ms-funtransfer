@@ -73,6 +73,14 @@ return [
         'merchant_id' => 'TG',
         'merchant_key' => '5819e7a6d0683606e60cd6294edfc4c557a2dd8c9128dd6fbe1d58e77cd8067fead68c48cdb3ea85dcb2e05518bac60412a0914d156a36b4a2ecab359c7adfad',
     ],
+    'sagaming' => [
+        "prefix" => "TG_SA",
+        "lobby" => "A3107",
+        "API_URL" => "http://sai-api.sa-apisvr.com/api/api.aspx",
+        "MD5Key" => "GgaIMaiNNtg",
+        "EncryptKey" => "g9G16nTs",
+        "EncryptKey" =>" M06!1OgI",
+    ],
     'iagaming' => [
         'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
         'pch' => 'BRNK',
