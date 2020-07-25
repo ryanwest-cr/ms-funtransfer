@@ -16,6 +16,7 @@ $app->get('/', function () use ($app) {
 });
 $app->post('/al','AlController@index'); // TESTING!
 $app->post('/alplayer','AlController@checkCLientPlayer'); // TESTING!
+$app->post('/gg','AlController@tapulan'); // TESTING!
 // Posts
 $app->get('/posts','PostController@index');
 $app->post('/posts','PostController@store');

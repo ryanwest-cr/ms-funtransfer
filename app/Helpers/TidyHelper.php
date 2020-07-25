@@ -56,23 +56,21 @@ class TidyHelper{
 	 }
 
 	// JWT VERIFICATION
-	  public static function decodeToken(Array $data){//array('username' => 'tidyname')
-		
-		$token = self::generateToken($data);
+    public static function decodeToken($token){
+		$token = $token;
 		try {
 			$decoded = JWT::decode($token, self::SECRET_KEY, array('HS256'));
-			return json_encode($decoded);
-		} catch(Exception $e) {
-			$response = [
-						"errorcode" =>  "authorization_error",
-						"errormessage" => "Verification is failed.",
-					];
-
-
-			return json_encode($response);
+			// return json_encode($decoded);
+			return 'true';
+		} catch(\Exception $e) {
+			// $response = [
+			// 			"errorcode" =>  "authorization_error",
+			// 			"errormessage" => "Verification is failed.",
+			// 		];
+			// return json_encode($response);
+			return 'false';
 		}
-		
-	 }
+	}
 
 	 public static function currencyCode($currency){
 	 	$currency = strtoupper($currency);
