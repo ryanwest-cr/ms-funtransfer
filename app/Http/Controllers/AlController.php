@@ -1443,25 +1443,20 @@ class AlController extends Controller
     // $someArray = json_decode($array, JSON_FORCE_OBJECT);
     $foo = utf8_encode($array);
     $data = json_decode($foo, true);
-    dd(gettype($data));
-    // var_dump(json_decode($array, true));
 
-    // echo $someArray[0]["name"]; // Access Array data
-    // $data = array();
-  
-    // foreach((array)$gg as $g){
-    //   return $g[0]['game_name'];
-    //     // $game = array(
-    //     //     "game_type_id"=>5,
-    //     //     "provider_id"=>22,
-    //     //     "sub_provider_id"=>45,
-    //     //     "game_name"=>$game_data["i18n"]["en"]["title"],
-    //     //     "game_code"=>$game_data["game_id"],
-    //     //     "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
-    //     // );
-    //     array_push($data,$g['game_code']);
-    // }
-    // // DB::table('games')->insert($data);
-    // return $data;
+    $data2 = array();
+    foreach($data as $g){
+        $game = array(
+            "game_type_id"=>1,
+            "provider_id"=>$g['provider_id'],
+            "sub_provider_id"=> $g['sub_provider'],
+            "game_name"=> $g['game_name'],
+            "game_code"=>$g["game_code"],
+            "icon"=>$g["icon"]
+        );
+        array_push($data2,$game);
+    }
+    DB::table('games')->insert($data2);
+    return 'ok';
   }
 }
