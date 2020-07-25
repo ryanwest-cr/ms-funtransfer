@@ -14,7 +14,7 @@ use DB;
 class ProviderHelper{
 	
 	/**
-	 * EVOPLAY ONLY
+	 * EVOPLAY ONLY -RiAN
 	 * @param $args [array of data], 
 	 * @param $system_key [system key], 
 	 * 
@@ -40,7 +40,7 @@ class ProviderHelper{
 
     /**
 	 * GLOBAL
-	 * Client PInfo
+	 * Client Info
 	 * @return [Object]
 	 * @param $[type] [<token, player_id, site_url, username>]
 	 * @param $[value] [<value to be searched>]
@@ -91,13 +91,8 @@ class ProviderHelper{
 	 * 
 	 */
 	public static function playerDetailsCall($player_token, $refreshtoken=false){
-
 		$client_details = ProviderHelper::getClientDetails('token', $player_token);
-
-
-
 		if($client_details){
-
 			try{
 				$client = new Client([
 				    'headers' => [ 
@@ -105,7 +100,6 @@ class ProviderHelper{
 				    	'Authorization' => 'Bearer '.$client_details->client_access_token
 				    ]
 				]);
-				
 				$datatosend = ["access_token" => $client_details->client_access_token,
 					"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 					"type" => "playerdetailsrequest",
@@ -119,22 +113,18 @@ class ProviderHelper{
 						"refreshtoken" => $refreshtoken
 					]
 				];
-
-			
 				
 				$guzzle_response = $client->post($client_details->player_details_url,
 				    ['body' => json_encode($datatosend)]
 				);
 
-			
-
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
 			 	return $client_response;
             }catch (Exception $e){
-               return 'falsefdsgdsf';
+               return 'false';
             }
 		}else{
-			return 'falses';
+			return 'false';
 		}
 	}
 
@@ -209,6 +199,28 @@ class ProviderHelper{
 	/**
 	 * GLOBAL
 	 * Find bet and update to win 
+	 * @param [int] $[round_id] [<ID of the game transaction>]
+	 * @param [int] $[pay_amount] [<amount to change>]
+	 * @param [int] $[income] [<bet - payout>]
+	 * @param [int] $[win] [<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
+	 * @param [int] $[entry_id] [<1 bet, 2 win>]
+	 * 
+	 */
+	public  static function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id) {
+   	    $update = DB::table('game_transactions')
+                ->where('round_id', $round_id)
+                ->update(['pay_amount' => $pay_amount, 
+	        		  'income' => $income, 
+	        		  'win' => $win, 
+	        		  'entry_id' => $entry_id,
+	        		  'transaction_reason' => ProviderHelper::updateReason($win),
+	    		]);
+		return ($update ? true : false);
+	}
+
+	/**
+	 * GLOBAL
+	 * Find bet and update to win 
 	 * @param [int] $[win] [< Win TYPE>][<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
 	 * 
 	 */
@@ -229,8 +241,54 @@ class ProviderHelper{
 
 	/**
 	 * GLOBAL
+	 * Create Game Transaction
+	 * 
+	 */
+	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
+		$data = [
+					"token_id" => $token_id,
+					"game_id" => $game_id,
+					"round_id" => $round_id,
+					"bet_amount" => $bet_amount,
+					"provider_trans_id" => $provider_trans_id,
+					"pay_amount" => $payout,
+					"income" => $income,
+					"entry_id" => $entry_id,
+					"win" => $win,
+					"transaction_reason" => $transaction_reason,
+					"payout_reason" => $payout_reason
+				];
+		$data_saved = DB::table('game_transactions')->insertGetId($data);
+		return $data_saved;
+	}
+
+	/**
+	 * GLOBAL
+	 * Create Game Transaction Extension
+	 * @param  $[game_type] [<1=bet,2=win,3=refund>]
+	 * 
+	 */
+	public static function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
+		$gametransactionext = array(
+			"game_trans_id" => $game_trans_id,
+			"provider_trans_id" => $provider_trans_id,
+			"round_id" => $round_id,
+			"amount" => $amount,
+			"game_transaction_type"=>$game_type,
+			"provider_request" => json_encode($provider_request),
+			"mw_response" =>json_encode($mw_response),
+			"mw_request"=>json_encode($mw_request),
+			"client_response" =>json_encode($client_response),
+			"transaction_detail" =>json_encode($transaction_detail),
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		return $gametransactionext;
+	}
+
+	/**
+	 * GLOBAL
 	 * Check Provider if currency is registered 
-	 *  CURRENCY IN UPPERCASE
+	 * 
 	 */
 	public static function getProviderCurrency($provider_id,$currency){
         $provider_currencies = DB::table("providers")->where("provider_id",$provider_id)->get();

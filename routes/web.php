@@ -16,6 +16,7 @@ $app->get('/', function () use ($app) {
 });
 $app->post('/al','AlController@index'); // TESTING!
 $app->post('/alplayer','AlController@checkCLientPlayer'); // TESTING!
+$app->post('/gg','AlController@tapulan'); // TESTING!
 // Posts
 $app->get('/posts','PostController@index');
 $app->post('/posts','PostController@store');
@@ -203,16 +204,15 @@ $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 
 // TIDY
 // $app->post('/tidy/api/auth', 'TidyController@conecteccc');
-$app->post('/tidy/api/game/outside/link', 'TidyController@getGameUrl');
+$app->post('/tidy/api/game/outside/link', 'TidyController@getGameUrl'); // CENTRALIZED
 $app->post('/tidy/api/checkplayer', 'TidyController@autPlayer');
 $app->post('/tidy/api/gamelist', 'TidyController@getGamelist');
 $app->post('/tidy/api/gameurl', 'TidyController@gameUrl');
 
-$app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
 $app->post('/tidy/api/transaction/bet', 'TidyController@gameBet');
 $app->post('/tidy/api/transaction/rollback', 'TidyController@gameRollback');
 $app->post('/tidy/api/transaction/win', 'TidyController@gameWin');
-// $app->post('/api/tidy/checkbalance', 'TidyController@checkBalance');
+$app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
 
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
