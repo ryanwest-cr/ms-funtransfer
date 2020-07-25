@@ -169,6 +169,14 @@ $app->post('skywind/api/getauth2', 'SkyWindController@getAuth2');
 //Lobby API
 //Report API
 
+//SAGaming 
+$app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
+$app->post('api/sa/PlaceBet','SAGamingController@PlaceBet');
+$app->post('api/sa/PlayerWin','SAGamingController@PlayerWin');
+$app->post('api/sa/PlayerLost','SAGamingController@PlayerLost');
+$app->post('api/sa/PlaceBetCancel','SAGamingController@PlaceBetCancel');
+
+
 
 // 8PROVIDERS
 $app->post('/api/eightprovider', 'EightProviderController@index'); // Single Route
