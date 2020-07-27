@@ -208,51 +208,26 @@ class GameLobby{
     }
 
     public static function tidylaunchUrl( $game_code = null, $token = null){
-
-        $url = 'http://staging-v1-api.tidy.zone/api/game/outside/link';
-
+        $url = config('providerlinks.tidygaming.url_lunch');
         $client_details = Providerhelper::getClientDetails('token', $token);
-         
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-           
-          // $requesttosend = [
-          //           'client_id' =>  '8440a5b6',
-          //           'game_id' => $game_code,
-          //           'username' => $client_details->username,
-          //           'token' => $token,
-          //           'uid' => 'TG_'.$client_details->player_id
-          //           ];   
-            
-          //   $data = TidyHelper::auth(
-          //       '/api/game/outside/link', 'POST', $requesttosend
-          //     );
-          //   return $data['link'];
-
-        $get_game_explode = explode("_", $game_code);
-
-                
-            $requesttosend = [
-                'client_id' =>  '8440a5b6',
-                'game_id' => $get_game_explode[1],
-                'username' => $client_details->username,
-                'token' => $token,
-                'uid' => 'TG_'.$client_details->player_id
-            ];
-
-
-           
-            $client = new Client([
-                'headers' => [ 
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.TidyHelper::generateToken($requesttosend)
-                ]
-            ]);
-            $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
-            );
-            $client_response = json_decode($guzzle_response->getBody()->getContents());
-
-            return $client_response->link;
-
+        $requesttosend = [
+            'client_id' =>  '8440a5b6',
+            'game_id' => $game_code,
+            'username' => $client_details->username,
+            'token' => $token,
+            'uid' => 'TG_'.$client_details->player_id
+        ];
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.TidyHelper::generateToken($requesttosend)
+            ]
+        ]);
+        $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
+        );
+        $client_response = json_decode($guzzle_response->getBody()->getContents());
+        return $client_response->link;
     }
 
     public static function habanerolaunchUrl( $game_code = null, $token = null){

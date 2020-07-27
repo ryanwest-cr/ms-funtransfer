@@ -90,6 +90,9 @@ return [
         'url_lunch' => 'http://api.ilustretest.com/user/lunch',
         'url_register' => 'http://api.ilustretest.com/user/register',
     ],
+    'tidygaming' => [
+        'url_lunch' => 'http://staging-v1-api.tidy.zone/api/game/outside/link',
+    ],
     'evoplay' => [
         'api_url' => 'http://api.8provider.com',
         'project_id' => '1042',
