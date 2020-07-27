@@ -15,7 +15,8 @@ use DB;
 class SAGamingController extends Controller
 {
 
-	public $prefix = 'TG_SA';
+    public $prefix = 'TG_SA';
+	public $provider_db_id = 25;
 
 
 	// public function gameLaunch(){
@@ -40,7 +41,7 @@ class SAGamingController extends Controller
     public function GetUserBalance(Request $request){
     	// return SAHelper::altest();
     	// filter currency
-    	Helper::saveLog('SA Get Balance', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Get Balance', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 
     	$prefixed_username = explode("_SA", $request->username);
     	$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
@@ -57,19 +58,127 @@ class SAGamingController extends Controller
     }
 
     public function PlaceBet(){
-    	Helper::saveLog('SA Place Bet', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Place Bet', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+        // $data = json_decode(file_get_contents("php://input"));
+        $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+
+        $username = $data['username'];
+        $playersid = explode('_', $username);
+        $currency = $data['currency'];
+        $amount = $data['amount'];
+        $txnid = $data['txnid'];
+        $ip = $data['ip'];
+        $gametype = $data['gametype'];
+        $game_id = $data['gameid'];
+        $betdetails = $data['betdetails'];
+
+        $client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
+        if($client_details == null){
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 1000];
+            return $data_response;
+        }
+        $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
+        if($getPlayer == 'false'){
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 9999];  
+            return $data_response;
+        }
+        $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+        if($game_details == null){
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 134];  
+            return $data_response;
+        }
+        $provider_reg_currency = ProviderHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
+        $data_response = ["username" => $username,"currency" => $currency, "error" => 1001];
+        if($provider_reg_currency == 'false'){ // currency not in the provider currency agreement
+            return $data_response;
+        }else{
+            if($currency != $provider_reg_currency){
+                return $data_response;
+            }
+        }
+
+            $transaction_check = ProviderHelper::findGameExt($txnid, 1,'transaction_id');
+            if($transaction_check != 'false'){
+                $data_response = ["username" => $username,"currency" => $currency, "error" => 122];
+                return $data_response;
+            }
+
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.$client_details->client_access_token
+                ]
+            ]);
+            $requesttosend = [
+                  "access_token" => $client_details->client_access_token,
+                  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                  "type" => "fundtransferrequest",
+                  "datesent" => Helper::datesent(),
+                  "gamedetails" => [
+                    "gameid" => $game_details->game_code, // $game_details->game_code
+                    "gamename" => $game_details->game_name
+                  ],
+                  "fundtransferrequest" => [
+                      "playerinfo" => [
+                        "client_player_id" => $client_details->client_player_id,
+                        "token" => $client_details->player_token,
+                      ],
+                      "fundinfo" => [
+                              "gamesessionid" => "",
+                              "transactiontype" => "debit",
+                              "transferid" => "",
+                              "rollback" => false,
+                              "currency" => $client_details->default_currency,
+                              "amount" => abs($amount)
+                       ],
+                  ],
+            ];
+
+            return $requesttosend;
+            $guzzle_response = $client->post($client_details->fund_transfer_url,
+                ['body' => json_encode($requesttosend)]
+            );
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+
+            // TEST
+            $transaction_type = 'debit';
+            $game_transaction_type = 1; // 1 Bet, 2 Win
+            $game_code = $game_details->game_id;
+            $token_id = $client_details->token_id;
+            $bet_amount = $amount; 
+            $pay_amount = $amount;
+            $income = $amount;
+            $win_type = 0;
+            $method = 1;
+            $win_or_lost = $win_type; // 0 lost,  5 processing
+            $payout_reason = 'Bet';
+            $provider_trans_id = $transaction_uuid;
+            // TEST
+
+            $data_response = [
+                "username" => $username,
+                "currency" => $client_details->default_currency,
+                "amount" => $client_response->fundtransferresponse->balance,
+                "error" => 0
+            ];
+
+            $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
+            $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
+
+            return response($data_response,200)->header('Content-Type', 'application/json');
     }
 
     public function PlayerWin(){
-    	Helper::saveLog('SA Player Win', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Player Win', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
     public function PlayerLost(){
-    	Helper::saveLog('SA Player Lost', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Player Lost', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
     public function PlaceBetCancel(){
-    	Helper::saveLog('SA Place Bet Cancel', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Place Bet Cancel', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
 }
