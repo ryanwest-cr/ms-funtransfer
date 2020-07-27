@@ -52,4 +52,42 @@ class AlController extends Controller
     }
 
 
+    public function tapulan(){
+    //   $array = '[{
+    //     "game_code": "SGHeySushi",
+    //     "game_name": "Hey Sushi",
+    //     "provider_id": "24",
+    //     "sub_provider": "47",
+    //     "game_type_id": "1",
+    //     "icon": "https://asset-dev.betrnk.games/images/games/casino/Habanero/subproviders/HabaneroGaming/HabaneroGaming.png"
+    //   },
+    //   {
+    //     "game_code": "TensorBetter100Hand",
+    //     "game_name": "Tens Or Better 100 Hand",
+    //     "provider_id": "24",
+    //     "sub_provider": "47",
+    //     "game_type_id": "1",
+    //     "icon": "https://asset-dev.betrnk.games/images/games/casino/Habanero/subproviders/HabaneroGaming/HabaneroGaming.png"
+    //   }
+    // ]';
+
+    //   // $someArray = json_decode($array, JSON_FORCE_OBJECT);
+    //   $foo = utf8_encode($array);
+    //   $data = json_decode($foo, true);
+
+    //   $data2 = array();
+    //   foreach($data as $g){
+    //       $game = array(
+    //           "game_type_id"=>1,
+    //           "provider_id"=>$g['provider_id'],
+    //           "sub_provider_id"=> $g['sub_provider'],
+    //           "game_name"=> $g['game_name'],
+    //           "game_code"=>$g["game_code"],
+    //           "icon"=>$g["icon"]
+    //       );
+    //       array_push($data2,$game);
+    //   }
+    //   DB::table('games')->insert($data2);
+    //   return 'ok';
+  }
 }

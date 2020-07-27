@@ -79,6 +79,15 @@ class DigitainController extends Controller
 			"token" => $json_data['token'],
 			"errorCode" => 12 //Wrong Operator Id 
 		];
+		$token_check = Helper::tokenCheck($json_data["token"]);
+		if($token_check != true){
+			$response = [
+				"timestamp" => date('YmdHisms'),
+				"signature" => $this->createSignature(date('YmdHisms')),
+				"errorCode" => 3 // Token is expired!
+			];
+			return $response;
+		}
 		if ($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])):
 
 	   		$client_details = $this->_getClientDetails('token', $json_data["token"]);	
@@ -143,7 +152,15 @@ class DigitainController extends Controller
 						"signature" => $this->createSignature(date('YmdHisms')),
 						"errorCode" => 12,
 					];
-
+		$token_check = Helper::tokenCheck($json_data["token"]);
+		if($token_check != true){
+			$response = [
+				"timestamp" => date('YmdHisms'),
+				"signature" => $this->createSignature(date('YmdHisms')),
+				"errorCode" => 3 // Token is expired!
+			];
+			return $response;
+		}
 		if ($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])):
 			$client_details = $this->_getClientDetails('token', $json_data["token"]);	
 			if ($client_details):
@@ -275,6 +292,21 @@ class DigitainController extends Controller
 			$items_array = array(); // ITEMS INFO
 		 	foreach ($json_data['items'] as $key):
 
+		 		// ADDED FOR TOKEN EXPIRED
+		 		$token_check = Helper::tokenCheck($key["token"]);
+				if($token_check != true){
+					if($json_data['allOrNone'] == 'true'){
+						$this->megaRollback($items_allOrNone, $json_data);
+					}
+					$response = [
+						"timestamp" => date('YmdHisms'),
+						"signature" => $this->createSignature(date('YmdHisms')),
+						"errorCode" => 3 // Token is expired!
+					];
+					return $response;
+				}
+				// END EXPIRE TOKEN
+
 		 		$client_details = $this->_getClientDetails('token', $key['token']);
 		 		if(!empty($client_details)):
 
@@ -384,6 +416,14 @@ class DigitainController extends Controller
 					}
 
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+							$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					        return 	$response = array(
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 6, // Player Low Balance!
+								 "metadata" => "" // Optional but must be here!
+				   			);
+	        		}		
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 6, // Player Low Balance!
@@ -391,6 +431,14 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif;
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+							$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					        return 	$response = array(
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 999, // Client Side Failed to response!
+								 "metadata" => "" // Optional but must be here!
+				   			);
+	        		}	
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 999, // Client Side Failed to response!
@@ -398,6 +446,14 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif; 
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+							$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					        return 	$response = array(
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 16, // Currency code dont match!
+								 "metadata" => "" // Optional but must be here!
+				   			);
+	        		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 16, // Currency code dont match!
@@ -405,6 +461,14 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif;         
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+							$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					        return 	$response = array(
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 8, // already exist
+								 "metadata" => "" // Optional but must be here!
+				   			);
+	        		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 8, // already exist
@@ -412,6 +476,14 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif; 
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+							$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					        return 	$response = array(
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 4, //The playerId was not found
+								 "metadata" => "" // Optional but must be here!
+				   			);
+	        		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 4, //The playerId was not found
@@ -649,6 +721,15 @@ class DigitainController extends Controller
 				 		}
 				 		
 				else:
+					if($json_data['allOrNone'] == 'true'){
+						$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							  "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						      "errorCode" => 16, // Currency code dont match!
+						      "metadata" => "" // Optional but must be here!
+			   			);
+					}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 16, // Currency code dont match!
@@ -656,6 +737,15 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif;  
 			    else:
+			    	if($json_data['allOrNone'] == 'true'){
+						$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						     "errorCode" => 8, //already exist
+						     "metadata" => "" // Optional but must be here!
+			   			);
+					}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 8, //already exist
@@ -663,6 +753,15 @@ class DigitainController extends Controller
 	        	    ]; 
 	        	endif;      	    
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+						$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						     "errorCode" => 8, //already exist
+						     "metadata" => "" // Optional but must be here!
+			   			);
+					}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 8, //already exist
@@ -670,6 +769,15 @@ class DigitainController extends Controller
 	        	    ]; 
 	        	endif;
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+						$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						     "errorCode" => 4, //The playerId was not found
+						     "metadata" => "" // Optional but must be here!
+			   			);
+					}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 4, //The playerId was not found
@@ -707,9 +815,26 @@ class DigitainController extends Controller
 
 		if($this->authMethod($json_data['operatorId'], $json_data['timestamp'], $json_data['signature'])):
 
+			$items_allOrNone = array(); // ITEMS TO ROLLBACK IF ONE OF THE ITEMS FAILED!
 			$items_revert_update = array(); // If failed revert changes
 			$items_array = array();
 		 	foreach ($json_data['items'] as $key):
+
+		 		// ADDED FOR TOKEN EXPIRED
+		 	    // 	$token_check = Helper::tokenCheck($key["token"]);
+				// if($token_check != true){
+				// 	if($json_data['allOrNone'] == 'true'){
+				// 		$this->megaRollback($items_array, $json_data);
+				// 		$this->rollbackChanges($items_revert_update);
+				// 	}
+				// 	$response = [
+				// 		"timestamp" => date('YmdHisms'),
+				// 		"signature" => $this->createSignature(date('YmdHisms')),
+				// 		"errorCode" => 3 // Token is expired!
+				// 	];
+				// 	return $response;
+				// }
+				// END EXPIRE TOKEN
 
 		 		$client_details = $this->_getClientDetails('token', $key['token']);
 
@@ -861,6 +986,15 @@ class DigitainController extends Controller
 							 "errorCode" => 1,
 							 "metadata" => "" // Optional but must be here!
 		        	    ];
+
+		        	    #STORE THE SUCCESSFULL CALL
+				 		#ALLORNONE STORE DATA FOR A REVERSE CALLBACK IF ONE OF ITEM FAILED
+						$items_allOrNone[] = [
+							'header' => $client_details->client_access_token,
+							'url' => $client_details->fund_transfer_url,
+							'body' => $this->reverseDataBody($requesttosend),
+						];
+						#ALLORNONE END
 		 				
 		 			} catch (\Exception $e) {
 		 				return 	$response = array(
@@ -1083,7 +1217,7 @@ class DigitainController extends Controller
 									];
 									#ALLORNONE END
 
-								} catch (Exception $e) {
+								} catch (\Exception $e) {
 									if($json_data['allOrNone'] == 'true'):
 										$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
 										$this->rollbackChanges($items_revert_update);
@@ -1102,6 +1236,15 @@ class DigitainController extends Controller
 								}
 				   		endforeach;	
 	                else:
+	                	if($json_data['allOrNone'] == 'true'){
+	                		$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+							$this->rollbackChanges($items_revert_update);
+					        return 	$response = array(
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							     "errorCode" => 7, // Betwin not found dont hold refundtransaction
+							     "metadata" => "" // Optional but must be here!
+				   			);
+	                	}
 	                	$items_array[] = [
 							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 							 "errorCode" => 7, // Betwin not found dont hold refundtransaction
@@ -1109,6 +1252,15 @@ class DigitainController extends Controller
 					    ];  
 	                endif;
 	            else:
+	            		if($json_data['allOrNone'] == 'true'){
+	                		$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+							$this->rollbackChanges($items_revert_update);
+					        return 	$response = array(
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							     "errorCode" => 14, // Already Rollbacked
+							     "metadata" => "" // Optional but must be here!
+				   			);
+	                	}
 	                	$items_array[] = [
 							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 							 "errorCode" => 14, // Already Rollbacked
@@ -1116,6 +1268,15 @@ class DigitainController extends Controller
 					    ];  
                 endif;
 	 		else:
+	 			if($json_data['allOrNone'] == 'true'){
+            		$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					$this->rollbackChanges($items_revert_update);
+			        return 	$response = array(
+						 "info" => $key['info'], // IWininfo
+					     "errorCode" => 4, // player not found
+					     "metadata" => "" // Optional but must be here!
+		   			);
+            	}
 	 			$items_array[] = [
 					 "info" => $key['info'], // IWininfo
 					 "errorCode" => 4, // player not found
@@ -1123,6 +1284,15 @@ class DigitainController extends Controller
         	    ];
 	 		endif;
 	 		else:
+	 			if($json_data['allOrNone'] == 'true'){
+            		$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					$this->rollbackChanges($items_revert_update);
+			        return 	$response = array(
+						 "info" => $key['info'], // IWininfo
+					     "errorCode" => 7, // Transaction not found
+					     "metadata" => "" // Optional but must be here!
+		   			);
+            	}
 	 			$items_array[] = [
 					 "info" => $key['info'], // IWininfo
 					 "errorCode" => 7, // Transaction not found
@@ -1292,7 +1462,7 @@ class DigitainController extends Controller
 						#ALLORNONE END
 
 						
-			 		} catch (Exception $e) {
+			 		} catch (\Exception $e) {
 			 			// IF ALL OR NONE IS TRUE IF ONE ITEM FAILED BREAK THE FLOW!!
 						if($json_data['allOrNone'] == 'true'):
 							$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
@@ -1313,6 +1483,15 @@ class DigitainController extends Controller
 			 		}
 
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+	        			$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 7, // Win Transaction not found
+							 "metadata" => "" // Optional but must be here!
+			   			);
+	        		}
 		 			$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 7, // Win Transaction not found
@@ -1320,6 +1499,15 @@ class DigitainController extends Controller
 	        	    ];  
 		 		endif;
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+	        			$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 7, // Win Transaction not found
+							 "metadata" => "" // Optional but must be here!
+			   			);
+	        		}
 		 			$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 7, // BEt Transaction not found
@@ -1327,6 +1515,15 @@ class DigitainController extends Controller
 	        	    ];  
 		 		endif;
 		 		else:
+		 			if($json_data['allOrNone'] == 'true'){
+	        			$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 16, // Win Transaction not found
+							 "metadata" => "" // Optional but must be here!
+			   			);
+	        		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 16, // Currency code dont match!
@@ -1334,6 +1531,15 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif;  
 			    else:
+			    	if($json_data['allOrNone'] == 'true'){
+	        			$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 8, // Win Transaction not found
+							 "metadata" => "" // Optional but must be here!
+			   			);
+	        		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 8, //already exist
@@ -1341,6 +1547,15 @@ class DigitainController extends Controller
 	        	    ]; 
 	        	endif;      	    
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+	        			$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 8, // Win Transaction not found
+							 "metadata" => "" // Optional but must be here!
+			   			);
+	        		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 8, //already exist
@@ -1348,6 +1563,15 @@ class DigitainController extends Controller
 	        	    ]; 
 	        	endif;
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+	        			$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 17, // Win Transaction not found
+							 "metadata" => "" // Optional but must be here!
+			   			);
+	        		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 17, // Optional parameter is missing
@@ -1355,6 +1579,15 @@ class DigitainController extends Controller
 	        	    ];  
 	        	endif;
 	        	else:
+	        		if($json_data['allOrNone'] == 'true'){
+	        			$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						$this->rollbackChanges($items_revert_update);
+				        return 	$response = array(
+							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							 "errorCode" => 4, // Win Transaction not found
+							 "metadata" => "" // Optional but must be here!
+			   			);
+	        		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 4, //The playerId was not found
