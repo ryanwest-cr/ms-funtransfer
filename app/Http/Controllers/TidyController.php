@@ -131,10 +131,15 @@ class TidyController extends Controller
 	}
 
 	public function gameBet(Request $request){
-		$data = json_decode(file_get_contents("php://input"));
-		Helper::saveLog('Tidy Game Bet', self::PROVIDER, file_get_contents("php://input"), 'ENDPOINT HIT');
+		// $data = json_decode(file_get_contents("php://input"));
+		// Helper::saveLog('Tidy Game Bet', self::PROVIDER, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
 	    Helper::saveLog('Tidy Authorization Logger BET', self::PROVIDER, json_encode(file_get_contents("php://input")), $header);
+
+	    $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
@@ -223,10 +228,16 @@ class TidyController extends Controller
 	}
 
 	public function gameWin(Request $request){
-		$data = json_decode(file_get_contents("php://input"));
-		Helper::saveLog('Tidy Game WIN', self::PROVIDER, file_get_contents("php://input"), 'ENDPOINT HIT');
+		// $data = json_decode(file_get_contents("php://input"));
+		// Helper::saveLog('Tidy Game WIN', self::PROVIDER, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
-	     Helper::saveLog('Tidy Authorization Logger WIN', self::PROVIDER, json_encode(file_get_contents("php://input")), $header);
+	    
+    	Helper::saveLog('Tidy Authorization Logger WIN', self::PROVIDER, json_encode(file_get_contents("php://input")), $header);
+
+	    $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
@@ -317,10 +328,16 @@ class TidyController extends Controller
 
 
 	public function gameRollback(Request $request){
-		$data = json_decode(file_get_contents("php://input"));
-		Helper::saveLog('Tidy Game Rollback', self::PROVIDER, file_get_contents("php://input"), 'ENDPOINT HIT');
+		// $data = json_decode(file_get_contents("php://input"));
+		// Helper::saveLog('Tidy Game Rollback', self::PROVIDER, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
-	    Helper::saveLog('Tidy Authorization Logger', self::PROVIDER, file_get_contents("php://input"), $header);
+	    // Helper::saveLog('Tidy Authorization Logger', self::PROVIDER, file_get_contents("php://input"), $header);
+	    Helper::saveLog('Tidy Authorization Logger WIN', self::PROVIDER, json_encode(file_get_contents("php://input")), $header);
+
+	    $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
