@@ -95,7 +95,9 @@ class TidyController extends Controller
 		// Helper::saveLog('Tidy Check Balance', 23, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT v2');
 		$data = json_decode(file_get_contents("php://input")); // INCASE RAW JSON / CHANGE IF NOT ARRAY
 		// $header = $request->header('Authorization');
-	 //    Helper::saveLog('Tidy Authorization Logger', 23, file_get_contents("php://input"), $header);
+		Helper::saveLog('Tidy Bal 0', 23, json_encode($data), $data);
+	    Helper::saveLog('Tidy Bal 1', 23, json_encode(file_get_contents("php://input")), $data);
+	    Helper::saveLog('Tidy Bal 2', 23, file_get_contents("php://input"), $header);
 		$token = $data->token;
 		$request_uuid = $data->request_uuid;
 		$client_details = ProviderHelper::getClientDetails('token',$token);
