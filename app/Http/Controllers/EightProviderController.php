@@ -172,6 +172,7 @@ class EightProviderController extends Controller
 					],
 					"fundinfo" => [
 					      "gamesessionid" => "",
+					      "transferid" => "",
 					      "transactiontype" => 'debit',
 					      "rollback" => "false",
 					      "currencycode" => $client_details->default_currency,
@@ -269,6 +270,7 @@ class EightProviderController extends Controller
 						],
 						"fundinfo" => [
 						      "gamesessionid" => "",
+						      "transferid" => "",
 						      "transactiontype" => 'credit',
 						      "rollback" => "false",
 						      "currencycode" => $client_details->default_currency,
@@ -339,6 +341,7 @@ class EightProviderController extends Controller
 								],
 								"fundinfo" => [
 								      "gamesessionid" => "",
+								      "transferid" => "", 
 								      "transactiontype" => 'credit',
 								      "rollback" => "false",
 								      "currencycode" => $client_details->default_currency,
@@ -492,6 +495,7 @@ class EightProviderController extends Controller
 				],
 				"fundinfo" => [
 				      "gamesessionid" => "",
+				      "transferid" => "",
 				      "transactiontype" => $transaction_type,
 				      "rollback" => "true",
 				      "currencycode" => $client_details->default_currency,
