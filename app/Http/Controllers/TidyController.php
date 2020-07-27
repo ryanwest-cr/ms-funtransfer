@@ -150,9 +150,7 @@ class TidyController extends Controller
 
 		$client_details = ProviderHelper::getClientDetails('token',$token);
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
-		
 		$game_details = Helper::findGameDetails('game_code', self::PROVIDER, $game_id);
-		
 		$transaction_check = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id');
 
 		if($transaction_check != 'false'){
@@ -214,24 +212,24 @@ class TidyController extends Controller
 		$provider_trans_id = $transaction_uuid;
 
 		$data_response = [
-    		"uid" 		   => $uid,
+    		"uid" => $uid,
     		"request_uuid" => $request_uuid,
-    		"currency"	   => TidyHelper::currencyCode($client_details->default_currency),
+    		"currency" => TidyHelper::currencyCode($client_details->default_currency),
     		"balance" => $client_response->fundtransferresponse->balance
     	];
-
 
 	    $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
 	    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
 
-	    return response($data_response,200)->header('Content-Type', 'application/json');
+	    Helper::saveLog('Tidy Bet Processed', self::PROVIDER, json_encode(file_get_contents("php://input")), $data_response);
+	    // return response($data_response,200)->header('Content-Type', 'application/json');
+	    return $data_response;
 	}
 
 	public function gameWin(Request $request){
 		// $data = json_decode(file_get_contents("php://input"));
 		// Helper::saveLog('Tidy Game WIN', self::PROVIDER, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
-	    
     	Helper::saveLog('Tidy Authorization Logger WIN', self::PROVIDER, json_encode(file_get_contents("php://input")), $header);
 
 	    $enc_body = file_get_contents("php://input");
@@ -306,9 +304,9 @@ class TidyController extends Controller
 		    // $status = json_encode($client_response->fundtransferresponse->status->code);	
 
 			$data_response = [
-	    		"uid" 		   => $uid,
+	    		"uid" => $uid,
 	    		"request_uuid" => $request_uuid,
-	    		"currency"	   => TidyHelper::currencyCode($client_details->default_currency),
+	    		"currency" => TidyHelper::currencyCode($client_details->default_currency),
 	    		"balance" => $client_response->fundtransferresponse->balance
 	    	];
 
@@ -318,12 +316,13 @@ class TidyController extends Controller
 	    	$income = $bet_transaction->bet_amount - $amount ;
 	    	$win = 2;
 	    	$entry_id = 2;
-	    	
 
 	    	ProviderHelper::updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
 		    $game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$request_uuid,$reference_transaction_uuid, $amount, 2, $data, $data_response, $requesttosend, $client_response, $data_response);
 
-		    return response($data_response,200)->header('Content-Type', 'application/json');
+		    Helper::saveLog('Tidy Win Processed', self::PROVIDER, json_encode(file_get_contents("php://input")), $data_response);
+	        // return response($data_response,200)->header('Content-Type', 'application/json');
+	        return $data_response;
 	}
 
 

@@ -14,16 +14,14 @@ class Helper
 
 	public static function tokenCheck($token){
 		$token = DB::table('player_session_tokens')
+			        ->select("*", DB::raw("NOW() as IMANTO"))
 			    	->where('player_token', $token)
 			    	->first();
-	    // $now = time();
-	    // $expiration = $now + (60 * 60);
-	    // return strtotime($token->created_at) . ' X ' .$expiration;
 		if($token != null){
-			$now = time();
-	        $expiration = $now + (60 * 60); // Expiration Checker 60 minutes x 60 SECOND
-	        $token_created_at = strtotime($token->created_at);
-		    if($token_created_at < $expiration) {
+			$check_token = DB::table('player_session_tokens')
+            ->selectRaw("TIME_TO_SEC(TIMEDIFF('".$token->IMANTO."', '".$token->created_at."'))/60 as TIMEGAP")
+	        ->first();
+		    if(60 > $check_token->TIMEGAP) { // 60 Minutes
 		        $token = true; // True if Token can still be used!
 		    }else{
 		    	$token = false; // Expired Token
