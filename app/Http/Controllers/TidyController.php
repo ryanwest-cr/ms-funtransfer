@@ -91,8 +91,8 @@ class TidyController extends Controller
 
 	/* SEAMLESS METHODS */
 	public function checkBalance(Request $request){
-		Helper::saveLog('Tidy Check Balance', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
-		Helper::saveLog('Tidy Check Balance', 23, $request->all(), 'ENDPOINT HIT');
+		Helper::saveLog('Tidy Check Balance', 23, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT v2');
+		Helper::saveLog('Tidy Check Balance', 23, json_encode($request->all()), 'ENDPOINT HIT v2');
 		$data = json_decode(file_get_contents("php://input")); // INCASE RAW JSON / CHANGE IF NOT ARRAY
 		$header = $request->header('Authorization');
 	    Helper::saveLog('Tidy Authorization Logger', 23, file_get_contents("php://input"), $header);
