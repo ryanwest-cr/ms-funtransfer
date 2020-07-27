@@ -110,12 +110,11 @@ class TidyController extends Controller
 				$currency = $client_details->default_currency;
 				$get_code_currency = TidyHelper::currencyCode($currency);
 				$data =  array(	
-				 		'user' => array(
-				 			 "uid"			=> $this->prefix_id.'_'.$client_details->player_id,
-							 "request_uuid" => $request_uuid,
-							 "currency"		=> $get_code_currency,
-							 "balance" 		=> $player_details->playerdetailsresponse->balance )
-				 	);
+		 			 "uid"			=> $this->prefix_id.'_'.$client_details->player_id,
+					 "request_uuid" => $request_uuid,
+					 "currency"		=> $get_code_currency,
+					 "balance" 		=> $player_details->playerdetailsresponse->balance
+			 	);
 				Helper::saveLog('Tidy Check Balance Response', 23, json_encode($request->all()), $data);
 				// return response($data,200)->header('Content-Type', 'application/json');
 				return $data;
