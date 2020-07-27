@@ -112,7 +112,8 @@ class TidyController extends Controller
 							 "balance" 		=> $player_details->playerdetailsresponse->balance )
 				 	);
 				Helper::saveLog('Tidy Check Balance Response', 23, json_encode($request->all()), $data);
-				return response($data,200)->header('Content-Type', 'application/json');
+				// return response($data,200)->header('Content-Type', 'application/json');
+				return $data;
 		}else{
 			$errormessage = array(
 				'error_code' 	=> '08-025',
@@ -128,7 +129,7 @@ class TidyController extends Controller
 		$data = json_decode(file_get_contents("php://input"));
 		Helper::saveLog('Tidy Game Bet', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
-	    Helper::saveLog('Tidy Authorization Logger', 23, file_get_contents("php://input"), $header);
+	    Helper::saveLog('Tidy Authorization Logger BET', 23, json_encode(file_get_contents("php://input")), $header);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
@@ -215,9 +216,9 @@ class TidyController extends Controller
 
 	public function gameWin(Request $request){
 		$data = json_decode(file_get_contents("php://input"));
-		Helper::saveLog('Tidy Game Bet', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
+		Helper::saveLog('Tidy Game WIN', 23, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
-	    Helper::saveLog('Tidy Authorization Logger', 23, file_get_contents("php://input"), $header);
+	     Helper::saveLog('Tidy Authorization Logger WIN', 23, json_encode(file_get_contents("php://input")), $header);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
