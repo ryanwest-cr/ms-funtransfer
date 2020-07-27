@@ -16,6 +16,7 @@ use DB;
 
 class TidyController extends Controller
 {
+	 const PREFIX = 'TG';
 	 const CLIENT_ID = '8440a5b6';
 	 const SECRET_KEY = 'f83c8224b07f96f41ca23b3522c56ef1'; // token
 	 const API_URL = 'http://staging-v1-api.tidy.zone';
@@ -92,7 +93,6 @@ class TidyController extends Controller
 	/* SEAMLESS METHODS */
 	public function checkBalance(Request $request){
 		Helper::saveLog('Tidy Check Balance', 23, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT v2');
-		Helper::saveLog('Tidy Check Balance', 23, json_encode($request->all()), 'ENDPOINT HIT v2');
 		$data = json_decode(file_get_contents("php://input")); // INCASE RAW JSON / CHANGE IF NOT ARRAY
 		$header = $request->header('Authorization');
 	    Helper::saveLog('Tidy Authorization Logger', 23, file_get_contents("php://input"), $header);
@@ -106,12 +106,12 @@ class TidyController extends Controller
 				$get_code_currency = TidyHelper::currencyCode($currency);
 				$data =  array(	
 				 		'user' => array(
-				 			 "uid"			=> $client_details->player_id,
+				 			 "uid"			=> self::PREFIX.'_'.$client_details->player_id,
 							 "request_uuid" => $request_uuid,
 							 "currency"		=> $get_code_currency,
 							 "balance" 		=> $player_details->playerdetailsresponse->balance )
 				 	);
-				 
+				Helper::saveLog('Tidy Check Balance', 23, json_encode($request->all()), $data);
 				return response($data,200)->header('Content-Type', 'application/json');
 		}else{
 			$errormessage = array(
