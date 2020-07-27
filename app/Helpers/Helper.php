@@ -18,9 +18,9 @@ class Helper
 			    	->first();
 		if($token != null){
 			$now = time();
-	        $expiration = $now + (60 * 60); // Expiration Checker 20 minutes x 60 SECOND
+	        $expiration = $now + (60 * 60); // Expiration Checker 60 minutes x 60 SECOND
 	        $token_created_at = strtotime($token->created_at);
-		    if($token_created_at < $expiration) {
+		    if($token_created_at > $expiration) {
 		        $token = true; // True if Token can still be used!
 		    }else{
 		    	$token = false; // Expired Token

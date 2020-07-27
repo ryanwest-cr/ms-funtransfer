@@ -39,22 +39,62 @@ class SAGamingController extends Controller
 	// }
 
     public function GetUserBalance(Request $request){
-    	// return SAHelper::altest();
-    	// filter currency
-    	Helper::saveLog('SA Get Balance', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+        $regUsr = SAHelper::regUser('TG_SG98');
+        dd($regUsr);
+        // $time = date('YmdHms'); //20140101123456
+        // $querystring = [
+        //     "method" => 'RegUserInfo',
+        //     "Key" => config('providerlinks.sagaming.SecretKey'),
+        //     "Time" => $time,
+        //     "Username" => "TG_98",
+        //     "CurrencyType" => "USD"
+        // ];
+        // $data = http_build_query($querystring); // QS
+        // $encrpyted_data = SAHelper::encrypt($data);
+        // $md5Signature = md5($data.config('providerlinks.sagaming.MD5Key').$time.config('providerlinks.sagaming.SecretKey'));
+        // $http = new Client();
+        // $response = $http->post('http://sai-api.sa-apisvr.com/api/api.aspx', [
+        //     'form_params' => [
+        //         'q' => $encrpyted_data, 
+        //         's' => $md5Signature
+        //     ],
+        // ]);
 
-    	$prefixed_username = explode("_SA", $request->username);
-    	$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-    	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        // $resp = simplexml_load_string($response->getBody()->getContents());
+        // dd($resp->Username);
 
-    	$response = [
-    		"username" => $this->prefix.$client_details->player_id,
-    		"currency" => $client_details->default_currency,
-    		"amount" => $player_details->playerdetailsresponse->balance,
-    		"error" => 0,
-    	];
+        // $body = $response->getBody();
+        // echo $body;
 
-    	return $response;
+
+        // 
+        // return json_encode($regUsr);
+        // $http = new Client();
+        // $response = $http->post('http://sai-api.sa-apisvr.com/api/api.aspx', [
+        //     'form_params' => [
+        //         'q' => $regUsr['q'], 
+        //         's' => $regUsr['s']
+        //     ],
+        // ]);
+
+        // $client_response = json_decode($response->getBody()->getContents());
+        // dd($client_response);
+        // return date('YmdHms'); //yMdHms
+       
+    	// Helper::saveLog('SA Get Balance', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+
+    	// $prefixed_username = explode("_SA", $request->username);
+    	// $client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
+    	// $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+
+    	// $response = [
+    	// 	"username" => $this->prefix.$client_details->player_id,
+    	// 	"currency" => $client_details->default_currency,
+    	// 	"amount" => $player_details->playerdetailsresponse->balance,
+    	// 	"error" => 0,
+    	// ];
+
+    	// return $response;
     }
 
     public function PlaceBet(){

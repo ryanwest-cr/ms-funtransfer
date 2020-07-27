@@ -39,6 +39,18 @@ class ProviderHelper{
     }
 
     /**
+     * GLOBAL 
+     * [explodeUsername description]
+     * @author 's note sample = TG_Al98, 98 is the player id on MW Database
+     * @param  [type] $username [string]
+     * @return [int] [Database Player ID]
+     */
+    public static function explodeUsername($explode_point, $username){
+    	$prefixed_username = explode($explode_point, $username);
+    	return $prefixed_username[1];
+    }
+
+    /**
 	 * GLOBAL
 	 * Client Info
 	 * @return [Object]
