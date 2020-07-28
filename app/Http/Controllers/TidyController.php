@@ -141,7 +141,6 @@ class TidyController extends Controller
      	parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
- 		$data = json_decode(json_encode($data), true);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
