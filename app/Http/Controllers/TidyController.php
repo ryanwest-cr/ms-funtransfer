@@ -141,7 +141,6 @@ class TidyController extends Controller
      	parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
- 		$data = json_decode(json_encode($data), true);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
@@ -210,7 +209,7 @@ class TidyController extends Controller
 		$income = 0;
 		$win_type = 0;
 		$method = 1;
-		$win_or_lost = 5; // 0 lost,  5 processing
+		$win_or_lost = 0; // 0 lost,  5 processing
 		$payout_reason = 'Bet';
 		$provider_trans_id = $transaction_uuid;
 
@@ -317,7 +316,7 @@ class TidyController extends Controller
 	    	$amount = $amount ;
 	    	$pay_amount = $amount;
 	    	$income = $bet_transaction->bet_amount - $amount ;
-	    	$win = 2;
+	    	$win = 1;
 	    	$entry_id = 2;
 
 	    	ProviderHelper::updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
@@ -410,10 +409,8 @@ class TidyController extends Controller
 	
 
     	$round_id = $reference_transaction_uuid;
-	    
 	    $win = 4;
 	    $entry_id = 1;
-
 	    $data_response = [
     		"uid" => $uid,
     		"request_uuid" => $request_uuid,
