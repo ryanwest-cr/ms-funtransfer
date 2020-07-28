@@ -132,16 +132,16 @@ class TidyController extends Controller
 	}
 
 	public function gameBet(Request $request){
-		$data = json_decode(file_get_contents("php://input"));
+		//$data = json_decode(file_get_contents("php://input"));
 		// Helper::saveLog('Tidy Game Bet', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
 	    Helper::saveLog('Tidy Authorization Logger BET', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
 
-	    // $enc_body = file_get_contents("php://input");
-     	// parse_str($enc_body, $data);
-        // $json_encode = json_encode($data, true);
-        // $data = json_decode($json_encode);
- 		// $data = json_decode(json_encode($data), true);
+	    $enc_body = file_get_contents("php://input");
+     	parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
+ 		$data = json_decode(json_encode($data), true);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
