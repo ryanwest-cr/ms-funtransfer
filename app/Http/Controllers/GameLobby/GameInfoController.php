@@ -119,9 +119,9 @@ class GameInfoController extends Controller
 	  			 ->limit(1)
 	  			 ->first();
 	  	if($provider != null){
-	  		foreach ($provider as $pro) {
-		  		$data['provider'] = $pro;
-		  	}
+	  		// foreach ($provider as $pro) {
+		  		$data['provider'] = $provider;
+		  	// }
 		  	$games = DB::table('games as g')
 					->select('g.game_name', 'gt.game_type_name', 'g.icon as game_icon', 'g.game_code', 'p.provider_name')
 	                ->leftJoin('providers as p', "g.provider_id", "=", "p.provider_id")
