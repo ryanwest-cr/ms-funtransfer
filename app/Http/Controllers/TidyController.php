@@ -209,7 +209,7 @@ class TidyController extends Controller
 		$income = 0;
 		$win_type = 0;
 		$method = 1;
-		$win_or_lost = 0; // 0 lost,  5 processing
+		$win_or_lost = 5; // 0 lost,  5 processing
 		$payout_reason = 'Bet';
 		$provider_trans_id = $transaction_uuid;
 
@@ -319,7 +319,7 @@ class TidyController extends Controller
 	    	// $win = 1;
 	    	$entry_id = 2;
 
-	    	$win = $amount == 0 ? 0 : 1;
+	    	$win = $bet_transaction->bet_amount > $amount  ? 0 : 1;/// 1win 0lost
 
 	    	ProviderHelper::updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
 		    $game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$request_uuid,$reference_transaction_uuid, $amount, 2, $data, $data_response, $requesttosend, $client_response, $data_response);
