@@ -17,7 +17,7 @@ use DB;
 class TidyController extends Controller
 {
 	 public $prefix_id = 'TG';
-	 public $provider_db_id = 23;
+	 public $provider_db_id = 22;// change
 	 public $client_id = '8440a5b6';
 	 public $API_URL = 'http://staging-v1-api.tidy.zone';
 	 // const SECRET_KEY = 'f83c8224b07f96f41ca23b3522c56ef1'; // token
@@ -316,8 +316,10 @@ class TidyController extends Controller
 	    	$amount = $amount ;
 	    	$pay_amount = $amount;
 	    	$income = $bet_transaction->bet_amount - $amount ;
-	    	$win = 1;
+	    	// $win = 1;
 	    	$entry_id = 2;
+
+	    	$win = $amount == 0 ? 0 : 1;
 
 	    	ProviderHelper::updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
 		    $game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$request_uuid,$reference_transaction_uuid, $amount, 2, $data, $data_response, $requesttosend, $client_response, $data_response);
