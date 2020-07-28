@@ -38,7 +38,7 @@ class SAGamingController extends Controller
     public function GetUserBalance(Request $request){
         // $item = array();
         // dd(count($item));
-        Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
+        Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
         // $client_details = Providerhelper::explodeUsername('TGSA', 'TGSA98');
         // dd($client_details);
 
@@ -55,20 +55,20 @@ class SAGamingController extends Controller
         // dd($client_response);
         // return date('YmdHms'); //yMdHms
        
-    	Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
+    	// Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
 
-    	$prefixed_username = explode("_SA", $request->username);
-    	$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-    	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+    	// $prefixed_username = explode("_SA", $request->username);
+    	// $client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
+    	// $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-    	$response = [
-    		"username" => $this->prefix.$client_details->player_id,
-    		"currency" => $client_details->default_currency,
-    		"amount" => $player_details->playerdetailsresponse->balance,
-    		"error" => 0,
-    	];
+    	// $response = [
+    	// 	"username" => $this->prefix.$client_details->player_id,
+    	// 	"currency" => $client_details->default_currency,
+    	// 	"amount" => $player_details->playerdetailsresponse->balance,
+    	// 	"error" => 0,
+    	// ];
 
-    	return $response;
+    	// return $response;
     }
 
     public function PlaceBet(){
