@@ -204,12 +204,12 @@ class GameLobby{
         $domain = parse_url($url, PHP_URL_HOST);
         $client_details = Providerhelper::getClientDetails('token', $token);
         if(!empty($client_details)){
-            $check_user = SAHelper::userManagement(config('providerlinks.sagaming.lobby').$client_details->player_id, 'VerifyUsername');
+            $check_user = SAHelper::userManagement(config('providerlinks.sagaming.prefix').$client_details->player_id, 'VerifyUsername');
             if($check_user->IsExist == true){
-                $login_token = SAHelper::userManagement(config('providerlinks.sagaming.lobby').$client_details->player_id, 'LoginRequest');
+                $login_token = SAHelper::userManagement(config('providerlinks.sagaming.prefix').$client_details->player_id, 'LoginRequest');
             }else{
-                $check_user = SAHelper::userManagement(config('providerlinks.sagaming.lobby').$client_details->player_id, 'RegUserInfo');
-                $login_token = SAHelper::userManagement(config('providerlinks.sagaming.lobby').$client_details->player_id, 'LoginRequest');
+                $check_user = SAHelper::userManagement(config('providerlinks.sagaming.prefix').$client_details->player_id, 'RegUserInfo');
+                $login_token = SAHelper::userManagement(config('providerlinks.sagaming.prefix').$client_details->player_id, 'LoginRequest');
             }
             $url = 'https://www.sai.slgaming.net/app.aspx?username='.config('providerlinks.sagaming.prefix').$client_details->player_id.'&token='.$login_token->token.'&lobby='.config('providerlinks.sagaming.lobby').'&lang='.$lang.'&returnurl='.$url.'';
             return $url;
