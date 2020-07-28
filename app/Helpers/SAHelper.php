@@ -10,7 +10,7 @@ use DB;
 class SAHelper{
 
     public static function userManagement($username, $method){
-        $user_id = Providerhelper::explodeUsername('TGSA', $username);
+        $user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
         $client_details = Providerhelper::getClientDetails('player_id', $user_id);
         $time = date('YmdHms'); //20140101123456
         $querystring = [
@@ -43,12 +43,6 @@ class SAHelper{
     public static function decrypt($str) {
 		$str = openssl_decrypt(base64_decode($str), 'DES-CBC',config('providerlinks.sagaming.EncryptKey'), OPENSSL_RAW_DATA | OPENSSL_NO_PADDING, config('providerlinks.sagaming.EncryptKey'));
 		return rtrim($str, "\x01..\x1F");
-
-        // $str = openssl_decrypt(base64_decode($str), 'DES-CBC',config('providerlinks.sagaming.EncryptKey'), OPENSSL_NO_PADDING, config('providerlinks.sagaming.EncryptKey'));
-        // return rtrim($str, "\x01..\x1F");
-
-         // $output = openssl_decrypt(base64_decode($str), 'DES-CBC', config('providerlinks.sagaming.EncryptKey'), OPENSSL_RAW_DATA, config('providerlinks.sagaming.EncryptKey'));
-        // return $output;
     }
 
     public static function lang($lang) {
