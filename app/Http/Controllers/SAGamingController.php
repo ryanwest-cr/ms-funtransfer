@@ -16,69 +16,36 @@ class SAGamingController extends Controller
 {
 
 
-	// public function gameLaunch(){
-	// 	$http = new Client();
- //        $requesttosend = [
- //             "username" => config('providerlinks.sagaming.prefix'),
- //             "token" => $request->token,
- //             "lobby" => "A3107",
- //             "lang" => "Tgames1234", // optional
- //             "returnurl" => "Tgames1234", // optional
- //             "mobile" => "Tgames1234", // optional
- //             "options" => "Tgames1234"
- //        ];
- //        $response = $http->post('https://api.gcpstg.m27613.com/login', [
- //            'form_params' => $requesttosend,
- //        ]);
- //        $response = $response->getBody()->getContents();
- //        Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
- //        return $response;
-	// }
-
     public function GetUserBalance(Request $request){
-        // $item = array();
-        // dd(count($item));
-        Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
-        // $client_details = Providerhelper::explodeUsername('TGSA', 'TGSA98');
-        // dd($client_details);
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        // $data = json_encode($data);
+        // $data = json_decode($data);
 
-        // return json_encode($regUsr);
-        // $http = new Client();
-        // $response = $http->post('http://sai-api.sa-apisvr.com/api/api.aspx', [
-        //     'form_params' => [
-        //         'q' => $regUsr['q'], 
-        //         's' => $regUsr['s']
-        //     ],
-        // ]);
+    	$user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $data['username']);
+    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
+    	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-        // $client_response = json_decode($response->getBody()->getContents());
-        // dd($client_response);
-        // return date('YmdHms'); //yMdHms
-       
-    	// Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
-
-    	// $prefixed_username = explode("_SA", $request->username);
-    	// $client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-    	// $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-
-    	// $response = [
-    	// 	"username" => $this->prefix.$client_details->player_id,
-    	// 	"currency" => $client_details->default_currency,
-    	// 	"amount" => $player_details->playerdetailsresponse->balance,
-    	// 	"error" => 0,
-    	// ];
-
-    	// return $response;
+    	$response = [
+    		"username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
+    		"currency" => $client_details->default_currency,
+    		"amount" => $player_details->playerdetailsresponse->balance,
+    		"error" => 0,
+    	];
+    	return $response;
     }
 
     public function PlaceBet(){
-    	Helper::saveLog('SA Place Bet', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
-        // $data = json_decode(file_get_contents("php://input"));
+    	Helper::saveLog('SA Place Bet', config('providerlinks.sagaming.pdbid'), json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
         $enc_body = file_get_contents("php://input");
-        parse_str($enc_body, $data);
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
 
         $username = $data['username'];
-        $playersid = explode('_', $username);
+        $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
         $currency = $data['currency'];
         $amount = $data['amount'];
         $txnid = $data['txnid'];
@@ -87,7 +54,7 @@ class SAGamingController extends Controller
         $game_id = $data['gameid'];
         $betdetails = $data['betdetails'];
 
-        $client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
+        $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
         if($client_details == null){
             $data_response = ["username" => $username,"currency" => $currency, "error" => 1000];
             return $data_response;

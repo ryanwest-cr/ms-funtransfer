@@ -10,7 +10,7 @@ use DB;
 class SAHelper{
 
     public static function userManagement($username, $method){
-        $user_id = Providerhelper::explodeUsername('TGSA', $username);
+        $user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
         $client_details = Providerhelper::getClientDetails('player_id', $user_id);
         $time = date('YmdHms'); //20140101123456
         $querystring = [
