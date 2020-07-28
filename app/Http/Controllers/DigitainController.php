@@ -469,16 +469,16 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif;         
 	        	else:
-	        		if($json_data['allOrNone'] == 'true'){
-							if(count($items_allOrNone) > 0){
-							  $this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
-							}
-					        return 	$response = array(
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-								 "errorCode" => 8, // already exist
-								 "metadata" => "" // Optional but must be here!
-				   			);
-	        		}
+	      //   		if($json_data['allOrNone'] == 'true'){
+							// if(count($items_allOrNone) > 0){
+							//   $this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+							// }
+					  //       return 	$response = array(
+							// 	 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							// 	 "errorCode" => 8, // already exist
+							// 	 "metadata" => "" // Optional but must be here!
+				   // 			);
+	      //   		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 8, // already exist
@@ -753,17 +753,17 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif;  
 			    else:
-			    	if($json_data['allOrNone'] == 'true'){
-						if(count($items_allOrNone) > 0){
-						 	$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
-							$this->rollbackChanges($items_revert_update);
-						}
-				        return 	$response = array(
-							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-						     "errorCode" => 8, //already exist
-						     "metadata" => "" // Optional but must be here!
-			   			);
-					}
+			  //   	if($json_data['allOrNone'] == 'true'){
+					// 	if(count($items_allOrNone) > 0){
+					// 	 	$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+					// 		$this->rollbackChanges($items_revert_update);
+					// 	}
+				 //        return 	$response = array(
+					// 		 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+					// 	     "errorCode" => 8, //already exist
+					// 	     "metadata" => "" // Optional but must be here!
+			  //  			);
+					// }
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 8, //already exist
@@ -1278,17 +1278,17 @@ class DigitainController extends Controller
 					    ];  
 	                endif;
 	            else:
-	            		if($json_data['allOrNone'] == 'true'){
-	                		if(count($items_allOrNone) > 0){
-							 	$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
-								$this->rollbackChanges($items_revert_update);
-							}
-					        return 	$response = array(
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-							     "errorCode" => 14, // Already Rollbacked
-							     "metadata" => "" // Optional but must be here!
-				   			);
-	                	}
+	      //       		if($json_data['allOrNone'] == 'true'){
+	      //           		if(count($items_allOrNone) > 0){
+							//  	$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+							// 	$this->rollbackChanges($items_revert_update);
+							// }
+					  //       return 	$response = array(
+							// 	 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							//      "errorCode" => 14, // Already Rollbacked
+							//      "metadata" => "" // Optional but must be here!
+				   // 			);
+	      //           	}
 	                	$items_array[] = [
 							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 							 "errorCode" => 14, // Already Rollbacked
@@ -1571,17 +1571,17 @@ class DigitainController extends Controller
 	        	    ];   
 	        	endif;  
 			    else:
-			    	if($json_data['allOrNone'] == 'true'){
-	        			if(count($items_allOrNone) > 0){
-								$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
-								$this->rollbackChanges($items_revert_update);
-						}
-				        return 	$response = array(
-							 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-							 "errorCode" => 8, // Win Transaction not found
-							 "metadata" => "" // Optional but must be here!
-			   			);
-	        		}
+			   //  	if($json_data['allOrNone'] == 'true'){
+	     //    			if(count($items_allOrNone) > 0){
+						// 		$this->megaRollback($items_allOrNone, $json_data); // ROLBACK THE ALREADY SEND ITEMS!
+						// 		$this->rollbackChanges($items_revert_update);
+						// }
+				  //       return 	$response = array(
+						// 	 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+						// 	 "errorCode" => 8, //already exist
+						// 	 "metadata" => "" // Optional but must be here!
+			   // 			);
+	     //    		}
 	        		$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
 						 "errorCode" => 8, //already exist
