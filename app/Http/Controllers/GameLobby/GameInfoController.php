@@ -126,7 +126,7 @@ class GameInfoController extends Controller
 					->select('g.game_name', 'gt.game_type_name', 'g.icon as game_icon', 'g.game_code', 'p.provider_name')
 	                ->leftJoin('providers as p', "g.provider_id", "=", "p.provider_id")
 	                ->leftJoin('game_types as gt', "gt.game_type_id", "=", "g.game_type_id")
-	                ->where('p.provider_id', $data['provider']->provider_id)
+	                ->where('p.provider_id', $provider->provider_id)
 	                ->get();
 	        $data['games'] = $games;  
 	        return $data;    
