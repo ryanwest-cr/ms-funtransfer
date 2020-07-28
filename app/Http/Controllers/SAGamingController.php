@@ -15,9 +15,6 @@ use DB;
 class SAGamingController extends Controller
 {
 
-    public $prefix = 'TG_SA';
-	public $provider_db_id = 25;
-
 
 	// public function gameLaunch(){
 	// 	$http = new Client();
@@ -39,7 +36,10 @@ class SAGamingController extends Controller
 	// }
 
     public function GetUserBalance(Request $request){
-        $regUsr = SAHelper::regUser('TG_SG98');
+        $item = array();
+        dd(count($item));
+
+        $regUsr = SAHelper::userManagement('TGSA98', 'GetAllBetDetailsDV');
         dd($regUsr);
         // $time = date('YmdHms'); //20140101123456
         // $querystring = [
@@ -81,7 +81,7 @@ class SAGamingController extends Controller
         // dd($client_response);
         // return date('YmdHms'); //yMdHms
        
-    	// Helper::saveLog('SA Get Balance', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	// Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
 
     	// $prefixed_username = explode("_SA", $request->username);
     	// $client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
@@ -98,7 +98,7 @@ class SAGamingController extends Controller
     }
 
     public function PlaceBet(){
-    	Helper::saveLog('SA Place Bet', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Place Bet', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
         // $data = json_decode(file_get_contents("php://input"));
         $enc_body = file_get_contents("php://input");
         parse_str($enc_body, $data);
@@ -123,12 +123,12 @@ class SAGamingController extends Controller
             $data_response = ["username" => $username,"currency" => $currency, "error" => 9999];  
             return $data_response;
         }
-        $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+        $game_details = Helper::findGameDetails('game_code', config('providerlinks.sagaming.pdbid'), $game_id);
         if($game_details == null){
             $data_response = ["username" => $username,"currency" => $currency, "error" => 134];  
             return $data_response;
         }
-        $provider_reg_currency = ProviderHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
+        $provider_reg_currency = ProviderHelper::getProviderCurrency(config('providerlinks.sagaming.pdbid'), $client_details->default_currency);
         $data_response = ["username" => $username,"currency" => $currency, "error" => 1001];
         if($provider_reg_currency == 'false'){ // currency not in the provider currency agreement
             return $data_response;
@@ -210,15 +210,15 @@ class SAGamingController extends Controller
     }
 
     public function PlayerWin(){
-    	Helper::saveLog('SA Player Win', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Player Win', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
     public function PlayerLost(){
-    	Helper::saveLog('SA Player Lost', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Player Lost', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
     public function PlaceBetCancel(){
-    	Helper::saveLog('SA Place Bet Cancel', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Place Bet Cancel', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
 }

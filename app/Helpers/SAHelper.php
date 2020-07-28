@@ -9,39 +9,31 @@ use DB;
 
 class SAHelper{
 
-
-    // public static function altest(){
-    //     // return config('providerlinks.sagaming.MD5Key');
-    // 	return config('providerlinks.sagaming.EncryptKey');
-    // }
-    // 
-    public static function regUser($username){
-        $user_id = Providerhelper::explodeUsername('_SG', $username);
+    public static function userManagement($username, $method){
+        $user_id = Providerhelper::explodeUsername('TGSA', $username);
         $client_details = Providerhelper::getClientDetails('player_id', $user_id);
-        return $client_details;
-
-        // $time = date('YmdHms'); //20140101123456
-        // $querystring = [
-        //     "method" => 'RegUserInfo',
-        //     "Key" => config('providerlinks.sagaming.SecretKey'),
-        //     "Time" => $time,
-        //     "Username" => "TG_98",
-        //     "CurrencyType" => "USD"
-        // ];
-        // $data = http_build_query($querystring); // QS
-        // $encrpyted_data = SAHelper::encrypt($data);
-        // $md5Signature = md5($data.config('providerlinks.sagaming.MD5Key').$time.config('providerlinks.sagaming.SecretKey'));
-        // $http = new Client();
-        // $response = $http->post('http://sai-api.sa-apisvr.com/api/api.aspx', [
-        //     'form_params' => [
-        //         'q' => $encrpyted_data, 
-        //         's' => $md5Signature
-        //     ],
-        // ]);
-
-        // $resp = simplexml_load_string($response->getBody()->getContents());
-        // $json_encode = json_encode($resp);
-        // return json_decode($json_encode);
+        $time = date('YmdHms'); //20140101123456
+        $querystring = [
+            "method" => $method,
+            "Key" => config('providerlinks.sagaming.SecretKey'),
+            "Time" => $time,
+            "Username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
+        ];
+        $method == 'RegUserInfo' || $method == 'LoginRequest' ? $querystring['CurrencyType'] = $client_details->default_currency : '';
+        $data = http_build_query($querystring); // QS
+        $encrpyted_data = SAHelper::encrypt($data);
+        $md5Signature = md5($data.config('providerlinks.sagaming.MD5Key').$time.config('providerlinks.sagaming.SecretKey'));
+        $http = new Client();
+        $response = $http->post(config('providerlinks.sagaming.API_URL'), [
+            'form_params' => [
+                'q' => $encrpyted_data, 
+                's' => $md5Signature
+            ],
+        ]);
+        $resp = simplexml_load_string($response->getBody()->getContents());
+        $json_encode = json_encode($resp);
+        Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($querystring), json_decode($json_encode));
+        return json_decode($json_encode);
     }
 
     public static function encrypt($str) {
