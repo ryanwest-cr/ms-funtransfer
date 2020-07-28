@@ -95,13 +95,13 @@ class TidyController extends Controller
 
 	/* SEAMLESS METHODS */
 	public function checkBalance(Request $request){
-		// Helper::saveLog('Tidy Check Balance', 23, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT v2');
-		$data = json_decode(file_get_contents("php://input")); // INCASE RAW JSON / CHANGE IF NOT ARRAY
-		// $header = $request->header('Authorization');
-		// $enc_body = file_get_contents("php://input");
-  //       parse_str($enc_body, $data);
-  //       $json_encode = json_encode($data, true);
-  //       $data = json_decode($json_encode);
+		//Helper::saveLog('Tidy Check Balance', 23, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT v2');
+		//$data = json_decode(file_get_contents("php://input")); // INCASE RAW JSON / CHANGE IF NOT ARRAY
+		$header = $request->header('Authorization');
+		$enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
 	    // Helper::saveLog('Tidy Bal 1', 23, json_encode(file_get_contents("php://input")), $data);
 	   
 		$token = $data->token;
@@ -132,16 +132,16 @@ class TidyController extends Controller
 	}
 
 	public function gameBet(Request $request){
-		$data = json_decode(file_get_contents("php://input"));
+		//$data = json_decode(file_get_contents("php://input"));
 		// Helper::saveLog('Tidy Game Bet', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
 	    Helper::saveLog('Tidy Authorization Logger BET', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
 
-	    // $enc_body = file_get_contents("php://input");
-     	// parse_str($enc_body, $data);
-        // $json_encode = json_encode($data, true);
-        // $data = json_decode($json_encode);
- 		// $data = json_decode(json_encode($data), true);
+	    $enc_body = file_get_contents("php://input");
+     	parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
+ 		$data = json_decode(json_encode($data), true);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
@@ -230,15 +230,15 @@ class TidyController extends Controller
 	}
 
 	public function gameWin(Request $request){
-		$data = json_decode(file_get_contents("php://input"));
+		//$data = json_decode(file_get_contents("php://input"));
 		// Helper::saveLog('Tidy Game WIN', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
     	Helper::saveLog('Tidy Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
 
-	    // $enc_body = file_get_contents("php://input");
-     //    parse_str($enc_body, $data);
-     //    $json_encode = json_encode($data, true);
-     //    $data = json_decode($json_encode);
+	    $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
 
 		$game_id = $data->game_id;
 		$token = $data->token;
@@ -330,16 +330,16 @@ class TidyController extends Controller
 
 
 	public function gameRollback(Request $request){
-		$data = json_decode(file_get_contents("php://input"));
+		//$data = json_decode(file_get_contents("php://input"));
 		// Helper::saveLog('Tidy Game Rollback', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
 	    // Helper::saveLog('Tidy Authorization Logger', $this->provider_db_id, file_get_contents("php://input"), $header);
 	    Helper::saveLog('Tidy Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
 
-	    // $enc_body = file_get_contents("php://input");
-     //    parse_str($enc_body, $data);
-     //    $json_encode = json_encode($data, true);
-     //    $data = json_decode($json_encode);
+	    $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
 
 		$game_id = $data->game_id;
 		$uid = $data->username;
