@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
 use App\Helpers\SAHelper;
@@ -15,6 +16,35 @@ use DB;
 class SAGamingController extends Controller
 {
 
+    // XML BUILD RECURSIVE FUNCTION
+    public function siteMap()
+    {
+        $test_array = array (
+            'bla' => 'blub',
+            'foo' => 'bar',
+            'another_array' => array (
+                'stack' => 'overflow',
+            ),
+        );
+
+        $xml_template_info = new \SimpleXMLElement("<?xml version=\"1.0\"?><template></template>");
+
+        $this->array_to_xml($test_array,$xml_template_info);
+        $xml_template_info->asXML(dirname(__FILE__)."/sitemap.xml") ;
+        header('Content-type: text/xml');
+        dd(readfile(dirname(__FILE__)."/sitemap.xml"));
+    }
+
+    public function array_to_xml(array $arr, \SimpleXMLElement $xml)
+    {
+      foreach ($arr as $k => $v) {
+          is_array($v)
+              ? $this->array_to_xml($v, $xml->addChild($k))
+              : $xml->addChild($k, $v);
+      }
+      return $xml;
+    }
+   
 
     public function GetUserBalance(Request $request){
         $enc_body = file_get_contents("php://input");
@@ -34,7 +64,28 @@ class SAGamingController extends Controller
     		"amount" => $player_details->playerdetailsresponse->balance,
     		"error" => 0,
     	];
-    	return $response;
+
+        $xml_data = new \SimpleXMLElement('<?xml version="1.0"?><RequestResponse></RequestResponse>');
+        $xml_file = $this->array_to_xml($response, $xml_data);
+        echo $xml_file->asXML();
+
+
+        // $xml = json_encode($response);
+        // $xml = new \SimpleXMLElement(json_encode($response));
+        // $xml = simplexml_load_string($xml);
+        // return $xml;
+
+        // return response($response)
+        // ->withHeaders([
+        //     'Content-Type' => 'text/xml'
+        // ]);
+        // return response()->xml($response, 200);
+        // return Response::make($response, '200')->header('Content-Type', 'text/xml');
+
+        // $content = view('response.xml', compact($response));
+        // return response($content, 200)
+        //     ->header('Content-Type', 'text/xml');
+    	// return $response;
     }
 
     public function PlaceBet(){
