@@ -38,7 +38,16 @@ class SAGamingController extends Controller
     public function GetUserBalance(Request $request){
         // $item = array();
         // dd(count($item));
-        Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
+        // Helper::saveLog('SA Get Balance', config('providerlinks.sagaming.pdbid'), json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
+        $enc_body = file_get_contents("php://input");
+
+        // $decrypt_data = SAHelper::decrypt($enc_body);
+
+        $decrypt_data = openssl_decrypt(base64_decode($enc_body), 'DES-CBC',config('providerlinks.sagaming.EncryptKey'), OPENSSL_RAW_DATA | OPENSSL_NO_PADDING, config('providerlinks.sagaming.EncryptKey'));
+        dd(rtrim($decrypt_data, "\x01..\x1F"));
+
+        // return json_decode($decrypt_data);
+
         // $client_details = Providerhelper::explodeUsername('TGSA', 'TGSA98');
         // dd($client_details);
 

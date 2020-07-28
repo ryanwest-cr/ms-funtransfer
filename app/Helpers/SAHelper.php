@@ -43,6 +43,12 @@ class SAHelper{
     public static function decrypt($str) {
 		$str = openssl_decrypt(base64_decode($str), 'DES-CBC',config('providerlinks.sagaming.EncryptKey'), OPENSSL_RAW_DATA | OPENSSL_NO_PADDING, config('providerlinks.sagaming.EncryptKey'));
 		return rtrim($str, "\x01..\x1F");
+
+        // $str = openssl_decrypt(base64_decode($str), 'DES-CBC',config('providerlinks.sagaming.EncryptKey'), OPENSSL_NO_PADDING, config('providerlinks.sagaming.EncryptKey'));
+        // return rtrim($str, "\x01..\x1F");
+
+         // $output = openssl_decrypt(base64_decode($str), 'DES-CBC', config('providerlinks.sagaming.EncryptKey'), OPENSSL_RAW_DATA, config('providerlinks.sagaming.EncryptKey'));
+        // return $output;
     }
 
     public static function lang($lang) {
