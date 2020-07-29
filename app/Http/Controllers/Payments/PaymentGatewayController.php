@@ -879,29 +879,21 @@ class PaymentGatewayController extends Controller
                             $authenticationCode = hash_hmac("sha256",$client_player_id->client_id,$key);
                             $make_remittance = $account_number.$password.$p_num.(int)$pay_body->amount;
                             $remi_cha1 = hash('sha256', $make_remittance);
-                            return [
-                                'p_num' => 10037,
-                                'signature' => $remi_cha1, 
-                                'from_account' => $account_number, 
-                                'to_account' => $pay_body->to_account, 
-                                'currency' => $pay_body->currency,
-                                'amount' =>  (int)$pay_body->amount,
-                                'debit_currency' => $pay_body->currency,
-                                'password' => $password,
-                            ];
                             $http = new Client();
                             $response = $http->post('https://test-wm7.andex.cc/api/MoneyRequest.php', [
                                 'form_params' => [
                                     'p_num' => 10037,
                                     'signature' => $remi_cha1, 
                                     'from_account' => $account_number, 
-                                    'to_account' => $pay_body->to_account, 
+                                    'to_account' => $pay_body->to_account,
+                                    'trans_id' =>  $order_details->id,
                                     'currency' => $pay_body->currency,
                                     'amount' =>  $pay_body->amount,
                                     'debit_currency' => $pay_body->currency,
                                 ]
                             ]);
                             $provider_response = json_decode($response->getBody()->getContents(), true);
+                            return $provider_response;
                             if($request->status_id == 5){
                                     // MAKE DEPOSIT TO THE ACCOUNT OWNER WMT
                                     $make_remittance = $account_number.$password.$p_num.$pay_body->amount;

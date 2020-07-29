@@ -37,6 +37,7 @@ class AWSHelper{
 		);
 
 	    $client_response = json_decode($guzzle_response->getBody()->getContents());
+	    Helper::saveLog('AWS BO Register Resp', 21, json_encode($client_response), $requesttosend);
 	    return $client_response;
 	}
 
@@ -67,6 +68,7 @@ class AWSHelper{
 		);
 
 	    $client_response = json_decode($guzzle_response->getBody()->getContents());
+	    Helper::saveLog('AWS BO Player Check Resp', 21, json_encode($client_response), $requesttosend);
 	    return $client_response;
 	}
 

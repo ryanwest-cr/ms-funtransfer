@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
 use App\Helpers\SAHelper;
@@ -15,96 +16,87 @@ use DB;
 class SAGamingController extends Controller
 {
 
-    public $prefix = 'TG_SA';
-	public $provider_db_id = 25;
+    // XML BUILD RECURSIVE FUNCTION
+    public function siteMap()
+    {
+        $test_array = array (
+            'bla' => 'blub',
+            'foo' => 'bar',
+            'another_array' => array (
+                'stack' => 'overflow',
+            ),
+        );
 
+        $xml_template_info = new \SimpleXMLElement("<?xml version=\"1.0\"?><template></template>");
 
-	// public function gameLaunch(){
-	// 	$http = new Client();
- //        $requesttosend = [
- //             "username" => config('providerlinks.sagaming.prefix'),
- //             "token" => $request->token,
- //             "lobby" => "A3107",
- //             "lang" => "Tgames1234", // optional
- //             "returnurl" => "Tgames1234", // optional
- //             "mobile" => "Tgames1234", // optional
- //             "options" => "Tgames1234"
- //        ];
- //        $response = $http->post('https://api.gcpstg.m27613.com/login', [
- //            'form_params' => $requesttosend,
- //        ]);
- //        $response = $response->getBody()->getContents();
- //        Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
- //        return $response;
-	// }
+        $this->array_to_xml($test_array,$xml_template_info);
+        $xml_template_info->asXML(dirname(__FILE__)."/sitemap.xml") ;
+        header('Content-type: text/xml');
+        dd(readfile(dirname(__FILE__)."/sitemap.xml"));
+    }
+
+    public function array_to_xml(array $arr, \SimpleXMLElement $xml)
+    {
+      foreach ($arr as $k => $v) {
+          is_array($v)
+              ? $this->array_to_xml($v, $xml->addChild($k))
+              : $xml->addChild($k, $v);
+      }
+      return $xml;
+    }
+   
 
     public function GetUserBalance(Request $request){
-        $regUsr = SAHelper::regUser('TG_SG98');
-        dd($regUsr);
-        // $time = date('YmdHms'); //20140101123456
-        // $querystring = [
-        //     "method" => 'RegUserInfo',
-        //     "Key" => config('providerlinks.sagaming.SecretKey'),
-        //     "Time" => $time,
-        //     "Username" => "TG_98",
-        //     "CurrencyType" => "USD"
-        // ];
-        // $data = http_build_query($querystring); // QS
-        // $encrpyted_data = SAHelper::encrypt($data);
-        // $md5Signature = md5($data.config('providerlinks.sagaming.MD5Key').$time.config('providerlinks.sagaming.SecretKey'));
-        // $http = new Client();
-        // $response = $http->post('http://sai-api.sa-apisvr.com/api/api.aspx', [
-        //     'form_params' => [
-        //         'q' => $encrpyted_data, 
-        //         's' => $md5Signature
-        //     ],
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        // $data = json_encode($data);
+        // $data = json_decode($data);
+
+    	$user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $data['username']);
+    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
+    	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+
+    	$response = [
+    		"username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
+    		"currency" => $client_details->default_currency,
+    		"amount" => $player_details->playerdetailsresponse->balance,
+    		"error" => 0,
+    	];
+
+        $xml_data = new \SimpleXMLElement('<?xml version="1.0"?><RequestResponse></RequestResponse>');
+        $xml_file = $this->array_to_xml($response, $xml_data);
+        echo $xml_file->asXML();
+
+
+        // $xml = json_encode($response);
+        // $xml = new \SimpleXMLElement(json_encode($response));
+        // $xml = simplexml_load_string($xml);
+        // return $xml;
+
+        // return response($response)
+        // ->withHeaders([
+        //     'Content-Type' => 'text/xml'
         // ]);
+        // return response()->xml($response, 200);
+        // return Response::make($response, '200')->header('Content-Type', 'text/xml');
 
-        // $resp = simplexml_load_string($response->getBody()->getContents());
-        // dd($resp->Username);
-
-        // $body = $response->getBody();
-        // echo $body;
-
-
-        // 
-        // return json_encode($regUsr);
-        // $http = new Client();
-        // $response = $http->post('http://sai-api.sa-apisvr.com/api/api.aspx', [
-        //     'form_params' => [
-        //         'q' => $regUsr['q'], 
-        //         's' => $regUsr['s']
-        //     ],
-        // ]);
-
-        // $client_response = json_decode($response->getBody()->getContents());
-        // dd($client_response);
-        // return date('YmdHms'); //yMdHms
-       
-    	// Helper::saveLog('SA Get Balance', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
-
-    	// $prefixed_username = explode("_SA", $request->username);
-    	// $client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-    	// $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-
-    	// $response = [
-    	// 	"username" => $this->prefix.$client_details->player_id,
-    	// 	"currency" => $client_details->default_currency,
-    	// 	"amount" => $player_details->playerdetailsresponse->balance,
-    	// 	"error" => 0,
-    	// ];
-
+        // $content = view('response.xml', compact($response));
+        // return response($content, 200)
+        //     ->header('Content-Type', 'text/xml');
     	// return $response;
     }
 
     public function PlaceBet(){
-    	Helper::saveLog('SA Place Bet', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
-        // $data = json_decode(file_get_contents("php://input"));
+    	Helper::saveLog('SA Place Bet', config('providerlinks.sagaming.pdbid'), json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
         $enc_body = file_get_contents("php://input");
-        parse_str($enc_body, $data);
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
 
         $username = $data['username'];
-        $playersid = explode('_', $username);
+        $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
         $currency = $data['currency'];
         $amount = $data['amount'];
         $txnid = $data['txnid'];
@@ -113,7 +105,7 @@ class SAGamingController extends Controller
         $game_id = $data['gameid'];
         $betdetails = $data['betdetails'];
 
-        $client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
+        $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
         if($client_details == null){
             $data_response = ["username" => $username,"currency" => $currency, "error" => 1000];
             return $data_response;
@@ -123,12 +115,12 @@ class SAGamingController extends Controller
             $data_response = ["username" => $username,"currency" => $currency, "error" => 9999];  
             return $data_response;
         }
-        $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+        $game_details = Helper::findGameDetails('game_code', config('providerlinks.sagaming.pdbid'), $game_id);
         if($game_details == null){
             $data_response = ["username" => $username,"currency" => $currency, "error" => 134];  
             return $data_response;
         }
-        $provider_reg_currency = ProviderHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
+        $provider_reg_currency = ProviderHelper::getProviderCurrency(config('providerlinks.sagaming.pdbid'), $client_details->default_currency);
         $data_response = ["username" => $username,"currency" => $currency, "error" => 1001];
         if($provider_reg_currency == 'false'){ // currency not in the provider currency agreement
             return $data_response;
@@ -169,7 +161,7 @@ class SAGamingController extends Controller
                               "transactiontype" => "debit",
                               "transferid" => "",
                               "rollback" => false,
-                              "currency" => $client_details->default_currency,
+                              "currencycode" => $client_details->default_currency,
                               "amount" => abs($amount)
                        ],
                   ],
@@ -210,15 +202,15 @@ class SAGamingController extends Controller
     }
 
     public function PlayerWin(){
-    	Helper::saveLog('SA Player Win', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Player Win', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
     public function PlayerLost(){
-    	Helper::saveLog('SA Player Lost', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Player Lost', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
     public function PlaceBetCancel(){
-    	Helper::saveLog('SA Place Bet Cancel', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+    	Helper::saveLog('SA Place Bet Cancel', config('providerlinks.sagaming.pdbid'), file_get_contents("php://input"), 'ENDPOINT HIT');
     }
 
 }
