@@ -267,6 +267,14 @@ class GameLobby{
     {
         $stylename = "tg_tigergames";
         $key = "testKey";
+        $client_details = Providerhelper::getClientDetails('token', $token);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        
+        $userid = "TGaming_".$client_details->player_id;
+        $currency = $client_details->default_currency;
+        $hash = md5('currency='.$currency.'&externalPlayerId='.$userid.'&secureLogin='.$stylename.$key);
+    
+        $createPlayer = "https://tigergames-sg0.prerelease-env.biz/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hash";
 
         $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$token&stylename=$stylename&symbol=$game_code&technology=H5&platform=WEB&language=en";
         
