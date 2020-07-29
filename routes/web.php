@@ -301,3 +301,14 @@ $app->post('payment/catpay/callBack','Payments\PaymentGatewayController@catpayCa
 $app->post('hbn/api/auth','HabaneroController@playerdetailrequest');
 $app->post('hbn/api/tx','HabaneroController@fundtransferrequest');
 $app->post('hbn/api/query','HabaneroController@queryrequest');
+
+
+// Pragmatic PLay
+$app->post('api/pp/authenticate','PragmaticPLayController@authenticate');
+$app->post('api/pp/balance','PragmaticPLayController@balance');
+$app->post('api/pp/bet','PragmaticPLayController@bet');
+$app->post('api/pp/result','PragmaticPLayController@result');
+$app->post('api/pp/refund','PragmaticPLayController@refund');
+$app->post('api/pp/bonusWin','PragmaticPLayController@bonusWin');
+$app->post('api/pp/jackpotWin','PragmaticPLayController@jackpotWin');
+$app->post('api/pp/promoWin','PragmaticPLayController@promoWin');

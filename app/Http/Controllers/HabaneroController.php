@@ -138,6 +138,8 @@ class HabaneroController extends Controller
             ];
 
             $game_transextension = $this->createGameTransExt($game_trans_id[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $game_trans_id[0]->pay_amount, 3, $data, $response, $clientDetalsResponse['requesttosend'], $clientDetalsResponse['client_response'], $transaction_detail);
+
+            
         }else{
             
             $check_game_trans = DB::table('game_transactions')->where("provider_trans_id","=",$details->fundtransferrequest->gameinstanceid)->get();
