@@ -288,7 +288,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="Pragmatic Play"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::pramaticplaylauncher($request->game_code,$request->token,$request->exitUrl), 
+                        "url" => GameLobby::pragmaticplaylauncher($request->game_code,$request->token,$request->exitUrl), 
                         "game_launch" => true
                     );
                     return response($msg,200)
