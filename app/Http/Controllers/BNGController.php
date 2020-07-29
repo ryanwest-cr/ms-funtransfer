@@ -310,6 +310,21 @@ class BNGController extends Controller
         if($data["token"]){
             $client_details = $this->_getClientDetails('token', $data["token"]);
             if($client_details){
+                if(Helper::getBalance($client_details) < round($data["args"]["bet"],2)){ 
+                    $response =array(
+                        "uid"=>$data["uid"],
+                        "balance" => array(
+                            "value" =>number_format(Helper::getBalance($client_details),2,'.', ''),
+                            "version" => $this->_getExtParameter()
+                        ),
+                        "error" => array(
+                            "code"=> "FUNDS_EXCEED",
+                        )
+                    );
+                    Helper::saveLog('betGameInsuficientN(BNG)', 12, json_encode($data), $response);
+                    return response($response,200)
+                        ->header('Content-Type', 'application/json');
+                }
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
                 $game_transaction = Helper::checkGameTransaction($data["uid"],$data["args"]["round_id"],2);
                 $win_amount = $game_transaction ? 0 : round($data["args"]["win"],2);
