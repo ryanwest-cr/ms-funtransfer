@@ -67,7 +67,7 @@ class SAGamingController extends Controller
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-    	$response = [
+    	$data_response = [
     		"username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
     		"currency" => $client_details->default_currency,
     		"amount" => $player_details->playerdetailsresponse->balance,
@@ -75,7 +75,7 @@ class SAGamingController extends Controller
     	];
 
         $xml_data = new \SimpleXMLElement('<?xml version="1.0"?><RequestResponse></RequestResponse>');
-        $xml_file = $this->array_to_xml($response, $xml_data);
+        $xml_file = $this->array_to_xml($data_response, $xml_data);
         echo $xml_file->asXML();
         return;
     }
@@ -91,8 +91,8 @@ class SAGamingController extends Controller
         parse_str($decrypt_data, $data);
 
         // LOCAL TEST
-        $enc_body = file_get_contents("php://input");
-        parse_str($enc_body, $data);
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
 
         $username = $data['username'];
         $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
@@ -202,7 +202,8 @@ class SAGamingController extends Controller
 
             $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
             $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
-
+            // Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), $data_response);
+            Helper::saveLog('SA Gaming Balance', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
             // return response($data_response,200)->header('Content-Type', 'application/json');
@@ -217,8 +218,8 @@ class SAGamingController extends Controller
         parse_str($decrypt_data, $data);
 
         // LOCAL TEST
-        $enc_body = file_get_contents("php://input");
-        parse_str($enc_body, $data);
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
 
         $username = $data['username'];
         $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
