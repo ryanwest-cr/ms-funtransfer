@@ -87,7 +87,7 @@ class PragmaticPLayController extends Controller
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $game_details = Helper::findGameDetails('game_code', 25, $data->gameId);
+        $game_details = Helper::findGameDetails('game_code', 26, $data->gameId);
 
         $client = new Client([
             'headers' => [ 
@@ -128,7 +128,7 @@ class PragmaticPLayController extends Controller
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $game_details = Helper::findGameDetails('game_code', 25, $data->gameId);
+        $game_details = Helper::findGameDetails('game_code', 26, $data->gameId);
 
         $client = new Client([
             'headers' => [ 
