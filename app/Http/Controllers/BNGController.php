@@ -408,6 +408,9 @@ class BNGController extends Controller
             $client_details = $this->_getClientDetails('token', $data["token"]);
             if($client_details){
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
+                $game_transaction = Helper::checkGameTransaction($data["uid"],$data["args"]["round_id"],3);
+                $refund_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
+                $refund_amount = $refund_amount < 0 ? 0 :$refund_amount;
                 $client = new Client([
                     'headers' => [ 
                         'Content-Type' => 'application/json',
@@ -435,7 +438,7 @@ class BNGController extends Controller
                             "transferid" => "",
                             "rollback" => "true",
                             "currencycode" => $client_details->currency,
-                            "amount" => round($data["args"]["win"],2)
+                            "amount" => round($refund_amount,2)
                       ]
                     ]
                       ];
@@ -445,13 +448,13 @@ class BNGController extends Controller
                     )],
                     ['defaults' => [ 'exceptions' => false ]]
                 );
-                $win = $data["args"]["win"] == 0 ? 0 : 1;
+                //$win = $data["args"]["win"] == 0 ? 0 : 1;
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
                 $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
                 $json_data = array(
                     "transid" => $data["uid"],
-                    "amount" => round($data["args"]["win"],2),
+                    "amount" => round($refund_amount,2),
                     "roundid" => $data["args"]["round_id"],
                 );
                 $game = Helper::getGameTransaction($data["token"],$data["args"]["round_id"]);
@@ -474,7 +477,10 @@ class BNGController extends Controller
                             "version" => $this->_getExtParameter()
                         ),
                     );
-                    Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,2);  
+                    $this->_setExtParameter($this->_getExtParameter()+1);
+                    if(!$game_transaction){
+                        Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,2);
+                    }   
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
                 }
