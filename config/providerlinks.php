@@ -73,8 +73,8 @@ return [
             'AccessKeyId' => '912784c6-6f1a-4a0c-a64c-f01f815f8c31',
             'access_key_secret' => '8D0EAD434478F1D487165C9E27F7A93FC9451FFF',
             'app_key' => 'RiANDRAFT',
-            'login_url' => 'https:// api.bole-game.com:16800/v1/player/login',
-            'logout_url' => 'https:// api.bole-game.com:16800/v1/player/logout',
+            'login_url' => 'https://api.bole-game.com:16800/v1/player/login',
+            'logout_url' => 'https://api.bole-game.com:16800/v1/player/logout',
         ],
     ],
     'aws' => [

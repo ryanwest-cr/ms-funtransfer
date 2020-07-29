@@ -109,7 +109,6 @@ class GameLobby{
         } catch (\Exception $e) {
             return false;        
         }
-        // Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_encode($response->getBody()->getContents()));
         
     }
 
