@@ -52,6 +52,17 @@ class GameLobby{
     }
     public static function boleLaunchUrl($game_code,$token,$exitUrl, $country_code){
 
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        if($client_details != null){
+            $AccessKeyId = config('providerlinks.bolegaming.'.$client_details->default_currency.'.AccessKeyId');
+            $access_key_secret = config('providerlinks.bolegaming.'.$client_details->default_currency.'.access_key_secret');
+            $app_key = config('providerlinks.bolegaming.'.$client_details->default_currency.'.app_key');
+            $login_url = config('providerlinks.bolegaming.'.$client_details->default_currency.'.login_url');
+            $logout_url = config('providerlinks.bolegaming.'.$client_details->default_currency.'.logout_url');
+        }else{
+            return false;
+        }
+
         $scene_id = '';
         if(strpos($game_code, 'slot') !== false) {
             $game_code = explode("_", $game_code);
@@ -63,23 +74,22 @@ class GameLobby{
 
         $nonce = rand();
         $timestamp = time();
-        $key = config('providerlinks.bolegaming.access_key_secret').$nonce.$timestamp;
+        $key = $access_key_secret.$nonce.$timestamp;
         $signature = sha1($key);
         $sign = [
             "timestamp" => $timestamp,
             "nonce" => $nonce,
             "signature" => $signature,
         ];
-        $client_player_details = GameLobby::getClientDetails('token', $token);
         try {
             $http = new Client();
             $data = [
                 'game_code' => $game_code,
                 'scene' => $scene_id,
-                'player_account' => $client_player_details->player_id,
+                'player_account' => $client_details->player_id,
                 'country'=> $country_code,
                 'ip'=> $_SERVER['REMOTE_ADDR'],
-                'AccessKeyId'=> config('providerlinks.bolegaming.AccessKeyId'),
+                'AccessKeyId'=> $AccessKeyId,
                 'Timestamp'=> $sign['timestamp'],
                 'Nonce'=> $sign['nonce'],
                 'Sign'=> $sign['signature'],
@@ -90,16 +100,15 @@ class GameLobby{
                 'ui_hot_list_disable' => 1, //hide latest game menu
                 'ui_category_disable' => 1 //hide category list
             ];
-            $response = $http->post(config('providerlinks.bolegaming.login_url'), [
+            $response = $http->post($login_url, [
                 'form_params' => $data,
             ]);
             $client_response = json_decode($response->getBody()->getContents());
             Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_decode($response->getBody()));
             return isset($client_response->resp_data->url) ? $client_response->resp_data->url : false;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;        
         }
-        // Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_encode($response->getBody()->getContents()));
         
     }
 
@@ -254,6 +263,23 @@ class GameLobby{
         return $url;
     }
     
+    public static function pragmaticplaylauncher($game_code = null, $token = null)
+    {
+        $stylename = "tg_tigergames";
+        $key = "testKey";
+        $client_details = Providerhelper::getClientDetails('token', $token);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        
+        $userid = "TGaming_".$client_details->player_id;
+        $currency = $client_details->default_currency;
+        $hash = md5('currency='.$currency.'&externalPlayerId='.$userid.'&secureLogin='.$stylename.$key);
+    
+        $createPlayer = "https://tigergames-sg0.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hash";
+
+        $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$token&stylename=$stylename&symbol=$game_code&technology=H5&platform=WEB&language=en";
+        
+        return $url;
+    }
 
     public static function iaLaunchUrl($game_code,$token,$exitUrl)
     {
