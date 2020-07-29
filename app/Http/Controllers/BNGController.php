@@ -417,6 +417,8 @@ class BNGController extends Controller
                         ),
                     );
                     $this->_setExtParameter($this->_getExtParameter()+1);
+                    return response($response,200)
+                        ->header('Content-Type', 'application/json');
                 }
                 $game_transaction = Helper::checkGameTransaction($data["uid"],$data["args"]["round_id"],3);
                 $refund_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
