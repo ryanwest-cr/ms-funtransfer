@@ -145,6 +145,15 @@ class BNGController extends Controller
                 $this->_setExtParameter($this->_getExtParameter()+1);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
+            else{
+                $msg = array(
+                    "uid" => $data["uid"],
+                    "error"=>array(
+                        "code" => "INVALID_TOKEN"
+                    ),
+                );
+                return response($msg,200)->header('Content-Type', 'application/json');
+            }
         }    
     }
     private function _getBalance($data){
