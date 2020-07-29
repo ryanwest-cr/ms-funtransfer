@@ -17,12 +17,8 @@ class BNGController extends Controller
         }
         elseif($data["name"]== "transaction"){
             if($data["args"]["bet"]!= null && $data["args"]["win"]!= null){
-                if($data["args"]["win"] == 0){
-                    return $this->_betGame($data);
-                }else{
-                    $this->_betGame($data);
-                    return $this->_winGame($data);
-                }
+                $this->_betGame($data);
+                return $this->_winGame($data);
             }
             elseif($data["args"]["bet"]== null && $data["args"]["win"]!= null){
                 return $this->_winGame($data);
@@ -324,7 +320,11 @@ class BNGController extends Controller
                 }
                 else{
                     $json_data["amount"] = round($data["args"]["win"],2)+ $game->pay_amount;
-                    $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
+                    if($win == 0){
+                        $gameupdate = Helper::updateGameTransaction($game,$json_data,"debit");
+                    }else{
+                        $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
+                    }
                     $gametransactionid = $game->game_trans_id;
                 }
                 // $game_transaction_id =Helper::createGameTransaction('credit', $json_data, $game_details, $client_details);
