@@ -310,6 +310,9 @@ class BNGController extends Controller
             $client_details = $this->_getClientDetails('token', $data["token"]);
             if($client_details){
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
+                $game_transaction = Helper::checkGameTransaction($data["uid"]);
+                $win_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
+                $win_amount = $win_amount < 0 ? 0 :$win_amount;
                 $client = new Client([
                     'headers' => [ 
                         'Content-Type' => 'application/json',
@@ -337,7 +340,7 @@ class BNGController extends Controller
                             "transferid" => "",
                             "rollback" => "false",
                             "currencycode" => $client_details->currency,
-                            "amount" => round($data["args"]["win"],2)
+                            "amount" => round($win_amount,2)
                       ]
                     ]
                       ];
