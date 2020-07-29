@@ -197,7 +197,7 @@ class BNGController extends Controller
                     $response =array(
                         "uid"=>$data["uid"],
                         "balance" => array(
-                            "value" =>round(Helper::getBalance($client_details),2),
+                            "value" =>number_format(Helper::getBalance($client_details),2,'.', ''),
                             "version" => $this->_getExtParameter()
                         ),
                         "error" => array(
@@ -407,6 +407,17 @@ class BNGController extends Controller
             $client_details = $this->_getClientDetails('token', $data["token"]);
             if($client_details){
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
+                $rollbackchecker = Helper::checkGameTransaction($data["args"]["transaction_uid"],$data["args"]["round_id"],1);
+                if(!$rollbackchecker){
+                    $response =array(
+                        "uid"=>$data["uid"],
+                        "balance" => array(
+                            "value" =>number_format(Helper::getBalance($client_details),2,'.', ''),
+                            "version" => $this->_getExtParameter()
+                        ),
+                    );
+                    $this->_setExtParameter($this->_getExtParameter()+1);
+                }
                 $game_transaction = Helper::checkGameTransaction($data["uid"],$data["args"]["round_id"],3);
                 $refund_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
                 $refund_amount = $refund_amount < 0 ? 0 :$refund_amount;
