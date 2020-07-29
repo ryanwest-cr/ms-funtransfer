@@ -62,11 +62,20 @@ return [
         'secretkey' => '67498C0AD6BD4D2DB8FDFE59BD9039EB',
     ],
     'bolegaming' => [
-    	'AccessKeyId' => '9048dbaa-b489-4b32-9a29-149240a5cefe',
-    	'access_key_secret' => '4A55C539E93B189EAA5A76A8BD92B99B87B76B80',
-    	'app_key' => 'R14NDR4FT',
-    	'login_url' => 'https://api.cdmolo.com:16800/v1/player/login',
-    	'logout_url' => 'https://api.cdmolo.com:16800/v1/player/logout',
+    	"CNY" => [
+            'AccessKeyId' => '9048dbaa-b489-4b32-9a29-149240a5cefe',
+            'access_key_secret' => '4A55C539E93B189EAA5A76A8BD92B99B87B76B80',
+            'app_key' => 'R14NDR4FT',
+            'login_url' => 'https://api.cdmolo.com:16800/v1/player/login',
+            'logout_url' => 'https://api.cdmolo.com:16800/v1/player/logout',
+        ],
+        "USD" => [
+            'AccessKeyId' => '912784c6-6f1a-4a0c-a64c-f01f815f8c31',
+            'access_key_secret' => '8D0EAD434478F1D487165C9E27F7A93FC9451FFF',
+            'app_key' => 'RiANDRAFT',
+            'login_url' => 'https:// api.bole-game.com:16800/v1/player/login',
+            'logout_url' => 'https:// api.bole-game.com:16800/v1/player/logout',
+        ],
     ],
     'aws' => [
         'api_url' => 'https://sapi.awsxpartner.com/b2b',
