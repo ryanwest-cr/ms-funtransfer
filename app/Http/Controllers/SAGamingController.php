@@ -16,6 +16,10 @@ use DB;
 class SAGamingController extends Controller
 {
 
+    public function __construct(){
+        header('Content-type: text/xml');
+    }
+
     // XML BUILD RECURSIVE FUNCTION
     public function siteMap()
     {
@@ -73,6 +77,7 @@ class SAGamingController extends Controller
         $xml_data = new \SimpleXMLElement('<?xml version="1.0"?><RequestResponse></RequestResponse>');
         $xml_file = $this->array_to_xml($response, $xml_data);
         echo $xml_file->asXML();
+        return;
     }
 
 
@@ -108,7 +113,7 @@ class SAGamingController extends Controller
         }
         $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
         if($getPlayer == 'false'){
-            $data_response = ["username" => $username,"currency" => $currency, "error" => 9999];  
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 9999]; 
             echo $this->makeArrayXML($data_response);
             return;
         }
@@ -300,7 +305,7 @@ class SAGamingController extends Controller
             $client_response = json_decode($guzzle_response->getBody()->getContents());
 
             // TEST
-            $transaction_type = 'debit';
+            $transaction_type = 'credit';
             $game_transaction_type = 1; // 1 Bet, 2 Win
             $game_code = $game_details->game_id;
             $token_id = $client_details->token_id;
@@ -321,8 +326,8 @@ class SAGamingController extends Controller
                 "error" => 0
             ];
 
-            $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
-            $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
+            // $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
+            // $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
 
             echo $this->makeArrayXML($data_response);
             return;
