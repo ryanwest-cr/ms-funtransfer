@@ -31,6 +31,9 @@ class BNGController extends Controller
         elseif($data["name"]=="rollback"){
             return $this->_rollbackGame($data);
         }
+        elseif($data["name"]=="getbalance"){
+            return $this->_getBalance($data);
+        }
     }
     public function generateGame(Request $request){
         $url = "https://gate-stage.betsrv.com/op/tigergames-stage/api/v1/game/list/";
@@ -143,6 +146,47 @@ class BNGController extends Controller
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
         }    
+    }
+    private function _getBalance($data){
+        if($data["token"]){
+            $client_details = $this->_getClientDetails('token', $data["token"]);
+            if($client_details){
+                $client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.$client_details->client_access_token
+                    ]
+                ]);
+                $guzzle_response = $client->post($client_details->player_details_url,
+                    ['body' => json_encode(
+                            [
+                                "access_token" => $client_details->client_access_token,
+                                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                                "type" => "playerdetailsrequest",
+                                "datesent" => "",
+                                "gameid" => "",
+                                "clientid" => $client_details->client_id,
+                                "playerdetailsrequest" => [
+                                    "client_player_id"=>$client_details->client_player_id,
+                                    "token" => $client_details->player_token,
+                                    "gamelaunch" => "true"
+                                ]]
+                    )]
+                );
+                $client_response = json_decode($guzzle_response->getBody()->getContents());
+                Helper::saveLog('AuthPlayer(BNG)', 12, json_encode(array("token"=>$data)),$client_response);
+                //$balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+                $msg = array(
+                    "uid" => $data["uid"],
+                    "balance"=>array(
+                        "value"=> number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
+                        "version"=> $this->_getExtParameter()
+                    )
+                );
+                $this->_setExtParameter($this->_getExtParameter()+1);
+                return response($msg,200)->header('Content-Type', 'application/json');
+            }
+        }
     }
     private function _betGame($data){
         //return $data["args"]["bet"];

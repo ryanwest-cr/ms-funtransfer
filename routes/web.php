@@ -198,6 +198,10 @@ $app->post('/api/eightprovider/withdrawal', 'EightProviderController@gameWithdra
 $app->post('/api/bng', 'BNGController@index');
 $app->post('/api/bng/gamelaunch', 'BNGController@gameLaunchUrl');
 $app->post('/api/bng/generateGame','BNGController@generateGame');
+//FC GAMING Endpoints
+$app->post('/api/fc/encrypt','FCController@SampleEncrypt');
+$app->post('/api/fc/decode','FCController@SampleDecrypt');
+
 
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
