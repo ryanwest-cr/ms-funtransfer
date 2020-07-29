@@ -17,8 +17,12 @@ class BNGController extends Controller
         }
         elseif($data["name"]== "transaction"){
             if($data["args"]["bet"]!= null && $data["args"]["win"]!= null){
-                $this->_betGame($data);
-                return $this->_winGame($data);
+                if($data["args"]["win"] == 0){
+                    return $this->_betGame($data);
+                }else{
+                    $this->_betGame($data);
+                    return $this->_winGame($data);
+                }
             }
             elseif($data["args"]["bet"]== null && $data["args"]["win"]!= null){
                 return $this->_winGame($data);
