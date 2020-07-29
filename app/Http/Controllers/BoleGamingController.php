@@ -526,7 +526,7 @@ class BoleGamingController extends Controller
 		        Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
 				return $data;
 			}
-			$client_details = Providerhelper::getClientDetails('player_id', $request->player_account);
+			$client_details = Providerhelper::getClientDetails('player_id', $json_data->player_account);
 			if($client_details != null)
 			{
 				$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
