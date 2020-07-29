@@ -204,6 +204,7 @@ class BNGController extends Controller
                             "code"=> "FUNDS_EXCEED",
                         )
                     );
+                    $this->_setExtParameter($this->_getExtParameter()+1);
                     Helper::saveLog('betGameInsuficientN(BNG)', 12, json_encode($data), $response);
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
@@ -321,6 +322,7 @@ class BNGController extends Controller
                             "code"=> "FUNDS_EXCEED",
                         )
                     );
+                    $this->_setExtParameter($this->_getExtParameter()+1);
                     Helper::saveLog('betGameInsuficientN(BNG)', 12, json_encode($data), $response);
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
