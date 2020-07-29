@@ -322,9 +322,9 @@ class Helper
 	public static function updateGameTransaction($existingdata,$request_data,$type){
 		switch ($type) {
 			case "debit":
-					$trans_data["bet_amount"] = $existingdata->bet_amount + $request_data["amount"];
 					$trans_data["win"] = 0;
 					$trans_data["pay_amount"] = 0;
+					$trans_data["income"]=$existingdata->bet_amount-$request_data["amount"];
 					$trans_data["entry_id"] = 1;
 				break;
 			case "credit":

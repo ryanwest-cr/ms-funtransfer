@@ -263,6 +263,15 @@ class GameLobby{
         return $url;
     }
     
+    public static function pragmaticplaylauncher($game_code = null, $token = null)
+    {
+        $stylename = "tg_tigergames";
+        $key = "testKey";
+
+        $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$token&stylename=$stylename&symbol=$game_code&technology=H5&platform=WEB&language=en";
+        
+        return $url;
+    }
 
     public static function iaLaunchUrl($game_code,$token,$exitUrl)
     {
