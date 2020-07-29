@@ -317,9 +317,8 @@ class TidyController extends Controller
 	    	$pay_amount = $amount;
 	    	$income = $bet_transaction->bet_amount - $amount ;
 	    	// $win = 1;
-	    	$entry_id = 2;
-
-	    	$win = $bet_transaction->bet_amount > $amount  ? 0 : 1;/// 1win 0lost
+	    	$entry_id = $amount > 0  ?  2 : 1;
+	    	$win 	  = $amount > 0  ?  1 : 0;  /// 1win 0lost
 
 	    	ProviderHelper::updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
 		    $game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$request_uuid,$reference_transaction_uuid, $amount, 2, $data, $data_response, $requesttosend, $client_response, $data_response);
@@ -425,7 +424,6 @@ class TidyController extends Controller
     	$game_update_refound = $this->rollbackTransaction($round_id, $win, $entry_id);
     	Helper::saveLog('Tidy Rollback Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 
-
 	    return $data_response;
 
 	}
@@ -447,16 +445,3 @@ class TidyController extends Controller
 
 }
 
-// error codes
-// 
-// 99-013 transaction_rolled_back
-// 99-012 transaction_does_not_exist
-// 99-011 duplicate_transaction
-
-
-// $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjbGllbnRfaWQiOiI4NDQwYTViNiIsImlhdCI6MTU5NTY2NDgxM30.ZcUa6Yt0xZKufTUoCg6dGqxEidDP646jobErbsY0OLc';
-// $decode_token = TidyHelper::decodeToken($token);
-// dd($decode_token);
-// 
-// 
-// dd(TidyHelper::decodeToken());
