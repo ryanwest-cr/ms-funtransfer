@@ -265,7 +265,7 @@ class GameLobby{
         $currency = $client_details->default_currency;
         $hash = md5('currency='.$currency.'&externalPlayerId='.$userid.'&secureLogin='.$stylename.$key);
     
-        $createPlayer = "https://tigergames-sg0.prerelease-env.biz/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hash";
+        $createPlayer = "https://tigergames-sg0.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hash";
 
         $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$token&stylename=$stylename&symbol=$game_code&technology=H5&platform=WEB&language=en";
         
