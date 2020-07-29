@@ -193,21 +193,20 @@ class BNGController extends Controller
         if($data["token"]){
             $client_details = $this->_getClientDetails('token', $data["token"]);
             if($client_details){
-                if(Helper::getBalance($client_details) < round($data["args"]["bet"],2)){
+                if(Helper::getBalance($client_details) < round($data["args"]["bet"],2)){ 
                     $response =array(
-                        "data" => array(
-                            "statusCode"=>2,
-                            "username" => $client_details->username,
-                            "balance" =>round(Helper::getBalance($client_details)*100,2),
+                        "uid"=>$data["uid"],
+                        "balance" => array(
+                            "value" =>round(Helper::getBalance($client_details),2),
+                            "version" => $this->_getExtParameter()
                         ),
                         "error" => array(
-                            "title"=> "Not Enough Balance",
-                            "description"=>"Not Enough Balance"
+                            "code"=> "FUNDS_EXCEED",
                         )
-                    ); 
+                    );
                     Helper::saveLog('betGameInsuficientN(BNG)', 12, json_encode($data), $response);
-                    return response($response,400)
-                    ->header('Content-Type', 'application/json');
+                    return response($response,200)
+                        ->header('Content-Type', 'application/json');
                 }
                 $game_transaction = Helper::checkGameTransaction($data["uid"]);
                 $bet_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
