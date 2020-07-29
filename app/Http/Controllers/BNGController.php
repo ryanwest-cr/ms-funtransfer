@@ -312,7 +312,7 @@ class BNGController extends Controller
             $client_details = $this->_getClientDetails('token', $data["token"]);
             if($client_details){
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
-                $game_transaction = Helper::checkGameTransaction($data["uid"]);
+                $game_transaction = Helper::checkGameTransaction($data["uid"],$data["args"]["round_id"],2);
                 $win_amount = $game_transaction ? 0 : round($data["args"]["win"],2);
                 $win_amount = $win_amount < 0 ? 0 :$win_amount;
                 $client = new Client([
