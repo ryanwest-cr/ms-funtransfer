@@ -53,20 +53,7 @@ class BNGController extends Controller
         $client_response = json_decode($guzzle_response->getBody()->getContents(),TRUE);
         $data = array();
         foreach($client_response["items"] as $game_data){
-            if($game_data["type"]=="SLOT"){
-                if(array_key_exists("en",$game_data["i18n"])){
-                    $game = array(
-                        "game_type_id"=>1,
-                        "provider_id"=>22,
-                        "sub_provider_id"=>45,
-                        "game_name"=>$game_data["i18n"]["en"]["title"],
-                        "game_code"=>$game_data["game_id"],
-                        "icon"=>"https:".$game_data["i18n"]["en"]["banner_path"]
-                    );
-                    array_push($data,$game);
-                } 
-            }
-            elseif($game_data["type"]=="TABLE"){
+           if($game_data["type"]=="TABLE"){
                 if(array_key_exists("en",$game_data["i18n"])){
                     $game = array(
                         "game_type_id"=>5,
