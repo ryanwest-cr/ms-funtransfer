@@ -60,9 +60,8 @@ class GameLobby{
             $login_url = config('providerlinks.bolegaming.'.$client_details->default_currency.'.login_url');
             $logout_url = config('providerlinks.bolegaming.'.$client_details->default_currency.'.logout_url');
         }else{
-            return false;
+            return 'false';
         }
-
         $scene_id = '';
         if(strpos($game_code, 'slot') !== false) {
             $game_code = explode("_", $game_code);
@@ -71,7 +70,6 @@ class GameLobby{
         }else{
             $game_code = $game_code;
         }
-
         $nonce = rand();
         $timestamp = time();
         $key = $access_key_secret.$nonce.$timestamp;
@@ -88,6 +86,7 @@ class GameLobby{
                 'scene' => $scene_id,
                 'player_account' => $client_details->player_id,
                 'country'=> $country_code,
+                // 'ip'=> $_SERVER['REMOTE_ADDR'],
                 'ip'=> $_SERVER['REMOTE_ADDR'],
                 'AccessKeyId'=> $AccessKeyId,
                 'Timestamp'=> $sign['timestamp'],
@@ -100,14 +99,17 @@ class GameLobby{
                 'ui_hot_list_disable' => 1, //hide latest game menu
                 'ui_category_disable' => 1 //hide category list
             ];
-            $response = $http->post($login_url, [
+            return $data;
+            // $response = $http->post($login_url, [
+            $response = $http->post('https:// api.bole-game.com:16800/v1/player/login', [
                 'form_params' => $data,
             ]);
             $client_response = json_decode($response->getBody()->getContents());
+
             Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_decode($response->getBody()));
             return isset($client_response->resp_data->url) ? $client_response->resp_data->url : false;
         } catch (\Exception $e) {
-            return false;        
+            return 'false';        
         }
         // Helper::saveLog('GAMELAUNCH BOLE', 11, json_encode($data), json_encode($response->getBody()->getContents()));
         
