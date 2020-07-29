@@ -389,6 +389,7 @@ class BNGController extends Controller
                             "version" => $this->_getExtParameter()
                         ),
                     );
+                    $this->_setExtParameter($this->_getExtParameter()+1);
                     if(!$game_transaction){
                         Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,2);
                     }  
