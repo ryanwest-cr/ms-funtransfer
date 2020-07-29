@@ -278,7 +278,9 @@ class BNGController extends Controller
                         $gametransactionid= $game->game_trans_id;
                     }
                     $this->_setExtParameter($this->_getExtParameter()+1);
-                    Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,1);  
+                    if(!$game_transaction){
+                        Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,1);
+                    }  
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
                 }
@@ -305,13 +307,13 @@ class BNGController extends Controller
         } 
     }
     private function _winGame($data){
-        //return $data["args"]["bet"];
+        //return $data["args"]["win"];
         if($data["token"]){
             $client_details = $this->_getClientDetails('token', $data["token"]);
             if($client_details){
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
                 $game_transaction = Helper::checkGameTransaction($data["uid"]);
-                $win_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
+                $win_amount = $game_transaction ? 0 : round($data["args"]["win"],2);
                 $win_amount = $win_amount < 0 ? 0 :$win_amount;
                 $client = new Client([
                     'headers' => [ 
@@ -387,9 +389,14 @@ class BNGController extends Controller
                             "version" => $this->_getExtParameter()
                         ),
                     );
-                    Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,2);  
+                    if(!$game_transaction){
+                        Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,2);
+                    }  
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
+                }
+                else{
+                    return "something error with the client";
                 }
             }
         } 
