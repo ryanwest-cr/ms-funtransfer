@@ -141,7 +141,6 @@ class GameLobbyController extends Controller
                 }
                  elseif($request->input('game_provider')=="Bole Gaming"){
                     $url = GameLobby::boleLaunchUrl($request->game_code,$token,$request->exitUrl,$request->country_code);
-                    dd($url);
                     if($url){
                         $msg = array(
                             "game_code" => $request->input("game_code"),
