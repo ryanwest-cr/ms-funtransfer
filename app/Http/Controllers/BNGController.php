@@ -448,7 +448,7 @@ class BNGController extends Controller
                     )],
                     ['defaults' => [ 'exceptions' => false ]]
                 );
-                //$win = $data["args"]["win"] == 0 ? 0 : 1;
+                $win = $data["args"]["win"] == 0 ? 0 : 1;
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
                 $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
@@ -459,7 +459,7 @@ class BNGController extends Controller
                 );
                 $game = Helper::getGameTransaction($data["token"],$data["args"]["round_id"]);
                 if(!$game){
-                    $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
+                    $gametransactionid=Helper::createGameTransaction('refund', $json_data, $game_details, $client_details); 
                 }
                 else{
                     $gameupdate = Helper::updateGameTransaction($game,$json_data,"refund");
@@ -479,7 +479,7 @@ class BNGController extends Controller
                     );
                     $this->_setExtParameter($this->_getExtParameter()+1);
                     if(!$game_transaction){
-                        Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,2);
+                        Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,3);
                     }   
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
