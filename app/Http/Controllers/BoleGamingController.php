@@ -32,6 +32,7 @@ class BoleGamingController extends Controller
    		 // public $app_key = config('providerlinks.bolegaming.app_key'); // Wallet App Key
 
    		public  $AccessKeyId, $access_key_secret, $app_key, $login_url, $logout_url;
+   		public $provider_db_id = 11;
 
 	    public function __construct()
 		{
@@ -119,7 +120,7 @@ class BoleGamingController extends Controller
 			 	// return $client_details->client_id;
 			 	// Check if the game is available for the client
 				$subscription = new GameSubscription();
-				$client_game_subscription = $subscription->check($client_details->client_id, 11, $json_data['gamecode']);
+				$client_game_subscription = $subscription->check($client_details->client_id, $this->provider_db_id, $json_data['gamecode']);
 
 				if(!$client_game_subscription) {
 					$response = [
@@ -195,7 +196,7 @@ class BoleGamingController extends Controller
 			}
 
 
-	         Helper::saveLog('BOLE REGISTER', 11, $response, 'resBoleReg');
+	         Helper::saveLog('BOLE REGISTER', $this->provider_db_id, $response, 'resBoleReg');
 	         return $response;
 		}
 
@@ -207,7 +208,7 @@ class BoleGamingController extends Controller
 		public function playerLogout(Request $request)
 		{
 
-			 Helper::saveLog('BOLE_LOGOUT', 11, 'logouted', 'BOLE CALL');
+			 Helper::saveLog('BOLE_LOGOUT', $this->provider_db_id, 'logouted', 'BOLE CALL');
 			 $sign = $this->generateSign();
 
 			 $http = new Client();
@@ -268,16 +269,51 @@ class BoleGamingController extends Controller
 		{
 
 			$json_data = json_decode($request->getContent());
-			// Helper::saveLog('WALLET CALL BOLE', 11, '11', 'BOLE CALL');
-			Helper::saveLog('BOLE WALLET CALL', 2, $request->getContent(), 'boleReq');
+
+			if($json_data->game_code == 'slot'){
+		    	$game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
+		    }else{
+		    	$game_details = Game::find($json_data->game_code);
+		    }
+
+		    if($game_details == false){
+	    		$data = [
+					"resp_msg" => [
+						"code" => 43201,
+						"message" => 'the game does not exist',
+						"errors" => []
+					]
+				];
+				return $data;
+		    }
+
+		    $db_game_name = $game_details->game_name;
+	    	$db_game_code = $game_details->game_code;
+		    // dd($game_details);
+			// Helper::saveLog('WALLET CALL BOLE', $this->provider_db_id, '$this->provider_db_id', 'BOLE CALL');
+			Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			if(!$hashen){
-		        return ["code" => "error"];
-		        Helper::saveLog('BOLE UNKNOWN CALL', 11, $request->getContent(), 'UnknownboleReq');
+		        $data = [
+					"resp_msg" => [
+						"code" => 43006,
+						"message" => 'signature error',
+						"errors" => []
+					]
+				];
+		        Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
+				return $data;
 			}
 
-
 			$client_details = $this->_getClientDetails('player_id', $json_data->player_account);
+			$data = [
+				"resp_msg" => [
+					"code" => 43101,
+					"message" => 'the user does not exist',
+					"errors" => []
+				]
+			];
+			// $client_details->default_currency
 			if($client_details)
 			{
 						$client = new Client([
@@ -287,13 +323,11 @@ class BoleGamingController extends Controller
 						    ]
 						]);
 				
-
 						// IF COST_INFO HAS DATA
 						if(count(get_object_vars($json_data->cost_info)) != 0){
 							
 								//This area are use to update game_transaction table bet_amount,win or lose, pay_amount, and entry_type
 								
-
 							    $transaction_type = $json_data->cost_info->gain_gold < 0 ? 'debit' : 'credit';
 
 							    // TRAP SLOT GAMES FOR DB QUERY
@@ -381,7 +415,6 @@ class BoleGamingController extends Controller
 				                $payout_reason = $json_data->cost_info->taxes > 0 ? 'with tax deduction' : null;
 								// $gamerecord = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, $income, $payout_reason);
 
-				                
 
 								$provider_trans_id = $json_data->report_id;
 								$gamerecord  = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
@@ -447,8 +480,8 @@ class BoleGamingController extends Controller
 												  "type" => "fundtransferrequest",
 												  "datetsent" => Helper::datesent(),
 												  "gamedetails" => [
-												    "gameid" => $json_data->game_code,
-												    "gamename" => ""
+												    "gameid" => $db_game_code,
+												    "gamename" => $db_game_name
 												  ],
 												  "fundtransferrequest" => [
 														"playerinfo" => [
@@ -470,14 +503,13 @@ class BoleGamingController extends Controller
 
 								    $client_response = json_decode($guzzle_response->getBody()->getContents());
 									// Helper::saveLog('WalletCostTransfer', 2, json_encode($client_response), 'demoRes');
-									Helper::saveLog('BOLE WALLET CALL TRANSFER', 11, $request->getContent(), json_encode($client_response));
+									Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), json_encode($client_response));
 
 									$get_balance = Helper::getBalance($client_details); // TEST
 
 									$data = [
 										"data" => [
-											"balance" => floatval(number_format((float)$get_balance, 2, '.', '')), // TEST
-											// "balance" => number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''),
+											"balance" => floatval(number_format((float)$get_balance, 2, '.', '')), 
 											"currency" => $client_response->fundtransferresponse->currencycode,
 										],
 										"status" => [
@@ -533,8 +565,8 @@ class BoleGamingController extends Controller
 													  "type" => "fundtransferrequest",
 													  "datesent" => Helper::datesent(),
 													  "gamedetails" => [
-													    "gameid" => $json_data->game_code,
-													    "gamename" => ""
+														  "gameid" => $db_game_code,
+												   		  "gamename" => $db_game_name
 													  ],
 													  "fundtransferrequest" => [
 															"playerinfo" => [
@@ -589,7 +621,7 @@ class BoleGamingController extends Controller
 
 		public function playerWalletBalance(Request $request)
 		{
-			Helper::saveLog('BOLE WALLET BALANCE', 11, $request->getContent(), 'TEST');
+			Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), 'TEST');
 			$json_data = json_decode($request->getContent());
 			// dd($json_data->player_account);
 
@@ -597,7 +629,7 @@ class BoleGamingController extends Controller
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			// if(!$hashen){
 		    //        return ["code" => "error"];
-		    //        Helper::saveLog('UnknownCall', 11, $request->getContent(), 'UnknownboleReq');
+		    //        Helper::saveLog('UnknownCall', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
 			// }
 			// $client_details = $this->_getClientDetails('player_id', $request->player_account);
 			$client_details = $this->_getClientDetails('player_id', $json_data->player_account);
@@ -654,7 +686,7 @@ class BoleGamingController extends Controller
 				]
 			];
 
-			Helper::saveLog('BOLE WALLET BALANCE', 11, $request->getContent(), $data);
+			Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), $data);
 
 			return $data;
 

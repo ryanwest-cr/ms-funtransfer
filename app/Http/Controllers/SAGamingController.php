@@ -161,7 +161,7 @@ class SAGamingController extends Controller
                               "transactiontype" => "debit",
                               "transferid" => "",
                               "rollback" => false,
-                              "currency" => $client_details->default_currency,
+                              "currencycode" => $client_details->default_currency,
                               "amount" => abs($amount)
                        ],
                   ],
