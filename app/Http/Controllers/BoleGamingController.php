@@ -311,7 +311,7 @@ class BoleGamingController extends Controller
 								      "transferid" => "",
 								      "rollback" => "false",
 								      "currencycode" => $client_details->default_currency,
-								      "amount" => $pay_amount // Amount to be send!
+								      "amount" => abs($pay_amount) // Amount to be send!
 								]
 							  ]
 							];
@@ -402,7 +402,7 @@ class BoleGamingController extends Controller
 										      "transferid" => "",
 										      "rollback" => "false",
 										      "currencycode" => $client_details->default_currency,
-										      "amount" => $pay_amount // Amount!
+										      "amount" => abs($pay_amount) // Amount!
 			                           ],
 			                      ],
 			                ];
