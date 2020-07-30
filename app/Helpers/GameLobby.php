@@ -263,13 +263,21 @@ class GameLobby{
         
         $userid = "TGaming_".$client_details->player_id;
         $currency = $client_details->default_currency;
-        $hash = md5('currency='.$currency.'&externalPlayerId='.$userid.'&secureLogin='.$stylename.$key);
-    
-        $createPlayer = "https://tigergames-sg0.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hash";
+        $hashCreatePlayer = md5('currency='.$currency.'&externalPlayerId='.$userid.'&secureLogin='.$stylename.$key);
+        $hashStartGame = md5("externalPlayerId=".$userid."&gameId=".$game_code."&language=en&secureLogin=".$stylename.$key);
 
-        $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$token&stylename=$stylename&symbol=$game_code&technology=H5&platform=WEB&language=en";
+        $createPlayer = "https://tigergames-sg0.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hashCreatePlayer";
         
-        return $url;
+        $startGame = "https://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/game/start/?externalPlayerId=$userid&gameId=$game_code&language=en&secureLogin=$stylename&hash=$hashStartGame";
+        $result = file_get_contents($startGame);
+        $result = json_encode($result);
+        $result = json_decode(json_decode($result));
+
+        return isset($result->gameURL) ? $result->gameURL : false;
+
+        // $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$token&stylename=$stylename&symbol=$game_code&technology=H5&platform=WEB&language=en";
+        
+        // return $url;
     }
 
     public static function iaLaunchUrl($game_code,$token,$exitUrl)
