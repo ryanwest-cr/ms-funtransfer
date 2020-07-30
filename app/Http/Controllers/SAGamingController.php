@@ -440,7 +440,7 @@ class SAGamingController extends Controller
             "error" => 0
         ];
         ProviderHelper::updateBetTransaction($round_id, $game_trans->pay_amount, $game_trans->income, 1, 1);
-        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+        Helper::saveLog('SA Gaming Bet Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
         echo $this->makeArrayXML($data_response);
         return;
         
