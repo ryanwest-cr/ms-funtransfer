@@ -20,7 +20,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP authenticate', 49, $data , "");
+        Helper::saveLog('PP authenticate', 49, json_encode($data) , "");
 
         $providerId = $data->providerId;
         $hash = $data->hash;
@@ -66,7 +66,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP balance', 49, $data , "balance");
+        Helper::saveLog('PP balance', 49, json_encode($data) , "balance");
 
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
@@ -92,12 +92,13 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP bet', 49, $data , "");
+        Helper::saveLog('PP bet', 49,json_encode($data) , "");
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $game_details = Helper::findGameDetails('game_code', 26, $data->gameId);
+
 
         $client = new Client([
             'headers' => [ 
@@ -136,7 +137,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP result', 49, $data , "");
+        Helper::saveLog('PP result', 49, json_encode($data) , "");
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
