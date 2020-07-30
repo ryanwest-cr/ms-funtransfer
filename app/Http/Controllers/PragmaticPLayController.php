@@ -51,6 +51,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             );
 
+            Helper::saveLog('PP authenticate', 49, $data , $response);
             return $response;
         }
     }
@@ -74,6 +75,7 @@ class PragmaticPLayController extends Controller
             "description" => "Success"
         );
 
+        Helper::saveLog('PP balance', 49, $data , $response);
         return $response;
     }
 
@@ -115,6 +117,7 @@ class PragmaticPLayController extends Controller
             "description" => "Success"
         );
 
+        Helper::saveLog('PP bet', 49, $data , $response);
         return $response;
     }
 
@@ -171,6 +174,8 @@ class PragmaticPLayController extends Controller
 
         $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, $entry_id, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
 
+
+        Helper::saveLog('PP result', 49, $data , $response);
         return $response;
     }
 
