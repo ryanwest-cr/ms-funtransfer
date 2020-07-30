@@ -147,7 +147,7 @@ class BoleGamingController extends Controller
 		{
 
 			$json_data = json_decode($request->getContent());
-
+			Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
 			if($json_data->game_code == 'slot'){
 		    	$game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
 		    }else{
