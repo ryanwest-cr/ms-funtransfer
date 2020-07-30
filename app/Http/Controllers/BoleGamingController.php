@@ -20,7 +20,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
 
-// BOle Gaming TEST PP
+// Bole Gaming
 class BoleGamingController extends Controller
 {
 
@@ -145,387 +145,302 @@ class BoleGamingController extends Controller
 		 */	
 		public function playerWalletCost(Request $request)
 		{
+			$contest_games = [
+			    'blackjack','ermj','gyzjmj','hbmj','hzmj','hnmj','gdmj','dzmj','zjh','sangong','tbnn','qydz','blnn','mjxzdd','mjxlch'
+			];
 
 			$json_data = json_decode($request->getContent());
-			// Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
-			
-		    // dd($game_details);
-			// Helper::saveLog('WALLET CALL BOLE', $this->provider_db_id, '$this->provider_db_id', 'BOLE CALL');
 			Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data->player_account);
+			
+			if($client_details == null){
+				$data = ["resp_msg" => ["code" => 43101,"message" => 'the user does not exist',"errors" => []]];
+				return $data;
+			}
+
 			$client_currency_check = ProviderHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 			if($client_currency_check == 'false'){
-				$data = [
-						"resp_msg" => [
-							"code" => 43900,
-							"message" => 'game service error',
-							"errors" => []
-						]
-				];
+				$data = ["resp_msg" => ["code" => 43900,"message" => 'game service error',"errors" => []]];
 				return $data;
 			}
 			$this->changeConfig('player_id', $json_data->player_account);
-			$data = [
-				"resp_msg" => [
-					"code" => 43101,
-					"message" => 'the user does not exist',
-					"errors" => []
-				]
-			];
-
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			if(!$hashen){
-		        $data = [
-					"resp_msg" => [
-						"code" => 43006,
-						"message" => 'signature error',
-						"errors" => []
-					]
-				];
-		        Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
+	            $data = ["resp_msg" => ["code" => 43006,"message" => 'signature error',"errors" => []]];
+	            Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
 				return $data;
 			}
-			// $client_details->default_currency
-			if($client_details)
-			{
-						$client = new Client([
-						    'headers' => [ 
-						    	'Content-Type' => 'application/json',
-						    	'Authorization' => 'Bearer '.$client_details->client_access_token
-						    ]
-						]);
-				
-						// IF COST_INFO HAS DATA
-						if(count(get_object_vars($json_data->cost_info)) != 0){
-							
-								//This area are use to update game_transaction table bet_amount,win or lose, pay_amount, and entry_type
-								
-							    $transaction_type = $json_data->cost_info->gain_gold < 0 ? 'debit' : 'credit';
 
-							    // TRAP SLOT GAMES FOR DB QUERY
-							    // $game_details = Game::find($json_data->game_code);
-							    if($json_data->game_code == 'slot'){
-							    	$game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
-							    }else{
-							    	$game_details = Game::find($json_data->game_code);
-							    }
+				if($json_data->type == 20){
 
-							    if($game_details == false){
-						    		$data = [
-										"resp_msg" => [
-											"code" => 43201,
-											"message" => 'the game does not exist',
-											"errors" => []
-										]
-									];
-									return $data;
-							    }
-							    $db_game_name = $game_details->game_name;
-	    						$db_game_code = $game_details->game_code;
-
-								$token_id = $client_details->token_id;
-				                $bet_amount = abs($json_data->cost_info->bet_num);
-								
-								//Updated By Sir Randy
-								$pay_amount = abs($json_data->cost_info->gain_gold);
-
-								// WIN LOST OR DRAW 
-								$win_or_lost = $transaction_type == 'debit' ? 0 : 1;
-
-
-								// SLot Games
-								if(	$json_data->game_code == 'slot') {
-									$income = $bet_amount - $json_data->amount;									
-									$pay_amount = $json_data->amount;
-									$transaction_type = $pay_amount == 0 ? 'debit' : 'credit';
-									$win_or_lost = $pay_amount == 0 ? 0 : 1;
-								}
-
-								// Multi Games / Baccarat and rbwar
-				                if($json_data->game_code == 'baccarat' || $json_data->game_code == 'rbwar'){
-
-				                	$income = $bet_amount - $json_data->amount;	
-									$pay_amount = abs($json_data->amount); // amount should be used here for logging!
-
-									if($json_data->cost_info->gain_gold  == 0){
-										$win_or_lost = 3; //For draw!
-										$income = $bet_amount - $json_data->amount;	
-									}elseif($json_data->cost_info->gain_gold  < 0){
-										$income = $bet_amount - $json_data->amount;	
-									}
-				                }
-
-								// Contest Games / Mahjongs, BlackJack
-								if($json_data->game_code == 'blackjack' || 
-								   $json_data->game_code == 'ermj' || 
-								   $json_data->game_code == 'gyzjmj' || 
-								   $json_data->game_code == 'hbmj' || 
-								   $json_data->game_code == 'hzmj' || 
-								   $json_data->game_code == 'hnmj' || 
-								   $json_data->game_code == 'gdmj' || 
-								   $json_data->game_code == 'dzmj' || 
-								   $json_data->game_code == 'zjh' || 
-								   $json_data->game_code == 'sangong' || 
-								   $json_data->game_code == 'tbnn' || 
-								   $json_data->game_code == 'qydz' || 
-								   $json_data->game_code == 'blnn' || 
-								   $json_data->game_code == 'mjxzdd' || 
-								   $json_data->game_code == 'mjxlch'){
-									
-									$pay_amount = $json_data->cost_info->gain_gold;
-									$income = $bet_amount - $json_data->cost_info->gain_gold;	
-
-									if($json_data->cost_info->gain_gold  == 0){
-										$income = 0; // If zero it means it was a draw	
-										$win_or_lost = 3; // DRAW
-									}elseif($json_data->cost_info->gain_gold  < 0){ 
-									    // NEGATIVE GAIN_GOLD IT MEANS LOST! and GAIN_GOLD WILL BE ALWAYS BET_NUM negative value
-										$pay_amount = 0; // IF NEGATIVE PUT IT AS ZERO
-										$income = $bet_amount - $pay_amount;	
-									}else{
-										$pay_amount_income = $bet_amount + $json_data->cost_info->gain_gold;
-										$income = $bet_amount - $pay_amount_income;	
-										$pay_amount = $json_data->cost_info->gain_gold;
-									}
-									
-				                }
-
-								
-								//?????? // ENTRY_TYPE
-				                $method = $transaction_type == 'debit' ? 1 : 2;
-
-				                // dd($win_or_lost);
-
-				                $payout_reason = $json_data->cost_info->taxes > 0 ? 'with tax deduction' : null;
-								// $gamerecord = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, $income, $payout_reason);
-
-
-								$provider_trans_id = $json_data->report_id;
-								$gamerecord  = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
-
-								// dd($win_or_lost);
-								// if($payout_reason != null){
-									$game_transextension = Helper::saveGame_trans_ext($gamerecord, $request->getContent());
-								// }
-
-
-
-								// 1.2 CHANGE THE PLAYED_AMOUNT BACK TO ORIGINAL AMOUNT FOR THIS GAMES
-								if($json_data->game_code == 'blackjack' || 
-								   $json_data->game_code == 'ermj' || 
-								   $json_data->game_code == 'gyzjmj' || 
-								   $json_data->game_code == 'hbmj' || 
-								   $json_data->game_code == 'hzmj' || 
-								   $json_data->game_code == 'hnmj' || 
-								   $json_data->game_code == 'gdmj' || 
-								   $json_data->game_code == 'dzmj' || 
-								   $json_data->game_code == 'zjh' || 
-								   $json_data->game_code == 'sangong' || 
-								   $json_data->game_code == 'tbnn' || 
-								   $json_data->game_code == 'qydz' || 
-								   $json_data->game_code == 'blnn' || 
-								   $json_data->game_code == 'mjxzdd' || 
-								   $json_data->game_code == 'mjxlch'){  // Table Games
-
-										// $pay_amount = abs($json_data->amount);
-										// $transaction_type = 'credit';
-
-
-										if($json_data->cost_info->gain_gold  == 0){
-											$pay_amount = $json_data->cost_info->gain_gold;
-										}elseif($json_data->cost_info->gain_gold  < 0){ 
-										    $transaction_type = 'debit';
-											$pay_amount = $json_data->cost_info->gain_gold;
-										}else{
-											$pay_amount = $json_data->cost_info->gain_gold;
-											// $income = $bet_amount - $pay_amount;	
-										}
-
-
-								}elseif($json_data->game_code == 'slot'){
-										$pay_amount = abs($json_data->amount);
-										$transaction_type = 'credit';
-								}elseif($json_data->game_code == 'baccarat' || $json_data->game_code == 'rbwar'){ 
-										$pay_amount = abs($json_data->amount);
-										$transaction_type = 'credit';
-								}
-
-
-					            try
-								{	
-
-									// CALL TO THE CLIENT SITE (BALANCE UPDATE DEBIT and CREDIT)
-									$guzzle_response = $client->post($client_details->fund_transfer_url,
-									// $guzzle_response = $client->post('127.0.0.1:8000/api/fundtransferrequest',
-									    ['body' => json_encode(
-									        	[
-												  "access_token" => $client_details->client_access_token,
-												  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-												  "type" => "fundtransferrequest",
-												  "datetsent" => Helper::datesent(),
-												  "gamedetails" => [
-												    "gameid" => $db_game_code,
-												    "gamename" => $db_game_name
-												  ],
-												  "fundtransferrequest" => [
-														"playerinfo" => [
-														"client_player_id" => $client_details->client_player_id,
-														"token" => $client_details->player_token
-													],
-													"fundinfo" => [
-													      "gamesessionid" => "",
-													      "transactiontype" => $transaction_type,
-													      "transferid" => "",
-													      "rollback" => "false",
-													      "currencycode" => $client_details->default_currency,
-													      "amount" => $pay_amount // Amount to be send!
-													]
-												  ]
-												]
-									    )]
-									);
-
-								    $client_response = json_decode($guzzle_response->getBody()->getContents());
-									// Helper::saveLog('WalletCostTransfer', 2, json_encode($client_response), 'demoRes');
-									Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), json_encode($client_response));
-
-									$get_balance = Helper::getBalance($client_details); // TEST
-
-									$data = [
-										"data" => [
-											"balance" => floatval(number_format((float)$get_balance, 2, '.', '')), 
-											"currency" => $client_details->default_currency,
-										],
-										"status" => [
-											"code" => 0,
-											"msg" => "success"
-										]
-									];
-
-								}
-				                catch(ClientException $e){
-				                  $client_response = $e->getResponse();
-				                  $response = json_decode($client_response->getBody()->getContents(),True);
-				                  return response($response,$client_response->getStatusCode())
-				                   ->header('Content-Type', 'application/json');
-				                }
-
-
-				        }else{
-					            try
-								{	
-
-										if($json_data->game_code == 'slot'){
-									    	// $game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
-									    	// $game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
-									    	$db_game_name = "slot";
-											$db_game_code = "slot";
-									    }else{
-									    	$game_details = Game::find($json_data->game_code);
-									    	$db_game_name = $game_details->game_name;
-											$db_game_code = $game_details->game_code;
-									    }
-										
-										$pay_amount = $json_data->amount;
-										// THIS GAME DONT HAVE BUY IN DATA!
-										if($json_data->game_code == 'blackjack' || 
-										   $json_data->game_code == 'ermj' || 
-										   $json_data->game_code == 'gyzjmj' || 
-										   $json_data->game_code == 'hbmj' || 
-										   $json_data->game_code == 'hzmj' || 
-										   $json_data->game_code == 'hnmj' || 
-										   $json_data->game_code == 'gdmj' || 
-										   $json_data->game_code == 'dzmj' || 
-										   $json_data->game_code == 'zjh' || 
-										   $json_data->game_code == 'sangong' || 
-										   $json_data->game_code == 'tbnn' || 
-								           $json_data->game_code == 'qydz' || 
-										   $json_data->game_code == 'blnn' || 
-										   $json_data->game_code == 'mjxzdd' || 
-										   $json_data->game_code == 'mjxlch'){ 
-
-											// 073020
-										 //   	$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
-											// $data = [
-											// 	"data" => [
-											// 		"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
-											// 		"currency" => $client_details->default_currency,
-											// 	],
-											// 	"status" => [
-											// 		"code" => 0,
-											// 		"msg" => "success"
-											// 	]
-											// ];
-
-											// return $data;
-											// END 073020
-											$pay_amount = 0;
-										}
-				               
-				               			// Multi Games / Baccarat and rbwar = payamount is their amount
-										// Game Buy In if COST_INFO has no data always Debit!!
-										$guzzle_response = $client->post($client_details->fund_transfer_url,
-										// $guzzle_response = $client->post('127.0.0.1:8000/api/fundtransferrequest',
-										    ['body' => json_encode(
-										        	[
-													  "access_token" => $client_details->client_access_token,
-													  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-													  "type" => "fundtransferrequest",
-													  "datesent" => Helper::datesent(),
-													  "gamedetails" => [
-														  "gameid" => $db_game_code,
-												   		  "gamename" => $db_game_name
-													  ],
-													  "fundtransferrequest" => [
-															"playerinfo" => [
-															"client_player_id" => $client_details->client_player_id,
-															"token" => $client_details->player_token
-														],
-														"fundinfo" => [
-														      "gamesessionid" => "",
-														      "transactiontype" => 'debit', // Game Buy In Debit
-														      "transferid" => "",
-														      "rollback" => "false",
-														      "currencycode" => $client_details->default_currency,
-														      "amount" => $pay_amount // Amount!
-														]
-													  ]
-													]
-										    )]
-										);
-
-										    $client_response = json_decode($guzzle_response->getBody()->getContents());
-											// Helper::saveLog('GAME_BUY_IN', 2, json_encode($client_response), 'demoRes');
-											Helper::saveLog('BOLE WALLET CALL GBI', 2, $request->getContent(), json_encode($client_response));
-
-											$data = [
-												"data" => [
-													"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
-													"currency" => $client_details->default_currency,
-												],
-												"status" => [
-													"code" => 0,
-													"msg" => "success"
-												]
-											];
-								
-								}
-				                catch(ClientException $e)
-				                {
-				                  $client_response = $e->getResponse();
-				                  $response = json_decode($client_response->getBody()->getContents(),True);
-				                  return response($response,$client_response->getStatusCode())
-				                   ->header('Content-Type', 'application/json');
-				                }
+						$transaction_type = $json_data->cost_info->gain_gold < 0 ? 'debit' : 'credit';
+					    if($json_data->game_code == 'slot'){
+					    	$game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
+					    }else{
+					    	$game_details = Game::find($json_data->game_code);
 					    }
-			}
+					    if($game_details == false){
+				    		$data = ["resp_msg" => ["code" => 43201,"message" => 'the game does not exist',"errors" => []]];
+							return $data;
+					    }
+					    $db_game_name = $game_details->game_name;
+						$db_game_code = $game_details->game_code;
 
-			return $data;
+						$token_id = $client_details->token_id;
+		                $bet_amount = abs($json_data->cost_info->bet_num);
+						
+						//Updated By Sir Randy
+						$pay_amount = abs($json_data->cost_info->gain_gold);
+
+						// WIN LOST OR DRAW 
+						$win_or_lost = $transaction_type == 'debit' ? 0 : 1;
+
+						// SLot Games
+						if(	$json_data->game_code == 'slot') {
+							$income = $bet_amount - $json_data->amount;									
+							$pay_amount = $json_data->amount;
+							$transaction_type = $pay_amount == 0 ? 'debit' : 'credit';
+							$win_or_lost = $pay_amount == 0 ? 0 : 1;
+						}
+
+						// Multi Games / Baccarat and rbwar
+		                if($json_data->game_code == 'baccarat' || $json_data->game_code == 'rbwar'){
+
+		                	$income = $bet_amount - $json_data->amount;	
+							$pay_amount = abs($json_data->amount); // amount should be used here for logging!
+
+							if($json_data->cost_info->gain_gold  == 0){
+								$win_or_lost = 3; //For draw!
+								$income = $bet_amount - $json_data->amount;	
+							}elseif($json_data->cost_info->gain_gold  < 0){
+								$income = $bet_amount - $json_data->amount;	
+							}
+		                }
+
+		                // Contest Games / Mahjongs, BlackJack
+						if(in_array($json_data->game_code, $contest_games)){
+							$pay_amount = $json_data->cost_info->gain_gold;
+							$income = $bet_amount - $json_data->cost_info->gain_gold;	
+							if($json_data->cost_info->gain_gold  == 0){
+								$income = 0; // If zero it means it was a draw	
+								$win_or_lost = 3; // DRAW
+							}elseif($json_data->cost_info->gain_gold  < 0){ 
+							    // NEGATIVE GAIN_GOLD IT MEANS LOST! and GAIN_GOLD WILL BE ALWAYS BET_NUM negative value
+								$pay_amount = 0; // IF NEGATIVE PUT IT AS ZERO
+								$income = $bet_amount - $pay_amount;	
+							}else{
+								$pay_amount_income = $bet_amount + $json_data->cost_info->gain_gold;
+								$income = $bet_amount - $pay_amount_income;	
+								$pay_amount = $json_data->cost_info->gain_gold;
+							}
+		                }
+
+		                $method = $transaction_type == 'debit' ? 1 : 2;
+		                $payout_reason = $json_data->cost_info->taxes > 0 ? 'with tax deduction' : null;
+
+						$provider_trans_id = $json_data->report_id;
+
+						if(in_array($json_data->game_code, $contest_games)){
+							$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
+						}else{
+							$check_game_ext = ProviderHelper::findGameExt($json_data->report_id, 1, 'transaction_id');
+							if($check_game_ext == 'false'){
+								$data = ["resp_msg" => ["code" => 43303,"message" => "order does not exist","errors" => []]];
+								return $data;
+							}
+							$existing_bet = ProviderHelper::findGameTransaction($check_game_ext->game_trans_id, 'game_transaction');
+							ProviderHelper::updateBetTransaction($existing_bet->round_id, $pay_amount, $income, $win_or_lost, $method);
+						}
+
+						if(in_array($json_data->game_code, $contest_games)){
+
+								if($json_data->cost_info->gain_gold  == 0){
+									$pay_amount = $json_data->cost_info->gain_gold;
+								}elseif($json_data->cost_info->gain_gold  < 0){ 
+								    $transaction_type = 'debit';
+									$pay_amount = $json_data->cost_info->gain_gold;
+								}else{
+									$pay_amount = $json_data->cost_info->gain_gold;
+									// $income = $bet_amount - $pay_amount;	
+								}
+
+						}elseif($json_data->game_code == 'slot'){
+								$pay_amount = abs($json_data->amount);
+								$transaction_type = 'credit';
+						}elseif($json_data->game_code == 'baccarat' || $json_data->game_code == 'rbwar'){ 
+								$pay_amount = abs($json_data->amount);
+								$transaction_type = 'credit';
+						}
+
+						try
+						{	
+							$client = new Client([
+							    'headers' => [ 
+							    	'Content-Type' => 'application/json',
+							    	'Authorization' => 'Bearer '.$client_details->client_access_token
+							    ]
+							]);
+						    $requesttosend = [
+							  "access_token" => $client_details->client_access_token,
+							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+							  "type" => "fundtransferrequest",
+							  "datetsent" => Helper::datesent(),
+							  "gamedetails" => [
+							    "gameid" => $db_game_code,
+							    "gamename" => $db_game_name
+							  ],
+							  "fundtransferrequest" => [
+									"playerinfo" => [
+									"client_player_id" => $client_details->client_player_id,
+									"token" => $client_details->player_token
+								],
+								"fundinfo" => [
+								      "gamesessionid" => "",
+								      "transactiontype" => $transaction_type,
+								      "transferid" => "",
+								      "rollback" => "false",
+								      "currencycode" => $client_details->default_currency,
+								      "amount" => $pay_amount // Amount to be send!
+								]
+							  ]
+							];
+			                $guzzle_response = $client->post($client_details->fund_transfer_url,
+			                    ['body' => json_encode($requesttosend)]
+			                );
+			                $client_response = json_decode($guzzle_response->getBody()->getContents());
+							Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), json_encode($client_response));
+							$data = [
+								"data" => [
+									"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')), 
+									"currency" => $client_details->default_currency,
+								],
+								"status" => [
+									"code" => 0,
+									"msg" => "success"
+								]
+							];
+
+							if(in_array($json_data->game_code, $contest_games)){
+						    	$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
+							}else{
+								$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
+							}
+
+							return $data;
+		               }catch (\Exception $e){
+			                $data = ["resp_msg" => ["code" => 43900,"message" => 'game service error',"errors" => []]];
+						    Helper::saveLog('BOLE WALLET CALL FAILED', $this->provider_db_id, $request->getContent(), $e->getMessage());
+							return $data;
+			           }
+
+
+				}else{ // No Body Content (All ways be called first) 10 and 11
+						if(in_array($json_data->game_code, $contest_games)){
+					   		$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
+							$data = [
+								"data" => [
+									"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
+									"currency" => $client_details->default_currency,
+								],
+								"status" => [
+									"code" => 0,
+									"msg" => "success"
+								]
+							];
+							Helper::saveLog('BOLE WALLET CALL GBI TG ONLY', 2, $request->getContent(), $data);
+							return $data;
+					    }else{
+					    	if($json_data->game_code == 'slot'){
+					    		$game_id = 1;
+					    		$db_game_name = 'slot';
+								$db_game_code = 'slot';
+					    	}else{
+					    		$game_details = Game::find($json_data->game_code);
+						    	$db_game_name = $game_details->game_name;
+								$db_game_code = $game_details->game_code;
+								$game_id = $game_details->game_id;
+					    	}
+					    }
+
+					    $pay_amount = $json_data->amount;
+
+					    try {
+					    	$client = new Client([
+							    'headers' => [ 
+							    	'Content-Type' => 'application/json',
+							    	'Authorization' => 'Bearer '.$client_details->client_access_token
+							    ]
+							]);
+						    $requesttosend = [
+			                      "access_token" => $client_details->client_access_token,
+			                      "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			                      "type" => "fundtransferrequest",
+			                      "datesent" => Helper::datesent(),
+			                      "gamedetails" => [
+			                      	 "gameid" => $db_game_code,
+						   		     "gamename" => $db_game_name
+			                      ],
+			                      "fundtransferrequest" => [
+			                          "playerinfo" => [
+			                            "client_player_id" => $client_details->client_player_id,
+			                            "token" => $client_details->player_token,
+			                          ],
+			                          "fundinfo" => [
+			                                  "gamesessionid" => "",
+										      "transactiontype" => 'debit', // Game Buy In Debit
+										      "transferid" => "",
+										      "rollback" => "false",
+										      "currencycode" => $client_details->default_currency,
+										      "amount" => $pay_amount // Amount!
+			                           ],
+			                      ],
+			                ];
+			                $guzzle_response = $client->post($client_details->fund_transfer_url,
+			                    ['body' => json_encode($requesttosend)]
+			                );
+			                $client_response = json_decode($guzzle_response->getBody()->getContents());
+					    	 // TEST
+			                $transaction_type = 'debit';
+			                $game_transaction_type = 1; // 1 Bet, 2 Win
+			                $game_code = $game_id;
+			                $token_id = $client_details->token_id;
+			                $bet_amount = $pay_amount; 
+			                $pay_amount = 0;
+			                $income = 0;
+			                $win_type = 0;
+			                $method = 1;
+			                $win_or_lost = 5; // 0 lost,  5 processing
+			                $payout_reason = 'Bet';
+			                $provider_trans_id = $json_data->report_id;
+			                $round_id = $json_data->report_id;
+			                // TEST
+
+		                	$data = [
+								"data" => [
+									"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
+									"currency" => $client_details->default_currency,
+								],
+								"status" => [
+									"code" => 0,
+									"msg" => "success"
+								]
+							];
+
+							Helper::saveLog('BOLE WALLET CALL GBI', 2, $request->getContent(), json_encode($client_response));
+							$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+          				    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
+
+							return $data;
+
+					    } catch (\Exception $e) {
+					    	$data = ["resp_msg" => ["code" => 43900,"message" => 'game service error',"errors" => []]];
+						    Helper::saveLog('BOLE WALLET CALL FAILED', $this->provider_db_id, $request->getContent(), $e->getMessage());
+							return $data;
+					    }
+
+				}
 
 		}
-
-
-
 
 		public function playerWalletBalance(Request $request)
 		{
@@ -571,20 +486,5 @@ class BoleGamingController extends Controller
 			// Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), $data);
 			return $data;
 		}
-
-	    // BACKUP FUNCTION
-	    // public static function find($game_code) {
-		// 	$search_result = DB::table('games')
-		// 							->where('game_code', $game_code)
-		// 							->first();	
-		// 	return ($search_result ? $search_result : false);
-		// }
-
-		// public static function findbyid($game_id) {
-		// 	$search_result = DB::table('games')
-		// 							->where('game_id', $game_id)
-		// 							->first();	
-		// 	return ($search_result ? $search_result : false);
-		// }
 
 }
