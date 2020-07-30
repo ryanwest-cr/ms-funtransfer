@@ -282,6 +282,8 @@ class GameLobby{
         $result = json_encode($result);
         $result = json_decode(json_decode($result));
 
+        Helper::saveLog('start game url PP', 47,$createPlayer,$result);
+
         return isset($result->gameURL) ? $result->gameURL : false;
 
         // $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$token&stylename=$stylename&symbol=$game_code&technology=H5&platform=WEB&language=en";
