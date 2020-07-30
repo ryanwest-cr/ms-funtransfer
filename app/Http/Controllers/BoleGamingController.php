@@ -147,7 +147,7 @@ class BoleGamingController extends Controller
 		{
 
 			$json_data = json_decode($request->getContent());
-			Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
+			// Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
 			
 		    // dd($game_details);
 			// Helper::saveLog('WALLET CALL BOLE', $this->provider_db_id, '$this->provider_db_id', 'BOLE CALL');
@@ -462,6 +462,7 @@ class BoleGamingController extends Controller
 											$pay_amount = 0;
 										}
 				               
+				               			// Multi Games / Baccarat and rbwar = payamount is their amount
 										// Game Buy In if COST_INFO has no data always Debit!!
 										$guzzle_response = $client->post($client_details->fund_transfer_url,
 										// $guzzle_response = $client->post('127.0.0.1:8000/api/fundtransferrequest',
@@ -495,7 +496,7 @@ class BoleGamingController extends Controller
 
 										    $client_response = json_decode($guzzle_response->getBody()->getContents());
 											// Helper::saveLog('GAME_BUY_IN', 2, json_encode($client_response), 'demoRes');
-											Helper::saveLog('BOLE WALLET CALL GAME_BUY_IN', 2, $request->getContent(), json_encode($client_response));
+											Helper::saveLog('BOLE WALLET CALL GBI', 2, $request->getContent(), json_encode($client_response));
 
 											$data = [
 												"data" => [
@@ -528,7 +529,7 @@ class BoleGamingController extends Controller
 
 		public function playerWalletBalance(Request $request)
 		{
-			Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), 'TEST');
+			// Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), 'TEST');
 			$json_data = json_decode($request->getContent());
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data->player_account);
 			$this->changeConfig('player_id', $client_details->player_id);
@@ -567,7 +568,7 @@ class BoleGamingController extends Controller
 					]
 				];
 			}
-			Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), $data);
+			// Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), $data);
 			return $data;
 		}
 
