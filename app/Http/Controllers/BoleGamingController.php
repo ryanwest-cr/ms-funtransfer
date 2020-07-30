@@ -148,24 +148,7 @@ class BoleGamingController extends Controller
 
 			$json_data = json_decode($request->getContent());
 			Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
-			if($json_data->game_code == 'slot'){
-		    	$game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
-		    }else{
-		    	$game_details = Game::find($json_data->game_code);
-		    }
-
-		    if($game_details == false){
-	    		$data = [
-					"resp_msg" => [
-						"code" => 43201,
-						"message" => 'the game does not exist',
-						"errors" => []
-					]
-				];
-				return $data;
-		    }
-		    $db_game_name = $game_details->game_name;
-	    	$db_game_code = $game_details->game_code;
+			
 		    // dd($game_details);
 			// Helper::saveLog('WALLET CALL BOLE', $this->provider_db_id, '$this->provider_db_id', 'BOLE CALL');
 			Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
@@ -227,6 +210,18 @@ class BoleGamingController extends Controller
 							    	$game_details = Game::find($json_data->game_code);
 							    }
 
+							    if($game_details == false){
+						    		$data = [
+										"resp_msg" => [
+											"code" => 43201,
+											"message" => 'the game does not exist',
+											"errors" => []
+										]
+									];
+									return $data;
+							    }
+							    $db_game_name = $game_details->game_name;
+	    						$db_game_code = $game_details->game_code;
 
 								$token_id = $client_details->token_id;
 				                $bet_amount = abs($json_data->cost_info->bet_num);
@@ -420,9 +415,18 @@ class BoleGamingController extends Controller
 					            try
 								{	
 
+										if($json_data->game_code == 'slot'){
+									    	// $game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
+									    	// $game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
+									    	$db_game_name = "slot";
+											$db_game_code = "slot";
+									    }else{
+									    	$game_details = Game::find($json_data->game_code);
+									    	$db_game_name = $game_details->game_name;
+											$db_game_code = $game_details->game_code;
+									    }
+										
 										$pay_amount = $json_data->amount;
-
-
 										// THIS GAME DONT HAVE BUY IN DATA!
 										if($json_data->game_code == 'blackjack' || 
 										   $json_data->game_code == 'ermj' || 
@@ -440,10 +444,24 @@ class BoleGamingController extends Controller
 										   $json_data->game_code == 'mjxzdd' || 
 										   $json_data->game_code == 'mjxlch'){ 
 
-												$pay_amount = 0;
+											// 073020
+										   	$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
+											$data = [
+												"data" => [
+													"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
+													"currency" => $client_details->default_currency,
+												],
+												"status" => [
+													"code" => 0,
+													"msg" => "success"
+												]
+											];
+
+											return $data;
+											$pay_amount = 0;
+											// END 073020
 										}
 				               
-
 										// Game Buy In if COST_INFO has no data always Debit!!
 										$guzzle_response = $client->post($client_details->fund_transfer_url,
 										// $guzzle_response = $client->post('127.0.0.1:8000/api/fundtransferrequest',
