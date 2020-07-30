@@ -63,8 +63,6 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        // $data = json_encode($data);
-        // $data = json_decode($data);
 
     	$user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $data['username']);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
@@ -84,15 +82,15 @@ class SAGamingController extends Controller
 
 
     public function PlaceBet(){
-    	// Helper::saveLog('SA Place Bet', config('providerlinks.sagaming.pdbid'), json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
-        // $enc_body = file_get_contents("php://input");
-        // $url_decoded = urldecode($enc_body);
-        // $decrypt_data = SAHelper::decrypt($url_decoded);
-        // parse_str($decrypt_data, $data);
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        Helper::saveLog('SA Gaming Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
 
         // LOCAL TEST
-        $enc_body = file_get_contents("php://input");
-        parse_str($enc_body, $data);
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
 
         $username = $data['username'];
         $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
@@ -227,6 +225,7 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
+        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
 
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
@@ -355,15 +354,15 @@ class SAGamingController extends Controller
     }
 
     public function PlayerLost(){
-        // $enc_body = file_get_contents("php://input");
-        // $url_decoded = urldecode($enc_body);
-        // $decrypt_data = SAHelper::decrypt($url_decoded);
-        // parse_str($decrypt_data, $data);
-        // Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
      
         // LOCAL TEST
-        $enc_body = file_get_contents("php://input");
-        parse_str($enc_body, $data);
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
 
         $username = $data['username'];
         $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
@@ -448,15 +447,15 @@ class SAGamingController extends Controller
     }
 
     public function PlaceBetCancel(){
-        // $enc_body = file_get_contents("php://input");
-        // $url_decoded = urldecode($enc_body);
-        // $decrypt_data = SAHelper::decrypt($url_decoded);
-        // parse_str($decrypt_data, $data);
-        // Helper::saveLog('SA Gaming Bet Cancel', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        Helper::saveLog('SA Gaming Bet Cancel', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
      
         // LOCAL TEST
-        $enc_body = file_get_contents("php://input");
-        parse_str($enc_body, $data);
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
 
         $username = $data['username'];
         $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
@@ -488,6 +487,7 @@ class SAGamingController extends Controller
             return;
         }
         $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
+        // dd($game_trans);
         $client = new Client([
                 'headers' => [ 
                     'Content-Type' => 'application/json',
@@ -530,7 +530,7 @@ class SAGamingController extends Controller
                 "error" => 0
             ];
             ProviderHelper::updateBetTransaction($round_id, $game_trans->pay_amount, $game_trans->income, 4, 1);
-            ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
+            ProviderHelper::createGameTransExt($gamerecord,$txnid, $round_id, $amountt, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
             Helper::saveLog('SA Gaming Cancel Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
