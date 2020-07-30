@@ -20,7 +20,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
 
-// BOle Gaming
+// Bole Gaming
 class BoleGamingController extends Controller
 {
 
