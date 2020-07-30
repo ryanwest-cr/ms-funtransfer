@@ -250,13 +250,24 @@ class BoleGamingController extends Controller
 							}
 							$existing_bet = ProviderHelper::findGameTransaction($check_game_ext->game_trans_id, 'game_transaction');
 							ProviderHelper::updateBetTransaction($existing_bet->round_id, $pay_amount, $income, $win_or_lost, $method);
+
+							$update = DB::table('game_transactions')
+		              	    ->where('round_id', $existing_bet->round_id)
+		               		->update(['pay_amount' => $pay_amount, 
+				        		  'income' => $income, 
+				        		  'game_id' => $game_details->game_id, 
+				        		  'win' => $win_or_lost, 
+				        		  'entry_id' => $method,
+				        		  'transaction_reason' => ProviderHelper::updateReason($win_or_lost),
+			    			]);
 						}
 
 						if(in_array($json_data->game_code, $contest_games)){
 
 								if($json_data->cost_info->gain_gold  == 0){
 									$pay_amount = $json_data->cost_info->gain_gold;
-								}elseif($json_data->cost_info->gain_gold  < 0){ 
+								// }elseif($json_data->cost_info->gain_gold  < 0){ 
+								}elseif($json_data->cost_info->gain_gold  > 0){ 
 								    $transaction_type = 'debit';
 									$pay_amount = $json_data->cost_info->gain_gold;
 								}else{
@@ -351,7 +362,7 @@ class BoleGamingController extends Controller
 							return $data;
 					    }else{
 					    	if($json_data->game_code == 'slot'){
-					    		$game_id = 1;
+					    		$game_id = 0;
 					    		$db_game_name = 'slot';
 								$db_game_code = 'slot';
 					    	}else{
