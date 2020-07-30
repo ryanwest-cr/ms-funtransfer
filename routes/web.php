@@ -198,6 +198,10 @@ $app->post('/api/eightprovider/withdrawal', 'EightProviderController@gameWithdra
 $app->post('/api/bng', 'BNGController@index');
 $app->post('/api/bng/gamelaunch', 'BNGController@gameLaunchUrl');
 $app->post('/api/bng/generateGame','BNGController@generateGame');
+//FC GAMING Endpoints
+$app->post('/api/fc/encrypt','FCController@SampleEncrypt');
+$app->post('/api/fc/decode','FCController@SampleDecrypt');
+
 
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
@@ -208,12 +212,13 @@ $app->post('/tidy/api/game/outside/link', 'TidyController@getGameUrl'); // CENTR
 $app->post('/tidy/api/checkplayer', 'TidyController@autPlayer');
 $app->post('/tidy/api/gamelist', 'TidyController@getGamelist');
 $app->post('/tidy/api/gameurl', 'TidyController@gameUrl');
-
 $app->post('/tidy/api/transaction/bet', 'TidyController@gameBet');
 $app->post('/tidy/api/transaction/rollback', 'TidyController@gameRollback');
 $app->post('/tidy/api/transaction/win', 'TidyController@gameWin');
 $app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
 
+//TGG
+$app->post('/tgg/api/game/getlist', 'TGGController@getGamelist');
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
