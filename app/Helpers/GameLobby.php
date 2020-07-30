@@ -275,14 +275,17 @@ class GameLobby{
         $hashCreatePlayer = md5('currency='.$currency.'&externalPlayerId='.$userid.'&secureLogin='.$stylename.$key);
         $hashStartGame = md5("externalPlayerId=".$userid."&gameId=".$game_code."&language=en&secureLogin=".$stylename.$key);
 
-        $createPlayer = "https://tigergames-sg0.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hashCreatePlayer";
-        
+        $createPlayer = "https://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hashCreatePlayer";
+        $createP = file_get_contents($createPlayer);
+        $createP = json_encode($createP);
+        $createP = json_decode(json_decode($createP));
+
         $startGame = "https://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/game/start/?externalPlayerId=$userid&gameId=$game_code&language=en&secureLogin=$stylename&hash=$hashStartGame";
         $result = file_get_contents($startGame);
         $result = json_encode($result);
         $result = json_decode(json_decode($result));
-
-        Helper::saveLog('start game url PP', 47,$createPlayer,$result);
+        
+        Helper::saveLog('start game url PP', 49, json_encode($createP), $result);
 
         return isset($result->gameURL) ? $result->gameURL : false;
 
