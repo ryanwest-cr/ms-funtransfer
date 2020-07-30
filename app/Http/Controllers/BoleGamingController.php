@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PlayerDetail;
 use App\Models\PlayerSessionToken;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use App\Helpers\GameTransaction;
 use App\Helpers\GameSubscription;
 use App\Helpers\GameRound;
@@ -23,26 +24,22 @@ use GuzzleHttp\Client;
 class BoleGamingController extends Controller
 {
 
-		 // private $AccessKeyId ="9048dbaa-b489-4b32-9a29-149240a5cefe"; // Bole Access id
-   		 // private $access_key_secret = "4A55C539E93B189EAA5A76A8BD92B99B87B76B80"; // Bole Secret
-  		 // private $app_key = 'R14NDR4FT'; // Wallet App Key
-
-   		 // public $AccessKeyId = config('providerlinks.bolegaming.AccessKeyId'); // Bole Access id
-   		 // public $access_key_secret = config('providerlinks.bolegaming.access_key_secret'); // Bole Secret
-   		 // public $app_key = config('providerlinks.bolegaming.app_key'); // Wallet App Key
-
-   		public  $AccessKeyId, $access_key_secret, $app_key, $login_url, $logout_url;
+   		public $AccessKeyId, $access_key_secret, $app_key, $login_url, $logout_url;
    		public $provider_db_id = 11;
 
-	    public function __construct()
-		{
-		    $this->AccessKeyId = config('providerlinks.bolegaming.AccessKeyId');
-		    $this->access_key_secret = config('providerlinks.bolegaming.access_key_secret');
-   		    $this->app_key = config('providerlinks.bolegaming.app_key');
-   		    $this->login_url = config('providerlinks.bolegaming.login_url');
-   		    $this->logout_url = config('providerlinks.bolegaming.logout_url');
-		}
 
+		public function changeConfig($type, $identifier){
+			$client_details = ProviderHelper::getClientDetails($type, $identifier);
+			if($client_details != null){
+				$this->AccessKeyId = config('providerlinks.bolegaming.'.$client_details->default_currency.'.AccessKeyId');
+			    $this->access_key_secret = config('providerlinks.bolegaming.'.$client_details->default_currency.'.access_key_secret');
+	   		    $this->app_key = config('providerlinks.bolegaming.'.$client_details->default_currency.'.app_key');
+	   		    $this->login_url = config('providerlinks.bolegaming.'.$client_details->default_currency.'.login_url');
+	   		    $this->logout_url = config('providerlinks.bolegaming.'.$client_details->default_currency.'.logout_url');
+			}else{
+				return false;
+			}
+		}
 
 		/**
 		 * generated signature
@@ -82,124 +79,6 @@ class BoleGamingController extends Controller
 				return false;
 			}
 		}
-
-		/**
-		 *  DEPRECATED CENTRALIZED
-		 *  register the client player 
-		 *  Require Request
-		 *	player token, game_code, merchant_user 
-		 */	
-		public function playerRegister(Request $request)
-		{
-			$json_data = json_decode(file_get_contents("php://input"), true);
-			Helper::saveLog('BOLE REGISTER', 11, file_get_contents("php://input"), 'DEMO CALL');
-
-			/* CHECK CLIENT iF EXIST REGISTER PLAYER TOKEN IF NOT CLIENT GO HOME! */	
-			// $check_client = $this->checkClientPlayer($request->site_url, $request->merchant_user, $request->token);
-			$check_client = $this->checkClientPlayer($json_data['site_url'], 
-													$json_data['playerdetailsrequest']['username'], 
-													$json_data['playerdetailsrequest']['token']);
-			if($check_client['httpstatus'] != 200){
-				return $check_client;
-			}
-			/* END CHECK CLIENT */
-
-			 $sign = $this->generateSign();
-
-			 $client_details = $this->_getClientDetails('token', $json_data['playerdetailsrequest']['token']);
-
-
-			 $response = [
-			 	"errorcode" =>  "CLIENT_NOT_FOUND",
-				"errormessage" => "Client not found",
-				"httpstatus" => "404"
-			 ];
-
-
-			 if ($client_details) {
-			 	// return $client_details->client_id;
-			 	// Check if the game is available for the client
-				$subscription = new GameSubscription();
-				$client_game_subscription = $subscription->check($client_details->client_id, $this->provider_db_id, $json_data['gamecode']);
-
-				if(!$client_game_subscription) {
-					$response = [
-							"errorcode" =>  "GAME_NOT_FOUND",
-							"errormessage" => "Game not found",
-							"httpstatus" => "404"
-						];
-				}
-				else
-				{
-
-					$client = new Client([
-					    'headers' => [ 
-					    	'Content-Type' => 'application/json',
-					    	'Authorization' => 'Bearer '.$client_details->client_access_token
-					    ]
-					]);
-					
-					$guzzle_response = $client->post($client_details->player_details_url,
-					    ['body' => json_encode(
-					        	["access_token" => $client_details->client_access_token,
-									"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-									"type" => "playerdetailsrequest",
-									"datesent" => Helper::datesent(),
-									"gameid" => "",
-									"clientid" => $client_details->client_id,
-									"playerdetailsrequest" => [
-										"client_player_id" => $client_details->client_player_id,
-										"token" =>$json_data['playerdetailsrequest']['token'],
-										"gamelaunch" => true,
-									    "refreshtoken" => false
-									]]
-					    )]
-					);
-
-					$client_response = json_decode($guzzle_response->getBody()->getContents());
-
-					
-					if(isset($client_response->playerdetailsresponse->status->code) 
-						&& $client_response->playerdetailsresponse->status->code == "200") {
-
-							 $http = new Client();
-					         // $response = $http->post('https://api.cdmolo.com:16800/v1/player/login', [
-					         // $response = $http->post(config('providerlinks.bolegaming.login_url'), [
-					         $response = $http->post($this->login_url, [
-					            'form_params' => [
-					                'game_code' => $json_data['gamecode'],
-					                'scene' => '',
-					                'player_account' => $client_response->playerdetailsresponse->username,
-					                'country'=> $client_response->playerdetailsresponse->country_code,
-					                'ip'=> $_SERVER['REMOTE_ADDR'],
-					                'AccessKeyId'=> $this->AccessKeyId,
-					                'Timestamp'=> $sign['timestamp'],
-					                'Nonce'=> $sign['nonce'],
-					                'Sign'=> $sign['signature'],
-					                //'op_pay_url' => 'http://middleware.freebetrnk.com/public/api/bole/wallet',
-					                'op_race_return_type' => 1, // back to previous game
-					                'op_return_type' => 3, //hide home button for games test
-					                //'op_home_url' => 'https://demo.freebetrnk.com/casino', //hide home button for games test
-					                'ui_hot_list_disable' => 1, //hide latest game menu
-					                'ui_category_disable' => 1 //hide category list
-					            ],
-					         ]);
-
-					        $response = $response->getBody()->getContents();
-
-					}
-
-				}
-
-
-				
-			}
-
-
-	         Helper::saveLog('BOLE REGISTER', $this->provider_db_id, $response, 'resBoleReg');
-	         return $response;
-		}
-
 
 		/**
 		 *  NOT USED!
@@ -257,7 +136,6 @@ class BoleGamingController extends Controller
 		}
 
 
-
 		/**
 		 *  Balance Update 
 		 *      3 Types Of Game
@@ -286,12 +164,32 @@ class BoleGamingController extends Controller
 				];
 				return $data;
 		    }
-
 		    $db_game_name = $game_details->game_name;
 	    	$db_game_code = $game_details->game_code;
 		    // dd($game_details);
 			// Helper::saveLog('WALLET CALL BOLE', $this->provider_db_id, '$this->provider_db_id', 'BOLE CALL');
 			Helper::saveLog('BOLE WALLET CALL', $this->provider_db_id, $request->getContent(), 'boleReq');
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data->player_account);
+			$client_currency_check = ProviderHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
+			if($client_currency_check == 'false'){
+				$data = [
+						"resp_msg" => [
+							"code" => 43900,
+							"message" => 'game service error',
+							"errors" => []
+						]
+				];
+				return $data;
+			}
+			$this->changeConfig('player_id', $json_data->player_account);
+			$data = [
+				"resp_msg" => [
+					"code" => 43101,
+					"message" => 'the user does not exist',
+					"errors" => []
+				]
+			];
+
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			if(!$hashen){
 		        $data = [
@@ -304,15 +202,6 @@ class BoleGamingController extends Controller
 		        Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
 				return $data;
 			}
-
-			$client_details = $this->_getClientDetails('player_id', $json_data->player_account);
-			$data = [
-				"resp_msg" => [
-					"code" => 43101,
-					"message" => 'the user does not exist',
-					"errors" => []
-				]
-			];
 			// $client_details->default_currency
 			if($client_details)
 			{
@@ -493,7 +382,7 @@ class BoleGamingController extends Controller
 													      "transactiontype" => $transaction_type,
 													      "transferid" => "",
 													      "rollback" => "false",
-													      "currencycode" => $client_details->currency,
+													      "currencycode" => $client_details->default_currency,
 													      "amount" => $pay_amount // Amount to be send!
 													]
 												  ]
@@ -510,7 +399,7 @@ class BoleGamingController extends Controller
 									$data = [
 										"data" => [
 											"balance" => floatval(number_format((float)$get_balance, 2, '.', '')), 
-											"currency" => $client_response->fundtransferresponse->currencycode,
+											"currency" => $client_details->default_currency,
 										],
 										"status" => [
 											"code" => 0,
@@ -578,7 +467,7 @@ class BoleGamingController extends Controller
 														      "transactiontype" => 'debit', // Game Buy In Debit
 														      "transferid" => "",
 														      "rollback" => "false",
-														      "currencycode" => $client_details->currency,
+														      "currencycode" => $client_details->default_currency,
 														      "amount" => $pay_amount // Amount!
 														]
 													  ]
@@ -593,7 +482,7 @@ class BoleGamingController extends Controller
 											$data = [
 												"data" => [
 													"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
-													"currency" => $client_response->fundtransferresponse->currencycode,
+													"currency" => $client_details->default_currency,
 												],
 												"status" => [
 													"code" => 0,
@@ -623,253 +512,46 @@ class BoleGamingController extends Controller
 		{
 			Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), 'TEST');
 			$json_data = json_decode($request->getContent());
-			// dd($json_data->player_account);
-
-			// $hashen = $this->chashen($request->operator_id, $request->player_account, $request->sha1);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data->player_account);
+			$this->changeConfig('player_id', $client_details->player_id);
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
-			// if(!$hashen){
-		    //        return ["code" => "error"];
-		    //        Helper::saveLog('UnknownCall', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
-			// }
-			// $client_details = $this->_getClientDetails('player_id', $request->player_account);
-			$client_details = $this->_getClientDetails('player_id', $json_data->player_account);
-			// dd($client_details);
-			if($client_details)
-			{
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
-
-				try
-				{	
-					$guzzle_response = $client->post($client_details->player_details_url,
-					    ['body' => json_encode(
-					        	["access_token" => $client_details->client_access_token,
-									"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-									"type" => "playerdetailsrequest",
-									"datesent" => Helper::datesent(),
-									"gameid" => "",
-									"clientid" => $client_details->client_id,
-									"playerdetailsrequest" => [
-										"client_player_id" => $client_details->client_player_id,
-										"token" => $client_details->player_token,
-										"gamelaunch" => true,
-										"refreshtoken" => false
-									]
-								]
-					    )]
-					);
-
-					$client_response = json_decode($guzzle_response->getBody()->getContents());
-					// dd($client_response);
-				}
-                catch(ClientException $e)
-                {
-                  $client_response = $e->getResponse();
-                  $response = json_decode($client_response->getBody()->getContents(),True);
-                  return response($response,$client_response->getStatusCode())
-                   ->header('Content-Type', 'application/json');
-                }	
+			if(!$hashen){
+	            $data = [
+					"resp_msg" => [
+						"code" => 43006,
+						"message" => 'signature error',
+						"errors" => []
+					]
+				];
+		        Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
+				return $data;
 			}
-
-			$data = [
-				"data" => [
-					"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
-					"currency" => $client_response->playerdetailsresponse->currencycode,
-				],
-				"status" => [
-					"code" => 0,
-					"msg" => "success"
-				]
-			];
-
+			$client_details = Providerhelper::getClientDetails('player_id', $json_data->player_account);
+			if($client_details != null)
+			{
+				$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
+				$data = [
+					"data" => [
+						"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
+						"currency" => $client_details->default_currency,
+					],
+					"status" => [
+						"code" => 0,
+						"msg" => "success"
+					]
+				];
+			}else{
+				$data = [
+					"resp_msg" => [
+						"code" => 43101,
+						"message" => 'the user does not exist',
+						"errors" => []
+					]
+				];
+			}
 			Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), $data);
-
 			return $data;
-
 		}
-
-
-		/**
-		 * DEPRECATED CENTRALIZED!
-		 * Check Player Using Token if its already register in the MW database if not register it!
-		 */
-		public function checkClientPlayer($site_url, $merchant_user ,$token = false)
-		{
-
-				// Check Client Server Name
-				$client_check = DB::table('clients')
-	          	 	 ->where('client_url', $site_url)
-	           		 ->first();
-
-	           	$data = [
-		        	"msg" => "Client Not Found",
-		        	"httpstatus" => "404"
-		        ];  	 
-
-	            if($client_check){  
-
-		                $player_check = DB::table('players')
-		                    ->where('client_id', $client_check->client_id)
-		                    ->where('username', $merchant_user)
-		                    ->first();
-
-		                if($player_check){
-
-		                    DB::table('player_session_tokens')->insert(
-		                            array('player_id' => $player_check->player_id, 
-	                            		  'player_token' =>  $token, 
-		                            	  'status_id' => '1')
-		                    );    
-
-		                    $token_player_id = $this->_getPlayerTokenId($player_check->player_id);
-
-		                    $data = [
-						        	"token" => $token,
-						        	"httpstatus" => "200",
-						        	"new" => false
-					        ];   
-
-		                }else{
-
-	                	try
-	                	{
-						        $client_details = $this->_getClientDetails('site_url', $site_url);
-
-								$client = new Client([
-								    'headers' => [ 
-								    	'Content-Type' => 'application/json',
-								    	'Authorization' => 'Bearer '.$client_details->client_access_token
-								    ]
-								]);
-
-								$guzzle_response = $client->post($client_details->player_details_url,
-								    ['body' => json_encode(
-								        	["access_token" => $client_details->client_access_token,
-												"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-												"type" => "playerdetailsrequest",
-												"datesent" => Helper::datesent(),
-												"gameid" => "",
-												"clientid" => $client_details->client_id,
-												"playerdetailsrequest" => [
-													"client_player_id" => $client_details->client_player_id,
-													"token" => $token,
-													"gamelaunch" => true,
-													"refreshtoken" => false,
-												]]
-								    )]
-								);
-
-								$client_response = json_decode($guzzle_response->getBody()->getContents());
-
-								DB::table('players')->insert(
-		                            array('client_id' => $client_check->client_id, 
-		                            	  'client_player_id' =>  $client_response->playerdetailsresponse->accountid, 
-		                            	  'username' => $client_response->playerdetailsresponse->username, 
-		                            	  'email' => $client_response->playerdetailsresponse->email,
-		                            	  'display_name' => $client_response->playerdetailsresponse->accountname)
-			                    );
-
-			                	$last_player_id = DB::getPDO()->lastInsertId();
-
-			                	DB::table('player_session_tokens')->insert(
-				                            array('player_id' => $last_player_id, 
-				                            	  'player_token' =>  $token, 
-				                            	  'status_id' => '1')
-			                    );
-
-			                	$token_player_id = $this->_getPlayerTokenId($last_player_id);
-
-						}
-						catch(ClientException $e)
-						{
-						  $client_response = $e->getResponse();
-						  $response = json_decode($client_response->getBody()->getContents(),True);
-						  return response($response,$client_response->getStatusCode())
-						   ->header('Content-Type', 'application/json');
-						}
-
-				                $data = [
-						        	"token" => $token,
-						        	"httpstatus" => "200",
-						        	"new" => true
-						        ];   
-
-		      			}     
-
-				}
-
-		        return $data;
-			
-
-		}
-
-
-
-		public function _getClientDetails($type = "", $value = "") {
-
-		$query = DB::table("clients AS c")
-					 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
-					 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
-					 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
-					 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
-					 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id");
-					 
-					if ($type == 'token') {
-						$query->where([
-					 		["pst.player_token", "=", $value],
-					 		["pst.status_id", "=", 1]
-					 	]);
-					}
-
-					if ($type == 'player_id') {
-						$query->where([
-					 		["p.player_id", "=", $value],
-					 		["pst.status_id", "=", 1]
-					 	]);
-					}
-
-
-					if ($type == 'site_url') {
-						$query->where([
-					 		["c.client_url", "=", $value],
-					 	]);
-					}
-
-					if ($type == 'username') {
-						$query->where([
-					 		["p.username", $value],
-					 	]);
-					}
-
-					 $result= $query
-					 			->latest('token_id')
-					 			->first();
-
-			return $result;
-
-		}
-
-
-		public function _getPlayerTokenId($player_id){
-
-	       $client_details = DB::table("players AS p")
-	                         ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.player_token' , 'pst.status_id','pst.token_id' , 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
-	                         ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
-	                         ->leftJoin("clients AS c", "c.client_id", "=", "p.client_id")
-	                         ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
-	                         ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
-	                         ->where("p.player_id", $player_id)
-	                         ->where("pst.status_id", 1)
-	                         ->latest('token_id')
-	                         ->first();
-
-	        return $client_details->token_id;    
-	        
-	    }
 
 	    // BACKUP FUNCTION
 	    // public static function find($game_code) {

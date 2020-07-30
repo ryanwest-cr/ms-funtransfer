@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-//require __DIR__ . '/vendor/autoload.php';
 
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -109,14 +108,17 @@ class TidyController extends Controller
 		$client_details = ProviderHelper::getClientDetails('token',$token);
 		if($client_details != null){
 			$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-				
+				//$balance = number_format($player_details->playerdetailsresponse->balance, 2); 
 				$currency = $client_details->default_currency;
 				$get_code_currency = TidyHelper::currencyCode($currency);
+
+				$num = $player_details->playerdetailsresponse->balance;
+				$balance = (double)$num;
 				$data =  array(	
 		 			 "uid"			=> $this->prefix_id.'_'.$client_details->player_id,
 					 "request_uuid" => $request_uuid,
 					 "currency"		=> $get_code_currency,
-					 "balance" 		=> $player_details->playerdetailsresponse->balance
+					 "balance" 		=> $balance
 			 	);
 				Helper::saveLog('Tidy Check Balance Response', $this->provider_db_id, json_encode($request->all()), $data);
 				// return response($data,200)->header('Content-Type', 'application/json');
@@ -196,7 +198,6 @@ class TidyController extends Controller
 		    ['body' => json_encode($requesttosend)]
 		);
 	    $client_response = json_decode($guzzle_response->getBody()->getContents());
-	    // $status = json_encode($client_response->fundtransferresponse->status->code);	
 
 	    $transaction_type = 'debit';
 		$game_transaction_type = 1; // 1 Bet, 2 Win
@@ -213,18 +214,21 @@ class TidyController extends Controller
 		$payout_reason = 'Bet';
 		$provider_trans_id = $transaction_uuid;
 
+		$num = $client_response->fundtransferresponse->balance;
+		$balance = (double)$num;
+
 		$data_response = [
     		"uid" => $uid,
     		"request_uuid" => $request_uuid,
     		"currency" => TidyHelper::currencyCode($client_details->default_currency),
-    		"balance" => $client_response->fundtransferresponse->balance
+    		"balance" =>  $balance
     	];
 
 	    $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
 	    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
 
 	    Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-	    // return response($data_response,200)->header('Content-Type', 'application/json');
+	   
 	    return $data_response;
 	}
 
@@ -305,11 +309,14 @@ class TidyController extends Controller
 		    $client_response = json_decode($guzzle_response->getBody()->getContents());
 		    // $status = json_encode($client_response->fundtransferresponse->status->code);	
 
+		    $num = $client_response->fundtransferresponse->balance;
+			$balance = (double)$num;
+
 			$data_response = [
 	    		"uid" => $uid,
 	    		"request_uuid" => $request_uuid,
 	    		"currency" => TidyHelper::currencyCode($client_details->default_currency),
-	    		"balance" => $client_response->fundtransferresponse->balance
+	    		"balance" => $balance
 	    	];
 
 	    	$round_id = $reference_transaction_uuid;
@@ -317,7 +324,7 @@ class TidyController extends Controller
 	    	$pay_amount = $amount;
 	    	$income = $bet_transaction->bet_amount - $amount ;
 	    	// $win = 1;
-	    	$entry_id = $amount > 0  ?  2 : 1;
+	    	$entry_id = $amount > 0  ?  2 : 1;// [<1 bet/debit, 2 win/credit>]
 	    	$win 	  = $amount > 0  ?  1 : 0;  /// 1win 0lost
 
 	    	ProviderHelper::updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
