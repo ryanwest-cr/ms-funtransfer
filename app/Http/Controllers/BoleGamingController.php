@@ -445,21 +445,21 @@ class BoleGamingController extends Controller
 										   $json_data->game_code == 'mjxlch'){ 
 
 											// 073020
-										   	$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
-											$data = [
-												"data" => [
-													"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
-													"currency" => $client_details->default_currency,
-												],
-												"status" => [
-													"code" => 0,
-													"msg" => "success"
-												]
-											];
+										 //   	$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
+											// $data = [
+											// 	"data" => [
+											// 		"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
+											// 		"currency" => $client_details->default_currency,
+											// 	],
+											// 	"status" => [
+											// 		"code" => 0,
+											// 		"msg" => "success"
+											// 	]
+											// ];
 
-											return $data;
-											$pay_amount = 0;
+											// return $data;
 											// END 073020
+											$pay_amount = 0;
 										}
 				               
 										// Game Buy In if COST_INFO has no data always Debit!!
