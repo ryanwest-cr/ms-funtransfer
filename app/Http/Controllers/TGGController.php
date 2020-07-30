@@ -15,7 +15,7 @@ class TGGController extends Controller
 	 public $api_version = 1;
 	 public $api_key = '29abd3790d0a5acd532194c5104171c8';
 	 public $api_url = 'http://api.flexcontentprovider.com';
-	 public $provider_db_id = 25;
+	 public $provider_db_id = 25; // this is not final provider no register local
 
 	/**
 	* $system_id - your project ID (number)
@@ -55,12 +55,15 @@ class TGGController extends Controller
 
 
 	public function getGamelist(Request $request){
-		$data = [];
+		$data = [
+			'need_extra_data' => 1
+		];
 		$url = $this->api_url.'/Game/getList';
 		$signature =  $this->getSignature($this->project_id,$this->api_version,$data,$this->api_key);
         $requesttosend = [
             'project' =>  $this->project_id,
 			'version' => $this->api_version,
+			'need_extra_data' => 1,
             'signature' => $signature
         ];
         $client = new Client([
