@@ -125,6 +125,7 @@ class PragmaticPLayController extends Controller
             "description" => "Success"
         );
 
+        Helper::saveLog("pp bet requesttogamelobby", 49, json_encode($responseDetails), $response);
         Helper::saveLog('PP bet', 49,json_encode($data) , $response);
         return $response;
     }
