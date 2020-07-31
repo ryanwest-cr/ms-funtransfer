@@ -224,7 +224,7 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        // Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
         Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), 'WIN');
 
         // LOCAL TEST
@@ -361,8 +361,8 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        // Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
-        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), '1');
+        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), 'Lost');
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
         // parse_str($enc_body, $data);
@@ -433,7 +433,8 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA Gaming Bet Cancel', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
      
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
