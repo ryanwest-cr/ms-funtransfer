@@ -367,7 +367,7 @@ class TidyController extends Controller
 			];
 			return $data_response;
 		}
-		$refund_call = ProviderHelper::findGameExt($transaction_uuid, 3,'transaction_id');
+		$refund_call = ProviderHelper::findGameExt($reference_transaction_uuid, 3,'transaction_id');
 		if($refund_call != 'false'){
 			$data_response = [
 				'error' => '99-013' // transaction rolledback
@@ -383,7 +383,6 @@ class TidyController extends Controller
 		]);
 
 		$bet_transaction = ProviderHelper::findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
-
 		$requesttosend = [
 			  "access_token" => $client_details->client_access_token,
 			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -402,9 +401,9 @@ class TidyController extends Controller
 					      "gamesessionid" => "",
 					      "transactiontype" => "credit",
 					      "transferid" => "",
-					      "rollback" => true,
+					      "rollback" => false,
 					      "currency" => $client_details->default_currency,
-					      "amount" => $existing_bet->amount
+					      "amount" => abs($bet_transaction->bet_amount)
 				   ],
 			  ],
 		];
@@ -418,11 +417,12 @@ class TidyController extends Controller
     	$round_id = $reference_transaction_uuid;
 	    $win = 4;
 	    $entry_id = 1;
+	    $amount = $bet_transaction->bet_amount;
 	    $data_response = [
     		"uid" => $uid,
     		"request_uuid" => $request_uuid,
     		"currency" => TidyHelper::currencyCode($client_details->default_currency),
-    		"balance" => $client_response->fundtransferresponse->balance 
+    		"balance" => $client_response->fundtransferresponse->balance
     	];
 
 
@@ -439,7 +439,6 @@ class TidyController extends Controller
    	    $update = DB::table('game_transactions')
                 ->where('round_id', $round_id)
                 ->update([
-                	  'bet_amount' => 0,
 	        		  'win' => $win, 
 	        		  'entry_id' => $entry_id,
 	        		  'transaction_reason' => ProviderHelper::updateReason($win),
