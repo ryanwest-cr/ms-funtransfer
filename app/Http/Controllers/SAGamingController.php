@@ -271,7 +271,7 @@ class SAGamingController extends Controller
         }
 
             $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
-            if($transaction_check != 'false'){
+            if($transaction_check == 'false'){
                 $data_response = ["username" => $username,"currency" => $currency, "error" => 122];
                 echo $this->makeArrayXML($data_response);
                 return;
