@@ -357,20 +357,18 @@ class SAGamingController extends Controller
     }
 
     public function PlayerLost(){
-            $enc_body = file_get_contents("php://input");
-            $url_decoded = urldecode($enc_body);
-            $decrypt_data = SAHelper::decrypt($url_decoded);
-            parse_str($decrypt_data, $data);
-
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), '1');
+        // LOCAL TEST
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
+            
         try {
-           
-            Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
-            Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), '1');
          
-            // LOCAL TEST
-            // $enc_body = file_get_contents("php://input");
-            // parse_str($enc_body, $data);
-
             $username = $data['username'];
             $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
             $currency = $data['currency'];
@@ -401,13 +399,14 @@ class SAGamingController extends Controller
                 return;
             }
             $transaction_check = ProviderHelper::findGameExt($round_id, 5,'round_id');
+            $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
+            
             // if($transaction_check != 'false'){
             //     $data_response = ["username" => $username,"currency" => $client_details->default_currency,"error" => 152];
             //      Helper::saveLog('SA Gaming LC Round Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             //     echo $this->makeArrayXML($data_response);
             //     return;
             // }
-            $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
 
             // VERSION GET DB BET AND SEND TO CLIENT
             // $client = new Client([
@@ -459,7 +458,7 @@ class SAGamingController extends Controller
             return;
 
         } catch (\Exception $e) {
-            Helper::saveLog('SA Gaming Bet Lost', $this->provider_db_id, json_encode($decrypt_data), $e->getMessage());
+            Helper::saveLog('SA Gaming Bet Lost', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), $e->getMessage());
         }
         
         
