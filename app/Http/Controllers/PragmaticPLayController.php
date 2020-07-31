@@ -153,14 +153,14 @@ class PragmaticPLayController extends Controller
 
         $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency );
             
-        $game_trans = DB::table('game_transactions')->where("provider_trans_id","=",$data->reference)->get();
+        $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
         $income = $game_trans[0]->bet_amount - $data->amount;
         $win = $income > 0 ? 0 : 1;
         $entry_id = $win == 0 ? '1' : '2';
         
         $updateGameTrans = DB::table('game_transactions')
-            ->where("provider_trans_id","=",$data->reference)
+            ->where("round_id","=",$data->roundId)
             ->update([
                 "win" => $win,
                 "pay_amount" => $data->amount,
@@ -197,7 +197,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        $game_trans = DB::table("game_transactions")->where("provider_trans_id","=",$data->reference)->get();
+        $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->get();
         $game_details = DB::table("games")->where("game_id","=",$game_trans[0]->game_id)->first();
         
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
@@ -218,7 +218,7 @@ class PragmaticPLayController extends Controller
 
         $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency, true );
 
-        $refund_update = DB::table('game_transactions')->where('provider_trans_id','=',$data->reference)->update(['win' => '3']);
+        $refund_update = DB::table('game_transactions')->where("round_id","=",$data->roundId)->update(['win' => '3']);
         
         $response = array(
             "transactionId" => $game_trans[0]->game_trans_id,
@@ -244,7 +244,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        $game_trans = DB::table("game_transactions")->where("provider_trans_id","=",$data->reference)->first();
+        $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->first();
         $game_details = DB::table("games")->where("game_id","=",$game_trans->game_id)->first();
         
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
