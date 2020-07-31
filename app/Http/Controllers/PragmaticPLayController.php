@@ -20,8 +20,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP authenticate', 49, json_encode($data) , "");
-
+        
         $providerId = $data->providerId;
         $hash = $data->hash;
         $token = $data->token;
@@ -40,8 +39,6 @@ class PragmaticPLayController extends Controller
                 "currency" => $currency,
                 "cash" => $balance,
                 "bonus" => 0.00,
-                "coutnry" => $country,
-                "jurisdiction" => $country,
                 "betLimits" => array(
                     "defaultBet" => 0.10,
                     "minBet" => 0.02,
@@ -53,7 +50,8 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             );
 
-            
+            Helper::saveLog('PP authenticate', 49, json_encode($data) , $response);
+
             return $response;
         }
     }
@@ -81,6 +79,7 @@ class PragmaticPLayController extends Controller
             "description" => "Success"
         );
 
+        Helper::saveLog('PP balance', 49, json_encode($data) , $response);
         
         return $response;
     }
@@ -92,7 +91,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP bet', 49,json_encode($data) , "");
+       
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -126,7 +125,7 @@ class PragmaticPLayController extends Controller
             "description" => "Success"
         );
 
-       
+        Helper::saveLog('PP bet', 49,json_encode($data) , $response);
         return $response;
     }
 
@@ -137,7 +136,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP result', 49, json_encode($data) , "");
+        
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -185,7 +184,7 @@ class PragmaticPLayController extends Controller
 
         $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, $entry_id, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
 
-
+        Helper::saveLog('PP result', 49, json_encode($data) , $response);
         
         return $response;
     }
