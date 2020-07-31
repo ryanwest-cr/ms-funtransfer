@@ -238,6 +238,7 @@ class SAGamingController extends Controller
         $txnid = $data['txnid'];
         $gametype = $data['gametype'];
         $game_id = $this->game_db_code;
+        $round_id = $data['gameid'];
 
         $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
         if($client_details == null){
@@ -269,7 +270,7 @@ class SAGamingController extends Controller
             }
         }
 
-            $transaction_check = ProviderHelper::findGameExt($txnid, 1,'transaction_id');
+            $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
             if($transaction_check != 'false'){
                 $data_response = ["username" => $username,"currency" => $currency, "error" => 122];
                 echo $this->makeArrayXML($data_response);
@@ -349,7 +350,7 @@ class SAGamingController extends Controller
                     "amount" => $client_response->fundtransferresponse->balance,
                     "error" => 9999
                 ];
-                Helper::saveLog('SA Gaming WIN ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                Helper::saveLog('SA Gaming WIN $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
                 echo $this->makeArrayXML($data_response);
                 return;
             }
