@@ -121,7 +121,6 @@ class TidyController extends Controller
 					 "balance" 		=> $balance
 			 	);
 				Helper::saveLog('Tidy Check Balance Response', $this->provider_db_id, json_encode($request->all()), $data);
-				// return response($data,200)->header('Content-Type', 'application/json');
 				return $data;
 		}else{
 			$errormessage = array(
@@ -341,7 +340,7 @@ class TidyController extends Controller
 		// Helper::saveLog('Tidy Game Rollback', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$header = $request->header('Authorization');
 	    // Helper::saveLog('Tidy Authorization Logger', $this->provider_db_id, file_get_contents("php://input"), $header);
-	    Helper::saveLog('Tidy Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
+	    Helper::saveLog('Tidy Authorization Logger Rollback', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
 
 	    $enc_body = file_get_contents("php://input");
         parse_str($enc_body, $data);
