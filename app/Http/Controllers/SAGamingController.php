@@ -213,19 +213,19 @@ class SAGamingController extends Controller
                     "amount" => $client_response->fundtransferresponse->balance,
                     "error" => 9999
                 ];
-                Helper::saveLog('SA Gaming Cancel Bet ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                Helper::saveLog('SA Gaming Cancel Bet ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
                 echo $this->makeArrayXML($data_response);
                 return;
             }
     }
 
     public function PlayerWin(){
-
         $enc_body = file_get_contents("php://input");
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        // Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), 'WIN');
 
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
@@ -350,7 +350,7 @@ class SAGamingController extends Controller
                     "amount" => $client_response->fundtransferresponse->balance,
                     "error" => 9999
                 ];
-                Helper::saveLog('SA Gaming WIN ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                Helper::saveLog('SA Gaming WIN ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
                 echo $this->makeArrayXML($data_response);
                 return;
             }
@@ -408,42 +408,6 @@ class SAGamingController extends Controller
             //     return;
             // }
 
-            // VERSION GET DB BET AND SEND TO CLIENT
-            // $client = new Client([
-            //         'headers' => [ 
-            //             'Content-Type' => 'application/json',
-            //             'Authorization' => 'Bearer '.$client_details->client_access_token
-            //         ]
-            // ]);
-            // $requesttosend = [
-            //       "access_token" => $client_details->client_access_token,
-            //       "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-            //       "type" => "fundtransferrequest",
-            //       "datesent" => Helper::datesent(),
-            //       "gamedetails" => [
-            //         "gameid" => $game_details->game_code, // $game_details->game_code
-            //         "gamename" => $game_details->game_name
-            //       ],
-            //       "fundtransferrequest" => [
-            //           "playerinfo" => [
-            //             "client_player_id" => $client_details->client_player_id,
-            //             "token" => $client_details->player_token,
-            //           ],
-            //           "fundinfo" => [
-            //                   "gamesessionid" => "",
-            //                   "transactiontype" => "debit",
-            //                   "transferid" => "",
-            //                   "rollback" => false,
-            //                   "currencycode" => $client_details->default_currency,
-            //                   "amount" => abs($game_trans->bet_amount)
-            //            ],
-            //       ],
-            // ];
-            // $guzzle_response = $client->post($client_details->fund_transfer_url,
-            //     ['body' => json_encode($requesttosend)]
-            // );
-            // $client_response = json_decode($guzzle_response->getBody()->getContents());
-            
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
             $data_response = [
                 "username" => $username,
@@ -559,7 +523,7 @@ class SAGamingController extends Controller
                 "amount" => $client_response->fundtransferresponse->balance,
                 "error" => 9999
             ];
-            Helper::saveLog('SA Gaming Cancel Bet ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            Helper::saveLog('SA Gaming Cancel Bet ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
             echo $this->makeArrayXML($data_response);
             return;
         }
