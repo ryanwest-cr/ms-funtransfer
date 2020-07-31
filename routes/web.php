@@ -214,6 +214,12 @@ $app->post('/tidy/api/transaction/rollback', 'TidyController@gameRollback');
 $app->post('/tidy/api/transaction/win', 'TidyController@gameWin');
 $app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
 
+//TGG
+$app->post('/tgg/api/game/getlist', 'TGGController@getGamelist');
+$app->post('/tgg/api/game/geturl', 'TGGController@getURL');
+$app->post('/tgg/api/game/init', 'TGGController@initBalance');
+$app->post('/tgg/api/game/bet', 'TidyController@gameBet');
+
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
