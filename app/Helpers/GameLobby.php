@@ -50,7 +50,7 @@ class GameLobby{
         Helper::saveLog('GAMELAUNCH EDP', 11, json_encode(config("providerlinks.endorphina.url").'?exit='.$exitUrl.'&nodeId='.config("providerlinks.endorphina.nodeId").'&profile='.$profile.'&token='.$token.'&sign='.$sign), json_encode($sign));
         return config("providerlinks.endorphina.url").'?exit='.$exitUrl.'&nodeId='.config("providerlinks.endorphina.nodeId").'&profile='.$profile.'&token='.$token.'&sign='.$sign;
     }
-    public static function boleLaunchUrl($game_code,$token,$exitUrl, $country_code){
+    public static function boleLaunchUrl($game_code,$token,$exitUrl, $country_code='PH'){
 
         $client_details = ProviderHelper::getClientDetails('token', $token);
         if($client_details != null){
@@ -65,9 +65,14 @@ class GameLobby{
 
         $scene_id = '';
         if(strpos($game_code, 'slot') !== false) {
-            $game_code = explode("_", $game_code);
-            $scene_id = $game_code[1];
-            $game_code = 'slot';
+            if($game_code == 'slot'){
+                $scene_id = '';
+                $game_code = 'slot'; 
+            }else{
+                $game_code = explode("_", $game_code);
+                $scene_id = $game_code[1];
+                $game_code = 'slot'; 
+            }
         }else{
             $game_code = $game_code;
         }

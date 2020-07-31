@@ -27,6 +27,8 @@ class IAHelper{
         $timeout = 5;
         $client_response = IAHelper::curlData(config('providerlinks.iagaming.url_lunch'), $uhayuu, $header, $timeout);
         $data = json_decode(IAHelper::rehashen($client_response[1], true));
+        Helper::saveLog('IA User Launch 1', 15, json_encode($client_response), $params);
+        Helper::saveLog('IA User Launch 2', 15, json_encode($data), $uhayuu);
         return $data->data->url;
     }
 

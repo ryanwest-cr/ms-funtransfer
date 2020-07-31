@@ -175,16 +175,17 @@ class BoleGamingController extends Controller
 
 						$transaction_type = $json_data->cost_info->gain_gold < 0 ? 'debit' : 'credit';
 					    if($json_data->game_code == 'slot'){
-					    	$game_details = Game::find($json_data->game_code.'_'.$json_data->cost_info->scene);
+					    	$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $json_data->game_code.'_'.$json_data->cost_info->scene);
 					    }else{
-					    	$game_details = Game::find($json_data->game_code);
+					    	$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $json_data->game_code);
 					    }
-					    if($game_details == false){
+					    if($game_details == null){
 				    		$data = ["resp_msg" => ["code" => 43201,"message" => 'the game does not exist',"errors" => []]];
 							return $data;
 					    }
 					    $db_game_name = $game_details->game_name;
 						$db_game_code = $game_details->game_code;
+
 
 						$token_id = $client_details->token_id;
 		                $bet_amount = abs($json_data->cost_info->bet_num);
@@ -358,19 +359,17 @@ class BoleGamingController extends Controller
 									"msg" => "success"
 								]
 							];
-							Helper::saveLog('BOLE WALLET CALL GBI TG ONLY', 2, $request->getContent(), $data);
+							Helper::saveLog('BOLE WALLET CALL GBI TG ONLY', $this->provider_db_id, $request->getContent(), $data);
 							return $data;
 					    }else{
-					    	if($json_data->game_code == 'slot'){
-					    		$game_id = 0;
-					    		$db_game_name = 'slot';
-								$db_game_code = 'slot';
-					    	}else{
-					    		$game_details = Game::find($json_data->game_code);
-						    	$db_game_name = $game_details->game_name;
-								$db_game_code = $game_details->game_code;
-								$game_id = $game_details->game_id;
-					    	}
+					    	$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $json_data->game_code);
+					    	if($game_details == null){
+					    		$data = ["resp_msg" => ["code" => 43201,"message" => 'the game does not exist',"errors" => []]];
+								return $data;
+						    }
+				    		$db_game_name = $game_details->game_name;
+							$db_game_code = $game_details->game_code;
+							$game_id = $game_details->game_id;
 					    }
 
 					    $pay_amount = $json_data->amount;
