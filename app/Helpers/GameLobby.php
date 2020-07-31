@@ -66,7 +66,7 @@ class GameLobby{
         $scene_id = '';
         if(strpos($game_code, 'slot') !== false) {
             if($game_code == 'slot'){
-                $scene_id = '';
+                $scene_id = "";
                 $game_code = 'slot'; 
             }else{
                 $game_code = explode("_", $game_code);
