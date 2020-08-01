@@ -134,7 +134,7 @@ class HabaneroController extends Controller
                 'bet_amount' => abs($details->fundtransferrequest->funds->refund->amount),
                 'payout' => $game_trans_id[0]->pay_amount,
                 'refund' => true,
-                'response' => $response
+                'response' => $response,
             ];
 
             $game_transextension = $this->createGameTransExt($game_trans_id[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $game_trans_id[0]->pay_amount, 3, $data, $response, $clientDetalsResponse['requesttosend'], $clientDetalsResponse['client_response'], $transaction_detail);
@@ -164,14 +164,20 @@ class HabaneroController extends Controller
 
                 $income = $check_game_trans[0]->bet_amount - $payout;  
                 
-
-                $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["pay_amount" => $payout, "income" => $income]);
+                $jpwin = $details->fundtransferrequest->funds->fundinfo[0]->jpwin;
+                $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
+                  
+                
+                $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["pay_amount" => $payout, "income" => $income, "win" => 1, ]);
 
                 $transaction_detail = [
                     'game_code' => $check_game_trans[0]->game_trans_id,
                     'bet_amount' => $check_game_trans[0]->bet_amount,
                     'payout' => $payout,
-                    'response' => $response
+                    'response' => $response,
+                    'update' => true,
+                    'jackpotwin' => $jpwin,
+                    'bonuswin' => $bonuswin
                 ];
 
 
