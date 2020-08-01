@@ -314,14 +314,16 @@ class SAGamingController extends Controller
                 );
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
 
+                $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
+
                 // TEST
                 $transaction_type = 'credit';
                 $game_transaction_type = 2; // 1 Bet, 2 Win
                 $game_code = $game_details->game_id;
                 $token_id = $client_details->token_id;
-                $bet_amount = $amount; 
-                $pay_amount = 0;
-                $income = $amount;
+                $bet_amount = $game_trans->bet_amount; 
+                $pay_amount = $amount;
+                $income = $bet_amount - $pay_amount;
                 $win_type = 0;
                 $method = 1;
                 $win_or_lost = 1; // 0 lost,  5 processing
@@ -336,8 +338,7 @@ class SAGamingController extends Controller
                     "error" => 0
                 ];
 
-                 $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
-                 ProviderHelper::updateBetTransaction($round_id, $game_trans->pay_amount, $game_trans->income, 1, 2);
+                ProviderHelper::updateBetTransaction($round_id, $pay_amount, $income, 1, 2);
                 // $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
                 $game_transextension = ProviderHelper::createGameTransExt($game_trans->game_trans_id,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
                 Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
