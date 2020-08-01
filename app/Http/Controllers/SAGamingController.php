@@ -86,7 +86,7 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA Gaming Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        Helper::saveLog('SA Gaming Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
 
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
@@ -224,8 +224,8 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
-        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), 'WIN');
+        // Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
 
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
@@ -362,8 +362,8 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
-        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), 'Lost');
+        // Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
         // parse_str($enc_body, $data);
@@ -434,8 +434,8 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
-        Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), 'ENDPOINT HIT');
+        // Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
      
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
