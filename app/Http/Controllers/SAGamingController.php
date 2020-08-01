@@ -514,7 +514,7 @@ class SAGamingController extends Controller
                 "error" => 0
             ];
             ProviderHelper::updateBetTransaction($round_id, $game_trans->pay_amount, $game_trans->income, 4, 1);
-            ProviderHelper::createGameTransExt($game_trans->game_trans_id,$txnid, $round_id, $amountt, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
+            ProviderHelper::createGameTransExt($game_trans->game_trans_id,$txnid, $round_id, $amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
             Helper::saveLog('SA Gaming Cancel Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
