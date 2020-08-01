@@ -221,7 +221,7 @@ class HabaneroController extends Controller
                             $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
                             
                             
-                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["bet_amount" => $bet_amount, "pay_amount" => 0.00, "income" => $income, "win" => 1 ]);
+                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["bet_amount" => $bet_amount, "pay_amount" => 0.00, "income" => $income, "win" => 0 ]);
     
                             $transaction_detail = [
                                 'game_code' => $check_game_trans[0]->game_trans_id,
