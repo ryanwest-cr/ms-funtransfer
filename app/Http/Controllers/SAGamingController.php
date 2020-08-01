@@ -213,7 +213,7 @@ class SAGamingController extends Controller
                     "amount" => $client_response->fundtransferresponse->balance,
                     "error" => 9999
                 ];
-                Helper::saveLog('SA Gaming Cancel Bet ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                Helper::saveLog('SA Gaming PB $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
                 echo $this->makeArrayXML($data_response);
                 return;
             }
@@ -417,7 +417,7 @@ class SAGamingController extends Controller
                 "error" => 0
             ];
 
-            ProviderHelper::updateBetTransaction($round_id, $game_trans->pay_amount, $game_trans->income, 0, 1);
+            ProviderHelper::updateBetTransaction($round_id, $game_trans->pay_amount, $game_trans->bet_amount, 0, 1);
             Helper::saveLog('SA Gaming Bet Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
@@ -514,7 +514,7 @@ class SAGamingController extends Controller
                 "error" => 0
             ];
             ProviderHelper::updateBetTransaction($round_id, $game_trans->pay_amount, $game_trans->income, 4, 1);
-            ProviderHelper::createGameTransExt($gamerecord,$txnid, $round_id, $amountt, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
+            ProviderHelper::createGameTransExt($game_trans->game_trans_id,$txnid, $round_id, $amountt, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
             Helper::saveLog('SA Gaming Cancel Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
@@ -525,7 +525,7 @@ class SAGamingController extends Controller
                 "amount" => $client_response->fundtransferresponse->balance,
                 "error" => 9999
             ];
-            Helper::saveLog('SA Gaming Cancel Bet ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+            Helper::saveLog('SA Gaming CB $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
             echo $this->makeArrayXML($data_response);
             return;
         }
