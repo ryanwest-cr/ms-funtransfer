@@ -95,16 +95,16 @@ class HabaneroController extends Controller
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
         $checktoken = Helper::tokenCheck($client_details->player_token);
-        if($checktoken == false){
-            $response = [
-                "fundtransferresponse" => [
-                    "status" => [
-                        "success" => false,
-                        "autherror" => true,
-                    ]
-                ]
-            ];
-        }else{
+        // if($checktoken == false){ #check if session expire 1hour duration 
+        //     $response = [
+        //         "fundtransferresponse" => [
+        //             "status" => [
+        //                 "success" => false,
+        //                 "autherror" => true,
+        //             ]
+        //         ]
+        //     ];
+        // }else{
 
         
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -121,7 +121,7 @@ class HabaneroController extends Controller
                 "player_details" => $player_details,
                 "game_details" => $game_details,
             ];
-            if($details->fundtransferrequest->isrefund == true){
+            if($details->fundtransferrequest->isrefund == true){ // check if refund is true
 
                 $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->refund->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency, true);
 
@@ -153,13 +153,11 @@ class HabaneroController extends Controller
                 $game_transextension = $this->createGameTransExt($game_trans_id[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $game_trans_id[0]->pay_amount, 3, $data, $response, $clientDetalsResponse['requesttosend'], $clientDetalsResponse['client_response'], $transaction_detail);
 
                 
-            }else{
-                
-                $check_game_trans = DB::table('game_transactions')->where("provider_trans_id","=",$details->fundtransferrequest->gameinstanceid)->get();
+            }else{ // else refund is false
 
-                if(count($check_game_trans) > 0){
+                if($details->fundtransferrequest->funds->fundinfo[0]->isbonus == true ){ // check if bunos is true
 
-                    $payout = $check_game_trans[0]->pay_amount + abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
+                    $payout =abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
 
                     $freeSpin = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->fundinfo[0]->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency);
 
@@ -175,17 +173,15 @@ class HabaneroController extends Controller
                         ]
                     ];
 
-                    $income = $check_game_trans[0]->bet_amount - $payout;  
+                    $income = $payout;  
                     
                     $jpwin = $details->fundtransferrequest->funds->fundinfo[0]->jpwin;
                     $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
                     
                     
-                    $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["pay_amount" => $payout, "income" => $income, "win" => 1 ]);
 
                     $transaction_detail = [
-                        'game_code' => $check_game_trans[0]->game_trans_id,
-                        'bet_amount' => $check_game_trans[0]->bet_amount,
+                        'bet_amount' => 0.00,
                         'payout' => $payout,
                         'response' => $response,
                         'update' => true,
@@ -193,27 +189,20 @@ class HabaneroController extends Controller
                         'bonuswin' => $bonuswin
                     ];
 
+                    $gamerecord = $this->createGameTransaction($client_details->token_id, $game_details->game_id, 0.00, $payout, 2,  1, null, null, $income, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid);
+                    $game_transextension = $this->createGameTransExt( $gamerecord, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, 2, $data, $response, $freeSpin['requesttosend'], $freeSpin['client_response'], $transaction_detail);
+                
+                }else{ // check if bonus is false
 
-                    $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $check_game_trans[0]->entry_id, $data, $response, $freeSpin['requesttosend'], $freeSpin['client_response'], $transaction_detail);
+                    $check_game_trans = DB::table('game_transactions')->where("provider_trans_id","=",$details->fundtransferrequest->gameinstanceid)->get();
 
-                }else{
+                    if(count($check_game_trans) > 0){ //check if game round is exist
 
-                    if($player_details->playerdetailsresponse->balance > abs($details->fundtransferrequest->funds->fundinfo[0]->amount)){
-        
-                    
-                        if($details->fundtransferrequest->funds->debitandcredit == 'true'){
-        
-                            foreach($details->fundtransferrequest->funds->fundinfo as $funds){
-                                if($funds->gamestatemode == 1){
-                                    $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($funds->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency);
-                                    $bet_amount = abs($funds->amount);
-                                }else{
-                                    $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($funds->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency);
-                                    $payout = abs($funds->amount);
-                                }
-                            }
-        
-                            
+                        if($details->fundtransferrequest->funds->fundinfo[0]->amount < 0){ // checking for "double" in table games
+
+                            $bet_amount = $check_game_trans[0]->bet_amount + abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
+
+                            $freeSpin = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->fundinfo[0]->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency);
                             $response = [
                                 "fundtransferresponse" => [
                                     "status" => [
@@ -221,77 +210,173 @@ class HabaneroController extends Controller
                                         "successdebit" => true,
                                         "successcredit" => true
                                     ],
-                                    "balance" => $clientDetalsResponse['client_response']->fundtransferresponse->balance,
+                                    "balance" => $freeSpin['client_response']->fundtransferresponse->balance,
                                     "currencycode" => $client_details->default_currency,
                                 ]
                             ];
-                            $income = $bet_amount - $payout;
-                            $win = $payout > 0 ? 1 : 0;
-                            $entry_id = $win == 0 ? '1' : '2';
-        
-                            $gamerecord = $this->createGameTransaction($client_details->token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, null, $income, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid);
+    
+                            $income = $bet_amount;  
                             
+                            $jpwin = $details->fundtransferrequest->funds->fundinfo[0]->jpwin;
+                            $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
+                            
+                            
+                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["bet_amount" => $bet_amount, "pay_amount" => 0.00, "income" => $income, "win" => 1 ]);
+    
                             $transaction_detail = [
-                                'game_code' => $gamerecord,
+                                'game_code' => $check_game_trans[0]->game_trans_id,
                                 'bet_amount' => $bet_amount,
-                                'payout' => $payout,
-                                'response' => $response
+                                'payout' => 0.00,
+                                'response' => $response,
+                                'update' => true,
+                                'jackpotwin' => $jpwin,
+                                'bonuswin' => $bonuswin,
+                                'double' => true
                             ];
-        
-        
-                            $game_transextension = $this->createGameTransExt($gamerecord, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $entry_id, $data, $response, $clientDetalsResponse['requesttosend'], $clientDetalsResponse['client_response'], $transaction_detail);
-        
-                        }else{
-        
-                            $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->fundinfo[0]->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency);
-                                
+    
+    
+                            $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, 0.00, $check_game_trans[0]->entry_id, $data, $response, $freeSpin['requesttosend'], $freeSpin['client_response'], $transaction_detail);
+
+                        }else{ 
+
+                            $payout = $check_game_trans[0]->pay_amount + abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
+
+                            $freeSpin = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->fundinfo[0]->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency);
                             $response = [
                                 "fundtransferresponse" => [
                                     "status" => [
                                         "success" => true,
+                                        "successdebit" => true,
+                                        "successcredit" => true
                                     ],
-                                    "balance" => $clientDetalsResponse['client_response']->fundtransferresponse->balance,
+                                    "balance" => $freeSpin['client_response']->fundtransferresponse->balance,
+                                    "currencycode" => $client_details->default_currency,
+                                ]
+                            ];
+    
+                            $income = $check_game_trans[0]->bet_amount - $payout;  
+                            
+                            $jpwin = $details->fundtransferrequest->funds->fundinfo[0]->jpwin;
+                            $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
+                            
+                            
+                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["pay_amount" => $payout, "income" => $income, "win" => 1 ]);
+    
+                            $transaction_detail = [
+                                'game_code' => $check_game_trans[0]->game_trans_id,
+                                'bet_amount' => $check_game_trans[0]->bet_amount,
+                                'payout' => $payout,
+                                'response' => $response,
+                                'update' => true,
+                                'jackpotwin' => $jpwin,
+                                'bonuswin' => $bonuswin,
+                                'double' => false
+                            ];
+    
+    
+                            $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $check_game_trans[0]->entry_id, $data, $response, $freeSpin['requesttosend'], $freeSpin['client_response'], $transaction_detail);
+                        }
+
+
+                    }else{ // new game transactions
+
+                        if($player_details->playerdetailsresponse->balance > abs($details->fundtransferrequest->funds->fundinfo[0]->amount)){
+            
+                        
+                            if($details->fundtransferrequest->funds->debitandcredit == 'true'){
+                                
+                                foreach($details->fundtransferrequest->funds->fundinfo as $funds){
+                                    if($funds->gamestatemode == 1){
+                                        $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($funds->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency);
+                                        $bet_amount = abs($funds->amount);
+                                    }else{
+                                        $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($funds->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency);
+                                        $payout = abs($funds->amount);
+                                    }
+                                }
+            
+                                
+                                $response = [
+                                    "fundtransferresponse" => [
+                                        "status" => [
+                                            "success" => true,
+                                            "successdebit" => true,
+                                            "successcredit" => true
+                                        ],
+                                        "balance" => $clientDetalsResponse['client_response']->fundtransferresponse->balance,
+                                        "currencycode" => $client_details->default_currency,
+                                    ]
+                                ];
+                                $income = $bet_amount - $payout;
+                                $win = $payout > 0 ? 1 : 0;
+                                $entry_id = $win == 0 ? '1' : '2';
+            
+                                $gamerecord = $this->createGameTransaction($client_details->token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, null, $income, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid);
+                                
+                                $transaction_detail = [
+                                    'game_code' => $gamerecord,
+                                    'bet_amount' => $bet_amount,
+                                    'payout' => $payout,
+                                    'response' => $response,
+                                    'debitcreddit' => true
+                                ];
+            
+            
+                                $game_transextension = $this->createGameTransExt($gamerecord, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $entry_id, $data, $response, $clientDetalsResponse['requesttosend'], $clientDetalsResponse['client_response'], $transaction_detail);
+            
+                            }else{
+                                
+
+                                $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->fundinfo[0]->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency);
+                                    
+                                $response = [
+                                    "fundtransferresponse" => [
+                                        "status" => [
+                                            "success" => true,
+                                        ],
+                                        "balance" => $clientDetalsResponse['client_response']->fundtransferresponse->balance,
+                                        "currencycode" => $client_details->default_currency
+                                    ]
+                                ];
+            
+                                $bet_amount = abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
+                                $payout = 0;
+                                $entry_id = 1;
+                                $win = 0;
+                                $income = $bet_amount;
+                                
+                                $gamerecord = $this->createGameTransaction($client_details->token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, null, $income, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid);
+            
+                                $transaction_detail = [
+                                    'game_code' => $gamerecord,
+                                    'bet_amount' => $bet_amount,
+                                    'payout' => $payout,
+                                    'response' => $response,
+                                    'debitcredit' => false
+                                ];
+            
+                                $game_transextension = $this->createGameTransExt($gamerecord, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $entry_id, $data, $response, $clientDetalsResponse['requesttosend'], $clientDetalsResponse['client_response'], $transaction_detail);
+                            }
+            
+                        }else{
+                            $response = [
+                                "fundtransferresponse" => [
+                                    "status" => [
+                                        "success" => false,
+                                        "nofunds" => true,
+                                    ],
+                                    "balance" => $player_details->playerdetailsresponse->balance,
                                     "currencycode" => $client_details->default_currency
                                 ]
                             ];
-        
-                            $bet_amount = abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
-                            $payout = 0;
-                            $entry_id = 1;
-                            $win = 0;
-                            $income = $bet_amount;
-                            
-                            $gamerecord = $this->createGameTransaction($client_details->token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, null, $income, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid);
-        
-                            $transaction_detail = [
-                                'game_code' => $gamerecord,
-                                'bet_amount' => $bet_amount,
-                                'payout' => $payout,
-                                'response' => $response
-                            ];
-        
-                            $game_transextension = $this->createGameTransExt($gamerecord, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $entry_id, $data, $response, $clientDetalsResponse['requesttosend'], $clientDetalsResponse['client_response'], $transaction_detail);
                         }
-        
-                    }else{
-                        $response = [
-                            "fundtransferresponse" => [
-                                "status" => [
-                                    "success" => false,
-                                    "nofunds" => true,
-                                ],
-                                "balance" => $player_details->playerdetailsresponse->balance,
-                                "currencycode" => $client_details->default_currency
-                            ]
-                        ];
+
                     }
 
                 }
-
-
             }
 
-        }    
+        // }    
         Helper::saveLog('fundtransferrequest', 47,$data,$response);
         return $response;
     }
