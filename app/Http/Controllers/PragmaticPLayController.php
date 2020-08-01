@@ -152,7 +152,7 @@ class PragmaticPLayController extends Controller
         ]);
 
         $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency );
-            
+        
         $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
         $income = $game_trans[0]->bet_amount - $data->amount;
