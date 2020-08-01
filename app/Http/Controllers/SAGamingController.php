@@ -432,7 +432,7 @@ class SAGamingController extends Controller
 
             $game_trans_ext = ProviderHelper::findGameExt($round_id, 1, 'round_id');
             $game_transaction = ProviderHelper::findGameTransaction($game_trans_ext->game_trans_id,'game_transaction');
-            ProviderHelper::updateBetTransaction($round_id, $game_transaction->pay_amount, $game_transaction->bet_amount, 1, $game_transaction->entry_id);
+            ProviderHelper::updateBetTransaction($round_id, $game_transaction->pay_amount, $game_transaction->bet_amount, 0, $game_transaction->entry_id);
             Helper::saveLog('SA Gaming Bet Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
