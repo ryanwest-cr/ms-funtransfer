@@ -410,10 +410,8 @@ class TidyController extends Controller
 		$guzzle_response = $client->post($client_details->fund_transfer_url,
 		    ['body' => json_encode($requesttosend)]
 		);
-	    $client_response = json_decode($guzzle_response->getBody()->getContents());
-
-	
-
+		$client_response = json_decode($guzzle_response->getBody()->getContents());
+		
     	$round_id = $reference_transaction_uuid;
 	    $win = 4;
 	    $entry_id = 1;
