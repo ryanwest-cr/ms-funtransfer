@@ -39,6 +39,8 @@ class PragmaticPLayController extends Controller
                 "currency" => $currency,
                 "cash" => $balance,
                 "bonus" => 0.00,
+                "country" => $country,
+                "jurisdiction" => "99",
                 "betLimits" => array(
                     "defaultBet" => 0.10,
                     "minBet" => 0.02,
