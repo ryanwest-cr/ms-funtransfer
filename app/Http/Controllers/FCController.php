@@ -23,7 +23,7 @@ class FCController extends Controller
         return FCHelper::AESDecode($data);
     }
     public function gameLaunch(Request $request){
-        return FCHelper::addMember(117,1);
+        //return FCHelper::addMember(117,1);
         return FCHelper::loginGame(117,21003,1,'https://daddy.betrnk.games/');
     }
     public function transactionMake(Request $request){
