@@ -203,6 +203,9 @@ $app->post('/api/bng/generateGame','BNGController@generateGame');
 $app->post('/api/fc/encrypt','FCController@SampleEncrypt');
 $app->post('/api/fc/decode','FCController@SampleDecrypt');
 $app->post('/api/fc/getbalance','FCController@getBalance');
+$app->post('/api/fc/transaction','FCController@transactionMake');
+$app->post('/api/fc/cancelbet','FCController@cancelBet');
+$app->post('/api/fc/gamelaunch','FCController@gameLaunch');
 
 
 // BETRNK LOTTO
