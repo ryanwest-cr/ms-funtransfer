@@ -10,6 +10,7 @@ use App\Helpers\IAHelper;
 use App\Helpers\AWSHelper;
 use App\Helpers\SAHelper;
 use App\Helpers\TidyHelper;
+use App\Helpers\FCHelper;
 use App\Helpers\ProviderHelper;
 use DB;             
 use Carbon\Carbon;
@@ -28,6 +29,12 @@ class GameLobby{
                 
             }
         }
+    }
+    public static function fcLaunchUrl($game_code,$token,$exitUrl,$lang="en"){
+        $client = GameLobby::getClientDetails("token",$token);
+        Helper::savePLayerGameRound($game_code,$token);
+        $data = FCHelper::loginGame($client->player_id,$game_code,1,$exitUrl);
+        return $data["Url"];
     }
     public static function booongoLaunchUrl($game_code,$token,$exitUrl){
         $lang = "en";
@@ -149,7 +156,7 @@ class GameLobby{
         return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 
-     public static function awsLaunchUrl($token,$game_code,$lang){
+     public static function awsLaunchUrl($token,$game_code,$lang='en'){
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $provider_reg_currency = Providerhelper::getProviderCurrency(21, $client_details->default_currency);
         if($provider_reg_currency == 'false'){
@@ -159,7 +166,7 @@ class GameLobby{
         if($player_check->code == 100){ // Not Registered!
             $register_player = AWSHelper::playerRegister($token);
             if($register_player->code != 2217 || $register_player->code != 0){
-                 Helper::saveLog('AWS BO Launch Game Failed', 21, $register_player, $register_player);
+                 Helper::saveLog('AWS Launch Game Failed', 21, json_encode($register_player), $register_player);
                  return 'false';
             }
         }
@@ -183,7 +190,7 @@ class GameLobby{
             ['body' => json_encode($requesttosend)]
         );
         $provider_response = json_decode($guzzle_response->getBody()->getContents());
-        Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
+        Helper::saveLog('AWS Launch Game', 21, json_encode($requesttosend), $provider_response);
         return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
     }
 
@@ -495,7 +502,8 @@ class GameLobby{
 
     public static function oryxLaunchUrl($game_code,$token,$exitUrl){
         $url = $exitUrl;
-        $url = 'https://cdn.oryxgaming.com/badges/ORX/_P168/2019-P09.05/index.html?token='.$token.'&gameCode='.$game_code.'&languageCode=ENG&play_mode=REAL&lobbyUrl=OFF';
+        /*$url = 'https://cdn.oryxgaming.com/badges/ORX/_P168/2019-P09.05/index.html?token='.$token.'&gameCode='.$game_code.'&languageCode=ENG&play_mode=REAL&lobbyUrl=OFF';*/
+        $url = 'https://play-prodcopy.oryxgaming.com/agg_plus_public/launch/wallets/WELLTREASURETECH/games/'.$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=REAL';
         return $url;
     }
     
