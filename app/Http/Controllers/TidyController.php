@@ -373,16 +373,21 @@ class TidyController extends Controller
 
 		
 		if($existing_bet == 'false'){
-			$data_response = [
-				'error' => '99-012' // 99-012 transaction_does_not_exist
-			];
+			$data_response = array(
+				'error_code' 	=> '99-012',
+				'error_msg'  	=> 'transaction_does_not_exist',
+				'request_uuid'	=> $request_uuid
+			);
 			return $data_response;
 		}
 		$refund_call = ProviderHelper::findGameExt($reference_transaction_uuid, 3,'transaction_id');
 		if($refund_call != 'false'){
-			$data_response = [
-				'error' => '99-013' // transaction rolledback
-			];
+
+			$data_response = array(
+				'error_code' 	=> '99-013',
+				'error_msg'  	=> 'transaction_rolled_back',
+				'request_uuid'	=> $request_uuid
+			);
 			return $data_response;
 		}
 
@@ -427,16 +432,20 @@ class TidyController extends Controller
 	    $win = 4;
 	    $entry_id = 1;
 	    $amount = $bet_transaction->bet_amount;
-	    $data_response = [
-    		"uid" => $uid,
-    		"request_uuid" => $request_uuid,
-    		"currency" => TidyHelper::currencyCode($client_details->default_currency),
-    		"balance" => $client_response->fundtransferresponse->balance
-    	];
+	 
+		$num = $client_response->fundtransferresponse->balance;
+		$balance = (double)$num;
 
-    	$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid,$reference_transaction_uuid, $bet_transaction->bet_amount, 3, $data, $data_response, $requesttosend, $client_response, $data_response);
+		$data_response = [
+			"uid" => $uid,
+			"request_uuid" => $request_uuid,
+			"currency" => TidyHelper::currencyCode($client_details->default_currency),
+			"balance" => $balance
+		];
+
+    	ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid,$reference_transaction_uuid, $bet_transaction->bet_amount, 3, $data, $data_response, $requesttosend, $client_response, $data_response);
     	$game_update_refound = $this->rollbackTransaction($round_id, $win, $entry_id);
-    	Helper::saveLog('Tidy Rollback Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
+		Helper::saveLog('Tidy Rollback Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 	    return $data_response;
 
 	}
