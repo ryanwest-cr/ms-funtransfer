@@ -74,17 +74,13 @@ class SkyWindController extends Controller
 
     /* TEST */
     public function getGameUrl(Request $request){
-
-        $gg = Helper::checkClientGameAccess(8, 'Tidy', 112);
-        dd($gg);
-        return 1;
-
+         $game_code = 'sw_2pd';
          $http = new Client();
          $requesttosend = [
-             'gameCode' => $request->game_code,
-             'ticket' => $request->token
+             'gameCode' => $game_code,
+             'ticket' => 'z6474fa001710bc1080e49d35ce253c2'
          ];
-         $response = $http->post($this->login_url.'fun/games/{gameCode}', [
+         $response = $http->post($this->login_url.'fun/games/'.$game_code, [
             'form_params' => $requesttosend,
          ]);
 
