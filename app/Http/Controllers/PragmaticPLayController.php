@@ -184,7 +184,7 @@ class PragmaticPLayController extends Controller
             "response" => $response 
         );
 
-        $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, $entry_id, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+        $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 2, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
 
         Helper::saveLog('PP result', 49, json_encode($data) , $response);
         
