@@ -77,39 +77,33 @@ class SkyWindController extends Controller
                 'X-ACCESS-TOKEN' => $player_login->accessToken,
             ]
         ]);
-         // $requesttosend = [
-         //     'ticket' => 'z6474fa001710bc1080e49d35ce253c2'
-         // ];
-         $response = $client->post($this->api_url.'/v1/games/info/search');
-
-         //  $response = $http->post($this->api_url.'/games/info/search', [
-         //    'form_params' => $requesttosend,
-         // ]);
-
+  
+        $response = $client->get($this->api_url.'/v1/games/info/search?limit=20');
         $response = $response->getBody()->getContents();
+        return $response;
     }
 
     /* TEST */
     public function getGameUrl(Request $request){
+      $game = $this->getGamelist();
+      $game_code = 'sw_2pd';
+      $client = new Client([
+          'headers' => [ 
+              'Content-Type' => 'application/json',
+              'X-ACCESS-TOKEN' => $player_login->accessToken,
+          ]
+      ]);
+      $requesttosend = [
+           'gameCode' => $game_code,
+           'ticket' => 'z6474fa001710bc1080e49d35ce253c2'
+      ];
+      $response = $client->post($this->login_url.'fun/games/'.$game_code, [
+          'form_params' => $requesttosend,
+      ]);
 
-        $game = $this->getGamelist();
-        // $game = $this->getAuth();
-        dd($game);
-        // return $game->accessToken;
-
-         $game_code = 'sw_2pd';
-         $http = new Client();
-         $requesttosend = [
-             'gameCode' => $game_code,
-             'ticket' => 'z6474fa001710bc1080e49d35ce253c2'
-         ];
-         $response = $http->post($this->login_url.'fun/games/'.$game_code, [
-            'form_params' => $requesttosend,
-         ]);
-
-        $response = $response->getBody()->getContents();
-        // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
-        dd($response);
+      $response = $response->getBody()->getContents();
+      // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
+      dd($response);
     }
 
     /**

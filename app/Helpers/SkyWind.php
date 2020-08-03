@@ -3,7 +3,6 @@ namespace App\Helpers;
 
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
-use App\Helpers\SilkStone;
 use App\Helpers\GameLobby;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
@@ -11,6 +10,25 @@ use Carbon\Carbon;
 use DB;
 
 class SkyWind{
+
+
+    public function userLogin(Request $request){
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+            ]
+        ]);
+         $requesttosend = [
+             "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+             "username" => "TGAMESU_USER",
+             "password" => "Tgames1234"
+         ];
+        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
+                ['body' => json_encode($requesttosend)]
+        );
+        $client_response = json_decode($guzzle_response->getBody()->getContents());
+       return $client_response;
+    }
 
 	public static function getJWToken(){
         $requesttosend = [
