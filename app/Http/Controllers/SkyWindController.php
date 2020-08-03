@@ -22,9 +22,10 @@ class SkyWindController extends Controller
 {
 
     public $api_url, $seamless_key, $seamless_username, $seamless_password, $merchant_data, $merchant_password;
-    public $provider_id = 22; // ID ON OUR DATABASE
+    public $provider_db_id; // ID ON OUR DATABASE
 
     public function __construct(){
+        $this->provider_db_id = config('providerlinks.skywind.provider_db_id');
         $this->api_url = config('providerlinks.skywind.api_url');
         $this->seamless_key = config('providerlinks.skywind.seamless_key');
         $this->seamless_username = config('providerlinks.skywind.seamless_username');
@@ -84,8 +85,10 @@ class SkyWindController extends Controller
     }
 
     /* TEST */
-    public function getGameUrl(Request $request){
-      $game = $this->getGamelist();
+    public function gameLaunch(Request $request){
+
+      $gg = SkyWind::userLogin();
+      dd($gg);
       $game_code = 'sw_2pd';
       $client = new Client([
           'headers' => [ 
@@ -180,7 +183,7 @@ class SkyWindController extends Controller
      * 
      */
     public  function gameDebit(Request $request){
-        Helper::saveLog('Skywind Debit', $this->provider_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('Skywind Debit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
         if($client_details == null){ 
             $response = [
@@ -260,7 +263,7 @@ class SkyWindController extends Controller
      */
     public  function gameCredit(Request $request){
 
-        Helper::saveLog('Skywind Credit', $this->provider_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('Skywind Credit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
         if($client_details == null){ 
              $response = [
@@ -341,7 +344,7 @@ class SkyWindController extends Controller
         // $game_transaction = SkyWind::admin_kiosk;
         // dd($this->seamless_key);
 
-        Helper::saveLog('Skywind Credit', $this->provider_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('Skywind Credit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
         if($client_details == null){ 
              $response = [
