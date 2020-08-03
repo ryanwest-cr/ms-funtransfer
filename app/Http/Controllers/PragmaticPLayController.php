@@ -159,7 +159,6 @@ class PragmaticPLayController extends Controller
 
         $income = $game_trans[0]->bet_amount - $data->amount;
         $win = $income > 0 ? 0 : 1;
-        $entry_id = $win == 0 ? '1' : '2';
         
         $updateGameTrans = DB::table('game_transactions')
             ->where("round_id","=",$data->roundId)
@@ -167,7 +166,7 @@ class PragmaticPLayController extends Controller
                 "win" => $win,
                 "pay_amount" => $data->amount,
                 "income" => $income,
-                "entry_id" => $entry_id
+                "entry_id" => 2
             ]);
         $response = array(
             "transactionId" => $game_trans[0]->game_trans_id,
@@ -185,7 +184,7 @@ class PragmaticPLayController extends Controller
             "response" => $response 
         );
 
-        $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, $entry_id, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+        $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 2, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
 
         Helper::saveLog('PP result', 49, json_encode($data) , $response);
         

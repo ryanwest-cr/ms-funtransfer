@@ -198,7 +198,7 @@ class HabaneroController extends Controller
 
                     if(count($check_game_trans) > 0){ //check if game round is exist
 
-                        if($details->fundtransferrequest->funds->fundinfo[0]->amount < 0){ // checking for "double" in table games
+                        if($details->fundtransferrequest->funds->fundinfo[0]->amount < 0 && $details->fundtransferrequest->funds->fundinfo[0]->gamestatemode == 0){ // checking for "double" in table games
 
                             $bet_amount = $check_game_trans[0]->bet_amount + abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
 
@@ -221,7 +221,7 @@ class HabaneroController extends Controller
                             $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
                             
                             
-                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["bet_amount" => $bet_amount, "pay_amount" => 0.00, "income" => $income, "win" => 1 ]);
+                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["bet_amount" => $bet_amount, "pay_amount" => 0.00, "income" => $income, "win" => 0 ]);
     
                             $transaction_detail = [
                                 'game_code' => $check_game_trans[0]->game_trans_id,
@@ -241,7 +241,11 @@ class HabaneroController extends Controller
 
                             $payout = $check_game_trans[0]->pay_amount + abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
 
-                            $freeSpin = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->fundinfo[0]->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency);
+                            $entry_id = $payout == 0 ? 1 : 2;
+                            $entry = $payout == 0 ? 'debit' : 'credit';
+
+                            $freeSpin = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->fundinfo[0]->amount) , $client, $client_details->fund_transfer_url, $entry,$client_details->default_currency);
+
                             $response = [
                                 "fundtransferresponse" => [
                                     "status" => [
@@ -259,8 +263,9 @@ class HabaneroController extends Controller
                             $jpwin = $details->fundtransferrequest->funds->fundinfo[0]->jpwin;
                             $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
                             
-                            
-                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["pay_amount" => $payout, "income" => $income, "win" => 1 ]);
+                            $win = $payout == 0 ? 0 : 1;
+
+                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["pay_amount" => $payout, "income" => $income, "win" => $win, "entry_id" => $entry_id ]);
     
                             $transaction_detail = [
                                 'game_code' => $check_game_trans[0]->game_trans_id,
