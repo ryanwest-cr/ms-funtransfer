@@ -33,6 +33,7 @@ class SkyWindController extends Controller
         $this->merchant_password = config('providerlinks.skywind.merchant_password');
     }
 
+    // BOTH XXX FORM BODY and JSONFORM works
     public function getAuth(Request $request){
          $http = new Client();
          $requesttosend = [
@@ -40,12 +41,12 @@ class SkyWindController extends Controller
              "username" => "TGAMESU_USER",
              "password" => "Tgames1234"
          ];
-         $response = $http->post('https://api.gcpstg.m27613.com/login', [
+         $response = $http->post('https://api.gcpstg.m27613.com/v1/login', [
             'form_params' => $requesttosend,
          ]);
 
         $response = $response->getBody()->getContents();
-        Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
+        // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
         return $response;
     }
 
@@ -61,11 +62,11 @@ class SkyWindController extends Controller
              "password" => "Tgames1234"
          ];
 
-        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/login',
+        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
                 ['body' => json_encode($requesttosend)]
         );
         $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
+       dd($client_response);
     }
 
 
@@ -83,8 +84,8 @@ class SkyWindController extends Controller
          ]);
 
         $response = $response->getBody()->getContents();
-        Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
-        return $response;
+        // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
+        dd($response);
     }
 
     /**
