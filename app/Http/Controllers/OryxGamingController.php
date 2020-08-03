@@ -139,7 +139,7 @@ class OryxGamingController extends Controller
 
 				// Check if the game is available for the client
 				$subscription = new GameSubscription();
-				$client_game_subscription = $subscription->check($client_details->client_id, 3, $json_data['gameCode']);
+				$client_game_subscription = $subscription->check($client_details->client_id, 18, $json_data['gameCode']);
 
 				if(!$client_game_subscription) {
 					$response = [
@@ -220,7 +220,7 @@ class OryxGamingController extends Controller
 
 				// Check if the game is available for the client
 				$subscription = new GameSubscription();
-				$client_game_subscription = $subscription->check($client_details->client_id, 3, $json_data['gameCode']);
+				$client_game_subscription = $subscription->check($client_details->client_id, 18, $json_data['gameCode']);
 
 				if(!$client_game_subscription) {
 					$response = [

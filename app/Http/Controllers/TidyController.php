@@ -150,7 +150,7 @@ class TidyController extends Controller
 		$bet_id = $data->bet_id;
 		$request_uuid = $data->request_uuid;
 		$transaction_uuid = $data->transaction_uuid;
-
+		$reference_transaction_uuid = $data->reference_transaction_uuid;
 		$client_details = ProviderHelper::getClientDetails('token',$token); // cheking the token and get details
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
@@ -224,7 +224,7 @@ class TidyController extends Controller
     		"balance" =>  $balance
     	];
 		$bet_transaction = ProviderHelper::findGameTransaction($bet_id, 'round_id',1);
-		if ($bet_transaction == 'false'){
+		if ($bet_transaction == 'false' && $reference_transaction_uuid != ''){
 			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
 			$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
 			Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
