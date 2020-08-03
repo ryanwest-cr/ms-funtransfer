@@ -136,6 +136,7 @@ $app->post('ia/deposit', 'IAESportsController@seamlessDeposit');
 $app->post('ia/withdrawal', 'IAESportsController@seamlessWithdrawal');
 $app->post('ia/balance', 'IAESportsController@seamlessBalance');
 $app->post('ia/searchorder', 'IAESportsController@seamlessSearchOrder');
+$app->post('ia/debugg', 'IAESportsController@userlaunch');
 // Bole Gaming Endpoints
 $app->post('/api/bole/register', 'BoleGamingController@playerRegister');
 $app->post('/api/bole/logout', 'BoleGamingController@playerLogout');
@@ -201,6 +202,10 @@ $app->post('/api/bng/generateGame','BNGController@generateGame');
 //FC GAMING Endpoints
 $app->post('/api/fc/encrypt','FCController@SampleEncrypt');
 $app->post('/api/fc/decode','FCController@SampleDecrypt');
+$app->post('/api/fc/getbalance','FCController@getBalance');
+$app->post('/api/fc/transaction','FCController@transactionMake');
+$app->post('/api/fc/cancelbet','FCController@cancelBet');
+$app->post('/api/fc/gamelaunch','FCController@gameLaunch');
 
 
 // BETRNK LOTTO

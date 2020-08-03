@@ -10,6 +10,7 @@ use App\Helpers\IAHelper;
 use App\Helpers\AWSHelper;
 use App\Helpers\SAHelper;
 use App\Helpers\TidyHelper;
+use App\Helpers\FCHelper;
 use App\Helpers\ProviderHelper;
 use DB;             
 use Carbon\Carbon;
@@ -28,6 +29,12 @@ class GameLobby{
                 
             }
         }
+    }
+    public static function fcLaunchUrl($game_code,$token,$exitUrl,$lang="en"){
+        $client = GameLobby::getClientDetails("token",$token);
+        Helper::savePLayerGameRound($game_code,$token);
+        $data = FCHelper::loginGame($client->player_id,$game_code,1,$exitUrl);
+        return $data["Url"];
     }
     public static function booongoLaunchUrl($game_code,$token,$exitUrl){
         $lang = "en";
@@ -495,7 +502,8 @@ class GameLobby{
 
     public static function oryxLaunchUrl($game_code,$token,$exitUrl){
         $url = $exitUrl;
-        $url = 'https://cdn.oryxgaming.com/badges/ORX/_P168/2019-P09.05/index.html?token='.$token.'&gameCode='.$game_code.'&languageCode=ENG&play_mode=REAL&lobbyUrl=OFF';
+        /*$url = 'https://cdn.oryxgaming.com/badges/ORX/_P168/2019-P09.05/index.html?token='.$token.'&gameCode='.$game_code.'&languageCode=ENG&play_mode=REAL&lobbyUrl=OFF';*/
+        $url = 'https://play-prodcopy.oryxgaming.com/agg_plus_public/launch/wallets/WELLTREASURETECH/games/'.$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=REAL';
         return $url;
     }
     
