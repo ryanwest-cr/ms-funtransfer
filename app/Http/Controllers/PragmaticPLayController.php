@@ -257,7 +257,12 @@ class PragmaticPLayController extends Controller
         
         Helper::saveLog('PP sessionExpired request', 49, json_encode($data) ,"sessionExpired");
 
+        $response = array(
+            "error" => 0,
+            "description" => "Success"
+        );
 
+        return $response;
 
     }
 
