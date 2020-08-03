@@ -214,6 +214,53 @@ class PragmaticPLayController extends Controller
         return $response;
     }
 
+    public function endRound(Request $request)
+    {
+        $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
+
+        Helper::saveLog('PP endRound request', 49, json_encode($data) ,"endRound");
+
+
+        $playerId = ProviderHelper::explodeUsername('_',$data->userId);
+        $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+   
+        $response = array(
+            "cash" => $player_details->playerdetailsresponse->balance,
+            "bonus" => 0.00,
+            "error" => 0,
+            "description" => "Success"
+        );
+
+        return $response;
+    }
+    
+    public function getBalancePerGam(Request $request)
+    {
+        $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
+        
+        Helper::saveLog('PP getBalancePerGam request', 49, json_encode($data) ,"getBalancePerGam");
+    }
+
+    public function sessionExpired(Request $request)
+    {
+        $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
+        
+        Helper::saveLog('PP sessionExpired request', 49, json_encode($data) ,"sessionExpired");
+
+
+
+    }
+
     public function refund(Request $request)
     {
         $enc_body = file_get_contents("php://input");
