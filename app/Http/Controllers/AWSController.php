@@ -123,7 +123,7 @@ class AWSController extends Controller
 				"code"=> 0,
 				"data"=> [
 					"currency"=> $client_details->default_currency,
-					"balance"=> return floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
+					"balance"=> floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
 					"bonusBalance"=> 0
 				]
 			];
