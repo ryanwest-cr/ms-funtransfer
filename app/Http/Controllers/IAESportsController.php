@@ -426,7 +426,7 @@ class IAESportsController extends Controller
 	public function seamlessBalance(Request $request)
 	{	
 
-		// Helper::saveLog('IA Balance', 15, json_encode(file_get_contents("php://input")), 'IA CALL');
+		Helper::saveLog('IA Balance', 15, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data_received = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data_received, true));
 		// dd(gettype($cha));
