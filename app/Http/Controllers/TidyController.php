@@ -210,7 +210,7 @@ class TidyController extends Controller
 		$income = 0;
 		$win_type = 0;
 		$method = 1;
-		$win_or_lost = 5; // 0 lost,  5 processing
+		$win_or_lost = 0; // 0 lost,  5 processing
 		$payout_reason = 'Bet';
 		$provider_trans_id = $transaction_uuid;
 
@@ -359,7 +359,7 @@ class TidyController extends Controller
         $data = json_decode($json_encode);
 
 		$game_id = $data->game_id;
-		$uid = $data->username;
+		$uid = $data->uid;
 		$token = $data->token;
 		$request_uuid = $data->request_uuid;
 		$transaction_uuid = $data->transaction_uuid; // MW - provider identifier 
@@ -434,11 +434,9 @@ class TidyController extends Controller
     		"balance" => $client_response->fundtransferresponse->balance
     	];
 
-
     	$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid,$reference_transaction_uuid, $bet_transaction->bet_amount, 3, $data, $data_response, $requesttosend, $client_response, $data_response);
     	$game_update_refound = $this->rollbackTransaction($round_id, $win, $entry_id);
     	Helper::saveLog('Tidy Rollback Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-
 	    return $data_response;
 
 	}
