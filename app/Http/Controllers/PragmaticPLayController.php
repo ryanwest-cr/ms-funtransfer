@@ -115,7 +115,7 @@ class PragmaticPLayController extends Controller
         
         $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency );
 
-        $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, 0.00, $bet_amount, 1, 0, null, null, $bet_amount, $data->reference, $roundId);
+        $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, $bet_amount, 0.00, 1, 0, null, null, $bet_amount, $data->reference, $roundId);
 
         $response = array(
             "transactionId" => $gametrans,
