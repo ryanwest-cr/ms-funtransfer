@@ -74,6 +74,11 @@ class SkyWindController extends Controller
 
     /* TEST */
     public function getGameUrl(Request $request){
+
+        $gg = Helper::checkClientGameAccess(8, 'Tidy', 112);
+        dd($gg);
+        return 1;
+
          $http = new Client();
          $requesttosend = [
              'gameCode' => $request->game_code,

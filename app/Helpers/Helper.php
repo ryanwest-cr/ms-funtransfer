@@ -32,6 +32,37 @@ class Helper
 	    return $token;
 	}
 
+	public static function getSubProvider($sub_provider_name){
+		$sub_provider = DB::table('sub_providers')
+	    	->where('sub_provider_name', $sub_provider_name)
+	    	->first();
+	    return $sub_provider ? $sub_provider : 'false';
+	}
+
+	// client_id, subprovider id, game_code
+	// if excluded = no , client cant play the game
+	// if exluded = yes, client can play the game!
+	// Function Will Return false if the following has matched
+	// no game code for that game
+	// sub provider doest exist
+	// and if the game is excluded for that client
+	public static function checkClientGameAccess($client_id, $sub_provider_name, $game_code){
+		$sub_prodivder_id = Helper::getSubProvider($sub_provider_name);
+		if($sub_prodivder_id == 'false'){
+			return 'false';
+		}
+		$excluded_game = DB::select("SELECT g.game_id, g.game_name, gt.game_type_id, g.provider_id, gt.game_type_name, g.icon, case when game_id IN ( select game_id from game_exclude where cgs_id = ( select cgs_id from client_game_subscribe where client_id = ".$client_id." )) then 'no' else 'yes' end as excluded FROM games g left join game_types gt using(game_type_id) where `sub_provider_id` = ".$sub_prodivder_id->sub_provider_id." AND `game_code` = ".$game_code."");
+		if(count($excluded_game) > 0){
+			if($excluded_game[0]->excluded == 'no'){
+				return 'false'; // CANNOT PLAY!
+			}else{
+				return 'true'; // CAN PLAY
+			}
+		}else{
+			return 'false'; // NULL NO GAME FOUND!
+		}
+	}
+
 	public static function auth_key($api_key, $access_token) {
 		$result = false;
 
