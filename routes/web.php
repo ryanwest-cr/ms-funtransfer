@@ -328,3 +328,5 @@ $app->post('api/pp/refund','PragmaticPLayController@refund');
 $app->post('api/pp/bonusWin','PragmaticPLayController@bonusWin');
 $app->post('api/pp/jackpotWin','PragmaticPLayController@jackpotWin');
 $app->post('api/pp/promoWin','PragmaticPLayController@promoWin');
+$app->post('api/pp/getBalancePerGam ','PragmaticPLayController@getBalancePerGam');
+$app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
