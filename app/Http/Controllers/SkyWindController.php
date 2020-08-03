@@ -61,7 +61,6 @@ class SkyWindController extends Controller
              "username" => "TGAMESU_USER",
              "password" => "Tgames1234"
          ];
-
         $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
                 ['body' => json_encode($requesttosend)]
         );
@@ -71,16 +70,21 @@ class SkyWindController extends Controller
 
 
     public function getGamelist(){
-      api.operatorapi.com/games/info/search
+        $player_login = $this->getAuth();
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'X-ACCESS-TOKEN' => $player_login->accessToken,
+            ]
+        ]);
+         // $requesttosend = [
+         //     'ticket' => 'z6474fa001710bc1080e49d35ce253c2'
+         // ];
+         $response = $client->post($this->api_url.'/v1/games/info/search');
 
-        $http = new Client();
-         $requesttosend = [
-             'gameCode' => $game_code,
-             'ticket' => 'z6474fa001710bc1080e49d35ce253c2'
-         ];
-         $response = $http->post($this->login_url.'fun/games/'.$game_code, [
-            'form_params' => $requesttosend,
-         ]);
+         //  $response = $http->post($this->api_url.'/games/info/search', [
+         //    'form_params' => $requesttosend,
+         // ]);
 
         $response = $response->getBody()->getContents();
     }
@@ -88,7 +92,8 @@ class SkyWindController extends Controller
     /* TEST */
     public function getGameUrl(Request $request){
 
-        $game = $this->getAuth();
+        $game = $this->getGamelist();
+        // $game = $this->getAuth();
         dd($game);
         // return $game->accessToken;
 
@@ -401,12 +406,6 @@ class SkyWindController extends Controller
 
     }
 
-    public function getGameList(){
-
-    	// $get_game_list = SilkStone::makeCall();
-    	// dd($get_game_list);
-
-    }
     /**
      * Create Game Extension Logs bet/Win/Refund
      * @param [int] $[gametransaction_id] [<ID of the game transaction>]
