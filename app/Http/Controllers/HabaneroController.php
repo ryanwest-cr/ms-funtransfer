@@ -220,9 +220,8 @@ class HabaneroController extends Controller
                             $jpwin = $details->fundtransferrequest->funds->fundinfo[0]->jpwin;
                             $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
                             
-                            $win = $bet_amount == 0 ? 0 : 1;
-
-                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["bet_amount" => $bet_amount, "pay_amount" => 0.00, "income" => $income, "win" => $win ]);
+                            
+                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["bet_amount" => $bet_amount, "pay_amount" => 0.00, "income" => $income, "win" => 0 ]);
     
                             $transaction_detail = [
                                 'game_code' => $check_game_trans[0]->game_trans_id,
@@ -260,8 +259,9 @@ class HabaneroController extends Controller
                             $jpwin = $details->fundtransferrequest->funds->fundinfo[0]->jpwin;
                             $bonuswin = $details->fundtransferrequest->funds->fundinfo[0]->isbonus;
                             
-                            
-                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["pay_amount" => $payout, "income" => $income, "win" => 1 ]);
+                            $win = $payout == 0 ? 0 : 1;
+
+                            $update = DB::table('game_transactions')->where("game_trans_id","=",$check_game_trans[0]->game_trans_id)->update(["pay_amount" => $payout, "income" => $income, "win" => $win ]);
     
                             $transaction_detail = [
                                 'game_code' => $check_game_trans[0]->game_trans_id,
