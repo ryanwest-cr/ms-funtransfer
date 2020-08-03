@@ -156,7 +156,7 @@ class GameLobby{
         return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 
-     public static function awsLaunchUrl($token,$game_code,$lang){
+     public static function awsLaunchUrl($token,$game_code,$lang='en'){
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $provider_reg_currency = Providerhelper::getProviderCurrency(21, $client_details->default_currency);
         if($provider_reg_currency == 'false'){
@@ -185,7 +185,7 @@ class GameLobby{
             "gameId" => $game_code,
             "language" => $lang,
         ];
-        // $requesttosend['sign'] = AWSHelper::hashen($requesttosend);
+        $requesttosend['sign'] = AWSHelper::hashen($requesttosend);
         $guzzle_response = $client->post(config('providerlinks.aws.api_url').'/api/login',
             ['body' => json_encode($requesttosend)]
         );
