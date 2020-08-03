@@ -52,7 +52,7 @@ class SkyWind{
             'form_params' => $requesttosend,
         ]);
         $response = $response->getBody()->getContents();
-        Helper::saveLog('Skywind Get Token', 21, $requesttosend, json_encode($response));
+        Helper::saveLog('Skywind Get Ticket', 21, $requesttosend, json_encode($response));
         return $response;
     }
 

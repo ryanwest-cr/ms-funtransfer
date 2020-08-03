@@ -34,7 +34,7 @@ class SkyWindController extends Controller
     }
 
     // BOTH XXX FORM BODY and JSONFORM works
-    public function getAuth(Request $request){
+    public function getAuth(){
          $http = new Client();
          $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
@@ -47,7 +47,7 @@ class SkyWindController extends Controller
 
         $response = $response->getBody()->getContents();
         // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
-        return $response;
+        return json_decode($response);
     }
 
     public function getAuth2(Request $request){
@@ -66,14 +66,32 @@ class SkyWindController extends Controller
                 ['body' => json_encode($requesttosend)]
         );
         $client_response = json_decode($guzzle_response->getBody()->getContents());
-       dd($client_response);
+       return $client_response;
     }
 
 
+    public function getGamelist(){
+      api.operatorapi.com/games/info/search
 
+        $http = new Client();
+         $requesttosend = [
+             'gameCode' => $game_code,
+             'ticket' => 'z6474fa001710bc1080e49d35ce253c2'
+         ];
+         $response = $http->post($this->login_url.'fun/games/'.$game_code, [
+            'form_params' => $requesttosend,
+         ]);
+
+        $response = $response->getBody()->getContents();
+    }
 
     /* TEST */
     public function getGameUrl(Request $request){
+
+        $game = $this->getAuth();
+        dd($game);
+        // return $game->accessToken;
+
          $game_code = 'sw_2pd';
          $http = new Client();
          $requesttosend = [
