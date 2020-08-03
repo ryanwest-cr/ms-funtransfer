@@ -156,7 +156,7 @@ class GameLobby{
         return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 
-     public static function awsLaunchUrl($token,$game_code,$lang){
+     public static function awsLaunchUrl($token,$game_code,$lang='en'){
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $provider_reg_currency = Providerhelper::getProviderCurrency(21, $client_details->default_currency);
         if($provider_reg_currency == 'false'){
@@ -166,7 +166,7 @@ class GameLobby{
         if($player_check->code == 100){ // Not Registered!
             $register_player = AWSHelper::playerRegister($token);
             if($register_player->code != 2217 || $register_player->code != 0){
-                 Helper::saveLog('AWS BO Launch Game Failed', 21, $register_player, $register_player);
+                 Helper::saveLog('AWS Launch Game Failed', 21, json_encode($register_player), $register_player);
                  return 'false';
             }
         }
@@ -190,7 +190,7 @@ class GameLobby{
             ['body' => json_encode($requesttosend)]
         );
         $provider_response = json_decode($guzzle_response->getBody()->getContents());
-        Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
+        Helper::saveLog('AWS Launch Game', 21, json_encode($requesttosend), $provider_response);
         return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
     }
 
