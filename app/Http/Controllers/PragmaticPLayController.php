@@ -158,7 +158,7 @@ class PragmaticPLayController extends Controller
         $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
         $income = $game_trans[0]->bet_amount - $data->amount;
-        $win = $income > 0 ? 0 : 1;
+        $win = 1;
         
         $updateGameTrans = DB::table('game_transactions')
             ->where("round_id","=",$data->roundId)
