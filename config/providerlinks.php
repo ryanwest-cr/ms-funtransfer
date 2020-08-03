@@ -132,6 +132,12 @@ return [
         'WL'=>'prod',
         'API_TOKEN'=>'hj1yPYivJmIX4X1I1Z57494re',
     ],
+    'fcgaming'=>[
+        'url' => 'http://api.fcg666.net',
+        'AgentCode' => 'TG',
+        'AgentKey' => '8t4A17537S1d5rwz',
+        
+    ]
     
 ];
 
