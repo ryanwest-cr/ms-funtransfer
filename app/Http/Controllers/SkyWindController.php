@@ -66,13 +66,12 @@ class SkyWindController extends Controller
 
     /* TEST */
     public function gameLaunch(Request $request){
-      try {
+      // try {
         $player_login = SkyWind::userLogin();
         $game_code = 'sw_2pd';
+        $username = 'TG_98';
         $token = 'n58ec5e159f769ae0b7b3a0774fdbf80';
-        // $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?'.$token.'';
-        // $url = ''.config('providerlinks.skywind.api_url').'/players/'.$token.'/games/'.$game_code.'/ticket/'.$token.'';
-        $url = ''.config('providerlinks.skywind.api_url').'/players/'.$token.'/games/'.$game_code;
+        $url = ''.config('providerlinks.skywind.api_url').'/players/'.$username.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
@@ -84,9 +83,9 @@ class SkyWindController extends Controller
         Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
         $url = json_decode($response, true);
         return $url;
-      } catch (\Exception $e) {
-        return $e->getMessage();
-      }
+      // } catch (\Exception $e) {
+      //   return $e->getMessage();
+      // }
     }
 
     /**
@@ -99,20 +98,20 @@ class SkyWindController extends Controller
       Helper::saveLog('Skywind Game Launch', 21, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
       Helper::saveLog('Skywind Game Launch', 21, json_encode($request->all()), 'DEMO');
 
-      // $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
-      // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+      $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
+      $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-    	// $response = [
-    	// 	"error_code" => 0,
-    	// 	"cust_session_id" => 'tst',
-    	// 	"cust_id" => $client_details->player_id,
-    	// 	"currency_code" => $client_details->default_currency,
-    	// 	"test_cust" => false,
-    	// 	// "country" => "GB", // Optional
-    	// 	// "game_group" => "Double Bets Group", // Optional
-    	// 	// "rci" => 60, // Optional
-    	// 	// "rce" => 11  // Optional
-    	// ];
+    	$response = [
+    		"error_code" => 0,
+    		"cust_session_id" => 'tst',
+    		"cust_id" => $client_details->player_id,
+    		"currency_code" => $client_details->default_currency,
+    		"test_cust" => false,
+    		// "country" => "GB", // Optional
+    		// "game_group" => "Double Bets Group", // Optional
+    		// "rci" => 60, // Optional
+    		// "rce" => 11  // Optional
+    	];
 
     	// return $response;
     }
