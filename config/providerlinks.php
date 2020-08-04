@@ -138,6 +138,11 @@ return [
         'AgentCode' => 'TG',
         'AgentKey' => '8t4A17537S1d5rwz',
         
+    ],
+    'tgg' => [
+        'api_url' => 'http://api.flexcontentprovider.com',
+        'project_id' => '1421',
+        'secretkey' => '29abd3790d0a5acd532194c5104171c8',
     ]
     
 ];
