@@ -114,13 +114,13 @@ class PragmaticPLayController extends Controller
         $roundId = $data->roundId;
         
         $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency );
-
+        
         $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, $bet_amount, 0.00, 1, 0, null, null, $bet_amount, $data->reference, $roundId);
 
         $response = array(
             "transactionId" => $gametrans,
             "currency" => $client_details->default_currency,
-            "cash" => $player_details->playerdetailsresponse->balance,
+            "cash" => $responseDetails['client_response']->fundtransferresponse->balance,
             "bonus" => 0.00,
             "usedPromo" => 0,
             "error" => 0,
@@ -129,14 +129,14 @@ class PragmaticPLayController extends Controller
 
         $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
-        $response = array(
-            "transactionId" => $game_trans[0]->game_trans_id,
-            "currency" => $client_details->default_currency,
-            "cash" => $player_details->playerdetailsresponse->balance,
-            "bonus" => 0,
-            "error" => 0,
-            "description" => "Success"
-        );
+        // $response = array(
+        //     "transactionId" => $game_trans[0]->game_trans_id,
+        //     "currency" => $client_details->default_currency,
+        //     "cash" => $clientDetalsResponse['client_response']->fundtransferresponse->balance,
+        //     "bonus" => 0,
+        //     "error" => 0,
+        //     "description" => "Success"
+        // );
 
         $trans_details = array(
             "game_trans_id" => $game_trans[0]->game_trans_id,
@@ -193,7 +193,7 @@ class PragmaticPLayController extends Controller
         $response = array(
             "transactionId" => $game_trans[0]->game_trans_id,
             "currency" => $client_details->default_currency,
-            "cash" => $player_details->playerdetailsresponse->balance,
+            "cash" => $responseDetails['client_response']->fundtransferresponse->balance,
             "bonus" => 0,
             "error" => 0,
             "description" => "Success",
@@ -257,7 +257,13 @@ class PragmaticPLayController extends Controller
         
         Helper::saveLog('PP sessionExpired request', 49, json_encode($data) ,"sessionExpired");
 
+        $response = array(
+            "error" => 0,
+            "description" => "Success"
+        );
 
+        Helper::saveLog('PP sessionExpired request', 49, json_encode($data) , $response);
+        return $response;
 
     }
 

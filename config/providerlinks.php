@@ -109,7 +109,8 @@ return [
         'secretkey' => 'c270d53d4d83d69358056dbca870c0ce',
     ],
     'skywind' => [
-        'api_url' => 'https://api.gcpstg.m27613.com',
+        'provider_db_id' => 28, // Database ID nothing todo with the provider!
+        'api_url' => 'https://api.gcpstg.m27613.com/v1',
         'seamless_key' => '47138d18-6b46-4bd4-8ae1-482776ccb82d',
         'seamless_username' => 'TGAMESU_USER',
         'seamless_password' => 'Tgames1234',
@@ -137,6 +138,11 @@ return [
         'AgentCode' => 'TG',
         'AgentKey' => '8t4A17537S1d5rwz',
         
+    ],
+    'tgg' => [
+        'api_url' => 'http://api.flexcontentprovider.com',
+        'project_id' => '1421',
+        'secretkey' => '29abd3790d0a5acd532194c5104171c8',
     ]
     
 ];
