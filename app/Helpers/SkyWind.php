@@ -17,12 +17,14 @@ class SkyWind{
                 'Content-Type' => 'application/json',
             ]
         ]);
+        $url = ''.config('providerlinks.skywind.api_url').'/login';
         $requesttosend = [
              "secretKey" => config('providerlinks.skywind.seamless_key'), // Seamless key
              "username" => config('providerlinks.skywind.seamless_username'),
              "password" => config('providerlinks.skywind.seamless_password')
         ];
-        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
+        Helper::saveLog('Skywind Key Request', config('providerlinks.skywind.provider_db_id'), json_encode($requesttosend), $requesttosend);
+        $guzzle_response = $client->post($url,
                 ['body' => json_encode($requesttosend)]
         );
         $client_response = json_decode($guzzle_response->getBody()->getContents());
