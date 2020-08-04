@@ -44,7 +44,6 @@ class SkyWindController extends Controller
          $response = $http->post('https://api.gcpstg.m27613.com/v1/login', [
             'form_params' => $requesttosend,
          ]);
-
         // $response = $response->getBody()->getContents();
         // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
         $response = json_encode(json_decode($response->getBody()->getContents()));
