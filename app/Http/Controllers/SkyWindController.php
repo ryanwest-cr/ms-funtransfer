@@ -34,6 +34,23 @@ class SkyWindController extends Controller
         $this->merchant_password = config('providerlinks.skywind.merchant_password');
     }
 
+     public function getAuth(){
+         $http = new Client();
+         $requesttosend = [
+             "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+             "username" => "TGAMESU_USER",
+             "password" => "Tgames1234"
+         ];
+         $response = $http->post('https://api.gcpstg.m27613.com/v1/login', [
+            'form_params' => $requesttosend,
+         ]);
+        // $response = $response->getBody()->getContents();
+        // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
+        $response = json_encode(json_decode($response->getBody()->getContents()));
+        $url = json_decode($response, true);
+        return $url;
+    }
+
     public function getGamelist(){
         $player_login = SkyWind::userLogin();
         $client = new Client([
@@ -49,21 +66,26 @@ class SkyWindController extends Controller
 
     /* TEST */
     public function gameLaunch(Request $request){
-      $player_login = SkyWind::userLogin();
-      $game_code = 'sw_2pd';
-      $token = 'n58ec5e159f769ae0b7b3a0774fdbf80';
-      $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?'.$token.'';
-      $client = new Client([
-          'headers' => [ 
-              'Content-Type' => 'application/json',
-              'X-ACCESS-TOKEN' => $player_login->accessToken,
-          ]
-      ]);
-      $response = $client->get($url);
-      $response = json_encode(json_decode($response->getBody()->getContents()));
-      Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
-      $url = json_decode($response, true);
-      return $url;
+      try {
+        $player_login = SkyWind::userLogin();
+        $game_code = 'sw_2pd';
+        $token = 'n58ec5e159f769ae0b7b3a0774fdbf80';
+        // $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?'.$token.'';
+        $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?'.$token.'';
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'X-ACCESS-TOKEN' => $player_login->accessToken,
+            ]
+        ]);
+        $response = $client->get($url);
+        $response = json_encode(json_decode($response->getBody()->getContents()));
+        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
+        $url = json_decode($response, true);
+        return $url;
+      } catch (\Exception $e) {
+        return $e->getMessage();
+      }
     }
 
     /**
