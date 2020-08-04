@@ -158,6 +158,9 @@ $app->post('api/aws/single/wallet/fund/transfer', 'AWSController@singleFundTrans
 $app->post('api/aws/single/wallet/fund/query', 'AWSController@singleFundQuery');
 $app->post('api/aws/single/wallet/altest', 'AWSController@changeAccount');
 // SILKSTONE ROUTES (SEAMLESS WALLET)
+// $app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
+$app->post('skywind/api/getauth', 'SkyWindController@getAuth');
+$app->post('skywind/api/getauth2', 'SkyWindController@getAuth2');
 $app->post('skywind/api/getgames', 'SkyWindController@getGameUrl');
 $app->post('skywind/api/gamelaunch', 'SkyWindController@gameLaunch');
 $app->post('skywind/api/validate_ticket', 'SkyWindController@validateTicket');
@@ -165,9 +168,7 @@ $app->post('skywind/api/get_balance', 'SkyWindController@getBalance');
 $app->post('skywind/api/debit', 'SkyWindController@gameDebit');
 $app->post('skywind/api/credit', 'SkyWindController@gameCredit');
 $app->post('skywind/api/rollback', 'SkyWindController@gameRollback');
-$app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
-$app->post('skywind/api/getauth', 'SkyWindController@getAuth');
-$app->post('skywind/api/getauth2', 'SkyWindController@getAuth2');
+
 //Player API
 //Operator API
 //Lobby API
