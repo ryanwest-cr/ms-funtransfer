@@ -26,10 +26,13 @@ class TGGController extends Controller
 		$md5 = array();
 		$md5[] = $system_id;
 		$md5[] = $version;
-
-		$signature = $args['signature']; // store the signature
-		unset($args['signature']); // remove signature from the array
 		
+	
+		if($type == 'check_signature'){
+			$signature = $args['signature']; // store the signature
+			unset($args['signature']); // remove signature from the array
+		}
+
 		foreach ($args as $required_arg) {
 			$arg = $required_arg;
 			if(is_array($arg)){
@@ -63,16 +66,16 @@ class TGGController extends Controller
 
 	public function getGamelist(Request $request){
 		$data = [
-			'signature' => '5398089ccaa419b19110a05bed29a5d0',
-			'need_extra_data' => 1
+			'signature' => 'e5e1757feaf0301856ad9c309741f283',
 		];
 		$signature =  $this->getSignature($this->project_id, 1,$data,$this->api_key,'get_signature');
+		
 		$url = $this->api_url.'/game/getlist';
         $requesttosend = [
             'project' =>  $this->project_id,
 			'version' => 1 ,
-			'signature' => $signature,
-			'need_extra_data' => 1
+			'signature' => $signature
+		
 		];
         $client = new Client([
             'headers' => [ 
@@ -88,16 +91,17 @@ class TGGController extends Controller
 
 
 	public function getURL(){
-		$data = [
-			'project'=> 113, //int
-			'version'=> 1, //int
-			'signature'=> 'f41979c1fe708313c66acada53f913d1',//string 32
-			'token'=> 'j45hg67j45h7g45k45j7hk45j74k57g4k5jg74k574k7j4k57',//string 49
-			'game'=> 'fullstate\html5\ugproduction\luckylimo',//string 34
+        //$client_details = Providerhelper::getClientDetails('token', $token);
+        //$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+		$requesttosend = [
+			'project' => $this->project_id,
+			'version' => 1,
+			'signature' => '12602ed9feab200ba16b2ff03ddcb31e',
+			'token'=> 'n58ec5e159f769ae0b7b3a0774fdbf80',//string 49
+			'game'=> 'fullstate\\html5\\novomatic\\dolphinspearl',//string 34
 			'settings'=> [
-				'user_id'=> 'testuserG407',//string 12
-				'exit_url'=> 'https://google.com?test=1&test2=2#exit_url',//string 43
-				'cash_url'=> 'https://google.com?test=1&test2=2#cash_url',//string 43
+				'user_id'=> 'TGG_98',//string 12
+				'platform' => 'desktop',
 				'language'=> 'en',//string 2
 				'denominations'=> [
 					0 => 0.01,//float
@@ -113,7 +117,17 @@ class TGGController extends Controller
 			'return_url_info'=> 1,//int
 			'callback_version'=> 2//int
 		];
-		return $data;
+		$url = $this->api_url.'/game/getURL';
+        $client = new Client([
+            'headers' => [ 
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer '.$requesttosend['signature']
+            ]
+        ]);
+        $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
+        );
+        $client_response = json_decode($guzzle_response->getBody()->getContents());
+        return $client_response->data->link;
 	}
 	/**
 	 * Initialize the balance 
