@@ -116,20 +116,16 @@ class SkyWindController extends Controller
      * 
      */
     public function validateTicket(Request $request){
-      // Helper::saveLog('Skywind Game Launch', 21, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
-      // Helper::saveLog('Skywind Game Launch', 21, json_encode($request->all()), 'DEMO');
-
+      Helper::saveLog('Skywind Game Launch', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
+      Helper::saveLog('Skywind Game Launch', $this->provider_db_id, json_encode($request->all()), 'DEMO');
       $raw_request = file_get_contents("php://input");
       parse_str($raw_request, $data);
-
       $token = $data['ticket'];
-
       $client_details = Providerhelper::getClientDetails('token',$token); // ticket
       $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-
     	$response = [
     		"error_code" => 0,
-    		"cust_session_id" => 'tst',
+    		"cust_session_id" => $client_details->player_token,
     		"cust_id" => $client_details->player_id,
     		"currency_code" => $client_details->default_currency,
     		"test_cust" => false,
@@ -138,7 +134,6 @@ class SkyWindController extends Controller
     		// "rci" => 60, // Optional
     		// "rce" => 11  // Optional
     	];
-
     	return $response;
     }
 
@@ -153,7 +148,6 @@ class SkyWindController extends Controller
         // $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
         // dd($client_details);
         // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-
         $response = [
             "error_code" => 0,
             "cust_session_id" => 'tst',
@@ -161,25 +155,27 @@ class SkyWindController extends Controller
             "currency_code" => $client_details->default_currency,
             "test_cust" => false,
         ];
-
         return $response;
     }
 
     public  function getBalance(Request $request){
-        $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
-        if($client_details == null){
-             $response = [
-                "error_code" => -2,
-            ];
-            return $response;
-        }
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $response = [
-            "error_code" => 0,
-            "balance" => $player_details->playerdetailsresponse->balance,
-            "currency_code" => $client_details->default_currency,
-        ];
-        return $response;
+      $raw_request = file_get_contents("php://input");
+      parse_str($raw_request, $data);
+      $cust_id = $data['cust_id'];
+      $client_details = Providerhelper::getClientDetails('player_id', $cust_id);
+      if($client_details == null){
+           $response = [
+              "error_code" => -2,
+          ];
+          return $response;
+      }
+      $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+      $response = [
+          "error_code" => 0,
+          "balance" => $player_details->playerdetailsresponse->balance,
+          "currency_code" => $client_details->default_currency,
+      ];
+      return $response;
     }
 
     /**
@@ -188,32 +184,41 @@ class SkyWindController extends Controller
      * 
      */
     public  function gameDebit(Request $request){
+
         Helper::saveLog('Skywind Debit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
-        $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
+        $raw_request = file_get_contents("php://input");
+        parse_str($raw_request, $data);
+
+        $cust_id = $data['cust_id'];
+        $amount = $data['amount'];
+        $bet_amount = abs($data['amount']);
+        $pay_amount =  abs($data['amount']);
+        $income = $bet_amount - $pay_amount;
+        $win_type = 0;
+        $method = 1;
+        $win_or_lost = 0; // 0 lost,  5 processing
+        $payout_reason = 'TEST';
+        $provider_trans_id = $data['trx_id'];
+        $game_code = $data['game_code'];
+
+        $client_details = Providerhelper::getClientDetails('player_id', $cust_id);
         if($client_details == null){ 
             $response = [
                 "error_code" => -2, // details/player not found
             ];
             return $response;
         }
-        $game_information = Helper::findGameDetails('game_code', 22, $request->game_code);
+        $game_information = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code);
         if($game_information == null){
             $response = [
                 "error_code" => 240,  // game not found
             ];
             return $response;
         }
+
         $game_transaction_type = 1; // 1 Bet, 2 Win
         $game_code = $game_information->game_id;
         $token_id = $client_details->token_id;
-        $bet_amount = abs($request->amount);
-        $pay_amount =  abs($request->amount);
-        $income = $bet_amount - $pay_amount;
-        $win_type = 0;
-        $method = 1;
-        $win_or_lost = 0; // 0 lost,  5 processing
-        $payout_reason = 'TEST';
-        $provider_trans_id = $request->trx_id;
 
         $client = new Client([
             'headers' => [ 
@@ -241,7 +246,7 @@ class SkyWindController extends Controller
                           "transferid" => "",
                           "rollback" => false,
                           "currencycode" => $client_details->default_currency,
-                          "amount" => $request->amount
+                          "amount" => $amount
                    ],
               ],
         ];
@@ -252,7 +257,7 @@ class SkyWindController extends Controller
         $response = [
             "error_code" => 0,
             "balance" => $client_response->fundtransferresponse->balance,
-            "trx_id" => $request->trx_id,
+            "trx_id" => $provider_trans_id,
         ];
         $gamerecord  = $this->createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
         $game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $request->all(), $response, $requesttosend, $client_response, $response);
@@ -269,14 +274,22 @@ class SkyWindController extends Controller
     public  function gameCredit(Request $request){
 
         Helper::saveLog('Skywind Credit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
-        $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
+        $raw_request = file_get_contents("php://input");
+        parse_str($raw_request, $data);
+
+        $cust_id = $data['cust_id'];
+        $amount = $data['amount'];
+        $trx_id = $data['trx_id'];
+        $game_code = $data['game_code'];
+
+        $client_details = Providerhelper::getClientDetails('player_id', $cust_id);
         if($client_details == null){ 
              $response = [
                 "error_code" => -2, // details/player not found
             ];
             return $response;
         }
-        $game_information = Helper::findGameDetails('game_code', 22, $request->game_code);
+        $game_information = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code);
         if($game_information == null){
              $response = [
                 "error_code" => 240,  // game not found
@@ -284,7 +297,7 @@ class SkyWindController extends Controller
             return $response;
         }
 
-        $existing_bet = ProviderHelper::findGameTransaction($request->trx_id, 'transaction_id', 1); // Find if win has bet record
+        $existing_bet = ProviderHelper::findGameTransaction($trx_id, 'transaction_id', 1); // Find if win has bet record
 
         $client = new Client([
             'headers' => [ 
@@ -312,7 +325,7 @@ class SkyWindController extends Controller
                           "transferid" => "",
                           "rollback" => false,
                           "currencycode" => $client_details->default_currency,
-                          "amount" => $request->amount
+                          "amount" => $amount
                    ],
               ],
         ];
@@ -323,16 +336,15 @@ class SkyWindController extends Controller
         $response = [
             "error_code" => 0,
             "balance" => $client_response->fundtransferresponse->balance,
-            "trx_id" => $request->trx_id,
+            "trx_id" => $trx_id,
         ];
 
-    
         $win = 2;
         $entry_id = 2;
-        $income = $request->amount - $existing_bet->bet_amount;
+        $income = $amount - $existing_bet->bet_amount;
            
-        $this->updateBetTransaction($request->trx_id, $request->amount, $income, $win, $entry_id);
-        $game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $request->all(), $response, $requesttosend, $client_response, $response);
+        $this->updateBetTransaction($trx_id, $amount, $income, $win, $entry_id);
+        $game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $response, $requesttosend, $client_response, $response);
         return $response;
     }
 
@@ -357,7 +369,7 @@ class SkyWindController extends Controller
             ];
             return $response;
         }
-        $game_information = Helper::findGameDetails('game_code', 22, $request->game_code);
+        $game_information = Helper::findGameDetails('game_code', $this->provider_db_id, $request->game_code);
         if($game_information == null){
              $response = [
                 "error_code" => 240,  // game not found
