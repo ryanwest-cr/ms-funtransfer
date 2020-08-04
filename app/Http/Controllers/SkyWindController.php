@@ -34,19 +34,40 @@ class SkyWindController extends Controller
         $this->merchant_password = config('providerlinks.skywind.merchant_password');
     }
 
-     public function getAuth(){
-         $http = new Client();
-         $requesttosend = [
+    //  public function getAuth(){
+    //      $http = new Client();
+    //      $requesttosend = [
+    //          "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+    //          "username" => "TGAMESU_USER",
+    //          "password" => "Tgames1234"
+    //      ];
+    //      $response = $http->post('https://api.gcpstg.m27613.com/v1/login', [
+    //         'form_params' => $requesttosend,
+    //      ]);
+    //     // $response = $response->getBody()->getContents();
+    //     // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
+    //     $response = json_encode(json_decode($response->getBody()->getContents()));
+    //     $url = json_decode($response, true);
+    //     return $url;
+    // }
+
+    public function getAuth(Request $request){
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+            ]
+        ]);
+        $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
              "username" => "TGAMESU_USER",
              "password" => "Tgames1234"
-         ];
-         $response = $http->post('https://api.gcpstg.m27613.com/v1/login', [
-            'form_params' => $requesttosend,
-         ]);
-        // $response = $response->getBody()->getContents();
-        // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
-        $response = json_encode(json_decode($response->getBody()->getContents()));
+        ];
+        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
+                ['body' => json_encode($requesttosend)]
+        );
+        // $client_response = json_decode($guzzle_response->getBody()->getContents());
+        // return $client_response;
+        $response = json_encode(json_decode($guzzle_response->getBody()->getContents()));
         $url = json_decode($response, true);
         return $url;
     }
