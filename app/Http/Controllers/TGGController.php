@@ -14,7 +14,7 @@ class TGGController extends Controller
      public $project_id = 1421;
 	 public $api_key = '29abd3790d0a5acd532194c5104171c8';
 	 public $api_url = 'http://api.flexcontentprovider.com';
-	 public $provider_db_id = 23; // this is not final provider no register local
+	 public $provider_db_id = 29; // this is not final provider no register local
 
 	/**
 	* $system_id - your project ID (number)
@@ -91,33 +91,26 @@ class TGGController extends Controller
 
 
 	public function getURL(){
+		$token = 'n58ec5e159f769ae0b7b3a0774fdbf80';
+		$client_player_details = ProviderHelper::getClientDetails('token', $token);
         $requesttosend = [
-          "project" => $this->project_id,
+          "project" => config('providerlinks.tgg.project_id'),
           "version" => 1,
-          "token" => 'n58ec5e159f769ae0b7b3a0774fdbf80',
-          "game" => 'fullstate\\html5\\novomatic\\dolphinspearl', //game_code, game_id
+          "token" => $token,
+          "game" => 498, //game_code, game_id
           "settings" =>  [
-            'user_id'=> 'TGG_98',
-            'language'=> 'en',
+            'user_id'=> $client_player_details->player_id,
+            'language'=> $client_player_details->language ? $client_player_details->language : 'en',
           ],
           "denomination" => '1', // game to be launched with values like 1.0, 1, default
-          "currency" =>'USD',
+          "currency" => $client_player_details->default_currency,
           "return_url_info" => 1, // url link
           "callback_version" => 2, // POST CALLBACK
         ];
+        
         $signature =  ProviderHelper::getSignature($requesttosend, $this->api_key);
         $requesttosend['signature'] = $signature;
 		$url = $this->api_url.'/game/getURL';
-        // $client = new Client([
-        //     'headers' => [ 
-		// 		'Content-Type' => 'application/json',
-		// 		'Authorization' => 'Bearer '.$requesttosend['signature']
-        //     ]
-        // ]);
-        // $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
-        // );
-        // $client_response = json_decode($guzzle_response->getBody()->getContents());
-		// return $client_response->data->link;
 		$client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/x-www-form-urlencoded',
