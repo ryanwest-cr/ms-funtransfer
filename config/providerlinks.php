@@ -109,7 +109,7 @@ return [
         'secretkey' => 'c270d53d4d83d69358056dbca870c0ce',
     ],
     'skywind' => [
-        'provider_db_id' => 22, // Database ID nothing todo with the provider!
+        'provider_db_id' => 28, // Database ID nothing todo with the provider!
         'api_url' => 'https://api.gcpstg.m27613.com/v1',
         'seamless_key' => '47138d18-6b46-4bd4-8ae1-482776ccb82d',
         'seamless_username' => 'TGAMESU_USER',
