@@ -280,7 +280,7 @@ class GameLobby{
     }
 
     public static function tgglaunchUrl( $game_code = null, $token = null){
-        $client_player_details = GameLobby::getClientDetails('token', $token);
+        $client_player_details = Providerhelper::getClientDetails('token', $token);
         $requesttosend = [
           "project" => config('providerlinks.tgg.project_id'),
           "version" => 1,
