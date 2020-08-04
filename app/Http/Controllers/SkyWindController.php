@@ -116,10 +116,15 @@ class SkyWindController extends Controller
      * 
      */
     public function validateTicket(Request $request){
-      Helper::saveLog('Skywind Game Launch', 21, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
-      Helper::saveLog('Skywind Game Launch', 21, json_encode($request->all()), 'DEMO');
+      // Helper::saveLog('Skywind Game Launch', 21, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
+      // Helper::saveLog('Skywind Game Launch', 21, json_encode($request->all()), 'DEMO');
 
-      $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
+      $raw_request = file_get_contents("php://input");
+      parse_str($raw_request, $data);
+
+      $token = $data['ticket'];
+
+      $client_details = Providerhelper::getClientDetails('token',$token); // ticket
       $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
     	$response = [
@@ -134,7 +139,7 @@ class SkyWindController extends Controller
     		// "rce" => 11  // Optional
     	];
 
-    	// return $response;
+    	return $response;
     }
 
     /**
