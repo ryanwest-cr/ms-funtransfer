@@ -71,7 +71,8 @@ class SkyWindController extends Controller
         $game_code = 'sw_2pd';
         $token = 'n58ec5e159f769ae0b7b3a0774fdbf80';
         // $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?'.$token.'';
-        $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?'.$token.'';
+        // $url = ''.config('providerlinks.skywind.api_url').'/players/'.$token.'/games/'.$game_code.'/ticket/'.$token.'';
+        $url = ''.config('providerlinks.skywind.api_url').'/players/'.$token.'/games/'.$game_code;
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
