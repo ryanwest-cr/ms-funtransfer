@@ -219,6 +219,22 @@ class GameLobby{
         return $url;
     }
 
+    public static function skyWindLaunch($game_code, $token){
+        $player_login = SkyWind::userLogin();
+        $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?'.$token.'';
+        $client = new Client([
+              'headers' => [ 
+                  'Content-Type' => 'application/json',
+                  'X-ACCESS-TOKEN' => $player_login->accessToken,
+              ]
+        ]);
+        $response = $client->get($url);
+        $response = json_encode(json_decode($response->getBody()->getContents()));
+        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
+        $url = json_decode($response, true);
+        return isset($url['url']) ? $url['url'] : 'false';
+    }
+
      public static function saGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
         $url = $exitUrl;
         $lang = SAHelper::lang($lang);
