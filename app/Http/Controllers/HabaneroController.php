@@ -95,16 +95,16 @@ class HabaneroController extends Controller
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
         $checktoken = Helper::tokenCheck($client_details->player_token);
-        // if($checktoken == false){ #check if session expire 1hour duration 
-        //     $response = [
-        //         "fundtransferresponse" => [
-        //             "status" => [
-        //                 "success" => false,
-        //                 "autherror" => true,
-        //             ]
-        //         ]
-        //     ];
-        // }else{
+        if($checktoken == false){ #check if session expire 1hour duration 
+            $response = [
+                "fundtransferresponse" => [
+                    "status" => [
+                        "success" => false,
+                        "autherror" => true,
+                    ]
+                ]
+            ];
+        }else{
 
         
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -123,7 +123,7 @@ class HabaneroController extends Controller
             ];
             if($details->fundtransferrequest->isrefund == true){ // check if refund is true
 
-                $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->refund->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency, true);
+                $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->refund->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency, true);
 
                 $response = [
                     "fundtransferresponse" => [
@@ -139,7 +139,7 @@ class HabaneroController extends Controller
             
 
                 $game_ins_id = $details->fundtransferrequest->gameinstanceid;
-                $refund_update = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->update(['win' => '3']);
+                $refund_update = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->update(['win' => '4']);
                 $game_trans_id = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->get();
 
                 $transaction_detail = [
@@ -381,7 +381,7 @@ class HabaneroController extends Controller
                 }
             }
 
-        // }    
+        }    
         Helper::saveLog('fundtransferrequest', 47,$data,$response);
         return $response;
     }
