@@ -22,9 +22,10 @@ class SkyWindController extends Controller
 {
 
     public $api_url, $seamless_key, $seamless_username, $seamless_password, $merchant_data, $merchant_password;
-    public $provider_id = 22; // ID ON OUR DATABASE
+    public $provider_db_id; // ID ON OUR DATABASE
 
     public function __construct(){
+        $this->provider_db_id = config('providerlinks.skywind.provider_db_id');
         $this->api_url = config('providerlinks.skywind.api_url');
         $this->seamless_key = config('providerlinks.skywind.seamless_key');
         $this->seamless_username = config('providerlinks.skywind.seamless_username');
@@ -33,58 +34,79 @@ class SkyWindController extends Controller
         $this->merchant_password = config('providerlinks.skywind.merchant_password');
     }
 
+    //  public function getAuth(){
+    //      $http = new Client();
+    //      $requesttosend = [
+    //          "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+    //          "username" => "TGAMESU_USER",
+    //          "password" => "Tgames1234"
+    //      ];
+    //      $response = $http->post('https://api.gcpstg.m27613.com/v1/login', [
+    //         'form_params' => $requesttosend,
+    //      ]);
+    //     // $response = $response->getBody()->getContents();
+    //     // Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
+    //     $response = json_encode(json_decode($response->getBody()->getContents()));
+    //     $url = json_decode($response, true);
+    //     return $url;
+    // }
+
     public function getAuth(Request $request){
-         $http = new Client();
-         $requesttosend = [
-             "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
-             "username" => "TGAMESU_USER",
-             "password" => "Tgames1234"
-         ];
-         $response = $http->post('https://api.gcpstg.m27613.com/login', [
-            'form_params' => $requesttosend,
-         ]);
-
-        $response = $response->getBody()->getContents();
-        Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
-        return $response;
-    }
-
-    public function getAuth2(Request $request){
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
             ]
         ]);
-         $requesttosend = [
+        $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
              "username" => "TGAMESU_USER",
              "password" => "Tgames1234"
-         ];
-
-        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/login',
+        ];
+        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
                 ['body' => json_encode($requesttosend)]
         );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
+        // $client_response = json_decode($guzzle_response->getBody()->getContents());
+        // return $client_response;
+        $response = json_encode(json_decode($guzzle_response->getBody()->getContents()));
+        $url = json_decode($response, true);
+        return $url;
     }
 
-
-
+    public function getGamelist(){
+        $player_login = SkyWind::userLogin();
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'X-ACCESS-TOKEN' => $player_login->accessToken,
+            ]
+        ]);
+        $response = $client->get($this->api_url.'/games/info/search?limit=20');
+        $response = $response->getBody()->getContents();
+        return $response;
+    }
 
     /* TEST */
-    public function getGameUrl(Request $request){
-         $http = new Client();
-         $requesttosend = [
-             'gameCode' => $request->game_code,
-             'ticket' => $request->token
-         ];
-         $response = $http->post($this->login_url.'fun/games/{gameCode}', [
-            'form_params' => $requesttosend,
-         ]);
-
-        $response = $response->getBody()->getContents();
-        Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
-        return $response;
+    public function gameLaunch(Request $request){
+      // try {
+        $player_login = SkyWind::userLogin();
+        $game_code = 'sw_2pd';
+        $username = 'TG_98';
+        $token = 'n58ec5e159f769ae0b7b3a0774fdbf80';
+        $url = ''.config('providerlinks.skywind.api_url').'/players/'.$username.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'X-ACCESS-TOKEN' => $player_login->accessToken,
+            ]
+        ]);
+        $response = $client->get($url);
+        $response = json_encode(json_decode($response->getBody()->getContents()));
+        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
+        $url = json_decode($response, true);
+        return $url;
+      // } catch (\Exception $e) {
+      //   return $e->getMessage();
+      // }
     }
 
     /**
@@ -93,12 +115,12 @@ class SkyWindController extends Controller
      * @return [json array]
      * 
      */
-    public static function validateTicket(Request $request){
+    public function validateTicket(Request $request){
+      Helper::saveLog('Skywind Game Launch', 21, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
+      Helper::saveLog('Skywind Game Launch', 21, json_encode($request->all()), 'DEMO');
 
-        $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
-
-        dd($client_details);
-        // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+      $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
+      $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
     	$response = [
     		"error_code" => 0,
@@ -112,7 +134,7 @@ class SkyWindController extends Controller
     		// "rce" => 11  // Optional
     	];
 
-    	return $response;
+    	// return $response;
     }
 
     /**
@@ -121,7 +143,7 @@ class SkyWindController extends Controller
      * @return [json array]
      * 
      */
-    public static function getTicket(Request $request){
+    public  function getTicket(Request $request){
 
         // $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
         // dd($client_details);
@@ -161,7 +183,7 @@ class SkyWindController extends Controller
      * 
      */
     public  function gameDebit(Request $request){
-        Helper::saveLog('Skywind Debit', $this->provider_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('Skywind Debit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
         if($client_details == null){ 
             $response = [
@@ -241,7 +263,7 @@ class SkyWindController extends Controller
      */
     public  function gameCredit(Request $request){
 
-        Helper::saveLog('Skywind Credit', $this->provider_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('Skywind Credit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
         if($client_details == null){ 
              $response = [
@@ -322,7 +344,7 @@ class SkyWindController extends Controller
         // $game_transaction = SkyWind::admin_kiosk;
         // dd($this->seamless_key);
 
-        Helper::saveLog('Skywind Credit', $this->provider_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('Skywind Credit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
         if($client_details == null){ 
              $response = [
@@ -381,12 +403,6 @@ class SkyWindController extends Controller
 
     }
 
-    public function getGameList(){
-
-    	// $get_game_list = SilkStone::makeCall();
-    	// dd($get_game_list);
-
-    }
     /**
      * Create Game Extension Logs bet/Win/Refund
      * @param [int] $[gametransaction_id] [<ID of the game transaction>]
@@ -396,7 +412,7 @@ class SkyWindController extends Controller
      * @param [json array] $[client_response] [<Incoming Response Call>]
      * 
      */
-    public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
+    public  function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
         $data = [
                     "token_id" => $token_id,
                     "game_id" => $game_id,

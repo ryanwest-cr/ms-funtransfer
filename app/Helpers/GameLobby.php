@@ -156,7 +156,7 @@ class GameLobby{
         return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 
-     public static function awsLaunchUrl($token,$game_code,$lang){
+     public static function awsLaunchUrl($token,$game_code,$lang='en'){
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $provider_reg_currency = Providerhelper::getProviderCurrency(21, $client_details->default_currency);
         if($provider_reg_currency == 'false'){
@@ -166,7 +166,7 @@ class GameLobby{
         if($player_check->code == 100){ // Not Registered!
             $register_player = AWSHelper::playerRegister($token);
             if($register_player->code != 2217 || $register_player->code != 0){
-                 Helper::saveLog('AWS BO Launch Game Failed', 21, $register_player, $register_player);
+                 Helper::saveLog('AWS Launch Game Failed', 21, json_encode($register_player), $register_player);
                  return 'false';
             }
         }
@@ -190,7 +190,7 @@ class GameLobby{
             ['body' => json_encode($requesttosend)]
         );
         $provider_response = json_decode($guzzle_response->getBody()->getContents());
-        Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
+        Helper::saveLog('AWS Launch Game', 21, json_encode($requesttosend), $provider_response);
         return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
     }
 
@@ -217,6 +217,22 @@ class GameLobby{
         $domain = parse_url($url, PHP_URL_HOST);
         $url = 'https://partnerapirgs.betadigitain.com/GamesLaunch/Launch?gameid='.$game_code.'&playMode=real&token='.$token.'&deviceType=1&lang='.$lang.'&operatorId=B9EC7C0A&mainDomain='.$domain.'';
         return $url;
+    }
+
+    public static function skyWindLaunch($game_code, $token){
+        $player_login = SkyWind::userLogin();
+        $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?'.$token.'';
+        $client = new Client([
+              'headers' => [ 
+                  'Content-Type' => 'application/json',
+                  'X-ACCESS-TOKEN' => $player_login->accessToken,
+              ]
+        ]);
+        $response = $client->get($url);
+        $response = json_encode(json_decode($response->getBody()->getContents()));
+        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
+        $url = json_decode($response, true);
+        return isset($url['url']) ? $url['url'] : 'false';
     }
 
      public static function saGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
