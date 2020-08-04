@@ -95,16 +95,16 @@ class HabaneroController extends Controller
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
         $checktoken = Helper::tokenCheck($client_details->player_token);
-        if($checktoken == false){ #check if session expire 1hour duration 
-            $response = [
-                "fundtransferresponse" => [
-                    "status" => [
-                        "success" => false,
-                        "autherror" => true,
-                    ]
-                ]
-            ];
-        }else{
+        // if($checktoken == false){ #check if session expire 1hour duration 
+        //     $response = [
+        //         "fundtransferresponse" => [
+        //             "status" => [
+        //                 "success" => false,
+        //                 "autherror" => true,
+        //             ]
+        //         ]
+        //     ];
+        // }else{
 
         
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -381,7 +381,7 @@ class HabaneroController extends Controller
                 }
             }
 
-        }    
+        // }    
         Helper::saveLog('fundtransferrequest', 47,$data,$response);
         return $response;
     }
