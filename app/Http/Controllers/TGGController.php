@@ -91,43 +91,43 @@ class TGGController extends Controller
 
 
 	public function getURL(){
-        //$client_details = Providerhelper::getClientDetails('token', $token);
-        //$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-		$requesttosend = [
-			'project' => $this->project_id,
-			'version' => 1,
-			'signature' => '12602ed9feab200ba16b2ff03ddcb31e',
-			'token'=> 'n58ec5e159f769ae0b7b3a0774fdbf80',//string 49
-			'game'=> 'fullstate\\html5\\novomatic\\dolphinspearl',//string 34
-			'settings'=> [
-				'user_id'=> 'TGG_98',//string 12
-				'platform' => 'desktop',
-				'language'=> 'en',//string 2
-				'denominations'=> [
-					0 => 0.01,//float
-					1 => 0.1,//float
-					2 => 0.25,//float
-					3 => 1,//int
-					4 => 10,//int
-				],
-				'https'=> 1,//int
-			],
-			'denomination'=> 1,
-			'currency'=> 'USD',//string 3
-			'return_url_info'=> 1,//int
-			'callback_version'=> 2//int
-		];
+        $requesttosend = [
+          "project" => $this->project_id,
+          "version" => 1,
+          "token" => 'n58ec5e159f769ae0b7b3a0774fdbf80',
+          "game" => 'fullstate\\html5\\novomatic\\dolphinspearl', //game_code, game_id
+          "settings" =>  [
+            'user_id'=> 'TGG_98',
+            'language'=> 'en',
+          ],
+          "denomination" => '1', // game to be launched with values like 1.0, 1, default
+          "currency" =>'USD',
+          "return_url_info" => 1, // url link
+          "callback_version" => 2, // POST CALLBACK
+        ];
+        $signature =  ProviderHelper::getSignature($requesttosend, $this->api_key);
+        $requesttosend['signature'] = $signature;
 		$url = $this->api_url.'/game/getURL';
-        $client = new Client([
+        // $client = new Client([
+        //     'headers' => [ 
+		// 		'Content-Type' => 'application/json',
+		// 		'Authorization' => 'Bearer '.$requesttosend['signature']
+        //     ]
+        // ]);
+        // $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
+        // );
+        // $client_response = json_decode($guzzle_response->getBody()->getContents());
+		// return $client_response->data->link;
+		$client = new Client([
             'headers' => [ 
-				'Content-Type' => 'application/json',
-				'Authorization' => 'Bearer '.$requesttosend['signature']
+                'Content-Type' => 'application/x-www-form-urlencoded',
             ]
         ]);
-        $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response->data->link;
+        $response = $client->post($url,[
+            'form_params' => $requesttosend,
+        ]);
+        $res = json_decode($response->getBody(),TRUE);
+        return isset($res['data']['link']) ? $res['data']['link'] : false;
 	}
 	/**
 	 * Initialize the balance 

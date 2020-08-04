@@ -263,6 +263,39 @@ class GameLobby{
         return $client_response->link;
     }
 
+    public static function tgglaunchUrl( $game_code = null, $token = null){
+        $client_player_details = GameLobby::getClientDetails('token', $token);
+        $requesttosend = [
+          "project" => config('providerlinks.tgg.project_id'),
+          "version" => 1,
+          "token" => $token,
+          "game" => $game_code, //game_code, game_id
+          "settings" =>  [
+            'user_id'=> $client_player_details->player_id,
+            'language'=> $client_player_details->language ? $client_player_details->language : 'en',
+          ],
+          "denomination" => '1', // game to be launched with values like 1.0, 1, default
+          "currency" => $client_player_details->default_currency,
+          "return_url_info" => 1, // url link
+          "callback_version" => 2, // POST CALLBACK
+        ];
+        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.tgg.secretkey'));
+        $requesttosend['signature'] = $signature;
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ]
+        ]);
+        $response = $client->post(config('providerlinks.tgg.api_url').'/game/geturl',[
+            'form_params' => $requesttosend,
+        ]);
+        $res = json_decode($response->getBody(),TRUE);
+        Helper::saveLog('TGG GAMELAUNCH TOPGRADEGAMES', 29, json_encode($requesttosend), json_decode($response->getBody()));
+        return isset($res['data']['link']) ? $res['data']['link'] : false;
+        
+    }
+
+
     public static function habanerolaunchUrl( $game_code = null, $token = null){
         $brandID = "2416208c-f3cb-ea11-8b03-281878589203";
         $apiKey = "3C3C5A48-4FE0-4E27-A727-07DE6610AAC8";
