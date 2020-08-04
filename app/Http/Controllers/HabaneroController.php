@@ -391,6 +391,8 @@ class HabaneroController extends Controller
         $data = file_get_contents("php://input");
         $details = json_decode($data);
 
+        Helper::saveLog('queryrequest', 47,$data,"");
+
         $queryRequest = DB::table("game_transactions")->where("provider_trans_id","=",$details->queryrequest->gameinstanceid)->get();
         Helper::saveLog('queryrequest HBN', 47,$data," ");
         if(count($queryRequest) > 0){
