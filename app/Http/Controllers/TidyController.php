@@ -21,8 +21,6 @@ class TidyController extends Controller
 	 public $API_URL = 'http://staging-v1-api.tidy.zone';
 	 // const SECRET_KEY = 'f83c8224b07f96f41ca23b3522c56ef1'; // token
 
-
-	 //wla pani nahuman
 	 public function autPlayer(Request $request){
 	 	$playersid = explode('_', $request->username);
 		$getClientDetails = ProviderHelper::getClientDetails('player_id',$playersid[1]);
@@ -94,7 +92,7 @@ class TidyController extends Controller
 
 	/* SEAMLESS METHODS */
 	public function checkBalance(Request $request){
-		//Helper::saveLog('Tidy Check Balance', 23, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT v2');
+		Helper::saveLog('Tidy Check Balance', $this->provider_db_id,  json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
 		//$data = json_decode(file_get_contents("php://input")); // INCASE RAW JSON / CHANGE IF NOT ARRAY
 		$header = $request->header('Authorization');
 		$enc_body = file_get_contents("php://input");
@@ -224,8 +222,7 @@ class TidyController extends Controller
     		"balance" =>  $balance
     	];
 		$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'round_id',1);
-		$check_refe = $reference_transaction_uuid == '' ? 'true': 'false';
-		if ($check_refe == 'true' ){
+		if ($bet_transaction == 'false'){
 			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $transaction_uuid);
 			$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
 			Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
