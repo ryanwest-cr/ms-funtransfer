@@ -11,24 +11,26 @@ use DB;
 
 class SkyWind{
 
-    public static function userLogin($username, $password){
+    public static function userLogin(){
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
             ]
         ]);
-         $requesttosend = [
+        $requesttosend = [
              "secretKey" => config('providerlinks.skywind.seamless_key'), // Seamless key
              "username" => config('providerlinks.skywind.seamless_username'),
              "password" => config('providerlinks.skywind.seamless_password')
-         ];
+        ];
         $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
                 ['body' => json_encode($requesttosend)]
         );
         $client_response = json_decode($guzzle_response->getBody()->getContents());
+        Helper::saveLog('Skywind Key Request', config('providerlinks.skywind.provider_db_id'), json_encode($client_response), $requesttosend);
         return $client_response;
     }
 
+    // Note Used!
 	public static function getJWToken(){
         $requesttosend = [
             "signatureKey" => config('providerlinks.skywind.seamless_key'),
