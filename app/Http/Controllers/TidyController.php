@@ -224,7 +224,8 @@ class TidyController extends Controller
     		"balance" =>  $balance
     	];
 		$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'round_id',1);
-		if ($reference_transaction_uuid == ''){
+		$check_refe = $reference_transaction_uuid == '' ? 'true': 'false';
+		if ($check_refe == 'true' ){
 			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $transaction_uuid);
 			$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
 			Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
@@ -234,10 +235,6 @@ class TidyController extends Controller
 			$this->updateMainBetTransac($round_id, $amount, $income, 0, $method);
 			Helper::saveLog('Tidy Second Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 		}
-	    // $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
-	    // $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
-
-	    // Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 	   
 	    return $data_response;
 	}
