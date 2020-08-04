@@ -228,7 +228,7 @@ $app->post('/tgg/api/game/geturl', 'TGGController@getURL');// launch game
 $app->post('/tgg/api/game/init', 'TGGController@gameInit');//Initialize balance
 $app->post('/tgg/api/game/bet', 'TGGController@gameBet');//
 $app->post('/tgg/api/game/win', 'TGGController@gameWin');
-
+$app->post('/tgg/api/game/refund', 'TGGController@gameRefund');
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/

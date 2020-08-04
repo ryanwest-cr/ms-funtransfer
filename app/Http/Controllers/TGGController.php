@@ -14,7 +14,7 @@ class TGGController extends Controller
      public $project_id = 1421;
 	 public $api_key = '29abd3790d0a5acd532194c5104171c8';
 	 public $api_url = 'http://api.flexcontentprovider.com';
-	 public $provider_db_id = 29; // this is not final provider no register local
+	 public $provider_db_id = 23; // this is not final provider no register local
 
 	/**
 	* $system_id - your project ID (number)
@@ -126,10 +126,9 @@ class TGGController extends Controller
 	 * Initialize the balance 
 	 */
 	public function gameInit(Request $request){
-		$data = $request->all();
 		Helper::saveLog('TGG '.$request->name, $this->provider_db_id,  json_encode($request->all()), 'ENDPOINT HIT');
-	
-		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->api_key,'check_signature');
+		$data = $request->all();
+		$signature_checker = $this->getSignature($this->project_id, 1, $request->all(), $this->api_key,'check_signature');
 		if(!$signature_checker):
 			$msg = array(
 						"status" => 'error',
@@ -534,8 +533,8 @@ class TGGController extends Controller
 
 	public function gameRefund(Request $request){
 		$header = $request->header('Authorization');
-	    Helper::saveLog('TGG Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
-
+		Helper::saveLog('TGG Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
+		
 		$enc_body = file_get_contents("php://input");
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
@@ -561,7 +560,7 @@ class TGGController extends Controller
 		return $result ? $result : 'false';
 	}
 
-		/**
+	/**
 	 * Create Game Extension Logs bet/Win/Refund
 	 * @param [int] $[gametransaction_id] [<ID of the game transaction>]
 	 * @param [json array] $[provider_request] [<Incoming Call>]
@@ -570,7 +569,7 @@ class TGGController extends Controller
 	 * @param [json array] $[client_response] [<Incoming Response Call>]
 	 * 
 	 */
-	public  function creteTGGtransaction($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response, $transaction_detail,$game_transaction_type, $amount=null, $provider_trans_id=null, $round_id=null){
+	public function creteTGGtransaction($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response, $transaction_detail,$game_transaction_type, $amount=null, $provider_trans_id=null, $round_id=null){
 		$gametransactionext = array(
 			"game_trans_id" => $gametransaction_id,
 			"provider_trans_id" => $provider_trans_id,
