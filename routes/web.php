@@ -248,7 +248,7 @@ $app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
 $app->post('/api/tgg/gamelist', 'TGGController@getGamelist'); // launch game 
 $app->post('/api/tgg/geturl', 'TGGController@getURL');// launch game
 
-$app->post('/api/tgg/index', 'TGGController@index'); // Single Route
+$app->post('/api/tgg', 'TGGController@index'); // Single Route
 $app->post('/api/tgg/init', 'TGGController@gameInit');
 $app->post('/api/tgg/bet', 'TGGController@gameBet');
 $app->post('/api/tgg/win', 'TGGController@gameWin');
