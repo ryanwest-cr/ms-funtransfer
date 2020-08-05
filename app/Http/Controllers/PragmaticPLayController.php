@@ -255,16 +255,17 @@ class PragmaticPLayController extends Controller
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-        dd($data->gameIdList);
+       
         $response = [
             "gamesBalances" => [
                 
-                "gameID" => "s",
-                "cash" => $player_details->playerdetailsresponse->balance
+                "gameID" => $data->gameIdList,
+                "cash" => $player_details->playerdetailsresponse->balance,
+                "bonus" => 0.00
                 
             ]
         ];
-
+        return $response;
     }
 
     public function sessionExpired(Request $request)
