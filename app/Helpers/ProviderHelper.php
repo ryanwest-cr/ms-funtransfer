@@ -125,11 +125,10 @@ class ProviderHelper{
 						"refreshtoken" => $refreshtoken
 					]
 				];
-				
+			
 				$guzzle_response = $client->post($client_details->player_details_url,
 				    ['body' => json_encode($datatosend)]
 				);
-
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
 			 	return $client_response;
             }catch (\Exception $e){

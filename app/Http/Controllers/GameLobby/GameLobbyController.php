@@ -176,7 +176,25 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                 elseif($request->input('game_provider')=="SA Gaming"){ // request->token
+                elseif($request->input('game_provider')=="SkyWind"){ // request->token
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::skyWindLaunch($request->game_code,$token), //TEST
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="CQGames"){ // request->token
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::cq9LaunchUrl($request->game_code,$token), //TEST
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="SA Gaming"){ // request->token
                     $url = GameLobby::saGamingLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang);
                     if($url){
                         $msg = array(
@@ -330,6 +348,20 @@ class GameLobbyController extends Controller
                         "game_launch" => true
                     );
                     
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                    
+                }
+                elseif($request->input('game_provider') == "Top Grade Games"){ 
+                    // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
+                    // $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
+                   
+                    $url = GameLobby::tgglaunchUrl($request->game_code,$request->token);
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => $url,
+                        "game_launch" => true
+                    );
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }elseif($request->input('game_provider')=="HabaneroGaming"){ 

@@ -95,16 +95,64 @@ class HabaneroController extends Controller
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
         $checktoken = Helper::tokenCheck($client_details->player_token);
-        // if($checktoken == false){ #check if session expire 1hour duration 
-        //     $response = [
-        //         "fundtransferresponse" => [
-        //             "status" => [
-        //                 "success" => false,
-        //                 "autherror" => true,
-        //             ]
-        //         ]
-        //     ];
-        // }else{
+
+        if($checktoken == false){ #check if session expire 1hour duration 
+
+            $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+            $game_details = Helper::findGameDetails('game_code', 24, $details->basegame->keyname);
+    
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.$client_details->client_access_token
+                ]
+            ]);
+
+            if($details->fundtransferrequest->isrefund == true){ // check if refund is true
+
+                $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->refund->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency, true);
+
+                $response = [
+                    "fundtransferresponse" => [
+                        "status" => [
+                            "success" => true,
+                            "refundstatus" => 1,
+                        ],
+                        "balance" => $clientDetalsResponse['client_response']->fundtransferresponse->balance,
+                        "currencycode" => $client_details->default_currency,
+                    ]
+                ];
+
+            
+
+                $game_ins_id = $details->fundtransferrequest->gameinstanceid;
+                $refund_update = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->update(['win' => '4']);
+                $game_trans_id = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->get();
+
+                $transaction_detail = [
+                    'game_trans_id' => $game_trans_id[0]->game_trans_id,
+                    'bet_amount' => abs($details->fundtransferrequest->funds->refund->amount),
+                    'payout' => $game_trans_id[0]->pay_amount,
+                    'refund' => true,
+                    'response' => $response,
+                ];
+
+                $game_transextension = $this->createGameTransExt($game_trans_id[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $game_trans_id[0]->pay_amount, 3, $data, $response, $clientDetalsResponse['requesttosend'], $clientDetalsResponse['client_response'], $transaction_detail);
+
+                
+            }else{
+
+                $response = [
+                    "fundtransferresponse" => [
+                        "status" => [
+                            "success" => false,
+                            "autherror" => true,
+                        ]
+                    ]
+                ];
+
+            }
+        }else{
 
         
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -123,7 +171,7 @@ class HabaneroController extends Controller
             ];
             if($details->fundtransferrequest->isrefund == true){ // check if refund is true
 
-                $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->refund->amount) , $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency, true);
+                $clientDetalsResponse = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, abs($details->fundtransferrequest->funds->refund->amount) , $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency, true);
 
                 $response = [
                     "fundtransferresponse" => [
@@ -139,7 +187,7 @@ class HabaneroController extends Controller
             
 
                 $game_ins_id = $details->fundtransferrequest->gameinstanceid;
-                $refund_update = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->update(['win' => '3']);
+                $refund_update = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->update(['win' => '4']);
                 $game_trans_id = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->get();
 
                 $transaction_detail = [
@@ -193,7 +241,7 @@ class HabaneroController extends Controller
                     $game_transextension = $this->createGameTransExt( $gamerecord, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, 2, $data, $response, $freeSpin['requesttosend'], $freeSpin['client_response'], $transaction_detail);
                 
                 }else{ // check if bonus is false
-
+                    
                     $check_game_trans = DB::table('game_transactions')->where("provider_trans_id","=",$details->fundtransferrequest->gameinstanceid)->get();
 
                     if(count($check_game_trans) > 0){ //check if game round is exist
@@ -236,6 +284,24 @@ class HabaneroController extends Controller
     
     
                             $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, 0.00, $check_game_trans[0]->entry_id, $data, $response, $freeSpin['requesttosend'], $freeSpin['client_response'], $transaction_detail);
+
+                        }else if($details->fundtransferrequest->isretry == true && $details->fundtransferrequest->isrecredit == true){
+
+                            $payout = $check_game_trans[0]->pay_amount;
+
+                            $response = [
+                                "fundtransferresponse" => [
+                                    "status" => [
+                                        "success" => true,
+                                    ],
+                                    "balance" => $player_details->playerdetailsresponse->balance,
+                                    "currencycode" => $client_details->default_currency,
+                                ]
+                            ];
+
+                            $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $check_game_trans[0]->entry_id, $data, $response, "isretry", "isrecredit", "isrecredit");
+
+                            return $response;
 
                         }else{ 
 
@@ -381,7 +447,7 @@ class HabaneroController extends Controller
                 }
             }
 
-        // }    
+        }    
         Helper::saveLog('fundtransferrequest', 47,$data,$response);
         return $response;
     }

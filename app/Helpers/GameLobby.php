@@ -219,6 +219,48 @@ class GameLobby{
         return $url;
     }
 
+    public static function skyWindLaunch($game_code, $token){
+        $player_login = SkyWind::userLogin();
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        $url = ''.config('providerlinks.skywind.api_url').'/players/'.$client_player_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+        $client = new Client([
+              'headers' => [ 
+                  'Content-Type' => 'application/json',
+                  'X-ACCESS-TOKEN' => $player_login->accessToken,
+              ]
+        ]);
+        $response = $client->get($url);
+        $response = json_encode(json_decode($response->getBody()->getContents()));
+        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
+        $url = json_decode($response, true);
+        return isset($url['url']) ? $url['url'] : 'false';
+    }
+
+    public static function cq9LaunchUrl($game_code, $token){
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        $client = new Client([
+            'headers' => [ 
+                'Authorization' => config('providerlinks.cqgames.api_token'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ]
+        ]);
+        $requesttosend = [
+            'account'=> 'TG'.$client_details->client_id.'_'.$client_details->player_id,
+            'gamehall'=> 'cq9',
+            'gamecode'=> $game_code,
+            'gameplat'=> 'WEB',
+            'lang'=> 'en',
+        ];
+        $response = $client->post(config('providerlinks.cqgames.api_url').'/gameboy/player/sw/gamelink', [
+            'form_params' => $requesttosend,
+        ]);
+        $game_launch = json_decode((string)$response->getBody(), true);
+        Helper::saveLog('CQ9 Game Launch', config('providerlinks.cqgames.pdbid'), json_encode($game_launch), $requesttosend);
+        return $game_launch;
+    }
+
+
      public static function saGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
         $url = $exitUrl;
         $lang = SAHelper::lang($lang);
@@ -262,6 +304,39 @@ class GameLobby{
         $client_response = json_decode($guzzle_response->getBody()->getContents());
         return $client_response->link;
     }
+
+    public static function tgglaunchUrl( $game_code = null, $token = null){
+        $client_player_details = Providerhelper::getClientDetails('token', $token);
+        $requesttosend = [
+          "project" => config('providerlinks.tgg.project_id'),
+          "version" => 1,
+          "token" => $token,
+          "game" => $game_code, //game_code, game_id
+          "settings" =>  [
+            'user_id'=> $client_player_details->player_id,
+            'language'=> $client_player_details->language ? $client_player_details->language : 'en',
+          ],
+          "denomination" => '1', // game to be launched with values like 1.0, 1, default
+          "currency" => $client_player_details->default_currency,
+          "return_url_info" => 1, // url link
+          "callback_version" => 2, // POST CALLBACK
+        ];
+        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.tgg.secretkey'));
+        $requesttosend['signature'] = $signature;
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ]
+        ]);
+        $response = $client->post(config('providerlinks.tgg.api_url').'/game/geturl',[
+            'form_params' => $requesttosend,
+        ]);
+        $res = json_decode($response->getBody(),TRUE);
+        Helper::saveLog('TGG GAMELAUNCH TOPGRADEGAMES', 29, json_encode($requesttosend), json_decode($response->getBody()));
+        return isset($res['data']['link']) ? $res['data']['link'] : false;
+        
+    }
+
 
     public static function habanerolaunchUrl( $game_code = null, $token = null){
         $brandID = "2416208c-f3cb-ea11-8b03-281878589203";

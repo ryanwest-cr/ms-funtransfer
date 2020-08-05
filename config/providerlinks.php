@@ -82,9 +82,14 @@ return [
         'merchant_id' => 'TG',
         'merchant_key' => '5819e7a6d0683606e60cd6294edfc4c557a2dd8c9128dd6fbe1d58e77cd8067fead68c48cdb3ea85dcb2e05518bac60412a0914d156a36b4a2ecab359c7adfad',
     ],
+    'cqgames' => [
+        "pdbid"=> 30, // Database ID nothing todo with the provider!
+        'api_url' => 'http://api.cqgame.games',
+        'api_token' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiI1ZjIyODY1ZWNkNTY1ZjAwMDEzZjUyZDAiLCJhY2NvdW50IjoidGlnZXJnYW1lcyIsIm93bmVyIjoiNWYyMjg2NWVjZDU2NWYwMDAxM2Y1MmQwIiwicGFyZW50Ijoic2VsZiIsImN1cnJlbmN5IjoiVVNEIiwianRpIjoiMjQ3NDQ1MTQzIiwiaWF0IjoxNTk2MDk4MTQyLCJpc3MiOiJDeXByZXNzIiwic3ViIjoiU1NUb2tlbiJ9.fdoQCWGPkYNLoROGR9jzMs4axnZbRJCnnLZ8T2UDCwU',
+    ],
     'sagaming' => [
-        "pdbid"=> 25,
-        "prefix" => "TGSA",
+        "pdbid"=> 25, // Database ID nothing todo with the provider!
+        "prefix" => "TGSA", // Nothing todo with the provider
         "lobby" => "A3107",
         "API_URL" => "http://sai-api.sa-apisvr.com/api/api.aspx",
         "MD5Key" => "GgaIMaiNNtg",
@@ -94,8 +99,8 @@ return [
     ],
     'iagaming' => [
         'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
-        'pch' => 'BRNK',
-        'prefix' => 'TGAMES',
+        'pch' => 'BRNK', 
+        'prefix' => 'TGAMES', // Nothing todo with the provider
         'iv' => '45b80556382b48e5',
         'url_lunch' => 'http://api.ilustretest.com/user/lunch',
         'url_register' => 'http://api.ilustretest.com/user/register',
@@ -109,7 +114,8 @@ return [
         'secretkey' => 'c270d53d4d83d69358056dbca870c0ce',
     ],
     'skywind' => [
-        'api_url' => 'https://api.gcpstg.m27613.com',
+        'provider_db_id' => 28, // Database ID nothing todo with the provider!
+        'api_url' => 'https://api.gcpstg.m27613.com/v1',
         'seamless_key' => '47138d18-6b46-4bd4-8ae1-482776ccb82d',
         'seamless_username' => 'TGAMESU_USER',
         'seamless_password' => 'Tgames1234',
@@ -137,6 +143,11 @@ return [
         'AgentCode' => 'TG',
         'AgentKey' => '8t4A17537S1d5rwz',
         
+    ],
+    'tgg' => [
+        'api_url' => 'http://api.flexcontentprovider.com',
+        'project_id' => '1421',
+        'secretkey' => '29abd3790d0a5acd532194c5104171c8',
     ]
     
 ];

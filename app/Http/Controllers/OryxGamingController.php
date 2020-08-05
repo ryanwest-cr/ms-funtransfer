@@ -367,6 +367,7 @@ class OryxGamingController extends Controller
 									$json_data['transid'] = $json_data[$key]['transactionId'];
 									$json_data['amount'] = $json_data[$key]['amount'];
 									$json_data['reason'] = NULL;
+									$json_data['income'] = $json_data[$key]['amount'];
 
 									$game_details = Game::find($json_data["gameCode"]);
 									GameTransaction::save($transactiontype, $json_data, $game_details, $client_details, $player_details);
