@@ -76,19 +76,26 @@ class CQ9Controller extends Controller
     public function CheckPlayer($account){
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
-    	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-
-    	// dd($player_details);
-
-    	$data = [
-    		"data" => true,
-    		"status" => [
-    			"code" => 0,
-    			"message" => 'Success',
-    			"datetime" => '2017-01-20T01:14:48-04:00'
-    		]
-    	];
-
+    	if($client_details != null){
+    		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+			$data = [
+	    		"data" => true,
+	    		"status" => [
+	    			"code" => 0,
+	    			"message" => 'Success',
+	    			"datetime" => '2017-01-20T01:14:48-04:00'
+	    		]
+	    	];
+    	}else{
+    		$data = [
+	    		"data" => false,
+	    		"status" => [
+	    			"code" => 0,
+	    			"message" => 'Success',
+	    			"datetime" => '2017-01-20T01:14:48-04:00'
+	    		]
+	    	];
+    	}
     	return $data;
     }
 
