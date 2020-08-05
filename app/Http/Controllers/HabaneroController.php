@@ -241,7 +241,7 @@ class HabaneroController extends Controller
                     $game_transextension = $this->createGameTransExt( $gamerecord, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, 2, $data, $response, $freeSpin['requesttosend'], $freeSpin['client_response'], $transaction_detail);
                 
                 }else{ // check if bonus is false
-
+                    
                     $check_game_trans = DB::table('game_transactions')->where("provider_trans_id","=",$details->fundtransferrequest->gameinstanceid)->get();
 
                     if(count($check_game_trans) > 0){ //check if game round is exist
@@ -284,6 +284,24 @@ class HabaneroController extends Controller
     
     
                             $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, 0.00, $check_game_trans[0]->entry_id, $data, $response, $freeSpin['requesttosend'], $freeSpin['client_response'], $transaction_detail);
+
+                        }else if($details->fundtransferrequest->isretry == true && $details->fundtransferrequest->isrecredit == true){
+
+                            $response = [
+                                "fundtransferresponse" => [
+                                    "status" => [
+                                        "success" => true,
+                                        "successdebit" => true,
+                                        "successcredit" => true
+                                    ],
+                                    "balance" => $player_details->playerdetailsresponse->balance,
+                                    "currencycode" => $client_details->default_currency,
+                                ]
+                            ];
+
+                            $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $check_game_trans[0]->entry_id, $data, $response, "isretry", "isrecredit", $transaction_detail);
+
+                            return $response;
 
                         }else{ 
 
