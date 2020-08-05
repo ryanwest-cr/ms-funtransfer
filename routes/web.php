@@ -168,11 +168,30 @@ $app->post('skywind/api/get_balance', 'SkyWindController@getBalance');
 $app->post('skywind/api/debit', 'SkyWindController@gameDebit');
 $app->post('skywind/api/credit', 'SkyWindController@gameCredit');
 $app->post('skywind/api/rollback', 'SkyWindController@gameRollback');
-
 //Player API
 //Operator API
 //Lobby API
 //Report API
+
+// CQ9 Gaming
+$app->post('api/cq9/transaction/game/bet','CQ9Controller@GetUserBalance');
+$app->post('api/cq9/transaction/game/endround','CQ9Controller@PlaceBet');
+$app->post('api/cq9/transaction/game/rollout','CQ9Controller@PlayerWin');
+$app->post('api/cq9/transaction/game/takeall','CQ9Controller@PlayerLost');
+$app->post('api/cq9/transaction/game/debit','CQ9Controller@PlaceBetCancel');
+$app->post('api/cq9/transaction/game/credit','CQ9Controller@PlaceBetCancel');
+$app->post('api/cq9/transaction/game/bonus','CQ9Controller@PlaceBetCancel');
+$app->post('api/cq9/transaction/user/payoff','CQ9Controller@PlaceBetCancel');
+$app->post('api/cq9/transaction/game/refund','CQ9Controller@PlaceBetCancel');
+$app->post('api/cq9/transaction/game/bets','CQ9Controller@PlaceBetCancel');
+$app->post('api/cq9/transaction/game/refunds','CQ9Controller@PlaceBetCancel');
+$app->post('api/cq9/transaction/game/cancel','CQ9Controller@PlaceBetCancel');
+$app->post('api/cq9/transaction/game/amend','CQ9Controller@PlaceBetCancel');
+$app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
+$app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
+
+$app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
+$app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
 
 //SAGaming 
 $app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
