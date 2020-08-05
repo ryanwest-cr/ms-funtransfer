@@ -236,6 +236,31 @@ class GameLobby{
         return isset($url['url']) ? $url['url'] : 'false';
     }
 
+    public static function cq9LaunchUrl($game_code, $token){
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        $client = new Client([
+            'headers' => [ 
+                'Authorization' => config('providerlinks.cqgames.api_token'),
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ]
+        ]);
+        $requesttosend = [
+            'account'=> 'TG'.$client_details->client_id.'_'.$client_details->player_id,
+            'gamehall'=> 'cq9',
+            'gamecode'=> $game_code,
+            'gameplat'=> 'WEB',
+            'lang'=> 'en',
+        ];
+        $response = $client->post(config('providerlinks.cqgames.api_url').'/gameboy/player/sw/gamelink', [
+            'form_params' => $requesttosend,
+        ]);
+        $game_launch = json_decode((string)$response->getBody(), true);
+        Helper::saveLog('CQ9 Game Launch', config('providerlinks.cqgames.pdbid'), json_encode($game_launch), $requesttosend);
+        return $game_launch;
+    }
+
+
      public static function saGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
         $url = $exitUrl;
         $lang = SAHelper::lang($lang);

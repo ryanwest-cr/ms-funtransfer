@@ -82,9 +82,14 @@ return [
         'merchant_id' => 'TG',
         'merchant_key' => '5819e7a6d0683606e60cd6294edfc4c557a2dd8c9128dd6fbe1d58e77cd8067fead68c48cdb3ea85dcb2e05518bac60412a0914d156a36b4a2ecab359c7adfad',
     ],
+    'cqgames' => [
+        "pdbid"=> 30, // Database ID nothing todo with the provider!
+        'api_url' => 'http://api.cqgame.games',
+        'api_token' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiI1ZjIyODY1ZWNkNTY1ZjAwMDEzZjUyZDAiLCJhY2NvdW50IjoidGlnZXJnYW1lcyIsIm93bmVyIjoiNWYyMjg2NWVjZDU2NWYwMDAxM2Y1MmQwIiwicGFyZW50Ijoic2VsZiIsImN1cnJlbmN5IjoiVVNEIiwianRpIjoiMjQ3NDQ1MTQzIiwiaWF0IjoxNTk2MDk4MTQyLCJpc3MiOiJDeXByZXNzIiwic3ViIjoiU1NUb2tlbiJ9.fdoQCWGPkYNLoROGR9jzMs4axnZbRJCnnLZ8T2UDCwU',
+    ],
     'sagaming' => [
-        "pdbid"=> 25,
-        "prefix" => "TGSA",
+        "pdbid"=> 25, // Database ID nothing todo with the provider!
+        "prefix" => "TGSA", // Nothing todo with the provider
         "lobby" => "A3107",
         "API_URL" => "http://sai-api.sa-apisvr.com/api/api.aspx",
         "MD5Key" => "GgaIMaiNNtg",
@@ -94,8 +99,8 @@ return [
     ],
     'iagaming' => [
         'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
-        'pch' => 'BRNK',
-        'prefix' => 'TGAMES',
+        'pch' => 'BRNK', 
+        'prefix' => 'TGAMES', // Nothing todo with the provider
         'iv' => '45b80556382b48e5',
         'url_lunch' => 'http://api.ilustretest.com/user/lunch',
         'url_register' => 'http://api.ilustretest.com/user/register',

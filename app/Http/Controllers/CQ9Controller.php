@@ -15,13 +15,17 @@ use DB;
 class CQ9Controller extends Controller
 {
 
-	public $api_url = 'http://api.cqgame.games';
-	public $api_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiI1ZjIyODY1ZWNkNTY1ZjAwMDEzZjUyZDAiLCJhY2NvdW50IjoidGlnZXJnYW1lcyIsIm93bmVyIjoiNWYyMjg2NWVjZDU2NWYwMDAxM2Y1MmQwIiwicGFyZW50Ijoic2VsZiIsImN1cnJlbmN5IjoiVVNEIiwianRpIjoiMjQ3NDQ1MTQzIiwiaWF0IjoxNTk2MDk4MTQyLCJpc3MiOiJDeXByZXNzIiwic3ViIjoiU1NUb2tlbiJ9.fdoQCWGPkYNLoROGR9jzMs4axnZbRJCnnLZ8T2UDCwU';
+	public $api_url, $api_token, $provider_db_id;
 
 	// /gameboy/player/logout
 	// /gameboy/game/list/cq9
 	// /gameboy/game/halls
-	// 
+
+	public function __construct(){
+    	$this->api_url = config('providerlinks.cqgames.api_url');
+    	$this->api_token = config('providerlinks.cqgames.api_token');
+    	$this->provider_db_id = config('providerlinks.cqgames.pdbid');
+    }
 
 	public function getGameList(){
 		$client = new Client([
@@ -37,25 +41,25 @@ class CQ9Controller extends Controller
         return $game_list;
 	}
 
-	public function gameLaunch(){
-		$client = new Client([
-            'headers' => [ 
-                'Authorization' => $this->api_token,
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ]
-        ]);
-        $response = $client->post($this->api_url.'/gameboy/player/sw/gamelink', [
-            'form_params' => [
-                'account'=> 'TG1_98',
-                'gamehall'=> 'cq9',
-                'gamecode'=> '1',
-                'gameplat'=> 'WEB',
-                'lang'=> 'en',
-            ],
-        ]);
-        $game_launch = json_decode((string)$response->getBody(), true);
-        return $game_launch;
-	}
+	// public function gameLaunch(){
+	// 	$client = new Client([
+ //            'headers' => [ 
+ //                'Authorization' => $this->api_token,
+ //                'Content-Type' => 'application/x-www-form-urlencoded',
+ //            ]
+ //        ]);
+ //        $response = $client->post($this->api_url.'/gameboy/player/sw/gamelink', [
+ //            'form_params' => [
+ //                'account'=> 'TG1_98',
+ //                'gamehall'=> 'cq9',
+ //                'gamecode'=> '1',
+ //                'gameplat'=> 'WEB',
+ //                'lang'=> 'en',
+ //            ],
+ //        ]);
+ //        $game_launch = json_decode((string)$response->getBody(), true);
+ //        return $game_launch;
+	// }
 
 	public function playerLogout(){
 		$client = new Client([
@@ -73,7 +77,8 @@ class CQ9Controller extends Controller
         return $logout;
 	}
 
-    public function CheckPlayer($account){
+    public function CheckPlayer(Request $request, $account){
+    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	if($client_details != null){
@@ -83,7 +88,7 @@ class CQ9Controller extends Controller
 	    		"status" => [
 	    			"code" => 0,
 	    			"message" => 'Success',
-	    			"datetime" => '2017-01-20T01:14:48-04:00'
+	    			"datetime" => date(DATE_RFC3339)
 	    		]
 	    	];
     	}else{
@@ -92,14 +97,40 @@ class CQ9Controller extends Controller
 	    		"status" => [
 	    			"code" => 0,
 	    			"message" => 'Success',
-	    			"datetime" => '2017-01-20T01:14:48-04:00'
+	    			"datetime" => date(DATE_RFC3339)
 	    		]
 	    	];
     	}
     	return $data;
     }
 
-    public function CheckBalance($account){
-
+    public function CheckBalance(Request $request, $account){
+    	Helper::saveLog('CQ9 Balance Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+    	$user_id = Providerhelper::explodeUsername('_', $account);
+    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
+    	if($client_details != null){
+    		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+			$data = [
+	    		"data" => [
+	    			"balance" => $player_details->playerdetailsresponse->balance,
+	    			"currency" => $client_details->default_currency,
+	    		],
+	    		"status" => [
+	    			"code" => 0,
+	    			"message" => 'Success',
+	    			"datetime" => date(DATE_RFC3339)
+	    		]
+	    	];
+    	}else{
+    		$data = [
+	    		"data" => false,
+	    		"status" => [
+	    			"code" => 0,
+	    			"message" => 'Success',
+	    			"datetime" => date(DATE_RFC3339)
+	    		]
+	    	];
+    	}
+    	return $data;
     }
 }
