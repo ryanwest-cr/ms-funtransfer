@@ -41,13 +41,6 @@ class PragmaticPLayController extends Controller
                 "bonus" => 0.00,
                 "country" => $country,
                 "jurisdiction" => "99",
-                "betLimits" => array(
-                    "defaultBet" => 0.10,
-                    "minBet" => 0.02,
-                    "maxBet" => 10.00,
-                    "minTotalBet" => 0.50,
-                    "maxTotalBet" => 250.00
-                ),
                 "error" => 0,
                 "decription" => "Success"
             );
@@ -249,14 +242,29 @@ class PragmaticPLayController extends Controller
         return $response;
     }
     
-    public function getBalancePerGam(Request $request)
+    public function getBalancePerGame(Request $request)
     {
         $enc_body = file_get_contents("php://input");
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
         
-        Helper::saveLog('PP getBalancePerGam request', 49, json_encode($data) ,"getBalancePerGam");
+        Helper::saveLog('PP getBalancePerGame request', 49, json_encode($data) ,"getBalancePerGame");
+
+        $playerId = ProviderHelper::explodeUsername('_',$data->userId);
+        $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+
+        dd($data->gameIdList);
+        $response = [
+            "gamesBalances" => [
+                
+                "gameID" => "s",
+                "cash" => $player_details->playerdetailsresponse->balance
+                
+            ]
+        ];
+
     }
 
     public function sessionExpired(Request $request)
@@ -306,7 +314,7 @@ class PragmaticPLayController extends Controller
 
         $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency, true );
 
-        $refund_update = DB::table('game_transactions')->where("round_id","=",$data->roundId)->update(['win' => '3']);
+        $refund_update = DB::table('game_transactions')->where("round_id","=",$data->roundId)->update(['win' => '4']);
         
         $response = array(
             "transactionId" => $game_trans[0]->game_trans_id,
@@ -348,6 +356,30 @@ class PragmaticPLayController extends Controller
 
         
     }
+
+    public function jackpotWin(Request $request){
+        $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
+
+
+        $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->first();
+        $game_details = DB::table("games")->where("game_id","=",$game_trans->game_id)->first();
+        
+        $playerId = ProviderHelper::explodeUsername('_',$data->userId);
+        $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$client_details->client_access_token
+            ]
+        ]);
+    }
+
+   
 
     public function responsetosend($client_access_token,$client_api_key,$game_code,$game_name,$client_player_id,$player_token,$amount,$client,$fund_transfer_url,$transtype,$currency,$rollback=false){
         $requesttosend = [
