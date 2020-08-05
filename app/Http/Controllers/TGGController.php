@@ -522,15 +522,144 @@ class TGGController extends Controller
 
 	}
 
-	public function gameRefund($request){
-		$header = $request->header('Authorization');
-		Helper::saveLog('TGG Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
+	public function gameRefund($data){
+		$array = (array)$data['data']['details'];
+	    $newStr = str_replace("\\", '', $array[0]);
+	    $newStr2 = str_replace(';', '', $newStr);
+		$string_to_obj = json_decode($newStr2);
+		dd($string_to_obj);
+	    $game_id = $string_to_obj->game->game_id;
+	    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+		$game_refund = $this->findGameExt($data['callback_id'], 4, 'transaction_id'); // Find if this callback in game extension	
+		if($game_refund == 'false'): // NO REFUND WAS FOUND PROCESS IT!
 		
-		$enc_body = file_get_contents("php://input");
-        parse_str($enc_body, $data);
-        $json_encode = json_encode($data, true);
-        $data = json_decode($json_encode);
+		$game_transaction_ext = $this->findGameExt($data['data']['refund_round_id'], 1, 'round_id'); // Find GameEXT
+		if($game_transaction_ext == 'false'):
+		    $player_details = ProviderHelper::playerDetailsCall($data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$response = array(
+				'status' => 'ok',
+				'data' => [
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'currency' => $client_details->default_currency,
+				],
+		 	);
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+			return $response;
+		endif;
 
+		$game_transaction_ext_refund = $this->findGameExt($data['data']['refund_round_id'], 4, 'round_id'); // Find GameEXT
+		if($game_transaction_ext_refund != 'false'):
+		    $player_details = ProviderHelper::playerDetailsCall($data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$response = array(
+				'status' => 'ok',
+				'data' => [
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'currency' => $client_details->default_currency,
+				],
+		 	);
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+			return $response;
+		endif;
+
+
+		$existing_transaction = $this->findGameTransaction($game_transaction_ext->game_trans_id, 'game_transaction');
+		if($existing_transaction != 'false'): // IF BET WAS FOUND PROCESS IT!
+			$transaction_type = $game_transaction_ext->game_transaction_type == 1 ? 'credit' : 'debit'; // 1 Bet
+		    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+		    if($transaction_type == 'debit'):
+			   	$player_details = ProviderHelper::playerDetailsCall($data['token']);
+			   	if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
+			   		$msg = array(
+						"status" => 'error',
+						"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
+					);
+					return $msg;
+			   	endif;
+		    endif;
+		  	$requesttosend = [
+			  "access_token" => $client_details->client_access_token,
+			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			  "type" => "fundtransferrequest",
+			  "datesent" => Helper::datesent(),
+			  "gamedetails" => [
+			     "gameid" => $game_details->game_code, // $game_details->game_code
+				 "gamename" => $game_details->game_name
+			  ],
+			  "fundtransferrequest" => [
+					"playerinfo" => [
+					"client_player_id" => $client_details->client_player_id,
+					"token" => $data['token'],
+				],
+				"fundinfo" => [
+				      "gamesessionid" => "",
+				      "transferid" => "",
+				      "transactiontype" => $transaction_type,
+				      "rollback" => "true",
+				      "currencycode" => $client_details->default_currency,
+				      "amount" => $data['data']['amount']
+				]
+			  ]
+			];
+			try {
+				$client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.$client_details->client_access_token
+                    ]
+                ]);
+				$guzzle_response = $client->post($client_details->fund_transfer_url,
+					['body' => json_encode($requesttosend)]
+				);
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$client_response->fundtransferresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+			 	 );
+				$this->updateBetTransaction($existing_transaction->round_id, $existing_transaction->pay_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
+				$this->create8PTransactionExt($existing_transaction->game_trans_id, $data, $requesttosend, $client_response, $client_response,$data, 4, $data['data']['amount'], $data['callback_id'], $data['data']['refund_round_id']);
+			  	return $response;
+
+			}catch(\Exception $e){
+				$msg = array(
+					"status" => 'error',
+					"message" => $e->getMessage(),
+				);
+				Helper::saveLog('8P ERROR REFUND', $this->provider_db_id, json_encode($data), $e->getMessage());
+				return $msg;
+			}
+		else:
+			// NO BET WAS FOUND DO NOTHING
+			$player_details = ProviderHelper::playerDetailsCall($data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$response = array(
+				'status' => 'ok',
+				'data' => [
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'currency' => $client_details->default_currency,
+				],
+		 	 );
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+			return $response;
+		endif;
+		else:
+			// NOTE IF CALLBACK WAS ALREADY PROCESS/DUPLICATE PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
+			$player_details = ProviderHelper::playerDetailsCall($data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$response = array(
+				'status' => 'ok',
+				'data' => [
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'currency' => $client_details->default_currency,
+				],
+		 	 );
+			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+			return $response;
+		endif;
 	}
 
 	public function findGameExt($provider_transaction_id, $game_transaction_type, $type) {
