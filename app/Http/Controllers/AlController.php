@@ -91,27 +91,27 @@ class AlController extends Controller
     //   return 'ok';
   }
 
-  public function insertGamesTapulanMode(Request $request){
-      $games = file_get_contents("http://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/getCasinoGames/?secureLogin=tg_tigergames&hash=502c379dee1413a935959d072c9a2b35");
-       $obj = json_decode($games);
+  // public function insertGamesTapulanMode(Request $request){
+      // $games = file_get_contents("http://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/getCasinoGames/?secureLogin=tg_tigergames&hash=502c379dee1413a935959d072c9a2b35");
+      //  $obj = json_decode($games);
       
-       foreach($obj->gameList as $item){
-          // echo "gameID: ". $item->gameID."<br>";
-          // echo "gameName: ". $item->gameName."<br>";
-          // echo "typeDescription: ". $item->typeDescription."<br><br><br>";
+      //  foreach($obj->gameList as $item){
+      //     // echo "gameID: ". $item->gameID."<br>";
+      //     // echo "gameName: ". $item->gameName."<br>";
+      //     // echo "typeDescription: ". $item->typeDescription."<br><br><br>";
 
-          $insert = DB::table('games')->insert([
-              "game_type_id" => "1",
-              "provider_id" => "26",
-              "sub_provider_id" => "49",
-              "game_name" => $item->gameName,
-              "icon" => "https://asset-dev.betrnk.games/images/games/casino/Pragmatic Play/subproviders/Pragmatic-Play/Pragmatic-Play.png",
-              "game_code" => $item->gameID,
-              "on_maintenance" => "0"
-          ]);
-       }
+      //     $insert = DB::table('games')->insert([
+      //         "game_type_id" => "1",
+      //         "provider_id" => "26",
+      //         "sub_provider_id" => "49",
+      //         "game_name" => $item->gameName,
+      //         "icon" => "https://asset-dev.betrnk.games/images/games/casino/Pragmatic Play/subproviders/Pragmatic-Play/Pragmatic-Play.png",
+      //         "game_code" => $item->gameID,
+      //         "on_maintenance" => "0"
+      //     ]);
+      //  }
 
-      return "success";
-  }
+      // return "success";
+  // }
 
 }
