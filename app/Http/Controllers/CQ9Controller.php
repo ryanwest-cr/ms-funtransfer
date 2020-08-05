@@ -116,7 +116,8 @@ class CQ9Controller extends Controller
 			$data = [
 	    		"data" => [
 	    			"balance" => $player_details->playerdetailsresponse->balance,
-	    			"currency" => $client_details->default_currency,
+	    			// "currency" => $client_details->default_currency,
+	    			"currency" => "CNY",
 	    		],
 	    		"status" => [
 	    			"code" => "0",
