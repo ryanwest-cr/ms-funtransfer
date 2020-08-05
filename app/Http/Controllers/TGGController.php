@@ -412,8 +412,8 @@ class TGGController extends Controller
 						Helper::saveLog('TGG ERROR '.$request["name"], $this->provider_db_id, json_encode($request), $e->getMessage());
 						return $msg;
 					}
-			else: 
-					return 'This is bonuss spin no ready to function';
+			// else: 
+			// 		return 'This is bonuss spin no ready to function';
 				    // // No Bet was found check if this is a free spin and proccess it!
 				    // if($string_to_obj->game->action == 'freespin'):
 				  	//     $client_details = ProviderHelper::getClientDetails('token', $request['token']);

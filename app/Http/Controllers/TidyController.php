@@ -363,8 +363,7 @@ class TidyController extends Controller
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 
-		$existing_bet = ProviderHelper::findGameExt($reference_transaction_uuid, 2,'transaction_id');
-
+		$existing_bet = $this->findGameExt($reference_transaction_uuid,'transaction_id');
 		
 		if($existing_bet == 'false'){
 			$data_response = array(
@@ -467,7 +466,24 @@ class TidyController extends Controller
 				   'transaction_reason' => ProviderHelper::updateReason($win),
 			 ]);
 	 return ($update ? true : false);
- 	}
+	 }
+	 
+	 public  static function findGameExt($provider_identifier, $type) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+        if ($type == 'transaction_id') {
+			$transaction_db->where([
+		 		["gte.provider_trans_id", "=", $provider_identifier]
+		 	
+		 	]);
+		}
+		if ($type == 'round_id') {
+			$transaction_db->where([
+		 		["gte.round_id", "=", $provider_identifier],
+		 	]);
+		}  
+		$result= $transaction_db->first();
+		return $result ? $result : 'false';
+	}
 
 
 
