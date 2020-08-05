@@ -293,8 +293,6 @@ class HabaneroController extends Controller
                                 "fundtransferresponse" => [
                                     "status" => [
                                         "success" => true,
-                                        "successdebit" => true,
-                                        "successcredit" => true
                                     ],
                                     "balance" => $player_details->playerdetailsresponse->balance,
                                     "currencycode" => $client_details->default_currency,
