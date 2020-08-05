@@ -16,7 +16,7 @@ use DB;
 class TidyController extends Controller
 {
 	 public $prefix_id = 'TG';
-	 public $provider_db_id = 23;// change local= 22 || online = 23
+	 public $provider_db_id = 23;
 	 public $client_id = '8440a5b6';
 	 public $API_URL = 'http://staging-v1-api.tidy.zone';
 	 // const SECRET_KEY = 'f83c8224b07f96f41ca23b3522c56ef1'; // token

@@ -185,6 +185,15 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider')=="CQGames"){ // request->token
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::cq9LaunchUrl($request->game_code,$token), //TEST
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
                 elseif($request->input('game_provider')=="SA Gaming"){ // request->token
                     $url = GameLobby::saGamingLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang);
                     if($url){
