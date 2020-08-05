@@ -168,11 +168,30 @@ $app->post('skywind/api/get_balance', 'SkyWindController@getBalance');
 $app->post('skywind/api/debit', 'SkyWindController@gameDebit');
 $app->post('skywind/api/credit', 'SkyWindController@gameCredit');
 $app->post('skywind/api/rollback', 'SkyWindController@gameRollback');
-
 //Player API
 //Operator API
 //Lobby API
 //Report API
+
+// CQ9 Gaming
+$app->post('api/cq9/transaction/game/bet','CQ9Controller@playerBet');
+$app->post('api/cq9/transaction/game/endround','CQ9Controller@playrEndround');
+$app->post('api/cq9/transaction/game/rollout','CQ9Controller@playerRollout');
+$app->post('api/cq9/transaction/game/takeall','CQ9Controller@playerBet');
+$app->post('api/cq9/transaction/game/debit','CQ9Controller@playerTakeall');
+$app->post('api/cq9/transaction/game/credit','CQ9Controller@playerCredit');
+$app->post('api/cq9/transaction/game/bonus','CQ9Controller@playerBonus');
+$app->post('api/cq9/transaction/user/payoff','CQ9Controller@playerPayoff');
+$app->post('api/cq9/transaction/game/refund','CQ9Controller@playerRefund');
+$app->post('api/cq9/transaction/game/bets','CQ9Controller@playerBets');
+$app->post('api/cq9/transaction/game/refunds','CQ9Controller@playerRefunds');
+$app->post('api/cq9/transaction/game/cancel','CQ9Controller@playerCancel');
+$app->post('api/cq9/transaction/game/amend','CQ9Controller@playerAmend');
+$app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
+$app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
+
+$app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
+$app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
 
 //SAGaming 
 $app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
@@ -335,3 +354,7 @@ $app->post('api/pp/promoWin','PragmaticPLayController@promoWin');
 $app->post('api/pp/endRound ','PragmaticPLayController@endRound');
 $app->post('api/pp/getBalancePerGam ','PragmaticPLayController@getBalancePerGam');
 $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
+
+
+
+// $app->get('al-games','AlController@insertGamesTapulanMode');

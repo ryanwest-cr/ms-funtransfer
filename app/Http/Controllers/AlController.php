@@ -90,4 +90,30 @@ class AlController extends Controller
     //   DB::table('games')->insert($data2);
     //   return 'ok';
   }
+
+  // public function insertGamesTapulanMode(Request $request){
+  //     $games = file_get_contents("http://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/getCasinoGames/?secureLogin=tg_tigergames&hash=502c379dee1413a935959d072c9a2b35");
+  //      $obj = json_decode($games);
+      
+  //      foreach($obj->gameList as $item){
+  //         // echo "gameID: ". $item->gameID."<br>";
+  //         // echo "gameName: ". $item->gameName."<br>";
+  //         // echo "typeDescription: ". $item->typeDescription."<br><br><br>";
+
+
+  //         // echo "http://api.prerelease-env.biz/game_pic/rec/325/".$item->gameID.".png<br>";
+
+  //         $insert = DB::table('games')->where("provider_id","=","26")->where("sub_provider_id","=","49")->where("game_code","=",$item->gameID)->update([
+  //             "game_type_id" => "1",
+  //             "provider_id" => "26",
+  //             "sub_provider_id" => "49",
+  //             "game_name" => $item->gameName,
+  //             "icon" => "https://asset-dev.betrnk.games/images/games/casino/PragmaticPlay/".$item->gameID.".png",
+  //             "game_code" => $item->gameID,
+  //             "on_maintenance" => "0"
+  //         ]);
+  //      }
+
+  // }
+
 }
