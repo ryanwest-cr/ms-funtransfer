@@ -226,13 +226,14 @@ $app->post('/tidy/api/transaction/win', 'TidyController@gameWin');
 $app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
 
 //TGG
-$app->post('/tgg/api/callback', 'TGGController@callBack'); // Single Route
-$app->post('/tgg/api/game/getlist', 'TGGController@getGamelist'); // launch game 
-$app->post('/tgg/api/game/geturl', 'TGGController@getURL');// launch game
-$app->post('/tgg/api/game/init', 'TGGController@gameInit');//Initialize balance
-$app->post('/tgg/api/game/bet', 'TGGController@gameBet');//
-$app->post('/tgg/api/game/win', 'TGGController@gameWin');
-$app->post('/tgg/api/game/refund', 'TGGController@gameRefund');
+$app->post('/api/tgg/gamelist', 'TGGController@getGamelist'); // launch game 
+$app->post('/api/tgg/geturl', 'TGGController@getURL');// launch game
+
+$app->post('/api/tgg/index', 'TGGController@index'); // Single Route
+$app->post('/api/tgg/init', 'TGGController@gameInit');
+$app->post('/api/tgg/bet', 'TGGController@gameBet');
+$app->post('/api/tgg/win', 'TGGController@gameWin');
+$app->post('/api/tgg/refund', 'TGGController@gameRefund');
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
