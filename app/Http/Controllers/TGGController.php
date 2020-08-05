@@ -16,7 +16,7 @@ class TGGController extends Controller
 	 public $api_url = 'http://api.flexcontentprovider.com';
 	 public $provider_db_id = 29; // this is not final provider no register local
 
-	 public function index(Request $request){
+	public function index(Request $request){
 		
 		Helper::saveLog('TGG index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
@@ -330,7 +330,6 @@ class TGGController extends Controller
 	}
 
 	public function gameWin($request){
-		$request = $request;
 		$signature_checker = $this->getSignature($this->project_id, 2, $request, $this->api_key,'check_signature');
 		if($signature_checker == 'false'):
 			$msg = array(
@@ -341,6 +340,7 @@ class TGGController extends Controller
 			return $msg;
 		endif;
 		return $request['data']['round_id'];
+
 		$existing_bet = ProviderHelper::findGameTransaction($request['data']['round_id'], 'round_id', 1); // Find if win has bet record
 		$game_ext = ProviderHelper::findGameExt($request['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
 		//$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $request['data']['details']['game']['game_id']);
