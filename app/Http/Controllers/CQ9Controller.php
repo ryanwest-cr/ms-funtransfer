@@ -101,6 +101,7 @@ class CQ9Controller extends Controller
 	    		]
 	    	];
     	}
+    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $data);
     	return $data;
     }
 
@@ -131,6 +132,7 @@ class CQ9Controller extends Controller
 	    		]
 	    	];
     	}
+    	Helper::saveLog('CQ9 Balance Player', $this->provider_db_id, json_encode($request->all()), $data);
     	return $data;
     }
 }
