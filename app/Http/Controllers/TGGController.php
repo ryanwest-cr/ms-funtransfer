@@ -332,12 +332,15 @@ class TGGController extends Controller
 	public function gameWin($request){
 		$existing_bet = ProviderHelper::findGameTransaction($request['data']['round_id'], 'round_id', 1); // Find if win has bet record
 		$game_ext = ProviderHelper::findGameExt($request['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
-		//$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $request['data']['details']['game']['game_id']);
-		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, 1);
+	
+		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $request['data']['details']['game']['game_id']);
+		// $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, 1);
 		
 		if($game_ext == 'false'):
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win //temporary == make it !=
+				
 				$client_details = ProviderHelper::getClientDetails('token', $request['token']);
+				
 				$requesttosend = [
 					  "access_token" => $client_details->client_access_token,
 					  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -373,6 +376,7 @@ class TGGController extends Controller
 							['body' => json_encode($requesttosend)]
 						);
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
+						
 						$response = array(
 							'status' => 'ok',
 							'data' => [
@@ -396,7 +400,7 @@ class TGGController extends Controller
 						$this->updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
 						$this->creteTGGtransaction($existing_bet->game_trans_id, $request, $requesttosend, $client_response, $client_response,$request, 2, $request['data']['amount'], $request['callback_id'] ,$round_id);
 						
-						Helper::saveLog('TGG Provider '.$request['data']['round_id'], $this->provider_db_id, json_encode($request), $response);   
+						Helper::saveLog('TGG success '.$request['data']['round_id'], $this->provider_db_id, json_encode($request), $response);   
 					  	return $response;
 
 					}catch(\Exception $e){
@@ -492,17 +496,28 @@ class TGGController extends Controller
 			endif;
 		else:
 			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			    $player_details = ProviderHelper::playerDetailsCall($request['token']);
-				$client_details = ProviderHelper::getClientDetails('token', $request['token']);
-				$response = array(
-					'status' => 'ok',
-					'data' => [
-						'balance' => $player_details->playerdetailsresponse->balance,
-						'currency' => $client_details->default_currency,
-					],
-			 	);
-				 Helper::saveLog('TGG Provider '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
-				return $response;
+				if($game_ext->provider_trans_id == $request["callback_id"]): //if same duplicate
+					$player_details = ProviderHelper::playerDetailsCall($request['token']);
+					$client_details = ProviderHelper::getClientDetails('token', $request['token']);
+					$response = array(
+						'status' => 'ok',
+						'data' => [
+							'balance' => $player_details->playerdetailsresponse->balance,
+							'currency' => $client_details->default_currency,
+						],
+					 );
+					 Helper::saveLog('TGG Provider '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
+					return $response;
+				else:
+					$msg = array(
+						"status" => 'error',
+						"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
+					);
+					Helper::saveLog('TGG error second '.$request["name"], $this->provider_db_id, json_encode($request), $msg);
+					return $msg;
+				endif;
+
+				
 		endif;
 
 	}
@@ -560,6 +575,48 @@ class TGGController extends Controller
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
 		return $gametransactionext;
+	}
+
+
+	/**
+	 * Find bet and update to win 
+	 * @param [int] $[round_id] [<ID of the game transaction>]
+	 * @param [int] $[pay_amount] [<amount to change>]
+	 * @param [int] $[income] [<bet - payout>]
+	 * @param [int] $[win] [<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
+	 * @param [int] $[entry_id] [<1 bet, 2 win>]
+	 * 
+	 */
+	public  function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id) {
+		$update = DB::table('game_transactions')
+			 ->where('round_id', $round_id)
+			 ->update(['pay_amount' => $pay_amount, 
+				   'income' => $income, 
+				   'win' => $win, 
+				   'entry_id' => $entry_id,
+				   'transaction_reason' => $this->updateReason($win),
+			 ]);
+	 return ($update ? true : false);
+ 	}
+
+	/**
+	 * Find bet and update to win 
+	* @param [int] $[win] [< Win TYPE>][<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
+	* 
+	*/
+	public  function updateReason($win) {
+		$win_type = [
+		"1" => 'Transaction updated to win',
+		"2" => 'Transaction updated to bet',
+		"3" => 'Transaction updated to Draw',
+		"4" => 'Transaction updated to Refund',
+		"5" => 'Transaction updated to Processing',
+		];
+		if(array_key_exists($win, $win_type)){
+			return $win_type[$win];
+		}else{
+			return 'Transaction Was Updated!';
+		}
 	}
 
 }
