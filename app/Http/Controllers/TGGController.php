@@ -16,7 +16,7 @@ class TGGController extends Controller
 	 public $api_url = 'http://api.flexcontentprovider.com';
 	 public $provider_db_id = 29; // this is not final provider no register local
 
-	 public function index(Request $request){
+	 public function callBack(Request $request){
 		
 		Helper::saveLog('TGG index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
