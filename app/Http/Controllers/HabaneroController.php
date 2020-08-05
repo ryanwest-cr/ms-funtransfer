@@ -287,6 +287,8 @@ class HabaneroController extends Controller
 
                         }else if($details->fundtransferrequest->isretry == true && $details->fundtransferrequest->isrecredit == true){
 
+                            $payout = $check_game_trans[0]->pay_amount + abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
+
                             $response = [
                                 "fundtransferresponse" => [
                                     "status" => [
@@ -299,7 +301,7 @@ class HabaneroController extends Controller
                                 ]
                             ];
 
-                            $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $check_game_trans[0]->entry_id, $data, $response, "isretry", "isrecredit", $transaction_detail);
+                            $game_transextension = $this->createGameTransExt($check_game_trans[0]->game_trans_id, $details->fundtransferrequest->gameinstanceid, $details->fundtransferrequest->gameinstanceid, $payout, $check_game_trans[0]->entry_id, $data, $response, "isretry", "isrecredit", "isrecredit");
 
                             return $response;
 
