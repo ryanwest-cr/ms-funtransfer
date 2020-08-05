@@ -79,8 +79,8 @@ class CQ9Controller extends Controller
 
     public function CheckPlayer(Request $request, $account){
     	// $header = $request->header('Authorization');
-    	// $header = $request->header('wtoken');
-    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), 'awe');
+    	$header = $request->header('wtoken');
+    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	if($client_details != null){
@@ -115,7 +115,7 @@ class CQ9Controller extends Controller
     		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 			$data = [
 	    		"data" => [
-	    			"balance" => $player_details->playerdetailsresponse->balance,
+	    			"balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
 	    			"currency" => $client_details->default_currency,
 	    		],
 	    		"status" => [
@@ -189,10 +189,6 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playerRefunds Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
     }
 
-     public function playerBets(Request $request){
-    	Helper::saveLog('CQ9 playerBets Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
-    	Helper::saveLog('CQ9 playerBets Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
-    }
 
       public function playerCancel(Request $request){
     	Helper::saveLog('CQ9 playerCancel Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');

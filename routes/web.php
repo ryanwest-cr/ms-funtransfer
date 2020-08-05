@@ -352,7 +352,7 @@ $app->post('api/pp/bonusWin','PragmaticPLayController@bonusWin');
 $app->post('api/pp/jackpotWin','PragmaticPLayController@jackpotWin');
 $app->post('api/pp/promoWin','PragmaticPLayController@promoWin');
 $app->post('api/pp/endRound ','PragmaticPLayController@endRound');
-$app->post('api/pp/getBalancePerGam ','PragmaticPLayController@getBalancePerGam');
+$app->post('api/pp/getBalancePerGame','PragmaticPLayController@getBalancePerGame');
 $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
 
 
