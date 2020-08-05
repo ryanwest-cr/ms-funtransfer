@@ -523,6 +523,20 @@ class TGGController extends Controller
 	}
 
 	public function gameRefund($data){
+
+		$player_details = ProviderHelper::playerDetailsCall($data['token']);
+		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+		$response = array(
+			'status' => 'ok',
+			'data' => [
+				'balance' => (string)$player_details->playerdetailsresponse->balance,
+				'currency' => $client_details->default_currency,
+			],
+		 );
+		Helper::saveLog('TGG Refund '.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+		return $response;
+
+
 		$array = (array)$data['data']['details'];
 	    $newStr = str_replace("\\", '', $array[0]);
 	    $newStr2 = str_replace(';', '', $newStr);
