@@ -187,10 +187,11 @@ $app->post('api/cq9/transaction/game/bets','CQ9Controller@PlaceBetCancel');
 $app->post('api/cq9/transaction/game/refunds','CQ9Controller@PlaceBetCancel');
 $app->post('api/cq9/transaction/game/cancel','CQ9Controller@PlaceBetCancel');
 $app->post('api/cq9/transaction/game/amend','CQ9Controller@PlaceBetCancel');
-$app->post('api/cq9/transaction/balance/{account}','CQ9Controller@PlaceBetCancel');
-$app->post('api/cq9/player/check/{account}','CQ9Controller@PlaceBetCancel');
+$app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
+$app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
 
 $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
+$app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
 
 //SAGaming 
 $app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
