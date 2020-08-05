@@ -79,8 +79,8 @@ class CQ9Controller extends Controller
 
     public function CheckPlayer(Request $request, $account){
     	// $header = $request->header('Authorization');
-    	// $header = $request->header('wtoken');
-    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), 'awe');
+    	$header = isset($request->header('wtoken')) ? $request->header('wtoken') : 'WAS HEADER';
+    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	if($client_details != null){
@@ -115,9 +115,8 @@ class CQ9Controller extends Controller
     		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 			$data = [
 	    		"data" => [
-	    			"balance" => $player_details->playerdetailsresponse->balance,
-	    			// "currency" => $client_details->default_currency,
-	    			"currency" => "CNY",
+	    			"balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
+	    			"currency" => $client_details->default_currency,
 	    		],
 	    		"status" => [
 	    			"code" => "0",
