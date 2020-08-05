@@ -16,13 +16,51 @@ class TGGController extends Controller
 	 public $api_url = 'http://api.flexcontentprovider.com';
 	 public $provider_db_id = 23; // this is not final provider no register local
 
+	 public function index(Request $request){
+		
+		Helper::saveLog('TGG index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+
+		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->api_key,'check_signature');
+		
+		if($signature_checker == 'false'):
+			$msg = array(
+						"status" => 'error',
+						"error" => ["scope" => "user","no_refund" => 1,"message" => "Signature is invalid!"]
+					);
+			Helper::saveLog('TGG Signature Failed '.$request->name, $this->provider_db_id, json_encode($request->all()), $msg);
+			return $msg;
+		endif;
+
+		if($request->name == 'init'){
+
+			$game_init = $this->gameInit($request->all());
+			return json_encode($game_init);
+
+		}elseif($request->name == 'bet'){
+
+			$bet_handler = $this->gameBet($request->all());
+			return json_encode($bet_handler);
+
+		}elseif($request->name == 'win'){
+
+			$win_handler = $this->gameWin($request->all());
+			return json_encode($win_handler);
+
+		}elseif($request->name == 'refund'){
+
+			$refund_handler = $this->gameRefund($request->all());
+			return json_encode($refund_handler);
+		}
+	}
+
 	/**
 	* $system_id - your project ID (number)
 	* $version - API version (number)for API request OR callback version (number) for callback call
 	* $args - array with API method OR callback parameters. API method parameters list you can find in the API method description
 	* $system_key - your API key (secret key)
 	*/ 
-	public static function  getSignature($system_id, $version, array $args, $system_key,$type){
+	
+	public static function getSignature($system_id, $version, array $args, $system_key,$type){
 		$md5 = array();
 		$md5[] = $system_id;
 		$md5[] = $version;
@@ -125,18 +163,8 @@ class TGGController extends Controller
 	/**
 	 * Initialize the balance 
 	 */
-	public function gameInit(Request $request){
-		Helper::saveLog('TGG '.$request->name, $this->provider_db_id,  json_encode($request->all()), 'ENDPOINT HIT');
-		$data = $request->all();
-		$signature_checker = $this->getSignature($this->project_id, 1, $request->all(), $this->api_key,'check_signature');
-		if(!$signature_checker):
-			$msg = array(
-						"status" => 'error',
-						"error" => ["scope" => "user","no_refund" => 1,"message" => "Signature is invalid!"]
-					);
-			Helper::saveLog('TGG Signature Failed '.$request->name, $this->provider_db_id, json_encode($request->all()), $msg);
-			return $msg;
-		endif;
+	public function gameInit($request){
+		$data = $request;
 		$token = $data['token'];
 		$client_details = ProviderHelper::getClientDetails('token',$token);
 		if($client_details != null){
@@ -149,7 +177,7 @@ class TGGController extends Controller
 						'display_name' => $client_details->display_name
 					]
 				];
-				Helper::saveLog('TGG Balance Response '.$request->name, $this->provider_db_id, json_encode($request->all()), $data_response);
+				Helper::saveLog('TGG Balance Response '.$data['name'], $this->provider_db_id, json_encode($data), $data_response);
 				return $data_response;
 		}else{
 			$data_response = [
@@ -160,12 +188,12 @@ class TGGController extends Controller
 					'detils' => ''
 				]
 			];
-			Helper::saveLog('TGG ERROR '.$request->name, $this->provider_db_id,  json_encode($request->all()), $data_response);
+			Helper::saveLog('TGG ERROR '.$data['name'], $this->provider_db_id,  json_encode($data), $data_response);
 			return $data_response;
 		}
 	}
 
-	public function gameBet(Request $request){
+	public function gameBet($request){
 		// $data = [
 		// 	'token' => 'n58ec5e159f769ae0b7b3a0774fdbf80',
 		// 	'callback_id' => 'llngrl0xem8cf',
@@ -305,7 +333,7 @@ class TGGController extends Controller
 		
 	}
 
-	public function gameWin(Request $request){
+	public function gameWin($request){
 		// $header = $request->header('Authorization');
     	// Helper::saveLog('TGG Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
 
@@ -531,7 +559,7 @@ class TGGController extends Controller
 
 	}
 
-	public function gameRefund(Request $request){
+	public function gameRefund($request){
 		$header = $request->header('Authorization');
 		Helper::saveLog('TGG Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
 		

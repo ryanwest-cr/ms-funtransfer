@@ -226,6 +226,7 @@ $app->post('/tidy/api/transaction/win', 'TidyController@gameWin');
 $app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
 
 //TGG
+$app->post('/tgg/api/game', 'TGGController@index'); // Single Route
 $app->post('/tgg/api/game/getlist', 'TGGController@getGamelist'); // launch game 
 $app->post('/tgg/api/game/geturl', 'TGGController@getURL');// launch game
 $app->post('/tgg/api/game/init', 'TGGController@gameInit');//Initialize balance
