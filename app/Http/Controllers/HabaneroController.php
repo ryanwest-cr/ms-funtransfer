@@ -287,7 +287,7 @@ class HabaneroController extends Controller
 
                         }else if($details->fundtransferrequest->isretry == true && $details->fundtransferrequest->isrecredit == true){
 
-                            $payout = $check_game_trans[0]->pay_amount + abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
+                            $payout = $check_game_trans[0]->pay_amount;
 
                             $response = [
                                 "fundtransferresponse" => [
