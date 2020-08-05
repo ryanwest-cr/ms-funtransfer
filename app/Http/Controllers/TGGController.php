@@ -330,17 +330,6 @@ class TGGController extends Controller
 	}
 
 	public function gameWin($request){
-		$signature_checker = $this->getSignature($this->project_id, 2, $request, $this->api_key,'check_signature');
-		if($signature_checker == 'false'):
-			$msg = array(
-						"status" => 'error',
-						"error" => ["scope" => "user","no_refund" => 1,"message" => "Signature is invalid!"]
-					);
-			Helper::saveLog('TGG Signature Failed '.$request["name"], $this->provider_db_id, json_encode($request), $msg);
-			return $msg;
-		endif;
-		return $request['data']['round_id'];
-
 		$existing_bet = ProviderHelper::findGameTransaction($request['data']['round_id'], 'round_id', 1); // Find if win has bet record
 		$game_ext = ProviderHelper::findGameExt($request['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
 		//$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $request['data']['details']['game']['game_id']);
