@@ -79,7 +79,7 @@ class CQ9Controller extends Controller
 
     public function CheckPlayer(Request $request, $account){
     	// $header = $request->header('Authorization');
-    	$header = isset($request->header('wtoken')) ? $request->header('wtoken') : 'WAS HEADER';
+    	$header = $request->header('wtoken');
     	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
