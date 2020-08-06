@@ -149,9 +149,9 @@ class PragmaticPLayController extends Controller
                 );
                 
                 $game_trans_ext = ProviderHelper::createGameTransExt( $checkGameTrans[0]->game_trans_id, $checkGameTrans[0]->provider_trans_id, $checkGameTrans[0]->round_id, $data->amount, 2, $data, $response_log, $game_trans_ext_id->mw_request, $game_trans_ext_id->client_response, $trans_details);
-
+                
                 $response = array(
-                    "transactionId" => $game_trans_ext_id->game_trans_ext_id,
+                    "transactionId" => $game_trans_ext,
                     "currency" => $client_details->default_currency,
                     "cash" => $player_details->playerdetailsresponse->balance,
                     "bonus" => $this->bonus,
@@ -159,7 +159,8 @@ class PragmaticPLayController extends Controller
                     "error" => 0,
                     "description" => "Success"
                 );
-
+ 
+                
                 
                 Helper::saveLog('PP bet final', 49,json_encode($data) , $response);
 
@@ -179,6 +180,7 @@ class PragmaticPLayController extends Controller
                     "description" => "Success"
                 );
         
+
                 $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
         
                 // $response = array(
@@ -203,7 +205,7 @@ class PragmaticPLayController extends Controller
                 Helper::saveLog('PP bet initial', 49,json_encode($data) , $response_log);
 
                 $response = array(
-                    "transactionId" => $game_trans_ext['game_trans_id'],
+                    "transactionId" => $game_trans_ext,
                     "currency" => $client_details->default_currency,
                     "cash" => $responseDetails['client_response']->fundtransferresponse->balance,
                     "bonus" => $this->bonus,
