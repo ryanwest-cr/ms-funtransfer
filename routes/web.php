@@ -228,7 +228,8 @@ $app->post('/api/fc/getbalance','FCController@getBalance');
 $app->post('/api/fc/transaction','FCController@transactionMake');
 $app->post('/api/fc/cancelbet','FCController@cancelBet');
 $app->post('/api/fc/gamelaunch','FCController@gameLaunch');
-
+//PNG Endpoints
+$app->post('/api/png/authenticate','PNGController@authenticate');
 
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
