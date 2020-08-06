@@ -139,6 +139,101 @@ class CQ9Controller extends Controller
     }
 
 
+    public function playerBet(Request $request){
+    	Helper::saveLog('CQ9 playerBet Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
+    	// Helper::saveLog('CQ9 playerBet Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
+    	// 
+    	$provider_request = json_encode($request->all());
+    	$account = $request->account;
+    	$gamecode = $request->gamecode;
+    	$roundid = $request->roundid;
+    	$amount = $request->amount;
+    	$mtcode = $request->mtcode;
+
+    	$user_id = Providerhelper::explodeUsername('_', $account);
+    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
+		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
+		// if($game_details == null){
+		// 	$response = [
+		// 	"msg"=> "Game not found",
+		// 	"code"=> 1100
+		// 	];
+		// 	Helper::saveLog('CQ9 Game Not Found', $this->provider_db_id, $data, $response);
+		// 	return $response;
+		// }
+
+		try {
+			$token_id = $client_details->token_id;
+			$bet_amount = $amount;
+			$pay_amount= 0;
+			$method = 1;
+			$win_or_lost = 0;
+			$payout_reason = 'BET';
+			$income = $amount;
+			$provider_trans_id = $mtcode;
+			$game_transaction_type = 1;
+
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			$requesttosend = [
+				  "access_token" => $client_details->client_access_token,
+				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				  "type" => "fundtransferrequest",
+				  "datesent" => Helper::datesent(),
+				  "gamedetails" => [
+				    "gameid" => $game_details->game_code, // $game_details->game_code
+				    "gamename" => $game_details->game_name
+				  ],
+				  "fundtransferrequest" => [
+					  "playerinfo" => [
+						"client_player_id" => $client_details->client_player_id,
+						"token" => $client_details->player_token,
+					  ],
+					  "fundinfo" => [
+						      "gamesessionid" => "",
+						      "transactiontype" => 'debit',
+						      "transferid" => "",
+						      "rollback" => false,
+						      "currencycode" => $client_details->currency,
+						      "amount" => abs($amount)
+					   ],
+				  ],
+			];
+			$guzzle_response = $client->post($client_details->fund_transfer_url,
+			    ['body' => json_encode($requesttosend)]
+			);
+		    $client_response = json_decode($guzzle_response->getBody()->getContents());
+		    $data = [
+	    		"data" => [
+	    			"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
+	    			"currency" => $client_details->default_currency,
+	    		],
+	    		"status" => [
+	    			"code" => "0",
+	    			"message" => 'Success',
+	    			"datetime" => date(DATE_RFC3339)
+	    		]
+	    	];
+			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $gamecode, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
+		    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $provider_request, $data, $requesttosend, $client_response, $data);
+			return $data;
+		} catch (\Exception $e) {
+			$data = [];
+			Helper::saveLog('CQ9 playerBet Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
+			return $data;
+		}
+    }
+
+    public function playerCredit(Request $request){
+    	Helper::saveLog('CQ9 playerCredit Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
+    	Helper::saveLog('CQ9 playerCredit Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
+    }
+
+
     public function playrEndround(Request $request){
     	Helper::saveLog('CQ9 playrEndround Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	Helper::saveLog('CQ9 playrEndround Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
@@ -149,20 +244,12 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playerRollout Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
     }
 
-    public function playerBet(Request $request){
-    	Helper::saveLog('CQ9 playerBet Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
-    	Helper::saveLog('CQ9 playerBet Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
-    }
 
     public function playerTakeall(Request $request){
     	Helper::saveLog('CQ9 playerTakeall Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	Helper::saveLog('CQ9 playerTakeall Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
     }
 
-    public function playerCredit(Request $request){
-    	Helper::saveLog('CQ9 playerCredit Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
-    	Helper::saveLog('CQ9 playerCredit Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
-    }
 
      public function playerBonus(Request $request){
     	Helper::saveLog('CQ9 playerBonus Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
