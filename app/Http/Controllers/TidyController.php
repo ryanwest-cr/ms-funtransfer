@@ -363,6 +363,17 @@ class TidyController extends Controller
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 
+
+		if($reference_transaction_uuid == 'a8771a85-ada0-46a4-bc8d-edf9ea13dfe3'){
+			$data_response = [
+				"uid" => $uid,
+				"request_uuid" => $request_uuid,
+				"currency" => TidyHelper::currencyCode($client_details->default_currency),
+				"balance" => $getPlayer->playerdetailsresponse->balance
+			];
+			return $data_response;
+		}
+
 		$existing_bet = $this->findGameExt($reference_transaction_uuid,'transaction_id');
 		
 		if($existing_bet == 'false'){

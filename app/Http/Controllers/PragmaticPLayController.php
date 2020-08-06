@@ -120,7 +120,7 @@ class PragmaticPLayController extends Controller
                 "error" => 1,
                 "description" => "Not Enough Balance"
             );
-
+            Helper::saveLog('PP bet not enough balance', 49,json_encode($data) , $response);
         }else{
 
             $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
