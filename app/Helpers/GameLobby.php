@@ -285,16 +285,18 @@ class GameLobby{
        
     }
 
-    public static function tidylaunchUrl( $game_code = null, $token = null){
+     public static function tidylaunchUrl( $game_code = null, $token = null){
         $url = config('providerlinks.tidygaming.url_lunch');
         $client_details = Providerhelper::getClientDetails('token', $token);
+        $get_code_currency = TidyHelper::currencyCode($getClientDetails->default_currency);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $requesttosend = [
             'client_id' =>  '8440a5b6',
             'game_id' => $game_code,
             'username' => $client_details->username,
             'token' => $token,
-            'uid' => 'TG_'.$client_details->player_id
+            'uid' => 'TG_'.$client_details->player_id,
+            'currency', => $get_code_currency
         ];
         $client = new Client([
             'headers' => [ 
