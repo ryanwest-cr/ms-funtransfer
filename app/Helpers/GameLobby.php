@@ -257,7 +257,10 @@ class GameLobby{
         ]);
         $game_launch = json_decode((string)$response->getBody(), true);
         Helper::saveLog('CQ9 Game Launch', config('providerlinks.cqgames.pdbid'), json_encode($game_launch), $requesttosend);
-        return $game_launch;
+        foreach ($game_launch as $key => $value) {
+            $url = isset($value['url']) ? $value['url'] : 'false';
+            return $url;
+        }
     }
 
 
