@@ -220,19 +220,22 @@ class TidyController extends Controller
     		"request_uuid" => $request_uuid,
     		"currency" => TidyHelper::currencyCode($client_details->default_currency),
     		"balance" =>  $balance
-    	];
-		$bet_transaction = ProviderHelper::findGameTransaction($transaction_uuid, 'round_id',1);
-		if ($bet_transaction == 'false'){
-			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $transaction_uuid);
-			$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
-			Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-		} else {
-			$round_id = $transaction_uuid;
-			$amount = $bet_transaction->bet_amount + $bet_amount;
-			$this->updateMainBetTransac($round_id, $amount, $income, 0, $method);
-			Helper::saveLog('Tidy Second Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-		}
-	   
+		];
+		$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $transaction_uuid);
+		$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $bet_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
+		Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
+		// $bet_transaction = ProviderHelper::findGameTransaction($transaction_uuid, 'round_id',1);
+		// if ($bet_transaction == 'false'){
+		// 	$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $transaction_uuid);
+		// 	$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $bet_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
+		// 	Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
+		// } else {
+		// 	$round_id = $transaction_uuid;
+		// 	$amount = $bet_transaction->bet_amount + $bet_amount;
+		// 	$this->updateMainBetTransac($round_id, $amount, $income, 0, $method);
+		// 	$game_transextension = ProviderHelper::createGameTransExt($bet_transaction->game_trans_id,$provider_trans_id, $provider_trans_id, $bet_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
+		// 	Helper::saveLog('Tidy Second Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
+		// }
 	    return $data_response;
 	}
 
@@ -364,17 +367,17 @@ class TidyController extends Controller
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 
 
-		if($reference_transaction_uuid == 'a8771a85-ada0-46a4-bc8d-edf9ea13dfe3'){
-			$data_response = [
-				"uid" => $uid,
-				"request_uuid" => $request_uuid,
-				"currency" => TidyHelper::currencyCode($client_details->default_currency),
-				"balance" => $getPlayer->playerdetailsresponse->balance
-			];
-			return $data_response;
-		}
+		// if($reference_transaction_uuid == 'a8771a85-ada0-46a4-bc8d-edf9ea13dfe3'){
+		// 	$data_response = [
+		// 		"uid" => $uid,
+		// 		"request_uuid" => $request_uuid,
+		// 		"currency" => TidyHelper::currencyCode($client_details->default_currency),
+		// 		"balance" => $getPlayer->playerdetailsresponse->balance
+		// 	];
+		// 	return $data_response;
+		// }
 
-		$existing_bet = $this->findGameExt($reference_transaction_uuid,'transaction_id');
+		$existing_bet =  ProviderHelper::findGameExt($reference_transaction_uuid,1,'transaction_id');
 		
 		if($existing_bet == 'false'){
 			$data_response = array(
