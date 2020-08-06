@@ -40,6 +40,16 @@ class ProviderHelper{
 
     /**
      * GLOBAL 
+     * @param  [amount] $username [int]
+     * @return [float] [float two decimal number]
+     */
+    public static function amountToFloat($amount){
+    	$float = floatval(number_format((float)$amount, 2, '.', ''));
+    	return $float;
+    }
+
+    /**
+     * GLOBAL 
      * [explodeUsername description]
      * @author 's note sample = TG_Al98, 98 is the player id on MW Database
      * @param  [type] $username [string]
