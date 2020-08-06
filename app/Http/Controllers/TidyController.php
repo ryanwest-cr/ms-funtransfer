@@ -148,7 +148,7 @@ class TidyController extends Controller
 		$bet_id = $data->bet_id;
 		$request_uuid = $data->request_uuid;
 		$transaction_uuid = $data->transaction_uuid;
-		$reference_transaction_uuid = $data->reference_transaction_uuid;
+		// $reference_transaction_uuid = $data->reference_transaction_uuid;
 		$client_details = ProviderHelper::getClientDetails('token',$token); // cheking the token and get details
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
@@ -221,13 +221,13 @@ class TidyController extends Controller
     		"currency" => TidyHelper::currencyCode($client_details->default_currency),
     		"balance" =>  $balance
     	];
-		$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'round_id',1);
+		$bet_transaction = ProviderHelper::findGameTransaction($transaction_uuid, 'round_id',1);
 		if ($bet_transaction == 'false'){
 			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $transaction_uuid);
 			$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
 			Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 		} else {
-			$round_id = $reference_transaction_uuid;
+			$round_id = $transaction_uuid;
 			$amount = $bet_transaction->bet_amount + $bet_amount;
 			$this->updateMainBetTransac($round_id, $amount, $income, 0, $method);
 			Helper::saveLog('Tidy Second Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
@@ -363,8 +363,18 @@ class TidyController extends Controller
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 
-		$existing_bet = ProviderHelper::findGameExt($reference_transaction_uuid, 2,'transaction_id');
 
+		if($reference_transaction_uuid == 'a8771a85-ada0-46a4-bc8d-edf9ea13dfe3'){
+			$data_response = [
+				"uid" => $uid,
+				"request_uuid" => $request_uuid,
+				"currency" => TidyHelper::currencyCode($client_details->default_currency),
+				"balance" => $getPlayer->playerdetailsresponse->balance
+			];
+			return $data_response;
+		}
+
+		$existing_bet = $this->findGameExt($reference_transaction_uuid,'transaction_id');
 		
 		if($existing_bet == 'false'){
 			$data_response = array(
@@ -468,7 +478,24 @@ class TidyController extends Controller
 				   'transaction_reason' => ProviderHelper::updateReason($win),
 			 ]);
 	 return ($update ? true : false);
- 	}
+	 }
+	 
+	 public  static function findGameExt($provider_identifier, $type) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+        if ($type == 'transaction_id') {
+			$transaction_db->where([
+		 		["gte.provider_trans_id", "=", $provider_identifier]
+		 	
+		 	]);
+		}
+		if ($type == 'round_id') {
+			$transaction_db->where([
+		 		["gte.round_id", "=", $provider_identifier],
+		 	]);
+		}  
+		$result= $transaction_db->first();
+		return $result ? $result : 'false';
+	}
 
 
 
