@@ -143,6 +143,7 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playerBet Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	// Helper::saveLog('CQ9 playerBet Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
     	// 
+    	$provider_request = json_encode($request->all());
     	$account = $request->account;
     	$gamecode = $request->gamecode;
     	$roundid = $request->roundid;
@@ -170,6 +171,7 @@ class CQ9Controller extends Controller
 			$payout_reason = 'BET';
 			$income = $amount;
 			$provider_trans_id = $mtcode;
+			$game_transaction_type = 1;
 
 			$client = new Client([
 			    'headers' => [ 
@@ -217,21 +219,11 @@ class CQ9Controller extends Controller
 	    		]
 	    	];
 			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $gamecode, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
-		    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $details, $response, $requesttosend, $client_response, $response);
+		    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $provider_request, $data, $requesttosend, $client_response, $data);
 			return $data;
-		} catch (Exception $e) {
-			$data = [
-	    		"data" => [
-	    			"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
-	    			"currency" => $client_details->default_currency,
-	    		],
-	    		"status" => [
-	    			"code" => "0",
-	    			"message" => 'Success',
-	    			"datetime" => date(DATE_RFC3339)
-	    		]
-	    	];
-			Helper::saveLog('CQ9 playerBet Failed', $this->provider_db_id, json_encode($request->all()), $data);
+		} catch (\Exception $e) {
+			$data = [];
+			Helper::saveLog('CQ9 playerBet Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
 			return $data;
 		}
     }
