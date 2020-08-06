@@ -179,6 +179,7 @@ class PragmaticPLayController extends Controller
                     "description" => "Success"
                 );
         
+                
                 $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
         
                 // $response = array(

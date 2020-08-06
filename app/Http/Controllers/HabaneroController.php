@@ -136,8 +136,7 @@ class HabaneroController extends Controller
                         "currencycode" => $client_details->default_currency,
                     ]
                 ];
-
-            
+           
 
                 $game_ins_id = $details->fundtransferrequest->gameinstanceid;
                 $refund_update = DB::table('game_transactions')->where('provider_trans_id','=',$game_ins_id)->update(['win' => '4']);
