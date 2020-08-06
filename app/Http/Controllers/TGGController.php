@@ -20,7 +20,7 @@ class TGGController extends Controller
 		
 		Helper::saveLog('TGG index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
-		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->api_key,'check_signature');
+		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->api_key,'_signature');
 		// return $signature_checker;
 		if($signature_checker == 'false'):
 			$msg = array(
