@@ -152,7 +152,7 @@ class PragmaticPLayController extends Controller
                 $game_trans_ext = ProviderHelper::createGameTransExt( $checkGameTrans[0]->game_trans_id, $checkGameTrans[0]->provider_trans_id, $checkGameTrans[0]->round_id, $data->amount, 2, $data, $response_log, $game_trans_ext->mw_request, $game_trans_ext->mw_request, $game_trans_ext->mw_request);
 
                 $response = array(
-                    "transactionId" => $game_trans_ext,
+                    "transactionId" => $game_trans_ext->game_trans_id,
                     "currency" => $client_details->default_currency,
                     "cash" => $player_details->playerdetailsresponse->balance,
                     "bonus" => $this->bonus,

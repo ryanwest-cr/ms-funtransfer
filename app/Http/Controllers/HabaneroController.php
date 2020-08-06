@@ -113,7 +113,7 @@ class HabaneroController extends Controller
         if($checktoken == false){ #check if session expire 1hour duration 
 
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-            $game_details = Helper::findGameDetails('game_code', 24, $details->basegame->keyname);
+            $game_details = Helper::findGameDetails('game_code', 26, $details->basegame->keyname);
     
             $client = new Client([
                 'headers' => [ 
@@ -462,7 +462,7 @@ class HabaneroController extends Controller
             }
 
         }    
-        Helper::saveLog('fundtransferrequest', 47,$data,$response);
+        Helper::saveLog('fundtransferrequest', 26,$data,$response);
        
 
         return $response;
@@ -472,7 +472,7 @@ class HabaneroController extends Controller
         $details = json_decode($data);
 
         $queryRequest = DB::table("game_transactions")->where("provider_trans_id","=",$details->queryrequest->gameinstanceid)->get();
-        Helper::saveLog('queryrequest HBN', 47,$data," ");
+        Helper::saveLog('queryrequest HBN', 26,$data," ");
         if(count($queryRequest) > 0){
             $response = [
                 "fundtransferresponse" => [
