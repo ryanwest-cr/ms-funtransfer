@@ -133,7 +133,7 @@ class PragmaticPLayController extends Controller
                     "bonus" => 0.00,
                     "usedPromo" => 0,
                     "error" => 0,
-                    "description" => "Duplicate call (test response)"
+                    "description" => "Success"
                 );
 
                 Helper::saveLog('PP bet final', 49,json_encode($data) , $response);

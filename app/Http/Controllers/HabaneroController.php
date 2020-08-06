@@ -12,6 +12,8 @@ use GuzzleHttp\Client;
 class HabaneroController extends Controller
 {
     
+    public $passkey = "Rja5ZK4kN1GA0R8C";
+
     public function playerdetailrequest(Request $request){
      
 
@@ -95,6 +97,18 @@ class HabaneroController extends Controller
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
         $checktoken = Helper::tokenCheck($client_details->player_token);
+        if($details->auth->passkey != $this->passkey){
+            $response = [
+                "fundtransferresponse" => [
+                    "status" => [
+                        "success" => false,
+                        "message" => "Passkey don't match!"
+                    ]
+                ]
+            ];
+
+            return $response;
+        }
 
         if($checktoken == false){ #check if session expire 1hour duration 
 
@@ -449,6 +463,8 @@ class HabaneroController extends Controller
 
         }    
         Helper::saveLog('fundtransferrequest', 47,$data,$response);
+       
+
         return $response;
     }
     public function queryrequest(Request $request){
