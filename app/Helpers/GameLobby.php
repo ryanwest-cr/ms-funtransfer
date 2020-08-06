@@ -296,7 +296,7 @@ class GameLobby{
             'username' => $client_details->username,
             'token' => $token,
             'uid' => 'TG_'.$client_details->player_id,
-            'currency', => $get_code_currency
+            'currency' => $get_code_currency
         ];
         $client = new Client([
             'headers' => [ 
