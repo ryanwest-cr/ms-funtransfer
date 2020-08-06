@@ -43,7 +43,7 @@ class HabaneroController extends Controller
                     "accountid" => $client_details->player_id,
                     "accountname" => $client_details->username,
                     "balance" => $player_details->playerdetailsresponse->balance,
-                    "currencycode" => "USD"
+                    "currencycode" => $client_details->default_currency
                 ]
             ];
         }

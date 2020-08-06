@@ -303,7 +303,7 @@ class ProviderHelper{
 			"transaction_detail" =>json_encode($transaction_detail),
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
-		return $gametransactionext;
+		return $gamestransaction_ext_ID;
 	}
 
 	/**
