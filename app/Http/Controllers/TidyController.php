@@ -116,7 +116,7 @@ class TidyController extends Controller
 		 			 "uid"			=> $this->prefix_id.'_'.$client_details->player_id,
 					 "request_uuid" => $request_uuid,
 					 "currency"		=> $get_code_currency,
-					 "balance" 		=> $balance
+					 "balance" 		=> ProviderHelper::amountToFloat($num)
 			 	);
 				Helper::saveLog('Tidy Check Balance Response', $this->provider_db_id, json_encode($request->all()), $data);
 				return $data;
@@ -219,7 +219,7 @@ class TidyController extends Controller
     		"uid" => $uid,
     		"request_uuid" => $request_uuid,
     		"currency" => TidyHelper::currencyCode($client_details->default_currency),
-    		"balance" =>  $balance
+    		"balance" =>  ProviderHelper::amountToFloat($num)
 		];
 		$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $transaction_uuid);
 		$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $bet_amount, $game_transaction_type, $data, $data_response, $requesttosend, $client_response, $data_response);
@@ -323,7 +323,7 @@ class TidyController extends Controller
 	    		"uid" => $uid,
 	    		"request_uuid" => $request_uuid,
 	    		"currency" => TidyHelper::currencyCode($client_details->default_currency),
-	    		"balance" => $balance
+	    		"balance" => ProviderHelper::amountToFloat($num)
 	    	];
 
 	    	$round_id = $reference_transaction_uuid;
@@ -448,7 +448,7 @@ class TidyController extends Controller
 			"uid" => $uid,
 			"request_uuid" => $request_uuid,
 			"currency" => TidyHelper::currencyCode($client_details->default_currency),
-			"balance" => $balance
+			"balance" => ProviderHelper::amountToFloat($num)
 		];
 
     	ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid,$reference_transaction_uuid, $bet_transaction->bet_amount, 3, $data, $data_response, $requesttosend, $client_response, $data_response);
