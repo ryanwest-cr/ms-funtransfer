@@ -369,7 +369,7 @@ class TidyController extends Controller
 				"uid" => $uid,
 				"request_uuid" => $request_uuid,
 				"currency" => TidyHelper::currencyCode($client_details->default_currency),
-				"balance" => $player_details->playerdetailsresponse->balance
+				"balance" => $getPlayer->playerdetailsresponse->balance
 			];
 			return $data_response;
 		}
