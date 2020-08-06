@@ -120,7 +120,7 @@ class PragmaticPLayController extends Controller
                 "error" => 1,
                 "description" => "Not Enough Balance"
             );
-
+            Helper::saveLog('PP bet not enough balance', 49,json_encode($data) , $response);
         }else{
 
             $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
@@ -133,7 +133,7 @@ class PragmaticPLayController extends Controller
                     "bonus" => 0.00,
                     "usedPromo" => 0,
                     "error" => 0,
-                    "description" => "Success"
+                    "description" => "Duplicate call (test response)"
                 );
 
                 Helper::saveLog('PP bet final', 49,json_encode($data) , $response);
