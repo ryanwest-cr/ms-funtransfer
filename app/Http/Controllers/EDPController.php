@@ -177,7 +177,8 @@ class EDPController extends Controller
                         ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
-                          "token" => $client_details->player_token
+                          "token" => $client_details->player_token,
+                          "client_player_id"=>$client_details->client_player_id,
                       ],
                       "fundinfo" => [
                             "gamesessionid" => "",
@@ -299,7 +300,8 @@ class EDPController extends Controller
                     ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
-                          "token" => $client_details->player_token
+                          "token" => $client_details->player_token,
+                          "client_player_id"=>$client_details->client_player_id,
                       ],
                       "fundinfo" => [
                             "gamesessionid" => "",
@@ -388,6 +390,7 @@ class EDPController extends Controller
                     ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
+                          "client_player_id"=>$client_details->client_player_id,
                           "token" => $client_details->player_token
                       ],
                       "fundinfo" => [
