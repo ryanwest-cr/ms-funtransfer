@@ -346,55 +346,57 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->where("win","=",4)->get();
+        $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->get();
+
         // return count($game_trans);
-        if(!count($game_trans) > 0){
+        if(count($game_trans) > 0){
+            if($game_trans[0]->win == 4){
 
+                $response = array(
+                    "error" => 0,
+                    "description" => "Success (trasaction does not exist failed to refund)"
+                );
+                return $response;
+            }
+            $game_details = DB::table("games")->where("game_id","=",$game_trans[0]->game_id)->first();
+            
+            $playerId = ProviderHelper::explodeUsername('_',$data->userId);
+            $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+            $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+            // $game_details = Helper::findGameDetails('game_code', 25, $gameDetails->game_code);
+    
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.$client_details->client_access_token
+                ]
+            ]);
+            
+            
+            $bet_amount = $game_trans[0]->bet_amount;
+    
+    
+            $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency, true );
+    
+            $refund_update = DB::table('game_transactions')->where("round_id","=",$data->roundId)->update(['win' => '4']);
+            
             $response = array(
+                "transactionId" => $game_trans[0]->game_trans_id,
                 "error" => 0,
-                "description" => "Success (trasaction does not exist failed to refund)"
+                "description" => "Success"
             );
-
+    
+            $trans_details = array(
+                "refund" => true,
+                "bet_amount" => $bet_amount,
+                "response" => $response,
+            );
+    
+            $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $bet_amount, 3, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+    
             return $response;
         }
 
-        $game_details = DB::table("games")->where("game_id","=",$game_trans[0]->game_id)->first();
-        
-        $playerId = ProviderHelper::explodeUsername('_',$data->userId);
-        $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        // $game_details = Helper::findGameDetails('game_code', 25, $gameDetails->game_code);
-
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer '.$client_details->client_access_token
-            ]
-        ]);
-        
-        
-        $bet_amount = $game_trans[0]->bet_amount;
-
-
-        $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency, true );
-
-        $refund_update = DB::table('game_transactions')->where("round_id","=",$data->roundId)->update(['win' => '4']);
-        
-        $response = array(
-            "transactionId" => $game_trans[0]->game_trans_id,
-            "error" => 0,
-            "description" => "Success"
-        );
-
-        $trans_details = array(
-            "refund" => true,
-            "bet_amount" => $bet_amount,
-            "response" => $response,
-        );
-
-        $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $bet_amount, 3, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
-
-        return $response;
     }
 
     public function bonusWin(Request $request)
