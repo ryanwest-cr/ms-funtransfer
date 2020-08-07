@@ -121,6 +121,7 @@ class EDPController extends Controller
                                 "gameid" => "",
                                 "clientid" => $client_details->client_id,
                                 "playerdetailsrequest" => [
+                                    "client_player_id"=>$client_details->client_player_id,
                                     "token" => $client_details->player_token,
                                     "gamelaunch" => "false"
                                 ]]
@@ -176,6 +177,7 @@ class EDPController extends Controller
                         ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
+                          "client_player_id"=>$client_details->client_player_id,
                           "token" => $client_details->player_token
                       ],
                       "fundinfo" => [
@@ -298,6 +300,7 @@ class EDPController extends Controller
                     ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
+                          "client_player_id"=>$client_details->client_player_id,
                           "token" => $client_details->player_token
                       ],
                       "fundinfo" => [
@@ -387,6 +390,7 @@ class EDPController extends Controller
                     ],
                     "fundtransferrequest" => [
                           "playerinfo" => [
+                          "client_player_id"=>$client_details->client_player_id,
                           "token" => $client_details->player_token
                       ],
                       "fundinfo" => [
