@@ -107,7 +107,7 @@ return [
     ],
     'tidygaming' => [
         'url_lunch' => 'http://staging-v1-api.tidy.zone/api/game/outside/link',
-        'API_URL'
+        'API_URL' => 'http://staging-v1-api.tidy.zone',
         'client_id' => '8440a5b6',
     ],
     'evoplay' => [
