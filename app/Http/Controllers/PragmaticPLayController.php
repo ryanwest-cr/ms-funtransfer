@@ -346,6 +346,8 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
+        Helper::saveLog('PP refund request', 49, json_encode($data) , "");
+
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->get();
 
         // return count($game_trans);
