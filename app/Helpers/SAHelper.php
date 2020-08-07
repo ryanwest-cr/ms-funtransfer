@@ -32,6 +32,7 @@ class SAHelper{
         ]);
         $resp = simplexml_load_string($response->getBody()->getContents());
         $json_encode = json_encode($resp);
+        Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($querystring), json_decode($resp));
         Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($querystring), json_decode($json_encode));
         return json_decode($json_encode);
     }

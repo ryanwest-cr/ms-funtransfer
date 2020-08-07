@@ -196,6 +196,7 @@ $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
 $app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
 
 //SAGaming 
+$app->post('api/sa/debugme','SAGamingController@debugme');
 $app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
 $app->post('api/sa/PlaceBet','SAGamingController@PlaceBet');
 $app->post('api/sa/PlayerWin','SAGamingController@PlayerWin');
