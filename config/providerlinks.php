@@ -153,6 +153,11 @@ return [
         'api_url' => 'http://api.pg-bo.me/external',
         'operator_token' => '642052d1627c8cae4a288fc82a8bf892',
         'secret_key' => '02f314db35a0dfe4635dff771b607f34',
+    ],
+    'tpp' => [
+        'gamelaunch_url' => 'https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do',
+        'secureLogin' => 'tg_tigergames', //or stylename
+        'secret_key' => 'testKey',
     ]
     
 ];

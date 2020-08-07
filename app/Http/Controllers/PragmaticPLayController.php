@@ -20,6 +20,15 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
+        $hash = md5('providerId='.$data->providerId.'&token='.$data->token);
+
+        if(){
+            $response = [
+                "error" => 4,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
         
         $providerId = $data->providerId;
         $hash = $data->hash;
@@ -382,7 +391,8 @@ class PragmaticPLayController extends Controller
             $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency, true );
     
             $refund_update = DB::table('game_transactions')->where("round_id","=",$data->roundId)->update(['win' => '4']);
-            
+                    
+            //
             $response = array(
                 // "transactionId" => $game_trans[0]->game_trans_id,
                 "transactionId" => $game_trans[0]->game_trans_id."-".date("his"),
@@ -454,6 +464,44 @@ class PragmaticPLayController extends Controller
                 'Authorization' => 'Bearer '.$client_details->client_access_token
             ]
         ]);
+
+        $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit", $client_details->default_currency );
+
+        $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
+
+        $income = $game_trans[0]->bet_amount - $data->amount;
+        $win = 1;
+        
+        $updateGameTrans = DB::table('game_transactions')
+            ->where("round_id","=",$data->roundId)
+            ->update([
+                "win" => $win,
+                "pay_amount" => $data->amount,
+                "income" => $income,
+                "entry_id" => 2
+            ]);
+    
+        $response = array(
+            "transactionId" => $game_trans[0]->game_trans_id,
+            "currency" => $client_details->default_currency,
+            "cash" => $responseDetails['client_response']->fundtransferresponse->balance,
+            "bonus" => 0,
+            "error" => 0,
+            "description" => "Success",
+        );
+
+        $trans_details = array(
+            "game_trans_id" => $game_trans[0]->game_trans_id,
+            "bet_amount" => $game_trans[0]->bet_amount,
+            "pay_amount" => $data->amount,
+            "win" => true,
+            "response" => $response
+        );
+
+        $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 2, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+
+
+
     }
 
    
