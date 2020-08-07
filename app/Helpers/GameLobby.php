@@ -291,7 +291,7 @@ class GameLobby{
         $get_code_currency = TidyHelper::currencyCode($client_details->default_currency);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $requesttosend = [
-            'client_id' =>  '8440a5b6',
+            'client_id' =>  config('providerlinks.tidygaming.client_id'),
             'game_id' => $game_code,
             'username' => $client_details->username,
             'token' => $token,

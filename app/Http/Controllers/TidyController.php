@@ -17,9 +17,13 @@ class TidyController extends Controller
 {
 	 public $prefix_id = 'TG';
 	 public $provider_db_id = 23;
-	 public $client_id = '8440a5b6';
-	 public $API_URL = 'http://staging-v1-api.tidy.zone';
+	 public $client_id, $API_URL;
 	 // const SECRET_KEY = 'f83c8224b07f96f41ca23b3522c56ef1'; // token
+
+	 public function __construct(){
+    	$this->client_id = config('providerlinks.tidygaming.client_id');
+    	$this->API_URL = config('providerlinks.tidygaming.API_URL');
+    }
 
 	 public function autPlayer(Request $request){
 	 	$playersid = explode('_', $request->username);
