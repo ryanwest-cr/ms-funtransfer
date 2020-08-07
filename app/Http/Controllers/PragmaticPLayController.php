@@ -346,7 +346,18 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->get();
+        $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->where("win","=",4)->get();
+        // return count($game_trans);
+        if(!count($game_trans) > 0){
+
+            $response = array(
+                "error" => 0,
+                "description" => "Success (trasaction does not exist failed to refund)"
+            );
+
+            return $response;
+        }
+
         $game_details = DB::table("games")->where("game_id","=",$game_trans[0]->game_id)->first();
         
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
