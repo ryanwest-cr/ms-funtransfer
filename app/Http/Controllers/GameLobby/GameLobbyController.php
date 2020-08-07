@@ -346,10 +346,6 @@ class GameLobbyController extends Controller
                     // ->header('Content-Type', 'application/json');
                 } 
                 elseif($request->input('game_provider')=="Tidy"){ 
-
-                  
-                    // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
-                    // $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::tidylaunchUrl($request->game_code,$request->token), //TEST
@@ -361,9 +357,6 @@ class GameLobbyController extends Controller
                     
                 }
                 elseif($request->input('game_provider') == "Top Grade Games"){ 
-                    // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
-                    // $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
-                   
                     $url = GameLobby::tgglaunchUrl($request->game_code,$request->token);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
@@ -372,7 +365,18 @@ class GameLobbyController extends Controller
                     );
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
-                }elseif($request->input('game_provider')=="HabaneroGaming"){ 
+                }
+                elseif($request->input('game_provider') == "Pocket Games Soft"){ 
+                    $url = GameLobby::pgsoftlaunchUrl($request->game_code,$request->token);
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => $url,
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="HabaneroGaming"){ 
                     // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
                     // $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
                     $msg = array(

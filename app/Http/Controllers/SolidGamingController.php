@@ -66,10 +66,11 @@ class SolidGamingController extends Controller
 				        	["access_token" => $client_details->client_access_token,
 								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 								"type" => "playerdetailsrequest",
-								"datesent" => "",
+								"datesent" => Helper::datesent(),
 								"gameid" => "",
 								"clientid" => $client_details->client_id,
 								"playerdetailsrequest" => [
+									"client_player_id" => $client_details->client_player_id,
 									"token" => $json_data["token"],
 									"gamelaunch" => true
 								]]
@@ -155,6 +156,7 @@ class SolidGamingController extends Controller
 								"gameid" => "",
 								"clientid" => $client_details->client_id,
 								"playerdetailsrequest" => [
+									"client_player_id" => $client_details->client_player_id,
 									"token" => $client_details->player_token,
 									"gamelaunch" => "true"
 								]]
@@ -241,6 +243,7 @@ class SolidGamingController extends Controller
 									"gameid" => "",
 									"clientid" => $client_details->client_id,
 									"playerdetailsrequest" => [
+										"client_player_id" => $client_details->client_player_id,
 										"token" => $client_details->player_token,
 										"gamelaunch" => "false"
 									]]
@@ -337,7 +340,8 @@ class SolidGamingController extends Controller
 									  ],
 									  "fundtransferrequest" => [
 											"playerinfo" => [
-											"token" => $client_details->player_token
+												"client_player_id" => $client_details->client_player_id,
+												"token" => $client_details->player_token
 										],
 										"fundinfo" => [
 										      "gamesessionid" => "",
@@ -469,7 +473,8 @@ class SolidGamingController extends Controller
 									  ],
 									  "fundtransferrequest" => [
 											"playerinfo" => [
-											"token" => $client_details->player_token
+												"client_player_id" => $client_details->client_player_id,
+												"token" => $client_details->player_token
 										],
 										"fundinfo" => [
 										      "gamesessionid" => "",
@@ -598,7 +603,8 @@ class SolidGamingController extends Controller
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $client_details->player_token
+													"client_player_id" => $client_details->client_player_id,
+													"token" => $client_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
@@ -627,7 +633,8 @@ class SolidGamingController extends Controller
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $client_details->player_token
+													"client_player_id" => $client_details->client_player_id,
+													"token" => $client_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
@@ -766,7 +773,8 @@ class SolidGamingController extends Controller
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $client_details->player_token
+													"client_player_id" => $client_details->client_player_id,
+													"token" => $client_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
@@ -843,7 +851,8 @@ class SolidGamingController extends Controller
 												  ],
 												  "fundtransferrequest" => [
 														"playerinfo" => [
-														"token" => $client_details->player_token
+															"client_player_id" => $client_details->client_player_id,
+															"token" => $client_details->player_token
 													],
 													"fundinfo" => [
 													      "gamesessionid" => $value->round_id,
@@ -951,7 +960,7 @@ class SolidGamingController extends Controller
 
 	private function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")

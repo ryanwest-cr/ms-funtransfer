@@ -250,12 +250,17 @@ $app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
 //TGG
 $app->post('/api/tgg/gamelist', 'TGGController@getGamelist'); // launch game 
 $app->post('/api/tgg/geturl', 'TGGController@getURL');// launch game
-
 $app->post('/api/tgg', 'TGGController@index'); // Single Route
 $app->post('/api/tgg/init', 'TGGController@gameInit');
 $app->post('/api/tgg/bet', 'TGGController@gameBet');
 $app->post('/api/tgg/win', 'TGGController@gameWin');
 $app->post('/api/tgg/refund', 'TGGController@gameRefund');
+
+//PGSoft 
+$app->post('/api/pgsoft/playerwallet', 'PGSoftController@playerWallet');
+$app->post('/api/pgsoft/bet', 'PGSoftController@gameBet');
+$app->post('/api/pgsoft/win', 'PGSoftController@gameWin');
+$app->post('/api/pgsoft/refund', 'PGSoftController@gameRefund');
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
