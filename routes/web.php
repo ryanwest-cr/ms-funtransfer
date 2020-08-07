@@ -259,7 +259,7 @@ $app->post('/api/tgg/refund', 'TGGController@gameRefund');
 //PGSoft 
 $app->post('/api/pgsoft/playerwallet', 'PGSoftController@playerWallet');
 $app->post('/api/pgsoft/bet', 'PGSoftController@gameBet');
-$app->post('/api/pgsoft/win', 'PGSoftController@gameWin');
+$app->post('/api/pgsoft/payout', 'PGSoftController@gamePayout');
 $app->post('/api/pgsoft/refund', 'PGSoftController@gameRefund');
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
