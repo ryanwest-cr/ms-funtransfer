@@ -190,13 +190,29 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP result request', 49, json_encode($data) ,"result");
+        $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
+        
+        Helper::saveLog('PP result request', 49, json_encode($data) ,"result");
+        
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $game_details = Helper::findGameDetails('game_code', 26, $data->gameId);
+        
+        if(count($checkGameTrans)  > 0){
+            $response_log = array(
+                "transactionId" => $checkGameTrans[0]->game_trans_id,
+                "currency" => $client_details->default_currency,
+                "cash" => $player_details->playerdetailsresponse->balance,
+                "bonus" => 0,
+                "error" => 0,
+                "description" => "Success",
+            );
 
+            return $response_log;
+        }
+        
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
