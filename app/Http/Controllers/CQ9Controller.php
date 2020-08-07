@@ -45,9 +45,31 @@ class CQ9Controller extends Controller
         ]);
         // $response = $client->get($this->api_url.'/gameboy/game/halls');
         $response = $client->get($this->api_url.'/gameboy/game/list/cq9');
-
         $game_list = json_decode((string)$response->getBody(), true);
-        return $game_list;
+
+        $data2 = array();
+        foreach($game_list['data'] as $key){
+          if($key['gametype'] == 'slot'){
+          	$gametype = 1;
+          }elseif($key['gametype'] == 'table'){
+          	$gametype = 5;
+      	  }elseif($key['gametype'] == 'fish'){
+          	$gametype = 9;
+          }else{
+          	$gametype = 8; // arcade
+          }
+          $game = array(
+              "game_type_id"=>$gametype,
+              "provider_id"=> 30,
+              "sub_provider_id"=> 54,
+              "game_name"=> $key['gamename'],
+              "game_code"=> $key["gamecode"],
+              "icon"=> 'https://logopond.com/logos/a3134d028cc2ecd3b3f6cc4ff20947cd.png'
+          );
+          array_push($data2,$game);
+        }
+        DB::table('games')->insert($data2);
+        return 'ok';
 	}
 
 	public function playerLogout(){
