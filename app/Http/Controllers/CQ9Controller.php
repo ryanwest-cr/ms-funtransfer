@@ -178,6 +178,7 @@ class CQ9Controller extends Controller
 			$income = $amount;
 			$provider_trans_id = $mtcode;
 			$game_transaction_type = 1;
+			$game_id = $game_details->game_id;
 
 			$client = new Client([
 			    'headers' => [ 
@@ -224,7 +225,7 @@ class CQ9Controller extends Controller
 	    			"datetime" => date(DATE_RFC3339)
 	    		]
 	    	];
-			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $gamecode, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
+			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
 		    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $roundid, $amount, $game_transaction_type, $provider_request, $mw_response, $requesttosend, $client_response, $mw_response);
 			return $mw_response;
 		} catch (\Exception $e) {
@@ -244,12 +245,12 @@ class CQ9Controller extends Controller
     	$gamehall = $request->gamehall;
     	$roundid = $request->roundid;
 
-    	$check_wtoken = $this->checkAuth($header);
-    	if(!$check_wtoken){
-    		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 playrEndround Error Token', $this->provider_db_id, $provider_request, $mw_response);
-			return $mw_response;
-    	}
+   //  	$check_wtoken = $this->checkAuth($header);
+   //  	if(!$check_wtoken){
+   //  		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
+			// Helper::saveLog('CQ9 playrEndround Error Token', $this->provider_db_id, $provider_request, $mw_response);
+			// return $mw_response;
+   //  	}
 
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
@@ -281,12 +282,18 @@ class CQ9Controller extends Controller
     		$total_amount = array_sum($total_amount);
 	    	$token_id = $client_details->token_id;
 			$pay_amount = $game_transaction->pay_amount + $total_amount;
-			$entry_id = 2;
-			$win_or_lost = 1;
 			$payout_reason = 'ENDROUND WIN';
 			$income = $game_transaction->bet_amount - $pay_amount;
 			$provider_trans_id = $data->mtcode;
-			$game_transaction_type = 2;
+			if($total_amount > 0){
+				$game_transaction_type = 2;
+				$entry_id = 2;
+				$win_or_lost = 1;
+			}else{
+				$game_transaction_type = 1;
+				$entry_id = 1;
+				$win_or_lost = 0;
+			}
 			$requesttosend = [
 			  "access_token" => $client_details->client_access_token,
 			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -426,7 +433,7 @@ class CQ9Controller extends Controller
 	    			"datetime" => date(DATE_RFC3339)
 	    		]
 	    	];
-			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $gamecode, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
+			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
 		    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $roundid, $amount, $game_transaction_type, $provider_request, $mw_response, $requesttosend, $client_response, $mw_response);
 			return $mw_response;
 		} catch (\Exception $e) {
