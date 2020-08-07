@@ -148,6 +148,11 @@ return [
         'api_url' => 'http://api.flexcontentprovider.com',
         'project_id' => '1421',
         'secretkey' => '29abd3790d0a5acd532194c5104171c8',
+    ],
+    'pgsoft' => [
+        'api_url' => 'http://api.pg-bo.me/external',
+        'operator_token' => '642052d1627c8cae4a288fc82a8bf892',
+        'secret_key' => '02f314db35a0dfe4635dff771b607f34',
     ]
     
 ];
