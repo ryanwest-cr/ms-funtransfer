@@ -15,9 +15,9 @@ use DB;
 class TidyHelper{
 
 
-	 const CLIENT_ID = '8440a5b6';
-	 const SECRET_KEY = 'f83c8224b07f96f41ca23b3522c56ef1'; 
-	 const API_URL = 'http://staging-v1-api.tidy.zone';
+	 // const CLIENT_ID = '8440a5b6';
+	 // const SECRET_KEY = 'f83c8224b07f96f41ca23b3522c56ef1'; 
+	 // const API_URL = 'http://staging-v1-api.tidy.zone';
 
 
 	// //for the tidy
@@ -51,7 +51,7 @@ class TidyHelper{
 
 	  public static function generateToken(Array $data) {
 		 $data['iat'] = (int)microtime(true);
-		 $jwt = JWT::encode($data, self::SECRET_KEY);
+		 $jwt = JWT::encode($data, config('providerlinks.tidygaming.SECRET_KEY'));
 		 return $jwt;
 	 }
 
@@ -59,7 +59,7 @@ class TidyHelper{
     public static function decodeToken($token){
 		$token = $token;
 		try {
-			$decoded = JWT::decode($token, self::SECRET_KEY, array('HS256'));
+			$decoded = JWT::decode($token, config('providerlinks.tidygaming.SECRET_KEY'), array('HS256'));
 			// return json_encode($decoded);
 			return 'true';
 		} catch(\Exception $e) {
