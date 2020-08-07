@@ -352,6 +352,7 @@ class PragmaticPLayController extends Controller
 
         // return count($game_trans);
         if(count($game_trans) > 0){
+
             if($game_trans[0]->win == 4){
 
                 $response = array(
@@ -383,11 +384,12 @@ class PragmaticPLayController extends Controller
             $refund_update = DB::table('game_transactions')->where("round_id","=",$data->roundId)->update(['win' => '4']);
             
             $response = array(
-                "transactionId" => $game_trans[0]->game_trans_id,
+                // "transactionId" => $game_trans[0]->game_trans_id,
+                "transactionId" => $game_trans[0]->game_trans_id."-".date("his"),
                 "error" => 0,
                 "description" => "Success"
             );
-    
+            
             $trans_details = array(
                 "refund" => true,
                 "bet_amount" => $bet_amount,
@@ -395,6 +397,13 @@ class PragmaticPLayController extends Controller
             );
     
             $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $bet_amount, 3, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+    
+
+            // $response_log = array(
+            //     "transactionId" => $game_trans[0]->game_trans_id,
+            //     "error" => 0,
+            //     "description" => "Success"
+            // );
     
             return $response;
         }
