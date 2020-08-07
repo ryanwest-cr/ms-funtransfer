@@ -354,7 +354,7 @@ class PragmaticPLayController extends Controller
 
                 $response = array(
                     "error" => 0,
-                    "description" => "Success (trasaction does not exist failed to refund)"
+                    "description" => "Success (duplicate refund)"
                 );
                 return $response;
             }
