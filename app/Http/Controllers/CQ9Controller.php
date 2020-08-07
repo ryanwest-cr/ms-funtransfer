@@ -69,7 +69,7 @@ class CQ9Controller extends Controller
     public function CheckPlayer(Request $request, $account){
     	// $header = $request->header('Authorization');
     	$header = $request->header('wtoken');
-    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
+    	// Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
     		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
@@ -98,7 +98,7 @@ class CQ9Controller extends Controller
 	    		]
 	    	];
     	}
-    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $data);
+    	// Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $data);
     	return $data;
     }
 
@@ -137,7 +137,7 @@ class CQ9Controller extends Controller
     public function playerBet(Request $request){
     	Helper::saveLog('CQ9 playerBet Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
-    	$provider_request = json_encode($request->all());
+    	$provider_request = $request->all();
     	$account = $request->account;
     	$gamecode = $request->gamecode;
     	$gamehall = $request->gamehall;
@@ -238,7 +238,7 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playrEndround Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$provider_request = json_encode($request->all());
-    	$data_details = ProviderHelper::rawToObj($request->data, 1);
+    	$data_details = ProviderHelper::rawToObj($request->data, true);
     	$account = $request->account;
     	$gamecode = $request->gamecode;
     	$gamehall = $request->gamehall;
@@ -309,7 +309,7 @@ class CQ9Controller extends Controller
 							      "transferid" => "",
 							      "rollback" => false,
 							      "currencycode" => $client_details->currency,
-							      "amount" => $total_amount
+							      "amount" => $data->amount
 						   ],
 					  ],
 				];
@@ -329,8 +329,8 @@ class CQ9Controller extends Controller
 			    			"datetime" => date(DATE_RFC3339)
 			    		]
 		    	];
-			    ProviderHelper::updateBetTransaction($game_transaction->round_id, $total_amount, $income, 1, 2);
-		 	    $game_transextension = ProviderHelper::createGameTransExt($game_ext_check->game_trans_id,$provider_trans_id, $roundid, $total_amount, $game_transaction_type, $provider_request, $mw_response, $requesttosend, $client_response, $mw_response);
+			    ProviderHelper::updateBetTransaction($game_transaction->round_id, $pay_amount, $income, 1, 2);
+		 	    $game_transextension = ProviderHelper::createGameTransExt($game_ext_check->game_trans_id,$provider_trans_id, $roundid, $data->amount, $game_transaction_type, $provider_request, $mw_response, $requesttosend, $client_response, $mw_response);
 	    	}	
 
 		    $mw_response = [

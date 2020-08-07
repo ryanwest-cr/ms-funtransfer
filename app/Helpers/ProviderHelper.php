@@ -50,6 +50,27 @@ class ProviderHelper{
 
     /**
      * GLOBAL 
+     * JSON PASS AS PARAMS OR IN THE BODY RAW TEST -RiAN 
+     * SAMPLE = [{\"mtcode\":\"rel-win-3497138713:cq9\",\"amount\":1004,\"eventtime\":\"2020-08-06T02:48:41-04:00\",\"validbet\":0}]
+     * @param  [string/json] $data
+     * @param  [int] $depth = 0 return single obj, 1 multiple return obj
+     * @return [obj
+     */
+    public static function rawToObj($data, $multiple=false){
+    	$array = (array)$data;
+	    $newStr = str_replace("\\", '', $array[0]);
+	    $newStr2 = str_replace(';', '', $newStr);
+		$string_to_obj = json_decode($newStr2);
+		if($multiple == false){
+			return $string_to_obj[0];
+		}else{
+			return $string_to_obj;
+		}
+    }
+
+
+    /**
+     * GLOBAL 
      * [explodeUsername description]
      * @author 's note sample = TG_Al98, 98 is the player id on MW Database
      * @param  [type] $username [string]
