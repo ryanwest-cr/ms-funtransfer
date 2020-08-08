@@ -122,13 +122,13 @@ class PragmaticPLayController extends Controller
 
         $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         
-        // if($hash != $data->hash){
-        //     $response = [
-        //         "error" => 5,
-        //         "decription" => "Success"
-        //     ];
-        //     return $response;
-        // }
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
 
         Helper::saveLog('PP bet request', 49,json_encode($data), "");
 
