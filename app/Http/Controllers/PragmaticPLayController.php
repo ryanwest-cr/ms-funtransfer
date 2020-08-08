@@ -25,7 +25,7 @@ class PragmaticPLayController extends Controller
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
-        
+
         $hash = md5('providerId='.$data->providerId.'&token='.$data->token.$this->key);
 
         if($hash != $data->hash){
@@ -35,7 +35,9 @@ class PragmaticPLayController extends Controller
             ];
             return $response;
         }
+ 
 
+        
         $providerId = $data->providerId;
         $hash = $data->hash;
         $token = $data->token;
