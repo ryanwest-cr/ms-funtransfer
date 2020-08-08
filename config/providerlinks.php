@@ -107,6 +107,9 @@ return [
     ],
     'tidygaming' => [
         'url_lunch' => 'http://staging-v1-api.tidy.zone/api/game/outside/link',
+        'API_URL' => 'http://staging-v1-api.tidy.zone',
+        'client_id' => '8440a5b6',
+        'SECRET_KEY' => 'f83c8224b07f96f41ca23b3522c56ef1',
     ],
     'evoplay' => [
         'api_url' => 'http://api.8provider.com',
@@ -153,6 +156,11 @@ return [
         'api_url' => 'http://api.pg-bo.me/external',
         'operator_token' => '642052d1627c8cae4a288fc82a8bf892',
         'secret_key' => '02f314db35a0dfe4635dff771b607f34',
+    ],
+    'tpp' => [
+        'gamelaunch_url' => 'https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do',
+        'secureLogin' => 'tg_tigergames', //or stylename
+        'secret_key' => 'testKey',
     ]
     
 ];

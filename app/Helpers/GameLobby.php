@@ -291,7 +291,7 @@ class GameLobby{
         $get_code_currency = TidyHelper::currencyCode($client_details->default_currency);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $requesttosend = [
-            'client_id' =>  '8440a5b6',
+            'client_id' =>  config('providerlinks.tidygaming.client_id'),
             'game_id' => $game_code,
             'username' => $client_details->username,
             'token' => $token,
@@ -320,6 +320,7 @@ class GameLobby{
           "settings" =>  [
             'user_id'=> $client_player_details->player_id,
             'language'=> $client_player_details->language ? $client_player_details->language : 'en',
+            'https' => 1
           ],
           "denomination" => '1', // game to be launched with values like 1.0, 1, default
           "currency" => $client_player_details->default_currency,
@@ -362,8 +363,10 @@ class GameLobby{
     
     public static function pragmaticplaylauncher($game_code = null, $token = null)
     {
-        $stylename = "tg_tigergames";
-        $key = "testKey";
+        $stylename = config('providerlinks.tpp.secureLogin');
+        $key = config('providerlinks.tpp.secret_key');
+        $gameluanch_url = config('providerlinks.tpp.gamelaunch_url');
+
         $client_details = Providerhelper::getClientDetails('token', $token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         
@@ -383,7 +386,7 @@ class GameLobby{
         // $currentBalance = "https://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/balance/current/?externalPlayerId=$userid&secureLogin=$stylename&hash=$hashCurrentBalance";
 
         $paramEncoded = urlencode("token=".$token."&symbol=".$game_code."&technology=F&platform=WEB&language=en&lobbyUrl=daddy.betrnk.games");
-        $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$paramEncoded&stylename=$stylename";
+        $url = "$gameluanch_url?key=$paramEncoded&stylename=$stylename";
         // $result = file_get_contents($url);
         $result = json_encode($url);
         
