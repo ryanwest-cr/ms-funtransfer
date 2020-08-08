@@ -231,8 +231,10 @@ $app->post('/api/fc/getbalance','FCController@getBalance');
 $app->post('/api/fc/transaction','FCController@transactionMake');
 $app->post('/api/fc/cancelbet','FCController@cancelBet');
 $app->post('/api/fc/gamelaunch','FCController@gameLaunch');
+//Wazdan Endpoints
 
-
+$app->post('/api/wazdan/authenticate','WazdanController@authenticate');
+$app->post('/api/wazdan/getStake','WazdanController@getStake');
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 
