@@ -267,7 +267,7 @@ class BoleGamingController extends Controller
 							$update = DB::table('game_transactions')
 		              	    ->where('round_id', $existing_bet->round_id)
 		               		->update(['pay_amount' => $pay_amount, 
-				        		  'income' => $income, 
+				        		  'income' => $existing_bet->bet_amount - $pay_amount, 
 				        		  'game_id' => $game_details->game_id, 
 				        		  'win' => $win_or_lost, 
 				        		  'entry_id' => $method,
