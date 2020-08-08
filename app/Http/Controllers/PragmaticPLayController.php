@@ -170,7 +170,7 @@ class PragmaticPLayController extends Controller
                     "bonus" => 0.00,
                     "usedPromo" => 0,
                     "error" => 0,
-                    "description" => "Successss"
+                    "description" => "Successs"
                 );
 
                 Helper::saveLog('PP bet duplicate', 49,json_encode($data) , $response);
@@ -418,7 +418,7 @@ class PragmaticPLayController extends Controller
             ];
             return $response;
         }
-        
+
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->get();
 
         // return count($game_trans);
@@ -428,10 +428,11 @@ class PragmaticPLayController extends Controller
 
                 $response = array(
                     "error" => 0,
-                    "description" => "Success (duplicate refund)"
+                    "description" => "Success"
                 );
                 return $response;
             }
+
             $game_details = DB::table("games")->where("game_id","=",$game_trans[0]->game_id)->first();
             
             $playerId = ProviderHelper::explodeUsername('_',$data->userId);
@@ -478,6 +479,13 @@ class PragmaticPLayController extends Controller
             // );
     
             return $response;
+
+        }else{
+            $response = array(
+                "error" => 0,
+                "description" => "Success"
+            );
+            return $response;
         }
 
     }
@@ -504,8 +512,6 @@ class PragmaticPLayController extends Controller
                 'Authorization' => 'Bearer '.$client_details->client_access_token
             ]
         ]);
-
-
         
     }
 
