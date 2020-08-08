@@ -236,7 +236,6 @@ class BoleGamingController extends Controller
 							// 	$pay_amount = $json_data->cost_info->gain_gold;
 							// }
 							// END OLD
-							
 							$pay_amount =  $json_data->amount;
 							$income = $bet_amount - $pay_amount;
 							if($json_data->cost_info->gain_gold  == 0){
@@ -263,7 +262,7 @@ class BoleGamingController extends Controller
 							}
 							$existing_bet = ProviderHelper::findGameTransaction($check_game_ext->game_trans_id, 'game_transaction');
 							ProviderHelper::updateBetTransaction($existing_bet->round_id, $pay_amount, $income, $win_or_lost, $method);
-
+							$method = 2;
 							$update = DB::table('game_transactions')
 		              	    ->where('round_id', $existing_bet->round_id)
 		               		->update(['pay_amount' => $pay_amount, 
