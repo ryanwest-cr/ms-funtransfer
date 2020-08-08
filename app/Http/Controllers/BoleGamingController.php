@@ -353,7 +353,7 @@ class BoleGamingController extends Controller
 			                    ['body' => json_encode($requesttosend)]
 			                );
 			                $client_response = json_decode($guzzle_response->getBody()->getContents());
-							Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), json_encode($client_response));
+							Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), $client_response);
 							$data = [
 								"data" => [
 									"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')), 
