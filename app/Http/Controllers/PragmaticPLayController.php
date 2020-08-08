@@ -54,7 +54,7 @@ class PragmaticPLayController extends Controller
             $response = array(
                 "userId" => $userid,
                 "currency" => $currency,
-                "cash" => ProviderHelper::amountToFloat($balance),
+                "cash" => number_format($balance, 2, '.', ''),
                 "bonus" => 0.00,
                 "country" => $country,
                 "jurisdiction" => "99",
@@ -102,7 +102,7 @@ class PragmaticPLayController extends Controller
    
         $response = array(
             "currency" => $client_details->default_currency,
-            "cash" => number_format($player_details->playerdetailsresponse->balance,2),
+            "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
             "bonus" => 0.00,
             "error" => 0,
             "description" => "Success"
@@ -122,13 +122,13 @@ class PragmaticPLayController extends Controller
 
         $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         
-        if($hash != $data->hash){
-            $response = [
-                "error" => 5,
-                "decription" => "Success"
-            ];
-            return $response;
-        }
+        // if($hash != $data->hash){
+        //     $response = [
+        //         "error" => 5,
+        //         "decription" => "Success"
+        //     ];
+        //     return $response;
+        // }
 
         Helper::saveLog('PP bet request', 49,json_encode($data), "");
 
@@ -153,7 +153,7 @@ class PragmaticPLayController extends Controller
         if($bet_amount > $player_details->playerdetailsresponse->balance){
 
             $response = array(
-                "cash" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+                "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
                 "error" => 1,
                 "description" => "Not Enough Balance"
             );
@@ -166,11 +166,11 @@ class PragmaticPLayController extends Controller
                 $response = array(
                     "transactionId" => $checkGameTrans[0]->game_trans_id,
                     "currency" => $client_details->default_currency,
-                    "cash" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+                    "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
                     "bonus" => 0.00,
                     "usedPromo" => 0,
                     "error" => 0,
-                    "description" => "Success"
+                    "description" => "Successss"
                 );
 
                 Helper::saveLog('PP bet duplicate', 49,json_encode($data) , $response);
@@ -184,7 +184,7 @@ class PragmaticPLayController extends Controller
                 $response = array(
                     "transactionId" => $gametrans,
                     "currency" => $client_details->default_currency,
-                    "cash" => ProviderHelper::amountToFloat($responseDetails['client_response']->fundtransferresponse->balance),
+                    "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', ''),
                     "bonus" => 0.00,
                     "usedPromo" => 0,
                     "error" => 0,
@@ -211,6 +211,7 @@ class PragmaticPLayController extends Controller
                 );
         
                 $game_trans_ext = ProviderHelper::createGameTransExt( $gametrans, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 1, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+               
                 Helper::saveLog('PP bet initial', 49,json_encode($data) , $response);
 
             }    
@@ -255,7 +256,7 @@ class PragmaticPLayController extends Controller
             $response_log = array(
                 "transactionId" => $checkGameTrans[0]->game_trans_id,
                 "currency" => $client_details->default_currency,
-                "cash" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+                "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
                 "bonus" => 0,
                 "error" => 0,
                 "description" => "Success",
@@ -310,7 +311,7 @@ class PragmaticPLayController extends Controller
         $response = array(
             "transactionId" => $game_trans_ext,
             "currency" => $client_details->default_currency,
-            "cash" => ProviderHelper::amountToFloat($responseDetails['client_response']->fundtransferresponse->balance),
+            "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', ''),
             "bonus" => 0,
             "error" => 0,
             "description" => "Success",
@@ -345,7 +346,7 @@ class PragmaticPLayController extends Controller
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
    
         $response = array(
-            "cash" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+            "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
             "bonus" => 0.00,
             "error" => 0,
             "description" => "Success"
@@ -372,7 +373,7 @@ class PragmaticPLayController extends Controller
             "gamesBalances" => [
                 
                 "gameID" => $data->gameIdList,
-                "cash" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+                "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
                 "bonus" => 0.00
                 
             ]
@@ -569,7 +570,7 @@ class PragmaticPLayController extends Controller
         $response = array(
             "transactionId" => $game_trans[0]->game_trans_id,
             "currency" => $client_details->default_currency,
-            "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance,2),
+            "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', ''),
             "bonus" => 0,
             "error" => 0,
             "description" => "Success",
