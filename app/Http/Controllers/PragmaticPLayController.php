@@ -468,7 +468,7 @@ class PragmaticPLayController extends Controller
     
             $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $bet_amount, 3, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
     
-
+            Helper::saveLog('PP refund request', 49, json_encode($data) , $response);
             // $response_log = array(
             //     "transactionId" => $game_trans[0]->game_trans_id,
             //     "error" => 0,
@@ -487,6 +487,8 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
+        Helper::saveLog('PP bonus', 49, json_encode($data) , "");
+
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->first();
         $game_details = DB::table("games")->where("game_id","=",$game_trans->game_id)->first();
         
@@ -504,12 +506,35 @@ class PragmaticPLayController extends Controller
         
     }
 
+    public function promoWin(Request $request){
+
+        $enc_body = file_get_contents("php://input");
+        parse_str($enc_body, $data);
+        $json_encode = json_encode($data, true);
+        $data = json_decode($json_encode);
+
+        Helper::saveLog('PP promoWin request', 49, json_encode($data) , "");
+
+        $playerId = ProviderHelper::explodeUsername('_',$data->userId);
+        $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$client_details->client_access_token
+            ]
+        ]);
+        
+    }
+
     public function jackpotWin(Request $request){
         $enc_body = file_get_contents("php://input");
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
+        Helper::saveLog('PP jackpotWin request', 49, json_encode($data) , "");
 
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->first();
         $game_details = DB::table("games")->where("game_id","=",$game_trans->game_id)->first();
@@ -560,7 +585,7 @@ class PragmaticPLayController extends Controller
 
         $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 2, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
 
-
+        return $response;
 
     }
 
