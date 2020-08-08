@@ -365,11 +365,15 @@ class BoleGamingController extends Controller
 								]
 							];
 
-							if(in_array($json_data->game_code, $contest_games)){
-						    	$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
-							}else{
-								$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
-							}
+							// OLD 
+							// if(in_array($json_data->game_code, $contest_games)){
+						 //    	$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
+							// }else{
+							// 	$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
+							// }
+							// END OLD
+							
+							$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
 
 							return $data;
 		               }catch (\Exception $e){
