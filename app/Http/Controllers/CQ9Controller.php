@@ -35,7 +35,7 @@ class CQ9Controller extends Controller
     	}
     }
 
-
+    // Adding Games!
 	public function getGameList(){
 		$client = new Client([
             'headers' => [ 

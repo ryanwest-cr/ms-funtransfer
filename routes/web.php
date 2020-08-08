@@ -257,10 +257,10 @@ $app->post('/api/tgg/win', 'TGGController@gameWin');
 $app->post('/api/tgg/refund', 'TGGController@gameRefund');
 
 //PGSoft 
-$app->post('/api/pgsoft/playerwallet', 'PGSoftController@playerWallet');
-$app->post('/api/pgsoft/bet', 'PGSoftController@gameBet');
-$app->post('/api/pgsoft/win', 'PGSoftController@gameWin');
-$app->post('/api/pgsoft/refund', 'PGSoftController@gameRefund');
+$app->post('/api/pgsoft/VerifySession', 'PGSoftController@verifySession');
+$app->post('/api/pgsoft/Cash/Get', 'PGSoftController@cashGet');
+$app->post('/api/pgsoft/Cash/TransferOut', 'PGSoftController@transferOut');
+$app->post('/api/pgsoft/Cash/TransferIn', 'PGSoftController@transferIn');
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/

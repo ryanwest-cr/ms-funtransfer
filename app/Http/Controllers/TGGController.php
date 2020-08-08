@@ -11,10 +11,13 @@ use DB;
 
 class TGGController extends Controller
 {
-     public $project_id = 1421;
-	 public $api_key = '29abd3790d0a5acd532194c5104171c8';
-	 public $api_url = 'http://api.flexcontentprovider.com';
-	 public $provider_db_id = 29; // this is not final provider no register local
+	public function __construct(){
+    	$this->project_id = config('providerlinks.tgg.project_id');
+    	$this->api_key = config('providerlinks.tgg.api_key');
+    	$this->api_url = config('providerlinks.tgg.api_url');
+	}
+	
+	public $provider_db_id = 29;
 
 	public function index(Request $request){
 		

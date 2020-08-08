@@ -220,20 +220,30 @@ class BoleGamingController extends Controller
 
 		                // Contest Games / Mahjongs, BlackJack
 						if(in_array($json_data->game_code, $contest_games)){
-							$pay_amount = $json_data->cost_info->gain_gold;
-							$income = $bet_amount - $json_data->cost_info->gain_gold;	
+							// OLD
+							// $pay_amount = $json_data->cost_info->gain_gold;
+							// $income = $bet_amount - $json_data->cost_info->gain_gold;	
+							// if($json_data->cost_info->gain_gold  == 0){
+							// 	$income = 0; // If zero it means it was a draw	
+							// 	$win_or_lost = 3; // DRAW
+							// }elseif($json_data->cost_info->gain_gold  < 0){ 
+							//     // NEGATIVE GAIN_GOLD IT MEANS LOST! and GAIN_GOLD WILL BE ALWAYS BET_NUM negative value
+							// 	$pay_amount = 0; // IF NEGATIVE PUT IT AS ZERO
+							// 	$income = $bet_amount - $pay_amount;	
+							// }else{
+							// 	$pay_amount_income = $bet_amount + $json_data->cost_info->gain_gold;
+							// 	$income = $bet_amount - $pay_amount_income;	
+							// 	$pay_amount = $json_data->cost_info->gain_gold;
+							// }
+							// END OLD
+							$pay_amount =  $json_data->amount;
+							$income = $bet_amount - $pay_amount;
 							if($json_data->cost_info->gain_gold  == 0){
-								$income = 0; // If zero it means it was a draw	
-								$win_or_lost = 3; // DRAW
-							}elseif($json_data->cost_info->gain_gold  < 0){ 
-							    // NEGATIVE GAIN_GOLD IT MEANS LOST! and GAIN_GOLD WILL BE ALWAYS BET_NUM negative value
-								$pay_amount = 0; // IF NEGATIVE PUT IT AS ZERO
-								$income = $bet_amount - $pay_amount;	
-							}else{
-								$pay_amount_income = $bet_amount + $json_data->cost_info->gain_gold;
-								$income = $bet_amount - $pay_amount_income;	
-								$pay_amount = $json_data->cost_info->gain_gold;
+								$win_or_lost = 3; //For draw!
+							}elseif($json_data->cost_info->gain_gold  < 0){
+								$win_or_lost = 1;
 							}
+							
 		                }
 
 		                $method = $transaction_type == 'debit' ? 1 : 2;
@@ -242,7 +252,32 @@ class BoleGamingController extends Controller
 						$provider_trans_id = $json_data->report_id;
 
 						if(in_array($json_data->game_code, $contest_games)){
-							$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
+							// OLD
+							// $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id);
+							// END OLD
+							$check_game_ext = ProviderHelper::findGameExt($json_data->report_id, 1, 'transaction_id');
+							if($check_game_ext == 'false'){
+								$data = ["resp_msg" => ["code" => 43303,"message" => "order does not exist","errors" => []]];
+								return $data;
+							}
+							$existing_bet = ProviderHelper::findGameTransaction($check_game_ext->game_trans_id, 'game_transaction');
+							if($pay_amount == 0){
+								$method = 1;
+								$win_or_lost = 0;
+							}else{
+								$method = 2;
+								$win_or_lost = 1;
+							}
+							ProviderHelper::updateBetTransaction($existing_bet->round_id, $pay_amount, $income, $win_or_lost, $method);
+							$update = DB::table('game_transactions')
+		              	    ->where('round_id', $existing_bet->round_id)
+		               		->update(['pay_amount' => $pay_amount, 
+				        		  'income' => $existing_bet->bet_amount - $pay_amount, 
+				        		  'game_id' => $game_details->game_id, 
+				        		  'win' => $win_or_lost, 
+				        		  'entry_id' => $method,
+				        		  'transaction_reason' => ProviderHelper::updateReason($win_or_lost),
+			    			]);
 						}else{
 							$check_game_ext = ProviderHelper::findGameExt($json_data->report_id, 1, 'transaction_id');
 							if($check_game_ext == 'false'){
@@ -265,16 +300,19 @@ class BoleGamingController extends Controller
 
 						if(in_array($json_data->game_code, $contest_games)){
 
-								if($json_data->cost_info->gain_gold  == 0){
-									$pay_amount = $json_data->cost_info->gain_gold;
-								// }elseif($json_data->cost_info->gain_gold  < 0){ 
-								}elseif($json_data->cost_info->gain_gold  > 0){ 
-								    $transaction_type = 'debit';
-									$pay_amount = $json_data->cost_info->gain_gold;
-								}else{
-									$pay_amount = $json_data->cost_info->gain_gold;
-									// $income = $bet_amount - $pay_amount;	
-								}
+								// if($json_data->cost_info->gain_gold  == 0){
+								// 	$pay_amount = $json_data->cost_info->gain_gold;
+								// // }elseif($json_data->cost_info->gain_gold  < 0){ 
+								// }elseif($json_data->cost_info->gain_gold  > 0){ 
+								//     $transaction_type = 'debit';
+								// 	$pay_amount = $json_data->cost_info->gain_gold;
+								// }else{
+								// 	$pay_amount = $json_data->cost_info->gain_gold;
+								// 	// $income = $bet_amount - $pay_amount;	
+								// }
+
+								$pay_amount = abs($json_data->amount);
+								$transaction_type = 'credit';
 
 						}elseif($json_data->game_code == 'slot'){
 								$pay_amount = abs($json_data->amount);
@@ -320,7 +358,7 @@ class BoleGamingController extends Controller
 			                    ['body' => json_encode($requesttosend)]
 			                );
 			                $client_response = json_decode($guzzle_response->getBody()->getContents());
-							Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), json_encode($client_response));
+							Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), $client_response);
 							$data = [
 								"data" => [
 									"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')), 
@@ -332,11 +370,15 @@ class BoleGamingController extends Controller
 								]
 							];
 
-							if(in_array($json_data->game_code, $contest_games)){
-						    	$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
-							}else{
-								$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
-							}
+							// OLD 
+							// if(in_array($json_data->game_code, $contest_games)){
+						 //    	$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
+							// }else{
+							// 	$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
+							// }
+							// END OLD
+							
+							$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
 
 							return $data;
 		               }catch (\Exception $e){
@@ -347,30 +389,43 @@ class BoleGamingController extends Controller
 
 
 				}else{ // No Body Content (All ways be called first) 10 and 11
-						if(in_array($json_data->game_code, $contest_games)){
-					   		$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
-							$data = [
-								"data" => [
-									"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
-									"currency" => $client_details->default_currency,
-								],
-								"status" => [
-									"code" => 0,
-									"msg" => "success"
-								]
-							];
-							Helper::saveLog('BOLE WALLET CALL GBI TG ONLY', $this->provider_db_id, $request->getContent(), $data);
+						// OLD
+						// if(in_array($json_data->game_code, $contest_games)){
+					 //   		$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
+						// 	$data = [
+						// 		"data" => [
+						// 			"balance" => floatval(number_format((float)$client_response->playerdetailsresponse->balance, 2, '.', '')),
+						// 			"currency" => $client_details->default_currency,
+						// 		],
+						// 		"status" => [
+						// 			"code" => 0,
+						// 			"msg" => "success"
+						// 		]
+						// 	];
+						// 	Helper::saveLog('BOLE WALLET CALL GBI TG ONLY', $this->provider_db_id, $request->getContent(), $data);
+						// 	return $data;
+					 //    }else{
+					 //    	$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $json_data->game_code);
+					 //    	if($game_details == null){
+					 //    		$data = ["resp_msg" => ["code" => 43201,"message" => 'the game does not exist',"errors" => []]];
+						// 		return $data;
+						//     }
+				  //   		$db_game_name = $game_details->game_name;
+						// 	$db_game_code = $game_details->game_code;
+						// 	$game_id = $game_details->game_id;
+					 //    }
+					    // END OLD
+
+					    // TABLE GAME TEST
+					    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $json_data->game_code);
+				    	if($game_details == null){
+				    		$data = ["resp_msg" => ["code" => 43201,"message" => 'the game does not exist',"errors" => []]];
 							return $data;
-					    }else{
-					    	$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $json_data->game_code);
-					    	if($game_details == null){
-					    		$data = ["resp_msg" => ["code" => 43201,"message" => 'the game does not exist',"errors" => []]];
-								return $data;
-						    }
-				    		$db_game_name = $game_details->game_name;
-							$db_game_code = $game_details->game_code;
-							$game_id = $game_details->game_id;
 					    }
+			    		$db_game_name = $game_details->game_name;
+						$db_game_code = $game_details->game_code;
+						$game_id = $game_details->game_id;
+						// TABLE GAME TEST
 
 					    $pay_amount = $json_data->amount;
 
