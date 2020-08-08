@@ -261,8 +261,14 @@ class BoleGamingController extends Controller
 								return $data;
 							}
 							$existing_bet = ProviderHelper::findGameTransaction($check_game_ext->game_trans_id, 'game_transaction');
+							if($pay_amount == 0){
+								$method = 1;
+								$win_or_lost = 0;
+							}else{
+								$method = 2;
+								$win_or_lost = 1;
+							}
 							ProviderHelper::updateBetTransaction($existing_bet->round_id, $pay_amount, $income, $win_or_lost, $method);
-							$method = 2;
 							$update = DB::table('game_transactions')
 		              	    ->where('round_id', $existing_bet->round_id)
 		               		->update(['pay_amount' => $pay_amount, 
