@@ -12,6 +12,12 @@ use GuzzleHttp\Client;
 
 class PragmaticPLayController extends Controller
 {
+    public $key;
+
+    public function __construct(){
+    	$this->key = config('providerlinks.tpp.secret_key');
+    }
+
     public function authenticate(Request $request)
     {
         
@@ -19,17 +25,17 @@ class PragmaticPLayController extends Controller
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
+        
+        $hash = md5('providerId='.$data->providerId.'&token='.$data->token.$this->key);
 
-        $hash = md5('providerId='.$data->providerId.'&token='.$data->token);
-
-        if(){
+        if($hash != $data->hash){
             $response = [
-                "error" => 4,
+                "error" => 5,
                 "decription" => "Success"
             ];
             return $response;
         }
-        
+
         $providerId = $data->providerId;
         $hash = $data->hash;
         $token = $data->token;
@@ -75,8 +81,18 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
+
         Helper::saveLog('PP balance', 49, json_encode($data) , "balance");
 
+        $hash = md5('providerId='.$data->providerId.'&userId='.$data->userId.$this->key);
+
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -101,6 +117,16 @@ class PragmaticPLayController extends Controller
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
+
+        $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
+        
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
 
         Helper::saveLog('PP bet request', 49,json_encode($data), "");
 
@@ -199,10 +225,22 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
-
+        
         
         Helper::saveLog('PP result request', 49, json_encode($data) ,"result");
+        
+        $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
+
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
+        
+        $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
+
         
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -288,6 +326,15 @@ class PragmaticPLayController extends Controller
 
         Helper::saveLog('PP endRound request', 49, json_encode($data) ,"endRound");
 
+        $hash = md5('gameId='.$data->gameId.'&platform='.$data->platform.'&providerId='.$data->providerId.'&roundId='.$data->roundId.'&userId='.$data->userId.$this->key);
+        
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -357,6 +404,17 @@ class PragmaticPLayController extends Controller
 
         Helper::saveLog('PP refund request', 49, json_encode($data) , "");
 
+        $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
+        
+        if($hash != $data->hash){
+            $response = [
+                "my" =>$hash,
+                "them" => $data->hash,
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->get();
 
         // return count($game_trans);
