@@ -234,13 +234,13 @@ class PragmaticPLayController extends Controller
         
         $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
 
-        // if($hash != $data->hash){
-        //     $response = [
-        //         "error" => 5,
-        //         "decription" => "Success"
-        //     ];
-        //     return $response;
-        // }
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
         
         $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
@@ -409,7 +409,7 @@ class PragmaticPLayController extends Controller
 
         Helper::saveLog('PP refund request', 49, json_encode($data) , "");
 
-        $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
+        $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         
         if($hash != $data->hash){
             $response = [
@@ -418,6 +418,7 @@ class PragmaticPLayController extends Controller
             ];
             return $response;
         }
+        
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->get();
 
         // return count($game_trans);
@@ -503,6 +504,7 @@ class PragmaticPLayController extends Controller
                 'Authorization' => 'Bearer '.$client_details->client_access_token
             ]
         ]);
+
 
         
     }
