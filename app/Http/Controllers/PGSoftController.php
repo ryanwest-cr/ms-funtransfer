@@ -48,9 +48,10 @@ class PGSoftController extends Controller
                 $balance = (double)$num;
 				$data =  [
                     "data" => [
-                        "currency_code" => $currency,
-                        "balance_amount" => $balance,
-                        "updated_time" => $this->getMilliseconds()
+                        "player_name" => $currency,
+                        "nickname" => $balance,
+                        "currency" => $this->getMilliseconds(),
+                        "reminder_time" => $this->getMilliseconds()
                     ],
                     "error" => null
                 ];
