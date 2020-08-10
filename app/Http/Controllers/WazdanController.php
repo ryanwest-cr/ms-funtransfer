@@ -229,8 +229,7 @@ class WazdanController extends Controller
                     "status" => 0,
                     "funds" => array(
                         "balance" => round(Helper::getBalance($client_details),2)
-                    ),
-                    "rollback" =>true
+                    )
                 );
                 Helper::saveLog('refundAlreadyexist(Wazdan)', 50, $data, $msg);
                 return response($msg,200)
@@ -288,8 +287,7 @@ class WazdanController extends Controller
                         "status" => 0,
                         "funds" => array(
                             "balance" => round(Helper::getBalance($client_details),2)
-                        ),
-                        "originalTransactionId" =>false
+                        )
                     );
                     Helper::saveLog('refundAlreadyexist(Wazdan)', 50, $data, $msg);
                     return response($msg,200)
@@ -348,8 +346,7 @@ class WazdanController extends Controller
                         "status" => 0,
                         "funds" => array(
                             "balance" => round(Helper::getBalance($client_details),2)
-                        ),
-                        "returnWinExist" =>true
+                        )
                     );
                     Helper::saveLog('refundAlreadyexist(Wazdan)', 50, $data, $msg);
                     return response($msg,200)
@@ -426,8 +423,7 @@ class WazdanController extends Controller
                         "status" => 0,
                         "funds" => array(
                             "balance" => $balance
-                        ),
-                        "win" =>true
+                        )
                     );
                     WazdanHelper::createWazdanGameTransactionExt($gametransactionid,$datadecoded,$requesttocient,$msg,$client_response,2); 
                     return response($msg,200)
