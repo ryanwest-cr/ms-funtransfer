@@ -128,7 +128,7 @@ class SAGamingController extends Controller
         $gametype = $data['gametype'];
         // $game_id = $data['gameid'];
         $game_id = $this->game_db_code;
-        $betdetails = $data['betdetails'];
+        // $betdetails = $data['betdetails'];
         $round_id = $data['gameid'];
 
         $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
