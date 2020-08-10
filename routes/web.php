@@ -239,6 +239,7 @@ $app->post('/api/wazdan/rollbackStake','WazdanController@rollbackState');
 $app->post('/api/wazdan/returnWin','WazdanController@returnWin');
 $app->post('/api/wazdan/getFunds','WazdanController@getFunds');
 $app->post('/api/wazdan/gameClose','WazdanController@gameClose');
+$app->post('/api/wazdan/hash','WazdanController@hashCode');
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 
