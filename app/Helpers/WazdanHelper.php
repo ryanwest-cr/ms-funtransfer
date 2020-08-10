@@ -12,6 +12,17 @@ class WazdanHelper
 				->first();
 		return $game;
     }
+    public static function getGameTransactionById($game_trans_id){
+        $game = DB::table("game_transactions")
+                ->where("game_trans_id",$game_trans_id)
+				->first();
+		return $game;
+    }
+    public static function getTransactionExt($provider_trans_id){
+        $gametransaction = DB::table('game_transaction_ext')->where("provider_trans_id",$provider_trans_id)->first();
+        return $gametransaction;
+    }
+    
     public static function gameTransactionExtChecker($provider_trans_id){
         $gametransaction = DB::table('game_transaction_ext')->where("provider_trans_id",$provider_trans_id)->first();
         return $gametransaction?true:false;

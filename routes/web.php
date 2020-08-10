@@ -235,6 +235,10 @@ $app->post('/api/fc/gamelaunch','FCController@gameLaunch');
 
 $app->post('/api/wazdan/authenticate','WazdanController@authenticate');
 $app->post('/api/wazdan/getStake','WazdanController@getStake');
+$app->post('/api/wazdan/rollbackStake','WazdanController@rollbackState');
+$app->post('/api/wazdan/returnWin','WazdanController@returnWin');
+$app->post('/api/wazdan/getFunds','WazdanController@getFunds');
+$app->post('/api/wazdan/gameClose','WazdanController@gameClose');
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 
