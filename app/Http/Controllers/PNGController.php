@@ -338,7 +338,7 @@ class PNGController extends Controller
                 $array_data = array(
                     "statusCode" => 9,
                 );
-                Helper::saveLog('refundAlreadyexist(PNG)', 50, $data, $array_data);
+                Helper::saveLog('refundAlreadyexist(PNG)', 50,json_encode($xmlparser), $array_data);
                 return PNGHelper::arrayToXml($array_data,"<cancelReserve/>");
             }
             $client = new Client([
