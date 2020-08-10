@@ -102,6 +102,7 @@ class WazdanController extends Controller
     public function getStake(Request $request){
         $data = $request->getContent();
         $datadecoded = json_decode($data,TRUE);
+        Helper::saveLog('getStake(Wazdan)', 50, $data, "Initialize");
         if($datadecoded["user"]["token"]){
             $client_details = $this->_getClientDetails('token', $datadecoded["user"]["token"]);
             if($client_details){
@@ -214,12 +215,24 @@ class WazdanController extends Controller
                 
 
             }
+        }
+        else{
+            $msg = array(
+                "status" =>1,
+                "message" => array(
+                    "text"=>"This Session not Found",
+                )
+            ); 
+            Helper::saveLog('betGameInsuficient(Wazdan)', 50, $data, $msg);
+            return response($msg,200)
+            ->header('Content-Type', 'application/json');
         } 
     }
     public function rollbackState(Request $request){
         
         $data = $request->getContent();
         $datadecoded = json_decode($data,TRUE);
+        Helper::saveLog('rollbackStake(Wazdan)', 50, $data, "Initialize");
         if($datadecoded["user"]["token"]){
             $client_details = $this->_getClientDetails('token', $datadecoded["user"]["token"]);
         if($client_details){
@@ -337,6 +350,7 @@ class WazdanController extends Controller
     public function returnWin(Request $request){
         $data = $request->getContent();
         $datadecoded = json_decode($data,TRUE);
+        Helper::saveLog('returnWin(Wazdan)', 50, $data, "Initialize");
         if($datadecoded["user"]["token"]){
             $client_details = $this->_getClientDetails('token', $datadecoded["user"]["token"]);
             if($client_details){
@@ -447,6 +461,7 @@ class WazdanController extends Controller
     public function getFunds(Request $request){
         $data = $request->getContent();
         $datadecoded = json_decode($data,TRUE);
+        Helper::saveLog('getFund(Wazdan)', 50, $data, "Initialize");
         if($datadecoded["user"]["token"]){
             $client_details = $this->_getClientDetails('token', $datadecoded["user"]["token"]);
             Helper::saveLog('GetFund (Wazdan)', 50, $data, $client_details);
