@@ -126,7 +126,7 @@ class PGSoftController extends Controller
        
         if($client_details != null){
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-            $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data["game_id"]);
+            //$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data['game_id']);
             $game_ext = Providerhelper::findGameExt($data['transaction_id'], 1, 'transaction_id'); 
             
             if($game_ext == 'false'): // NO BET found mw
@@ -200,7 +200,7 @@ class PGSoftController extends Controller
                     $provider_trans_id = $data['transaction_id'];
                     $round_id = $data['bet_id'];
     
-                    $gametransaction_id = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, $payout_reason , $income, $provider_trans_id, $round_id);
+                    $gametransaction_id = Helper::saveGame_transaction($token_id, 4158, $bet_amount, $payout, $entry_id,  $win, null, $payout_reason , $income, $provider_trans_id, $round_id);
                     
                     $provider_request = $data;
                     $mw_request = $requesttosend;
@@ -220,7 +220,7 @@ class PGSoftController extends Controller
                             "message" => $e->getMessage(),
                         ]
                     );
-                    Helper::saveLog('PGSoft Bet error'.$data['transaction_id'], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
+                    Helper::saveLog('PGSoft Bet error '.$data['transaction_id'], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
                     return json_encode($msg, JSON_FORCE_OBJECT); 
                 }
             else:
@@ -275,7 +275,7 @@ class PGSoftController extends Controller
 
         $existing_bet = ProviderHelper::findGameTransaction($data['transaction_id'], 'transaction_id', 1); // Find if win has bet record
 		$game_ext = ProviderHelper::findGameExt($data['transaction_id'], 2, 'transaction_id'); // Find if this callback in game extension
-        $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data["game_id"]);
+        //$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data["game_id"]);
         if($game_ext == 'false'):
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win //temporary == make it !=
 				$requesttosend = [
@@ -284,8 +284,8 @@ class PGSoftController extends Controller
 					  "type" => "fundtransferrequest",
 					  "datesent" => Helper::datesent(),
 					  "gamedetails" => [
-					     "gameid" => $game_details->game_code, // $game_details->game_code
-				         "gamename" => $game_details->game_name
+					     "gameid" => "", // $game_details->game_code
+				         "gamename" => ""
 					  ],
 					  "fundtransferrequest" => [
 							"playerinfo" => [
