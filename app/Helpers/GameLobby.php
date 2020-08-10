@@ -345,7 +345,7 @@ class GameLobby{
 
     public static function pgsoftlaunchUrl( $game_code = null, $token = null){
         $operator_token = config('providerlinks.pgsoft.operator_token');
-        $url = "https://m.pg-redirect.net/".$game_code."/index.html?language=en-us&bet_type=1&operator_token=".$operator_token."&operator_player_session=".$token;
+        $url = "https://m.pg-redirect.net/".$game_code."/index.html?language=en-us&bet_type=1&operator_token=".urlencode($operator_token)."&operator_player_session=".urlencode($token);
         return $url;
     }
 
