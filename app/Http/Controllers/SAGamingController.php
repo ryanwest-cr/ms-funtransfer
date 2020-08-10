@@ -23,31 +23,31 @@ class SAGamingController extends Controller
         header('Content-type: text/xml');
     }
 
-    public function debugme(Request $request){
-        $user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $request->username);
-        $client_details = Providerhelper::getClientDetails('player_id', $user_id);
-        $time = date('YmdHms'); //20140101123456
-        $method = $request->method;
-        $querystring = [
-            "method" => $method,
-            "Key" => config('providerlinks.sagaming.SecretKey'),
-            "Time" => $time,
-            "Username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
-        ];
-        $method == 'RegUserInfo' || $method == 'LoginRequest' ? $querystring['CurrencyType'] = $client_details->default_currency : '';
-        $data = http_build_query($querystring); // QS
-        $encrpyted_data = SAHelper::encrypt($data);
-        $md5Signature = md5($data.config('providerlinks.sagaming.MD5Key').$time.config('providerlinks.sagaming.SecretKey'));
-        $http = new Client();
-        $response = $http->post(config('providerlinks.sagaming.API_URL'), [
-            'form_params' => [
-                'q' => $encrpyted_data, 
-                's' => $md5Signature
-            ],
-        ]);
-        $resp = simplexml_load_string($response->getBody()->getContents());
-        dd($resp);
-    }
+    // public function debugme(Request $request){
+    //     $user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $request->username);
+    //     $client_details = Providerhelper::getClientDetails('player_id', $user_id);
+    //     $time = date('YmdHms'); //20140101123456
+    //     $method = $request->method;
+    //     $querystring = [
+    //         "method" => $method,
+    //         "Key" => config('providerlinks.sagaming.SecretKey'),
+    //         "Time" => $time,
+    //         "Username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
+    //     ];
+    //     $method == 'RegUserInfo' || $method == 'LoginRequest' ? $querystring['CurrencyType'] = $client_details->default_currency : '';
+    //     $data = http_build_query($querystring); // QS
+    //     $encrpyted_data = SAHelper::encrypt($data);
+    //     $md5Signature = md5($data.config('providerlinks.sagaming.MD5Key').$time.config('providerlinks.sagaming.SecretKey'));
+    //     $http = new Client();
+    //     $response = $http->post(config('providerlinks.sagaming.API_URL'), [
+    //         'form_params' => [
+    //             'q' => $encrpyted_data, 
+    //             's' => $md5Signature
+    //         ],
+    //     ]);
+    //     $resp = simplexml_load_string($response->getBody()->getContents());
+    //     dd($resp);
+    // }
 
     // XML BUILD RECURSIVE FUNCTION
     public function siteMap()
@@ -448,7 +448,7 @@ class SAGamingController extends Controller
             }
             $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
             if($transaction_check == 'false'){
-                $data_response = ["username" => $username,"currency" => $client_details->default_currency,"error" => 0];
+                $data_response = ["username" => $username,"currency" => $client_details->default_currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0];
                  Helper::saveLog('SA Gaming LC Round Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
                 echo $this->makeArrayXML($data_response);
                 return;
@@ -471,7 +471,13 @@ class SAGamingController extends Controller
             return;
 
         } catch (\Exception $e) {
+            $data_response = [
+                "username" => $username,
+                "error" => 1005 // 9999
+            ];
             Helper::saveLog('SA Gaming LC $e', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), $e->getMessage());
+            echo $this->makeArrayXML($data_response);
+            return;
         }
         
         
@@ -502,26 +508,26 @@ class SAGamingController extends Controller
 
         $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
         if($client_details == null){
-            $data_response = ["username" => $username,"currency" => $currency, "error" => 1000];
+            $data_response = ["username" => $username, "error" => 1005]; // 1000
             echo $this->makeArrayXML($data_response);
             return;
         }
         $game_details = Helper::findGameDetails('game_code', config('providerlinks.sagaming.pdbid'), $game_id);
         if($game_details == null){
-            $data_response = ["username" => $username,"currency" => $currency, "error" => 134];  
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 1005];  // 134
             echo $this->makeArrayXML($data_response);
             return;
         }
         $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
         if($transaction_check == 'false'){
-            $data_response = ["username" => $username,"currency" => $client_details->default_currency,"error" => 152];
+            $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1005]; // 152
             echo $this->makeArrayXML($data_response);
             return;
         }
 
         $existing_refund_call = $this->GameTransactionExt($txnid, $round_id, 3);
         if($existing_refund_call != null){
-            $data_response = ["username" => $username,"currency" => $client_details->default_currency,"error" => 122];
+            $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1005]; // 122
             echo $this->makeArrayXML($data_response);
             return;
         }
@@ -594,9 +600,9 @@ class SAGamingController extends Controller
         } catch (\Exception $e) {
             $data_response = [
                 "username" => $username,
-                "currency" => $client_details->default_currency,
-                "amount" => $client_response->fundtransferresponse->balance,
-                "error" => 9999
+                // "currency" => $client_details->default_currency,
+                // "amount" => $client_response->fundtransferresponse->balance,
+                "error" => 1005
             ];
             Helper::saveLog('SA Gaming CB $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
             echo $this->makeArrayXML($data_response);
