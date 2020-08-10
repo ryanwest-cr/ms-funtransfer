@@ -86,8 +86,8 @@ class PNGController extends Controller
                 if(PNGHelper::gameTransactionExtChecker($xmlparser->transactionId)){
                     $array_data = array(
                         "real" => round(Helper::getBalance($client_details),2),
-                        "statusCode" => 8,
-                        "statusMessage" => "Transaction ID already proccessed",
+                        "statusCode" => 0,
+                        "statusMessage" => "ok",
                     );
                     return PNGHelper::arrayToXml($array_data,"<reserve/>");       
                 }
@@ -181,8 +181,7 @@ class PNGController extends Controller
                 if($returnWinTransaction){
                     $array_data = array(
                         "real" => round(Helper::getBalance($client_details),2),
-                        "statusCode" => 8,
-                        "statusMessage" => "Transaction ID already proccessed",
+                        "statusCode" => 0,
                     );
                     return PNGHelper::arrayToXml($array_data,"<release/>");
                 }
