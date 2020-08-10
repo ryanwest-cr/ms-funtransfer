@@ -164,7 +164,7 @@ class SAGamingController extends Controller
 
             $transaction_check = ProviderHelper::findGameExt($txnid, 1,'transaction_id');
             if($transaction_check != 'false'){
-                $data_response = ["username" => $username,"currency" => $currency, "error" => 122];
+                $data_response = ["username" => $username,"currency" => $currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; // 122 // transaction not found!
                 echo $this->makeArrayXML($data_response);
                 return;
             }
@@ -244,7 +244,8 @@ class SAGamingController extends Controller
                 $data_response = [
                     "username" => $username,
                     "currency" => $client_details->default_currency,
-                    "amount" => $client_response->fundtransferresponse->balance,
+                    // "amount" => $client_response->fundtransferresponse->balance,
+                    "amount" => $getPlayer->playerdetailsresponse->balance,
                     "error" => 9999
                 ];
                 Helper::saveLog('SA Gaming PB $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
@@ -306,14 +307,14 @@ class SAGamingController extends Controller
 
             $check_win_entry = ProviderHelper::findGameExt($round_id, 2,'round_id');
             if($check_win_entry != 'false'){
-                $data_response = ["username" => $username,"currency" => $currency, "error" => 122];
+                $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; //122 win already exist!
                 echo $this->makeArrayXML($data_response);
                 return;
             }
 
             $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
             if($transaction_check == 'false'){
-                $data_response = ["username" => $username,"currency" => $currency, "error" => 152];
+                $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; //152
                 echo $this->makeArrayXML($data_response);
                 return;
             }
@@ -388,7 +389,8 @@ class SAGamingController extends Controller
                 $data_response = [
                     "username" => $username,
                     "currency" => $client_details->default_currency,
-                    "amount" => $client_response->fundtransferresponse->balance,
+                    // "amount" => $client_response->fundtransferresponse->balance,
+                    "amount" => $getPlayer->playerdetailsresponse->balance,
                     "error" => 9999
                 ];
                 Helper::saveLog('SA Gaming WIN $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
