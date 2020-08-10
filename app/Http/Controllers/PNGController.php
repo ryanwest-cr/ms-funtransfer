@@ -58,13 +58,11 @@ class PNGController extends Controller
                 return PNGHelper::arrayToXml($array_data,"<authenticate/>");
             }
             else{
-                $msg = array(
-                    "uid" => $data["uid"],
-                    "error"=>array(
-                        "code" => "INVALID_TOKEN"
-                    ),
+                $array_data = array(
+                    "statusCode" => 1,
+                    "statusMessage" => "Session Expired",
                 );
-                return response($msg,200)->header('Content-Type', 'application/json');
+                return PNGHelper::arrayToXml($array_data,"<authenticate/>");
             }
         }
         
@@ -161,20 +159,11 @@ class PNGController extends Controller
                 }
                 elseif(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "402"){
-                    $response =array(
-                        "data" => array(
-                            "statusCode"=>2,
-                            "username" => $client_details->username,
-                            "balance" =>$balance,
-                        ),
-                        "error" => array(
-                            "title"=> "Not Enough Balance",
-                            "description"=>"Not Enough Balance"
-                        )
-                    ); 
-                    Helper::saveLog('betGameInsuficient(ICG)', 12, json_encode($json), $response);
-                    return response($response,400)
-                    ->header('Content-Type', 'application/json');
+                    $array_data = array(
+                        "statusCode" => 9,
+                        "statusMessage" => "Insufficient Funds",
+                    );
+                    return PNGHelper::arrayToXml($array_data,"<reserve/>");
                 }
                 
 
@@ -315,13 +304,11 @@ class PNGController extends Controller
                 return PNGHelper::arrayToXml($array_data,"<balance/>");
             }
             else{
-                $msg = array(
-                    "uid" => $data["uid"],
-                    "error"=>array(
-                        "code" => "INVALID_TOKEN"
-                    ),
+                $array_data = array(
+                    "statusCode" => 1,
+                    "statusMessage" => "Session Expired",
                 );
-                return response($msg,200)->header('Content-Type', 'application/json');
+                return PNGHelper::arrayToXml($array_data,"<balance/>");
             }
         }
     }
@@ -336,7 +323,8 @@ class PNGController extends Controller
             $rollbackchecker = PNGHelper::gameTransactionRollbackExtChecker($xmlparser->transactionId,3);
             if($reservechecker==false || $rollbackchecker==true){
                 $array_data = array(
-                    "statusCode" => 9,
+                    "statusCode" => 0,
+                    "externalTransactionId"=>""
                 );
                 Helper::saveLog('refundAlreadyexist(PNG)', 50,json_encode($xmlparser), $array_data);
                 return PNGHelper::arrayToXml($array_data,"<cancelReserve/>");
