@@ -44,18 +44,20 @@ class PNGController extends Controller
                 Helper::saveLog('AuthPlayer(PNG)', 12, json_encode($xmlparser),$client_response);
 
                 $array_data = array(
-                    "externalId" => $client_details->player_id,
-                    "statusCode" => 0,
-                    "statusMessage" => "ok",
-                    "userCurrency" => $client_details->default_currency,
-                    "country" => "SE",
-                    "birthdate"=> "1990-04-29",
-                    "registration"=> $client_details->created_at,
-                    "language" => "EN",
-                    "externalGameSessionId" => $xmlparser->username,
-                    "real"=> number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
+                    "authenticate" =>array(
+                        "externalId" => $client_details->player_id,
+                        "statusCode" => 0,
+                        "statusMessage" => "ok",
+                        "userCurrency" => $client_details->default_currency,
+                        "country" => "SE",
+                        "birthdate"=> "1990-04-29",
+                        "registration"=> $client_details->created_at,
+                        "language" => "EN",
+                        "externalGameSessionId" => $xmlparser->username,
+                        "real"=> number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
+                    )
                 );
-                return PNGHelper::arrayToXml($array_data,"<authenticate/>");
+                return PNGHelper::arrayToXml($array_data,"<root/>");
             }
             else{
                 $msg = array(
