@@ -152,7 +152,8 @@ class PNGController extends Controller
                         $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
                     }
                     else{
-                        
+                        PNGHelper::updateGameTransaction($game,$xmlparser,'debit');
+                        $gametransactionid = $game->game_trans_id;
                     }
                     PNGHelper::createPNGGameTransactionExt($gametransactionid,$xmlparser,$requesttocient,$array_data,$client_response,1);
                     //Helper::createICGGameTransactionExt($gametransactionid,json,$requesttocient,$response,$client_response,1);  
