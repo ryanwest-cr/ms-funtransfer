@@ -21,7 +21,7 @@ class PGSoftController extends Controller
     }
 
     public function verifySession(Request $request){
-        Helper::saveLog('PGSoft VerifySession', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('PGSoft VerifySession', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT), 'ENDPOINT HIT');
         $data = $request->all();
         if($data["operator_token"] != $this->operator_token || $data["secret_key"] != $this->secret_key):
             $errormessage = array(
@@ -31,12 +31,12 @@ class PGSoftController extends Controller
                 'message'  	=> 'Invalid request'
                 ]
             );
-            Helper::saveLog('PGSoft VerifySession error', $this->provider_db_id,  json_encode($request->all()), $errormessage);
-            return $errormessage; 
+            Helper::saveLog('PGSoft VerifySession error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+            return json_encode($errormessage, JSON_FORCE_OBJECT); 
         endif;
 
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-       
+        
         if($client_details != null){
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 				$data =  [
@@ -47,8 +47,8 @@ class PGSoftController extends Controller
                     ],
                     "error" => null
                 ];
-				Helper::saveLog('PGSoft VerifySession Process', $this->provider_db_id, json_encode($request->all()), $data);
-				return $data;
+				Helper::saveLog('PGSoft VerifySession Process', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $data);
+                return json_encode($data, JSON_FORCE_OBJECT); 
 		}else{
             $errormessage = array(
                 'data' => null,
@@ -57,13 +57,13 @@ class PGSoftController extends Controller
                 'message'  	=> 'Invalid request'
                 ]
             );
-            Helper::saveLog('PGSoft VerifySession error', $this->provider_db_id,  json_encode($request->all()), $errormessage);
-            return $errormessage; 
+            Helper::saveLog('PGSoft VerifySession error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+            return json_encode($errormessage, JSON_FORCE_OBJECT); 
 		}
     }
     
     public function cashGet(Request $request){ // Wallet Check Balance Endpoint Hit
-        Helper::saveLog('PGSoft CashGet', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('PGSoft CashGet', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT ), 'ENDPOINT HIT');
         $data = $request->all();
         if($data["operator_token"] != $this->operator_token || $data["secret_key"] != $this->secret_key):
             $errormessage = array(
@@ -73,8 +73,8 @@ class PGSoftController extends Controller
                     'message'  	=> 'Invalid request'
                 ]
             );
-            Helper::saveLog('PGSoft CashGet error', $this->provider_db_id,  json_encode($request->all()), $errormessage);
-            return $errormessage; 
+            Helper::saveLog('PGSoft CashGet error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+            return json_encode($errormessage, JSON_FORCE_OBJECT); 
         endif;
 
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
@@ -92,8 +92,8 @@ class PGSoftController extends Controller
                     ],
                     "error" => null
                 ];
-				Helper::saveLog('PGSoft CashGet Process', $this->provider_db_id, json_encode($request->all()), $response);
-				return $response;
+				Helper::saveLog('PGSoft CashGet Process', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
+                return json_encode($response, JSON_FORCE_OBJECT); 
 		}else{
             $errormessage = array(
                 'data' => null,
@@ -102,13 +102,13 @@ class PGSoftController extends Controller
                 'message'  	=> 'Invalid request'
                 ]
             );
-            Helper::saveLog('PGSoft CashGet error', $this->provider_db_id,  json_encode($request->all()), $errormessage);
-            return $errormessage; 
+            Helper::saveLog('PGSoft CashGet error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+            return json_encode($errormessage, JSON_FORCE_OBJECT); 
 		}
     }
 
     public function transferOut(Request $request){
-        Helper::saveLog('PGSoft Bet ', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('PGSoft Bet ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), 'ENDPOINT HIT');
         $data = $request->all();
         // $data = array (
         //     'secret_key' => '02f314db35a0dfe4635dff771b607f34',//pgsoft
@@ -135,8 +135,8 @@ class PGSoftController extends Controller
                 'message'  	=> 'Value cannot be null'
                 ]
             );
-            Helper::saveLog('PGSoft Bet error', $this->provider_db_id,  json_encode($request->all()), $errormessage);
-            return $errormessage; 
+            Helper::saveLog('PGSoft Bet error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+            return json_encode($errormessage, JSON_FORCE_OBJECT); 
         endif;
 
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
@@ -147,7 +147,7 @@ class PGSoftController extends Controller
             $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data["game_id"]);
             
             $game_ext = Providerhelper::findGameExt($data['transaction_id'], 1, 'transaction_id'); 
-            
+          
             if($game_ext == 'false'): // NO BET found mw
 			
                 //if the amount is grater than to the bet amount  error message
@@ -159,8 +159,8 @@ class PGSoftController extends Controller
                         'message'  	=> 'No enough cash balance to bet'
                         ]
                     );
-                    Helper::saveLog('TGG Bet error '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all()), $errormessage);
-                    return $errormessage;
+                    Helper::saveLog('PGSoft Bet error '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+                    return json_encode($errormessage, JSON_FORCE_OBJECT); 
                 endif;
     
                 $requesttosend = [
@@ -222,7 +222,7 @@ class PGSoftController extends Controller
     
                     $gametransaction_id = Helper::saveGame_transaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win, null, $payout_reason , $income, $provider_trans_id, $round_id);
                     
-                    $provider_request = json_encode($data);
+                    $provider_request = $data;
                     $mw_request = $requesttosend;
                     $mw_response = $client_response;
                     $client_response = $client_response;
@@ -231,8 +231,8 @@ class PGSoftController extends Controller
     
                     $this->cretePGSofttransaction($gametransaction_id, $provider_request,$mw_request,$mw_response,$client_response, $transaction_detail,$game_transaction_type, $bet_amount, $provider_trans_id, $round_id);
                 
-                    Helper::saveLog('PGSoft Bet Process '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all()), $response);
-                    return $response;
+                    Helper::saveLog('PGSoft Bet Process '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
+                    return json_encode($response, JSON_FORCE_OBJECT); 
                 }catch(\Exception $e){
                     $msg = array(
                         "data" => null,
@@ -241,8 +241,8 @@ class PGSoftController extends Controller
                             "message" => $e->getMessage(),
                         ]
                     );
-                    Helper::saveLog('PGSoft Bet error'.$data['transaction_id'], $this->provider_db_id, json_encode($request), $msg);
-                    return $msg;
+                    Helper::saveLog('PGSoft Bet error'.$data['transaction_id'], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
+                    return json_encode($msg, JSON_FORCE_OBJECT); 
                 }
             else:
                 //if found
@@ -254,11 +254,12 @@ class PGSoftController extends Controller
                         'message'  	=> 'Bet failed'
                     ]
                 );
-                Helper::saveLog('PGSoft Bet error '.$request['transaction_id'], $this->provider_db_id, json_encode($request->all()), $errormessage);
-                return $errormessage;
+                Helper::saveLog('PGSoft Bet error '.$request['transaction_id'], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+                return json_encode($errormessage, JSON_FORCE_OBJECT); 
             endif;
 			
 		}else{
+            
             $errormessage = array(
                 'data' => null,
                 'error' => [
@@ -266,13 +267,15 @@ class PGSoftController extends Controller
                 'message'  	=> 'Player is not exist'
                 ]
             );
-            Helper::saveLog('PGSoft Bet error', $this->provider_db_id, json_encode($request->all()),  $errormessage);
-			return $errormessage;
+            Helper::saveLog('PGSoft Bet error', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT),  $errormessage);
+            return json_encode($errormessage, JSON_FORCE_OBJECT); 
 		}
         
     }
 
     public function transferIn(Request $request){
+        Helper::saveLog('PGSoft Payout', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT),  "ENDPOINT HIT");
+
         return $request->all();
     }
 
