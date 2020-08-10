@@ -326,7 +326,7 @@ class PGSoftController extends Controller
 
 						$amount = $data['transfer_amount'];
 				 	    $round_id = $data['bet_id'];
-				 	    if($existing_bet->bet_amount > $amount):
+				 	    if($amount == 0 || $amount == '0' ):
 		 	  				$win = 0; // lost
 		 	  				$entry_id = 1; //lost
 		 	  				$income = $existing_bet->bet_amount - $amount;
