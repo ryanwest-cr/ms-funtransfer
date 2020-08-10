@@ -231,6 +231,9 @@ $app->post('/api/fc/gamelaunch','FCController@gameLaunch');
 //PNG Endpoints
 $app->post('/api/png/authenticate','PNGController@authenticate');
 $app->post('/api/png/reserve','PNGController@reserve');
+$app->post('/api/png/release','PNGController@release');
+$app->post('/api/png/balance','PNGController@balance');
+$app->post('/api/png/cancelReserve','PNGController@cancelReserve');
 
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');

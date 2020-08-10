@@ -74,5 +74,13 @@ class PNGHelper
 		}
 		/*var_dump($trans_data); die();*/
 		return DB::table('game_transactions')->where("game_trans_id",$existingdata->game_trans_id)->update($trans_data);
-	}
+    }
+    public static function gameTransactionExtChecker($provider_trans_id){
+        $gametransaction = DB::table('game_transaction_ext')->where("provider_trans_id",$provider_trans_id)->first();
+        return $gametransaction?true:false;
+    }
+    public static function gameTransactionRollbackExtChecker($provider_trans_id,$type){
+        $gametransaction = DB::table('game_transaction_ext')->where("provider_trans_id",$provider_trans_id)->where("game_transaction_type",$type)->first();
+        return $gametransaction?true:false;
+    }
 }
