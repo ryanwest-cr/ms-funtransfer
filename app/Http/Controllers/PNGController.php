@@ -129,7 +129,7 @@ class PNGController extends Controller
                 );
 
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = round($client_response->fundtransferresponse->balance * 100,2);
+                $balance = round($client_response->fundtransferresponse->balance,2);
                 $game_details = Helper::getInfoPlayerGameRound($xmlparser->externalGameSessionId);
                 $json_data = array(
                     "transid" => $xmlparser->transactionId,
