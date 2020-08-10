@@ -15,7 +15,7 @@ class PNGController extends Controller
         $data = $request->getContent();
         $xmlparser = new SimpleXMLElement($data);
         $accessToken = "secrettoken";
-        if($xmlparser->externalGameSessionId){
+        if($xmlparser->username){
             $client_details = $this->_getClientDetails('token', $xmlparser->username);
             if($client_details){
                 $client = new Client([
