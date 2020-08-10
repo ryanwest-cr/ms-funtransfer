@@ -128,7 +128,7 @@ class PGSoftController extends Controller
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
             $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data["game_id"]);
             $game_ext = Providerhelper::findGameExt($data['transaction_id'], 1, 'transaction_id'); 
-          
+            
             if($game_ext == 'false'): // NO BET found mw
 			
                 //if the amount is grater than to the bet amount  error message
@@ -191,7 +191,6 @@ class PGSoftController extends Controller
                     ];
 
                     $token_id = $client_details->token_id;
-                    $game_id = $game_details->game_id;
                     $bet_amount =  $data['transfer_amount'];
                     $payout = 0;
                     $entry_id = 1; //1 bet , 2win
@@ -201,7 +200,7 @@ class PGSoftController extends Controller
                     $provider_trans_id = $data['transaction_id'];
                     $round_id = $data['bet_id'];
     
-                    $gametransaction_id = Helper::saveGame_transaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win, null, $payout_reason , $income, $provider_trans_id, $round_id);
+                    $gametransaction_id = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, $payout_reason , $income, $provider_trans_id, $round_id);
                     
                     $provider_request = $data;
                     $mw_request = $requesttosend;
