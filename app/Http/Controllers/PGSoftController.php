@@ -273,9 +273,10 @@ class PGSoftController extends Controller
 
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
 
-        $existing_bet = ProviderHelper::findGameTransaction($data['transaction_id'], 'transaction_id', 1); // Find if win has bet record
-		$game_ext = ProviderHelper::findGameExt($data['transaction_id'], 2, 'transaction_id'); // Find if this callback in game extension
+        $existing_bet = ProviderHelper::findGameTransaction($data['bet_transaction_id'], 'transaction_id', 1); // Find if win has bet record
+		$game_ext = ProviderHelper::findGameExt($data['bet_transaction_id'], 2, 'transaction_id'); // Find if this callback in game extension
         $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
+       
         if($game_ext == 'false'):
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win //temporary == make it !=
 				$requesttosend = [
