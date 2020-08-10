@@ -16,7 +16,7 @@ class WazdanController extends Controller
         $key = "uTDVNr4wu6Y78SNbr36bqsSCH904Rcn1";
         $data = array(
             "how" => 'hash_hmac("sha256","'.$request->getContent().'",'.$key.')',
-            "hmac"=>hash_hmac("sha256",$key,$request->getContent())
+            "hmac"=>hash_hmac("sha256",$request->getContent(),$key)
         );
         return $data;
     }
