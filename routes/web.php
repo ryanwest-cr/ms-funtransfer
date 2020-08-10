@@ -239,6 +239,7 @@ $app->post('/api/wazdan/rollbackStake','WazdanController@rollbackState');
 $app->post('/api/wazdan/returnWin','WazdanController@returnWin');
 $app->post('/api/wazdan/getFunds','WazdanController@getFunds');
 $app->post('/api/wazdan/gameClose','WazdanController@gameClose');
+<<<<<<< HEAD
 //PNG Endpoints
 $app->post('/api/png/authenticate','PNGController@authenticate');
 $app->post('/api/png/reserve','PNGController@reserve');
@@ -246,6 +247,9 @@ $app->post('/api/png/release','PNGController@release');
 $app->post('/api/png/balance','PNGController@balance');
 $app->post('/api/png/cancelReserve','PNGController@cancelReserve');
 
+=======
+$app->post('/api/wazdan/hash','WazdanController@hashCode');
+>>>>>>> 883f4adb02b94724105027b837fce9065b4cb54a
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 

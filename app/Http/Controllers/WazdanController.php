@@ -10,7 +10,16 @@ use DB;
 class WazdanController extends Controller
 {
     //
-
+    public function hashCode(Request $request){
+        $operator = "tigergames";
+        $license = "curacao";
+        $key = "uTDVNr4wu6Y78SNbr36bqsSCH904Rcn1";
+        $data = array(
+            "how" => 'hash_hmac("sha256","'.$request->getContent().'",'.$key.')',
+            "hmac"=>hash_hmac("sha256",$request->getContent(),$key)
+        );
+        return $data;
+    }
     public function authenticate(Request $request){
         $data = $request->getContent();
         $datadecoded = json_decode($data,TRUE);
