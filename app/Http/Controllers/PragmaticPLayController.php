@@ -26,7 +26,9 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        $hash = md5('providerId='.$data->providerId.'&token='.$data->token.$this->key);
+        // $hash = md5('providerId='.$data->providerId.'&token='.$data->token.$this->key);
+        $dataSort = json_decode($json_encode, true);
+        $hash = $this->hashParam($dataSort);
 
         if($hash != $data->hash){
             $response = [
@@ -35,9 +37,7 @@ class PragmaticPLayController extends Controller
             ];
             return $response;
         }
- 
-
-        
+               
         $providerId = $data->providerId;
         $hash = $data->hash;
         $token = $data->token;
@@ -85,8 +85,11 @@ class PragmaticPLayController extends Controller
 
 
         Helper::saveLog('PP balance', 49, json_encode($data) , "balance");
+        // $hash = md5('providerId='.$data->providerId.'&userId='.$data->userId.$this->key);
 
-        $hash = md5('providerId='.$data->providerId.'&userId='.$data->userId.$this->key);
+        $dataSort = json_decode($json_encode, true);
+        $hash = $this->hashParam($dataSort);
+
 
         if($hash != $data->hash){
             $response = [
@@ -120,7 +123,11 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
+        $dataSort = json_decode($json_encode, true);
+
+        $hash = $this->hashParam($dataSort);
+
+        // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         
         if($hash != $data->hash){
             $response = [
@@ -390,6 +397,17 @@ class PragmaticPLayController extends Controller
         
         Helper::saveLog('PP sessionExpired request', 49, json_encode($data) ,"sessionExpired");
 
+        $dataSort = json_decode($json_encode, true);
+        $hash = $this->hashParam($dataSort);
+
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
+
         $response = array(
             "error" => 0,
             "description" => "Success"
@@ -409,8 +427,10 @@ class PragmaticPLayController extends Controller
 
         Helper::saveLog('PP refund request', 49, json_encode($data) , "");
 
-        $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
-        
+        // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
+        $dataSort = json_decode($json_encode, true);
+        $hash = $this->hashParam($dataSort);
+
         if($hash != $data->hash){
             $response = [
                 "error" => 5,
@@ -524,6 +544,16 @@ class PragmaticPLayController extends Controller
 
         Helper::saveLog('PP promoWin request', 49, json_encode($data) , "");
 
+        $dataSort = json_decode($json_encode, true);
+        $hash = $this->hashParam($dataSort);
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }
+
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -534,7 +564,11 @@ class PragmaticPLayController extends Controller
                 'Authorization' => 'Bearer '.$client_details->client_access_token
             ]
         ]);
+
+        $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit", $client_details->default_currency );
+
         
+
     }
 
     public function jackpotWin(Request $request){
@@ -544,6 +578,18 @@ class PragmaticPLayController extends Controller
         $data = json_decode($json_encode);
 
         Helper::saveLog('PP jackpotWin request', 49, json_encode($data) , "");
+
+        $dataSort = json_decode($json_encode, true);
+        $hash = $this->hashParam($dataSort);
+        if($hash != $data->hash){
+            $response = [
+                "error" => 5,
+                "decription" => "Success"
+            ];
+            return $response;
+        }else{
+            return "lahos";
+        }
 
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->first();
         $game_details = DB::table("games")->where("game_id","=",$game_trans->game_id)->first();
@@ -559,7 +605,7 @@ class PragmaticPLayController extends Controller
             ]
         ]);
 
-        $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit", $client_details->default_currency );
+        $responseDetails = $this->responsetosend($client_details->client_access_token,          $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit", $client_details->default_currency );
 
         $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
@@ -572,7 +618,8 @@ class PragmaticPLayController extends Controller
                 "win" => $win,
                 "pay_amount" => $data->amount,
                 "income" => $income,
-                "entry_id" => 2
+                "entry_id" => 2,
+                "payout_reason" => "Jackpot Win"
             ]);
     
         $response = array(
@@ -638,5 +685,22 @@ class PragmaticPLayController extends Controller
         return $data;
     }
     
+
+    public function hashParam($sortData){
+        ksort($sortData);
+        $param = "";
+        $i = 0;
+        foreach($sortData as $key => $item){
+            if($key != 'hash'){
+                if($i == 0){
+                    $param .= $key ."=". $item;
+                }else{
+                    $param .= "&".$key ."=". $item;
+                }
+                $i++;
+            }
+        }
+        return $hash = md5($param.$this->key);
+    }
 
 }
