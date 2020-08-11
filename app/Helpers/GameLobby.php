@@ -64,7 +64,7 @@ class GameLobby{
         $exit_url = $exitUrl;
         Helper::savePLayerGameRound($game_code,$token);
         $gameurl = config('providerlinks.png.root_url').'/casino/ContainerLauncher?pid='.config('providerlinks.png.pid').'&gid='.$game_code.'&channel='.
-                   config('providerlinks.png.channel').'&lang='.$lang.'&practice='.config('providerlinks.png.practice');
+                   config('providerlinks.png.channel').'&lang='.$lang.'&practice='.config('providerlinks.png.practice').'&ticket='.$token.'&origin='.$exit_url;
         return $gameurl;
     }
     public static function edpLaunchUrl($game_code,$token,$exitUrl){
