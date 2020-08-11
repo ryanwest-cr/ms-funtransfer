@@ -97,6 +97,11 @@ class DigitainController extends Controller
 				if($client_response):
 					if(isset($client_response->playerdetailsresponse->status->code) &&
 						     $client_response->playerdetailsresponse->status->code == "200"):
+
+						$dob = isset($client_response->playerdetailsresponse->birthday) ? $client_response->playerdetailsresponse->birthday : '1996-03-01 00:00:00.000';
+						$gender_pref = isset($client_response->playerdetailsresponse->gender) ? strtolower($client_response->playerdetailsresponse->gender) : 'male';
+						$gender = ['male' => 1,'female' => 2];
+
 						$response = [
 							"timestamp" => date('YmdHisms'),
 							"signature" => $this->createSignature(date('YmdHisms')),
@@ -106,10 +111,10 @@ class DigitainController extends Controller
 							// "currencyId" => $client_response->playerdetailsresponse->currencycode,
 							"currencyId" => $client_details->default_currency,
 							"balance" => floatval($client_response->playerdetailsresponse->balance),
-							"birthDate" => '', // Optional
+							"birthDate" => $dob, // Optional
 							"firstName" => $client_response->playerdetailsresponse->firstname, // required
 							"lastName" => $client_response->playerdetailsresponse->lastname, // required
-							"gender" => '', // Optional
+							"gender" => $gender[$gender_pref], // Optional
 							"email" => $client_response->playerdetailsresponse->email,
 							"isReal" => true
 						];
