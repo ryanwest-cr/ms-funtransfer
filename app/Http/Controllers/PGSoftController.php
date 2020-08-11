@@ -127,6 +127,7 @@ class PGSoftController extends Controller
         if($client_details != null){
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
             $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
+            return $game_details;
             $game_ext = Providerhelper::findGameExt($data['transaction_id'], 1, 'transaction_id'); 
             
             if($game_ext == 'false'): // NO BET found mw
@@ -453,7 +454,7 @@ class PGSoftController extends Controller
             [45,"tomb-of-treasure"],
             [48,"double-fortune"],
             [52,"wild-inferno"],
-            [53,"the-great-icescape"],
+            [53,"the-great-icescape"],                          
             [10,"joker-wild"],//tablegame
             [11,"blackjack-us"],//tablegame
             [12,"blackjack-eu"],//tablegame
@@ -462,10 +463,10 @@ class PGSoftController extends Controller
         $game_code = '';
         for ($row = 0; $row < count($array); $row++) {
             if($array[$row][0] == $identification){
-                $game_code = $array[0][1];
+                $game_code = $array[$row][1];
             }
-          }
-          
+        }
+        return $game_code;
         $game_details = DB::table("games as g")
             ->leftJoin("providers as p","g.provider_id","=","p.provider_id");
         
