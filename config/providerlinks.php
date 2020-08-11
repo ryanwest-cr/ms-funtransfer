@@ -168,6 +168,12 @@ return [
         'hmac_scret_key' => 'uTDVNr4wu6Y78SNbr36bqsSCH904Rcn1',
         'partnercode'=> 'gd1wiurg',
         'gamelaunchurl' => 'https://gl-staging.wazdanep.com/'
+    ],
+    'png'=>[
+        'root_url'=> 'https://agastage.playngonetwork.com',
+        'pid' => 8888,
+        'channel'=> 'desktop',
+        'practice'=>0
     ]
 
     
