@@ -239,19 +239,20 @@ class PragmaticPLayController extends Controller
         
         Helper::saveLog('PP result request', 49, json_encode($data) ,"result");
         
-        $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
-
-        if($hash != $data->hash){
-            $response = [
-                "error" => 5,
-                "decription" => "Success"
-            ];
-            return $response;
-        }
+        // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
+        $dataSort = json_decode($json_encode, true);
+        $hash = $this->hashParam($dataSort);
+        
+        // if($hash != $data->hash){
+        //     $response = [
+        //         "error" => 5,
+        //         "decription" => "Success"
+        //     ];
+        //     return $response;
+        // }
         
         $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
-        
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -278,22 +279,28 @@ class PragmaticPLayController extends Controller
                 'Authorization' => 'Bearer '.$client_details->client_access_token
             ]
         ]);
-
+        
         $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency );
         
         $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
 
         $income = $game_trans[0]->bet_amount - $data->amount;
         $win = 1;
-        
+      
         $updateGameTrans = DB::table('game_transactions')
-            ->where("round_id","=",$data->roundId)
-            ->update([
-                "win" => $win,
-                "pay_amount" => $data->amount,
-                "income" => $income,
-                "entry_id" => 2
-            ]);
+                ->where("round_id","=",$data->roundId)
+                ->update([
+                    "win" => $win,
+                    "pay_amount" => $data->amount,
+                    "income" => $income,
+                    "entry_id" => 2
+                ]);
+
+        if(isset($data->promoCampaignID)){
+            $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->promoWinAmount, $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency );
+
+            $gametrans = ProviderHelper::createGameTransaction($client_details->token_id, $game_details->game_id, 0.00, $data->promoWinAmount, 2, 1, null, "Promo Win (prize drop)", 0 - $data->promoWinAmount, $data->reference, $data->roundId);
+        }
 
         $response_log = array(
             "transactionId" => $game_trans[0]->game_trans_id,
@@ -314,6 +321,9 @@ class PragmaticPLayController extends Controller
 
         $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 2, $data, $response_log, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
 
+        if(isset($data->promoCampaignID)){
+            $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $data->promoCampaignID, $data->promoWinAmount, 2, $data, $response_log, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+        }
 
         $response = array(
             "transactionId" => $game_trans_ext,
@@ -565,8 +575,21 @@ class PragmaticPLayController extends Controller
             ]
         ]);
 
-        $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit", $client_details->default_currency );
+        
+        $getPromoGame = DB::table('game_transaction_ext')->where("provider_request","like",'%campaignId":"'.$data->campaignId."%")->first();
+        $prov_req = json_encode($getPromoGame->provider_request);
+        $result = json_decode($prov_req);
+        $result = json_decode($result);
+        $response = [
+            "transactionId" => 
+        ];
+        
+        // $getGame = DB::table('games')->where('sub_provider_id','=',49)->where('game_code','=',$result->gameId)->first();
 
+        // $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $getGame->game_code, $getGame->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit", $client_details->default_currency );
+
+    
+        return $response;
         
 
     }
