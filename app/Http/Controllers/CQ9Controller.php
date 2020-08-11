@@ -564,7 +564,7 @@ class CQ9Controller extends Controller
 			if($client_response != 'false'){
 				 $mw_response = [
 		    		"data" => [
-		    			"balance" => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
+		    			"balance" => ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
 		    			"currency" => $client_details->default_currency,
 		    		],
 		    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
@@ -601,23 +601,29 @@ class CQ9Controller extends Controller
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+    	// dd($player_details);
+    	if($player_details == 'false'){
+    		$mw_response = ["data" => [],"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 T Server Error', $this->provider_db_id, json_encode($provider_request), $mw_response);
+			return $mw_response;
+    	}
     	$amount = $player_details->playerdetailsresponse->balance;
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
 		// if($game_details == null){}
 		$game_ext_check = ProviderHelper::findGameExt($mtcode, 1, 'transaction_id');
 		if($game_ext_check != 'false'){
 			$mw_response = ["data" => [],"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 T ALready Exist', $this->provider_db_id, $provider_request, $mw_response);
+			Helper::saveLog('CQ9 T ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
 		}	
-		try {
+		// try {
 			$token_id = $client_details->token_id;
 			$bet_amount = $amount;
 			$pay_amount= 0;
 			$method = 1;
 			$win_or_lost = 5;
 			$payout_reason = 'Rollout All Players Money';
-			$income = $amount;
+			$income = $bet_amount - $pay_amount;
 			$provider_trans_id = $mtcode;
 			$game_transaction_type = 1;
 			$game_id = $game_details->game_id;
@@ -634,10 +640,11 @@ class CQ9Controller extends Controller
 		    	$client_details->default_currency, 
 		    	true
 		    );
+		    // return $client_response;
 		    if($client_response != 'false'){
 		    	$mw_response = [
 	    		"data" => [
-	    			"balance" => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
+	    			"balance" => ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
 	    			"currency" => $client_details->default_currency,
 	    		],
 	    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
@@ -649,11 +656,11 @@ class CQ9Controller extends Controller
 				Helper::saveLog('CQ9 playerTakeall Failed', $this->provider_db_id, json_encode($request->all()), $mw_response);
 			}
 			return $mw_response;
-		} catch (\Exception $e) {
-			$mw_response = ["data" => [],"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 playerTakeall Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
-			return $mw_response;
-		}
+		// } catch (\Exception $e) {
+		// 	$mw_response = ["data" => [],"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+		// 	Helper::saveLog('CQ9 playerTakeall Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
+		// 	return $mw_response;
+		// }
     }
 
     public function playerRollin(Request $request){
@@ -748,6 +755,7 @@ class CQ9Controller extends Controller
 		}
     }
 
+    // NOT YET IMPLEMENTED CAN BE SKIPPED BOTH  PARTIES!
     public function playerBonus(Request $request){
     	Helper::saveLog('CQ9 playerBonus Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	Helper::saveLog('CQ9 playerBonus Player', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT 2');
@@ -832,7 +840,7 @@ class CQ9Controller extends Controller
 	        return $data;
     		//
     	} catch (\Exception $e) {
-    		Helper::saveLog('CQ9 Transfered Failed!', $this->provider_db_id, json_encode($requesttosend), $e->getMessage());
+    		Helper::saveLog('Called Failed!', $this->provider_db_id, json_encode($requesttosend), $e->getMessage());
     		return 'false';
     	}
 
