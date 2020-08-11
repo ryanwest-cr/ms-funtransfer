@@ -732,7 +732,7 @@ class CQ9Controller extends Controller
 		    if($client_response != 'false'){
 		    	$mw_response = [
 		    		"data" => [
-	    				"balance" => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
+	    				"balance" => ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
 		    			"currency" => $client_details->default_currency,
 		    		],
 		    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
