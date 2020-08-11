@@ -81,6 +81,6 @@ class PNGHelper
     }
     public static function gameTransactionRollbackExtChecker($provider_trans_id,$type){
         $gametransaction = DB::table('game_transaction_ext')->where("provider_trans_id",$provider_trans_id)->where("game_transaction_type",$type)->first();
-        return $gametransaction?true:false;
+        return $gametransaction?$gametransaction:false;
     }
 }

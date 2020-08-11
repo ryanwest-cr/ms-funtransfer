@@ -78,7 +78,7 @@ class PNGController extends Controller
                 if(Helper::getBalance($client_details) < round($xmlparser->real,2)){
                     $array_data = array(
                         "real" => round(Helper::getBalance($client_details),2),
-                        "statusCode" => 9,
+                        "statusCode" => 7,
                         "statusMessage" => "Insufficient Balance",
                     );
                     return PNGHelper::arrayToXml($array_data,"<reserve/>");  
@@ -320,10 +320,18 @@ class PNGController extends Controller
         if($client_details){
             $reservechecker = PNGHelper::gameTransactionExtChecker($xmlparser->transactionId);
             $rollbackchecker = PNGHelper::gameTransactionRollbackExtChecker($xmlparser->transactionId,3);
-            if($reservechecker==false || $rollbackchecker==true){
+            if($reservechecker==false){
                 $array_data = array(
                     "statusCode" => 0,
                     "externalTransactionId"=>""
+                );
+                Helper::saveLog('refundAlreadyexist(PNG)', 50,json_encode($xmlparser), $array_data);
+                return PNGHelper::arrayToXml($array_data,"<cancelReserve/>");
+            }
+            if($rollbackchecker){
+                $array_data = array(
+                    "statusCode" => 0,
+                    "externalTransactionId"=>$rollbackchecker->game_trans_ext_id
                 );
                 Helper::saveLog('refundAlreadyexist(PNG)', 50,json_encode($xmlparser), $array_data);
                 return PNGHelper::arrayToXml($array_data,"<cancelReserve/>");
