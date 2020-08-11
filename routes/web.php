@@ -231,8 +231,13 @@ $app->post('/api/fc/getbalance','FCController@getBalance');
 $app->post('/api/fc/transaction','FCController@transactionMake');
 $app->post('/api/fc/cancelbet','FCController@cancelBet');
 $app->post('/api/fc/gamelaunch','FCController@gameLaunch');
+//PNG Endpoints
+$app->post('/api/png/authenticate','PNGController@authenticate');
+$app->post('/api/png/reserve','PNGController@reserve');
+$app->post('/api/png/release','PNGController@release');
+$app->post('/api/png/balance','PNGController@balance');
+$app->post('/api/png/cancelReserve','PNGController@cancelReserve');
 //Wazdan Endpoints
-
 $app->post('/api/wazdan/authenticate','WazdanController@authenticate');
 $app->post('/api/wazdan/getStake','WazdanController@getStake');
 $app->post('/api/wazdan/rollbackStake','WazdanController@rollbackState');
