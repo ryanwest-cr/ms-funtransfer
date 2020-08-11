@@ -11,7 +11,7 @@ use DB;
 
 class PGSoftController extends Controller
 {
-    // 
+    //
     public $provider_db_id = 31;
 
     public function __construct(){
