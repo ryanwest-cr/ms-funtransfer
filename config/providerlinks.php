@@ -161,7 +161,15 @@ return [
         'gamelaunch_url' => 'https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do',
         'secureLogin' => 'tg_tigergames', //or stylename
         'secret_key' => 'testKey',
+    ],
+    'wazdan'=>[
+        'operator' => 'tigergames',
+        'license' => 'curacao',
+        'hmac_scret_key' => 'uTDVNr4wu6Y78SNbr36bqsSCH904Rcn1',
+        'partnercode'=> 'gd1wiurg',
+        'gamelaunchurl' => 'https://gl-staging.wazdanep.com/'
     ]
+
     
 ];
 

@@ -49,6 +49,15 @@ class GameLobby{
                   "&exir_url=".$exit_url;
         return $gameurl;
     }
+    public static function wazdanLaunchUrl($game_code,$token,$exitUrl){
+        $lang = "en";
+        $timestamp = Carbon::now()->timestamp;
+        $exit_url = $exitUrl;
+        Helper::savePLayerGameRound($game_code,$token);
+        $gameurl = config('providerlinks.wazdan.gamelaunchurl').config('providerlinks.wazdan.partnercode').'/gamelauncher?operator='.config('providerlinks.wazdan.operator').
+                  '&game='.$game_code.'&mode=real&token='.$token.'&license='.config('providerlinks.wazdan.license').'&lang='.$lang.'&platform=desktop';
+        return $gameurl;
+    }
     public static function edpLaunchUrl($game_code,$token,$exitUrl){
         $profile = "nofullscreen_money.xml";
         $sha1key = sha1($exitUrl.''.config("providerlinks.endorphina.nodeId").''.$profile.''.$token.''.config("providerlinks.endorphina.secretkey"));
