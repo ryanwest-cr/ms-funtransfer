@@ -465,7 +465,6 @@ class PGSoftController extends Controller
                 $game_code = $array[$row][1];
             }
         }
-        return $game_code;
         $game_details = DB::table("games as g")
             ->leftJoin("providers as p","g.provider_id","=","p.provider_id");
         
