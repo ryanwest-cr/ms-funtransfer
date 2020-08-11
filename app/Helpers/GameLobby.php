@@ -49,6 +49,15 @@ class GameLobby{
                   "&exir_url=".$exit_url;
         return $gameurl;
     }
+    public static function wazdanLaunchUrl($game_code,$token,$exitUrl){
+        $lang = "en";
+        $timestamp = Carbon::now()->timestamp;
+        $exit_url = $exitUrl;
+        Helper::savePLayerGameRound($game_code,$token);
+        $gameurl = config('providerlinks.wazdan.gamelaunchurl').config('providerlinks.wazdan.partnercode').'/gamelauncher?operator='.config('providerlinks.wazdan.operator').
+                  '&game='.$game_code.'&mode=real&token='.$token.'&license='.config('providerlinks.wazdan.license').'&lang='.$lang.'&platform=desktop';
+        return $gameurl;
+    }
     public static function edpLaunchUrl($game_code,$token,$exitUrl){
         $profile = "nofullscreen_money.xml";
         $sha1key = sha1($exitUrl.''.config("providerlinks.endorphina.nodeId").''.$profile.''.$token.''.config("providerlinks.endorphina.secretkey"));
@@ -345,7 +354,7 @@ class GameLobby{
 
     public static function pgsoftlaunchUrl( $game_code = null, $token = null){
         $operator_token = config('providerlinks.pgsoft.operator_token');
-        $url = "https://m.pg-redirect.net/".$game_code."/index.html?language=en-us&bet_type=1&operator_token=".$operator_token."&operator_player_session=".$token;
+        $url = "https://m.pg-redirect.net/".$game_code."/index.html?language=en-us&bet_type=1&operator_token=".urlencode($operator_token)."&operator_player_session=".urlencode($token);
         return $url;
     }
 

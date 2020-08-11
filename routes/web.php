@@ -81,6 +81,19 @@ $app->post('/api/manna/{brand_code}/bet', 'MannaPlayController@debitProcess');
 $app->post('/api/manna/{brand_code}/win', 'MannaPlayController@creditProcess');
 $app->post('/api/manna/{brand_code}/betrollback', 'MannaPlayController@rollbackTransaction');
 
+// QTech Games Endpoints
+$app->get('/api/qtech/{brand_code}/accounts/{player_id}/session?gameId={game_id}', 'QTechController@authPlayer');
+$app->post('/api/qtech/{brand_code}/accounts/{player_id}/balance?gameId={game_id}', 'QTechController@getBalance');
+$app->post('/api/qtech/{brand_code}/transactions', 'QTechController@gameTransaction');
+$app->post('/api/qtech/{brand_code}/transactions/rollback', 'QTechController@rollbackTransaction');
+$app->post('/api/qtech/{brand_code}/bonus/status', 'QTechController@bonusStatus');
+
+// Vivo Gaming Endpoints
+$app->get('/api/vivo/{brand_code}/authenticate', 'VivoController@authPlayer');
+$app->get('/api/vivo/{brand_code}/changebalance', 'VivoController@gameTransaction');
+$app->get('/api/vivo/{brand_code}/status', 'VivoController@transactionStatus');
+$app->get('/api/vivo/{brand_code}/getbalance', 'VivoController@getBalance');
+
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
 $app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');
@@ -231,8 +244,20 @@ $app->post('/api/fc/getbalance','FCController@getBalance');
 $app->post('/api/fc/transaction','FCController@transactionMake');
 $app->post('/api/fc/cancelbet','FCController@cancelBet');
 $app->post('/api/fc/gamelaunch','FCController@gameLaunch');
-
-
+//PNG Endpoints
+$app->post('/api/png/authenticate','PNGController@authenticate');
+$app->post('/api/png/reserve','PNGController@reserve');
+$app->post('/api/png/release','PNGController@release');
+$app->post('/api/png/balance','PNGController@balance');
+$app->post('/api/png/cancelReserve','PNGController@cancelReserve');
+//Wazdan Endpoints
+$app->post('/api/wazdan/authenticate','WazdanController@authenticate');
+$app->post('/api/wazdan/getStake','WazdanController@getStake');
+$app->post('/api/wazdan/rollbackStake','WazdanController@rollbackState');
+$app->post('/api/wazdan/returnWin','WazdanController@returnWin');
+$app->post('/api/wazdan/getFunds','WazdanController@getFunds');
+$app->post('/api/wazdan/gameClose','WazdanController@gameClose');
+$app->post('/api/wazdan/hash','WazdanController@hashCode');
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 
@@ -366,3 +391,4 @@ $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
 
 
 // $app->get('al-games','AlController@insertGamesTapulanMode');
+$app->post('api/booming/gamelist','BoomingGamingController@gameList');

@@ -358,7 +358,8 @@ class ProviderHelper{
             return $languages["en"];
         }
     }
-    
+	
+
     // BACKUP FUNCTION
     // public static function find($game_code) {
 	// 	$search_result = DB::table('games')

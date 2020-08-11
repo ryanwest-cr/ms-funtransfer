@@ -19,9 +19,13 @@ class Helper
 			    	->first();
 		if($token != null){
 			$check_token = DB::table('player_session_tokens')
-            ->selectRaw("TIME_TO_SEC(TIMEDIFF('".$token->IMANTO."', '".$token->created_at."'))/60 as TIMEGAP")
+            ->selectRaw("TIME_TO_SEC(TIMEDIFF('".$token->created_at."', '".$token->IMANTO."'))/60 as TIMEGAP")
 	        ->first();
-		    if(60 > $check_token->TIMEGAP) { // 60 Minutes
+	        // return $check_token;
+	        // return $token->created_at.' '.$token->IMANTO;
+	        // 60 Minutes 86400 seconds = 1 DAY!
+	        // 86400/60 = 1440 minutes!
+		    if(1440 > $check_token->TIMEGAP) {  // TIMEGAP IN MINUTES!
 		        $token = true; // True if Token can still be used!
 		    }else{
 		    	$token = false; // Expired Token

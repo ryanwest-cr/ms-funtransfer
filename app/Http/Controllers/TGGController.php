@@ -17,7 +17,7 @@ class TGGController extends Controller
     	$this->api_url = config('providerlinks.tgg.api_url');
 	}
 	
-	public $provider_db_id = 29;
+	public $provider_db_id = 29; // 29 on test ,, 27 prod
 
 	public function index(Request $request){
 		
