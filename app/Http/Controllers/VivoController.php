@@ -44,13 +44,13 @@ class VivoController extends Controller
 			$response = '<?xml version="1.0" encoding="utf-8"?>';
 			$response .= '<VGSSYSTEM>
 							<REQUEST>
-								<USERID>'.$client_details->player_id.'</USERID>
+								<TOKEN>'.$request->token.'</TOKEN>
 								<HASH>'.$request->hash.'</HASH>
 							</REQUEST>
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>302</CODE>
+								<CODE>400</CODE>
 							</RESPONSE>
 						</VGSSYSTEM>';
 		}
