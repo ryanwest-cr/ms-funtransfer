@@ -622,7 +622,7 @@ class CQ9Controller extends Controller
 			$pay_amount= 0;
 			$method = 1;
 			$win_or_lost = 5;
-			$payout_reason = 'Rollout All Players Money';
+			$payout_reason = 'TakeAll Players Money';
 			$income = $bet_amount - $pay_amount;
 			$provider_trans_id = $mtcode;
 			$game_transaction_type = 1;
@@ -679,7 +679,6 @@ class CQ9Controller extends Controller
 			// Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			// return $mw_response;
    //  	}
-   //  	
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	if($amount < 0){
