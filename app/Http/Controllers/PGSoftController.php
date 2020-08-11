@@ -127,7 +127,6 @@ class PGSoftController extends Controller
         if($client_details != null){
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
             $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
-            return $game_details;
             $game_ext = Providerhelper::findGameExt($data['transaction_id'], 1, 'transaction_id'); 
             
             if($game_ext == 'false'): // NO BET found mw
