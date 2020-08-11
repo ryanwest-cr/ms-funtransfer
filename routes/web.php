@@ -81,6 +81,19 @@ $app->post('/api/manna/{brand_code}/bet', 'MannaPlayController@debitProcess');
 $app->post('/api/manna/{brand_code}/win', 'MannaPlayController@creditProcess');
 $app->post('/api/manna/{brand_code}/betrollback', 'MannaPlayController@rollbackTransaction');
 
+// QTech Games Endpoints
+$app->get('/api/qtech/{brand_code}/accounts/{player_id}/session?gameId={game_id}', 'QTechController@authPlayer');
+$app->post('/api/qtech/{brand_code}/accounts/{player_id}/balance?gameId={game_id}', 'QTechController@getBalance');
+$app->post('/api/qtech/{brand_code}/transactions', 'QTechController@gameTransaction');
+$app->post('/api/qtech/{brand_code}/transactions/rollback', 'QTechController@rollbackTransaction');
+$app->post('/api/qtech/{brand_code}/bonus/status', 'QTechController@bonusStatus');
+
+// Vivo Gaming Endpoints
+$app->get('/api/vivo/{brand_code}/authenticate', 'VivoController@authPlayer');
+$app->get('/api/vivo/{brand_code}/changebalance', 'VivoController@gameTransaction');
+$app->get('/api/vivo/{brand_code}/status', 'VivoController@transactionStatus');
+$app->get('/api/vivo/{brand_code}/getbalance', 'VivoController@getBalance');
+
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
 $app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');
