@@ -422,7 +422,42 @@ class PGSoftController extends Controller
     
     public static function findGameCode($type, $provider_id, $identification) {
         $array = [
-            [1,"diaochan"]
+            [1,"diaochan"],
+            [2,"gem-saviour"],
+            [3,"fortune-gods"],
+            [4,"summon-conquer"],
+            [6,"medusa2"],
+            [7,"medusa"],
+            [8,"peas-fairy"],
+            [17,"wizdom-wonders"],
+            [18,"hood-wolf"],
+            [19,"steam-punk"],
+            [24,"win-win-won"],
+            [25,"plushie-frenzy"],
+            [26,"fortune-tree"],
+            [27,"restaurant-craze"],
+            [28,"hotpot"],
+            [29,"dragon-legend"],
+            [33,"hip-hop-panda"],
+            [34,"legend-of-hou-yi"],
+            [35,"mr-hallow-win"],
+            [36,"prosperity-lion"],
+            [37,"santas-gift-rush"],
+            [38,"gem-saviour-sword"],
+            [39,"piggy-gold"],
+            [40,"jungle-delight"],
+            [41,"symbols-of-egypt"],
+            [42,"ganesha-gold"],
+            [43,"three-monkeys"],
+            [44,"emperors-favour"],
+            [45,"tomb-of-treasure"],
+            [48,"double-fortune"],
+            [52,"wild-inferno"],
+            [53,"the-great-icescape"],
+            [10,"joker-wild"],//tablegame
+            [11,"blackjack-us"],//tablegame
+            [12,"blackjack-eu"],//tablegame
+            [31,"baccarat-deluxe"]//tablegame
         ];
         $game_code = '';
         for ($row = 0; $row < count($array); $row++) {
