@@ -50,7 +50,7 @@ class VivoController extends Controller
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>400</CODE>
+								<CODE>500</CODE>
 							</RESPONSE>
 						</VGSSYSTEM>';
 		}
@@ -183,7 +183,7 @@ class VivoController extends Controller
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>300</CODE>
+								<CODE>500</CODE>
 							</RESPONSE>
 							</VGSSYSTEM>';
 		}
@@ -473,7 +473,7 @@ class VivoController extends Controller
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>302</CODE>
+								<CODE>500</CODE>
 							</RESPONSE>
 						</VGSSYSTEM>';
 		}
@@ -543,7 +543,7 @@ class VivoController extends Controller
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>302</CODE>
+								<CODE>500</CODE>
 							</RESPONSE>
 						</VGSSYSTEM>';
 		}
