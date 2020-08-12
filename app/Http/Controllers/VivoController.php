@@ -34,9 +34,22 @@ class VivoController extends Controller
 	public function authPlayer(Request $request)
 	{
 		$client_code = RouteParam::get($request, 'brand_code');
-		
 		$client_details = $this->_getClientDetails('token', $request->token);
 		
+		header("Content-type: text/xml; charset=utf-8");
+			$response = '<?xml version="1.0" encoding="utf-8"?>';
+			$response .= '<VGSSYSTEM>
+							<REQUEST>
+								<TOKEN>'.$request->token.'</TOKEN>
+								<HASH>'.$request->hash.'</HASH>
+							</REQUEST>
+							<TIME>'.Helper::datesent().'</TIME>
+							<RESPONSE>
+								<RESULT>FAILED</RESULT>
+								<CODE>400</CODE>
+							</RESPONSE>
+						</VGSSYSTEM>';
+
 		$hash = md5($request->token.env('VIVO_PASS_KEY'));
 
 		if($hash != $request->hash) {
@@ -44,13 +57,13 @@ class VivoController extends Controller
 			$response = '<?xml version="1.0" encoding="utf-8"?>';
 			$response .= '<VGSSYSTEM>
 							<REQUEST>
-								<USERID>'.$client_details->player_id.'</USERID>
+								<TOKEN>'.$request->token.'</TOKEN>
 								<HASH>'.$request->hash.'</HASH>
 							</REQUEST>
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>302</CODE>
+								<CODE>500</CODE>
 							</RESPONSE>
 						</VGSSYSTEM>';
 		}
@@ -183,7 +196,7 @@ class VivoController extends Controller
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>300</CODE>
+								<CODE>500</CODE>
 							</RESPONSE>
 							</VGSSYSTEM>';
 		}
@@ -473,7 +486,7 @@ class VivoController extends Controller
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>302</CODE>
+								<CODE>500</CODE>
 							</RESPONSE>
 						</VGSSYSTEM>';
 		}
@@ -543,7 +556,7 @@ class VivoController extends Controller
 							<TIME>'.Helper::datesent().'</TIME>
 							<RESPONSE>
 								<RESULT>FAILED</RESULT>
-								<CODE>302</CODE>
+								<CODE>500</CODE>
 							</RESPONSE>
 						</VGSSYSTEM>';
 		}
