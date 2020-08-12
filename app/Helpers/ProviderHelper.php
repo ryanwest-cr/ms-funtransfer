@@ -358,7 +358,30 @@ class ProviderHelper{
             return $languages["en"];
         }
     }
+
+     /**
+	 * GLOBAL
+	 * Find Token OWNER
+	 * 
+	 */
+	public static function findTokenID($token_id) {
+		$token = DB::table('player_session_tokens')
+						->where('token_id', $token_id)
+						->first();	
+		return $token ? $token : 'false';
+	}
 	
+    /**
+	 * GLOBAL
+	 * Find Game ID
+	 * 
+	 */
+	public static function findGameID($game_id) {
+		$game = DB::table('games')
+						->where('game_id', $game_id)
+						->first();	
+		return $game ? $game : 'false';
+	}
 
     // BACKUP FUNCTION
     // public static function find($game_code) {
