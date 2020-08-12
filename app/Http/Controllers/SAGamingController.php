@@ -518,6 +518,13 @@ class SAGamingController extends Controller
             echo $this->makeArrayXML($data_response);
             return;
         }
+        $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
+        if($getPlayer == 'false'){
+            $data_response = ["username" => $username, "error" => 1005]; 
+            Helper::saveLog('SA Gaming LC Player Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
+        }
         $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
         if($transaction_check == 'false'){
             $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1005]; // 152
