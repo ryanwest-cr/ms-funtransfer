@@ -55,7 +55,7 @@ class AlController extends Controller
 
       $array = '[{
       "game_name": "3-Hand Casino Holdem",
-      "game_code": "threehandholdemmobile",
+      "game_code": "threehandholdem",
       "game_type_id": "Table",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -63,7 +63,7 @@ class AlController extends Controller
     },
     {
       "game_name": "5x Magic",
-      "game_code": "5xmagicmobile",
+      "game_code": "5xmagic",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -71,7 +71,7 @@ class AlController extends Controller
     },
     {
       "game_name": "7 Sins",
-      "game_code": "sevensinsmobile",
+      "game_code": "sevensins",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -79,7 +79,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Ace of Spades",
-      "game_code": "aceofspadesmobile",
+      "game_code": "aceofspades",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -87,7 +87,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Agent Destiny",
-      "game_code": "agentdestinymobile",
+      "game_code": "agentdestiny",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -95,7 +95,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Ankh of Anubis",
-      "game_code": "ankhofanubismobile",
+      "game_code": "ankhofanubis",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -103,7 +103,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Annihilator",
-      "game_code": "annihilatormobile",
+      "game_code": "annihilator",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -111,7 +111,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Aztec Idols",
-      "game_code": "aztecidolsmobile",
+      "game_code": "aztecidols",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -119,7 +119,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Aztec Warrior Princess",
-      "game_code": "aztecwarriorprincessmobile",
+      "game_code": "aztecwarriorprincess",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -127,7 +127,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Bakers Treat",
-      "game_code": "bakerstreatmobile",
+      "game_code": "bakerstreat",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -135,7 +135,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Banana Rock",
-      "game_code": "bananarockmobile",
+      "game_code": "bananarock",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -143,7 +143,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Battle Royal",
-      "game_code": "battleroyalmobile",
+      "game_code": "battleroyal",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -151,7 +151,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Bell of Fortune",
-      "game_code": "belloffortunemobile",
+      "game_code": "belloffortune",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -159,7 +159,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Big Win 777",
-      "game_code": "bigwin777mobile",
+      "game_code": "bigwin777",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -167,7 +167,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Big Win Cat",
-      "game_code": "bigwincatmobile",
+      "game_code": "bigwincat",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -175,7 +175,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Black Mamba",
-      "game_code": "blackmambamobile",
+      "game_code": "blackmamba",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -183,7 +183,7 @@ class AlController extends Controller
     },
     {
       "game_name": "BlackJack MH",
-      "game_code": "blackjackmhmobile",
+      "game_code": "blackjackmh",
       "game_type_id": "BlackJack",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -191,7 +191,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Blinged",
-      "game_code": "blingedmobile",
+      "game_code": "blinged",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -199,7 +199,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Book of Dead",
-      "game_code": "bookofdeadmobile",
+      "game_code": "bookofdead",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -207,7 +207,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Bugs Party",
-      "game_code": "bugspartymobile",
+      "game_code": "bugsparty",
       "game_type_id": "Video",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -215,7 +215,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Cash Pump",
-      "game_code": "cashpumpmobile",
+      "game_code": "cashpump",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -223,7 +223,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Cash Vandal",
-      "game_code": "cashvandalmobile",
+      "game_code": "cashvandal",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -231,7 +231,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Casino Holdem",
-      "game_code": "casinoholdemmobile",
+      "game_code": "casinoholdem",
       "game_type_id": "Table",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -239,7 +239,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Casino Stud Poker",
-      "game_code": "casinostudpokermobile",
+      "game_code": "casinostudpoker",
       "game_type_id": "Table",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -247,7 +247,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Cat Wilde and the Doom of Dead",
-      "game_code": "doomofdeadmobile",
+      "game_code": "doomofdead",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -255,7 +255,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Cats and Cash",
-      "game_code": "catsandcashmobile",
+      "game_code": "catsandcash",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -263,7 +263,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Charlie Chance in Hell to Pay",
-      "game_code": "charliechancehelltopaymobile",
+      "game_code": "charliechancehelltopay",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -271,7 +271,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Chinese New Year",
-      "game_code": "chinesenewyearmobile",
+      "game_code": "chinesenewyear",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -279,7 +279,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Chronos Joker",
-      "game_code": "chronosjokermobile",
+      "game_code": "chronosjoker",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -287,7 +287,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Cloud Quest",
-      "game_code": "cloudquestmobile",
+      "game_code": "cloudquest",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -295,7 +295,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Contact",
-      "game_code": "contactmobile",
+      "game_code": "contact",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -303,7 +303,7 @@ class AlController extends Controller
     },
     {
       "game_name": "CopsnRobbers",
-      "game_code": "copsnrobbersmobile",
+      "game_code": "copsnrobbers",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -311,7 +311,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Coywolf Cash",
-      "game_code": "coywolfcashmobile",
+      "game_code": "coywolfcash",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -319,7 +319,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Crazy Cows",
-      "game_code": "crazycowsmobile",
+      "game_code": "crazycows",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -327,7 +327,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Crystal Sun",
-      "game_code": "crystalsunmobile",
+      "game_code": "crystalsun",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -335,7 +335,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Dawn of Egypt",
-      "game_code": "dawnofegyptmobile",
+      "game_code": "dawnofegypt",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -343,7 +343,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Demon",
-      "game_code": "demonmobile",
+      "game_code": "demon",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -351,7 +351,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Deuces Wild MH",
-      "game_code": "deuceswildmobile",
+      "game_code": "deuceswild",
       "game_type_id": "Poker",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -359,7 +359,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Diamond Vortex",
-      "game_code": "diamondvortexmobile",
+      "game_code": "diamondvortex",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -367,7 +367,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Divine Showdown",
-      "game_code": "divineshowdownmobile",
+      "game_code": "divineshowdown",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -375,7 +375,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Doom of Egypt",
-      "game_code": "doomofegyptmobile",
+      "game_code": "doomofegypt",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -383,7 +383,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Double Exposure BlackJack MH",
-      "game_code": "doubleexposureblackjackmhmobile",
+      "game_code": "doubleexposureblackjackmh",
       "game_type_id": "BlackJack",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -391,7 +391,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Dragon Maiden",
-      "game_code": "dragonmaidenmobile",
+      "game_code": "dragonmaiden",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -399,7 +399,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Dragon Ship",
-      "game_code": "dragonshipmobile",
+      "game_code": "dragonship",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -407,7 +407,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Easter Eggs",
-      "game_code": "eastereggsmobile",
+      "game_code": "eastereggs",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -415,7 +415,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Enchanted Crystals",
-      "game_code": "enchantedcrystalsmobile",
+      "game_code": "enchantedcrystals",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -423,7 +423,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Enchanted Meadow",
-      "game_code": "enchantedmeadowmobile",
+      "game_code": "enchantedmeadow",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -431,7 +431,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Energoonz",
-      "game_code": "energoonzmobile",
+      "game_code": "energoonz",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -439,7 +439,7 @@ class AlController extends Controller
     },
     {
       "game_name": "European BlackJack MH",
-      "game_code": "europeanblackjackmhmobile",
+      "game_code": "europeanblackjackmh",
       "game_type_id": "BlackJack",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -447,7 +447,7 @@ class AlController extends Controller
     },
     {
       "game_name": "European Roulette Pro",
-      "game_code": "europeanroulettemobile",
+      "game_code": "europeanroulette",
       "game_type_id": "Roulette",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -455,7 +455,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Eye of the Kraken",
-      "game_code": "eyeofthekrakenmobile",
+      "game_code": "eyeofthekraken",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -463,7 +463,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Feline Fury",
-      "game_code": "felinefurymobile",
+      "game_code": "felinefury",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -471,7 +471,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Fire Joker",
-      "game_code": "firejokermobile",
+      "game_code": "firejoker",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -479,7 +479,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Firefly Frenzy",
-      "game_code": "fireflyfrenzymobile",
+      "game_code": "fireflyfrenzy",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -487,7 +487,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Flying Pigs",
-      "game_code": "flyingpigsmobile",
+      "game_code": "flyingpigs",
       "game_type_id": "Video",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -495,7 +495,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Fortune Teller",
-      "game_code": "fortunetellermobile",
+      "game_code": "fortuneteller",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -503,7 +503,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Fortunes of Ali Baba",
-      "game_code": "fortunesofalibabamobile",
+      "game_code": "fortunesofalibaba",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -511,7 +511,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Fruit Bonanza",
-      "game_code": "fruitbonanzamobile",
+      "game_code": "fruitbonanza",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -519,7 +519,7 @@ class AlController extends Controller
     },
     {
       "game_name": "FU ER DAI",
-      "game_code": "fuerdaimobile",
+      "game_code": "fuerdai",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -527,7 +527,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Game of Gladiators",
-      "game_code": "gameofgladiatorsmobile",
+      "game_code": "gameofgladiators",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -535,7 +535,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Gemix",
-      "game_code": "gemixmobile",
+      "game_code": "gemix",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -543,7 +543,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Gift Shop",
-      "game_code": "giftshopmobile",
+      "game_code": "giftshop",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -551,7 +551,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Gold King",
-      "game_code": "goldkingmobile",
+      "game_code": "goldking",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -559,7 +559,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Gold Trophy 2",
-      "game_code": "goldtrophy2mobile",
+      "game_code": "goldtrophy2",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -567,7 +567,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Gold Volcano",
-      "game_code": "goldvolcanomobile",
+      "game_code": "goldvolcano",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -575,7 +575,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Golden Caravan",
-      "game_code": "goldencaravanmobile",
+      "game_code": "goldencaravan",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -583,7 +583,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Golden Colts",
-      "game_code": "goldencoltsmobile",
+      "game_code": "goldencolts",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -591,7 +591,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Golden Goal",
-      "game_code": "goldengoalmobile",
+      "game_code": "goldengoal",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -599,7 +599,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Golden Legend",
-      "game_code": "goldenlegendmobile",
+      "game_code": "goldenlegend",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -607,7 +607,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Golden Ticket",
-      "game_code": "goldenticketmobile",
+      "game_code": "goldenticket",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -615,7 +615,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Golden Ticket 2",
-      "game_code": "goldenticket2mobile",
+      "game_code": "goldenticket2",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -623,7 +623,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Grim Muerto",
-      "game_code": "grimmuertomobile",
+      "game_code": "grimmuerto",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -631,7 +631,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Gunslinger: Reloaded",
-      "game_code": "gunslingerreloadedmobile",
+      "game_code": "gunslingerreloaded",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -639,7 +639,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Happy Halloween",
-      "game_code": "happyhalloweenmobile",
+      "game_code": "happyhalloween",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -647,7 +647,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Helloween",
-      "game_code": "helloweenmobile",
+      "game_code": "helloween",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -655,7 +655,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Holiday Season",
-      "game_code": "holidayseasonmobile",
+      "game_code": "holidayseason",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -663,7 +663,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Honey Rush",
-      "game_code": "honeyrushmobile",
+      "game_code": "honeyrush",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -671,7 +671,7 @@ class AlController extends Controller
     },
     {
       "game_name": "House of Doom",
-      "game_code": "houseofdoommobile",
+      "game_code": "houseofdoom",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -679,7 +679,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Hugo",
-      "game_code": "hugomobile",
+      "game_code": "hugo",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -687,7 +687,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Hugo 2",
-      "game_code": "hugotwomobile",
+      "game_code": "hugotwo",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -695,7 +695,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Hugo Goal",
-      "game_code": "hugogoalmobile",
+      "game_code": "hugogoal",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -703,7 +703,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Hugos Adventure",
-      "game_code": "hugosadventuremobile",
+      "game_code": "hugosadventure",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -711,7 +711,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Imperial Opera",
-      "game_code": "imperialoperamobile",
+      "game_code": "imperialopera",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -719,7 +719,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Inferno Joker",
-      "game_code": "infernojokermobile",
+      "game_code": "infernojoker",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -727,7 +727,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Inferno Star",
-      "game_code": "infernostarmobile",
+      "game_code": "infernostar",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -735,7 +735,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Irish Gold",
-      "game_code": "irishgoldmobile",
+      "game_code": "irishgold",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -743,7 +743,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Iron Girl",
-      "game_code": "irongirlmobile",
+      "game_code": "irongirl",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -751,7 +751,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Jackpot Poker",
-      "game_code": "jackpotpokermobile",
+      "game_code": "jackpotpoker",
       "game_type_id": "Poker",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -759,7 +759,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Jacks or Better MH",
-      "game_code": "jacksorbettermobile",
+      "game_code": "jacksorbetter",
       "game_type_id": "Poker",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -767,7 +767,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Jade Magician",
-      "game_code": "jademagicianmobile",
+      "game_code": "jademagician",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -775,7 +775,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Jewel Box",
-      "game_code": "jewelboxmobile",
+      "game_code": "jewelbox",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -783,7 +783,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Joker Poker MH",
-      "game_code": "jokerpokermobile",
+      "game_code": "jokerpoker",
       "game_type_id": "Poker",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -791,7 +791,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Jolly Roger",
-      "game_code": "jollyrogermobile",
+      "game_code": "jollyroger",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -799,7 +799,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Keno",
-      "game_code": "kenomobile",
+      "game_code": "keno",
       "game_type_id": "Fixed Odds",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -807,7 +807,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Lady of Fortune",
-      "game_code": "ladyoffortunemobile",
+      "game_code": "ladyoffortune",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -815,7 +815,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Legacy of Dead",
-      "game_code": "legacyofdeadmobile",
+      "game_code": "legacyofdead",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -823,7 +823,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Legacy of Egypt",
-      "game_code": "legacyofegyptmobile",
+      "game_code": "legacyofegypt",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -831,7 +831,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Leprechaun goes Egypt",
-      "game_code": "leprechaungoesegyptmobile",
+      "game_code": "leprechaungoesegypt",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -839,7 +839,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Leprechaun goes to Hell",
-      "game_code": "leprechaungoestohellmobile",
+      "game_code": "leprechaungoestohell",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -847,7 +847,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Leprechaun Goes Wild",
-      "game_code": "leprechaungoeswildmobile",
+      "game_code": "leprechaungoeswild",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -855,7 +855,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Lucky Diamonds",
-      "game_code": "luckydiamondsmobile",
+      "game_code": "luckydiamonds",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -863,7 +863,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Madame Ink",
-      "game_code": "madameinkmobile",
+      "game_code": "madameink",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -871,7 +871,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Mahjong 88",
-      "game_code": "mahjong88mobile",
+      "game_code": "mahjong88",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -879,7 +879,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Matsuri",
-      "game_code": "matsurimobile",
+      "game_code": "matsuri",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -887,7 +887,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Mermaids Diamond",
-      "game_code": "mermaidsdiamondmobile",
+      "game_code": "mermaidsdiamond",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -895,7 +895,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Merry Xmas",
-      "game_code": "merryxmasmobile",
+      "game_code": "merryxmas",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -903,7 +903,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Mini Baccarat",
-      "game_code": "minibaccaratmobile",
+      "game_code": "minibaccarat",
       "game_type_id": "Table",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -911,7 +911,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Mission Cash",
-      "game_code": "missioncashmobile",
+      "game_code": "missioncash",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -919,7 +919,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Money Wheel",
-      "game_code": "moneywheelmobile",
+      "game_code": "moneywheel",
       "game_type_id": "Table",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -927,7 +927,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Moon Princess",
-      "game_code": "moonprincessmobile",
+      "game_code": "moonprincess",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -935,7 +935,7 @@ class AlController extends Controller
     },
     {
       "game_name": "MULTIFRUIT 81",
-      "game_code": "multifruit81mobile",
+      "game_code": "multifruit81",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -943,7 +943,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Mystery Joker",
-      "game_code": "mysteryjokermobile",
+      "game_code": "mysteryjoker",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -951,7 +951,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Mystery Joker 6000",
-      "game_code": "mysteryjoker6000mobile",
+      "game_code": "mysteryjoker6000",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -959,7 +959,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Myth",
-      "game_code": "mythmobile",
+      "game_code": "myth",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -967,7 +967,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Ninja Fruits",
-      "game_code": "ninjafruitsmobile",
+      "game_code": "ninjafruits",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -975,7 +975,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Nyjah Huston: Skate for Gold",
-      "game_code": "skateforgoldmobile",
+      "game_code": "skateforgold",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -983,7 +983,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Pearl Lagoon",
-      "game_code": "pearllagoonmobile",
+      "game_code": "pearllagoon",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -991,7 +991,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Pearls of India",
-      "game_code": "pearlsofindiamobile",
+      "game_code": "pearlsofindia",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -999,7 +999,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Perfect Gems",
-      "game_code": "perfectgemsmobile",
+      "game_code": "perfectgems",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1007,7 +1007,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Phoenix Reborn",
-      "game_code": "phoenixrebornmobile",
+      "game_code": "phoenixreborn",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1015,7 +1015,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Photo Safari",
-      "game_code": "photosafarimobile",
+      "game_code": "photosafari",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1023,7 +1023,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Pimped",
-      "game_code": "pimpedmobile",
+      "game_code": "pimped",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1031,7 +1031,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Planet Fortune",
-      "game_code": "planetfortunemobile",
+      "game_code": "planetfortune",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1039,7 +1039,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Prissy Princess",
-      "game_code": "prissyprincessmobile",
+      "game_code": "prissyprincess",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1047,7 +1047,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Prosperity Palace",
-      "game_code": "prosperitypalacemobile",
+      "game_code": "prosperitypalace",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1055,7 +1055,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Queens Day Tilt",
-      "game_code": "queensdaytiltmobile",
+      "game_code": "queensdaytilt",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1063,7 +1063,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Rage to Riches",
-      "game_code": "ragetorichesmobile",
+      "game_code": "ragetoriches",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1071,7 +1071,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Raging Rex",
-      "game_code": "ragingrexmobile",
+      "game_code": "ragingrex",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1079,7 +1079,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Rainforest Magic",
-      "game_code": "rainforestmagicmobile",
+      "game_code": "rainforestmagic",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1087,7 +1087,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Rainforest Magic Bingo",
-      "game_code": "rainforestmagicbingomobile",
+      "game_code": "rainforestmagicbingo",
       "game_type_id": "Video",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1095,7 +1095,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Rally 4 Riches",
-      "game_code": "rally4richesmobile",
+      "game_code": "rally4riches",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1103,7 +1103,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Reactoonz",
-      "game_code": "reactoonzmobile",
+      "game_code": "reactoonz",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1111,7 +1111,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Reactoonz 2",
-      "game_code": "reactoonztwomobile",
+      "game_code": "reactoonztwo",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1119,7 +1119,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Rich Wilde & The Shield of Athena",
-      "game_code": "shieldofathenamobile",
+      "game_code": "shieldofathena",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1127,7 +1127,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Riches of RA",
-      "game_code": "richesoframobile \r\n",
+      "game_code": "richesofra \r\n",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1135,7 +1135,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Riches of Robin",
-      "game_code": "richesofrobinmobile",
+      "game_code": "richesofrobin",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1143,7 +1143,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Riddle Reels: A Case of Riches",
-      "game_code": "riddlereelsmobile",
+      "game_code": "riddlereels",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1151,7 +1151,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Ring of Odin",
-      "game_code": "ringofodinmobile",
+      "game_code": "ringofodin",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1159,7 +1159,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Rise of Dead",
-      "game_code": "riseofdeadmobile",
+      "game_code": "riseofdead",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1167,7 +1167,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Rise of Merlin",
-      "game_code": "riseofmerlinmobile",
+      "game_code": "riseofmerlin",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1175,7 +1175,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Rise of Olympus",
-      "game_code": "riseofolympusmobile",
+      "game_code": "riseofolympus",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1183,7 +1183,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Royal Masquerade",
-      "game_code": "masquerademobile",
+      "game_code": "masquerade",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1191,7 +1191,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Sabaton",
-      "game_code": "sabatonmobile",
+      "game_code": "sabaton",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1199,7 +1199,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Sails of Gold",
-      "game_code": "sailsofgoldmobile",
+      "game_code": "sailsofgold",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1207,7 +1207,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Samba Carnival",
-      "game_code": "sambacarnivalmobile",
+      "game_code": "sambacarnival",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1215,7 +1215,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Saxon",
-      "game_code": "saxonmobile",
+      "game_code": "saxon",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1223,7 +1223,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Sea Hunter",
-      "game_code": "seahuntermobile",
+      "game_code": "seahunter",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1231,7 +1231,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Single Deck BlackJack MH",
-      "game_code": "singledeckblackjackmhmobile",
+      "game_code": "singledeckblackjackmh",
       "game_type_id": "BlackJack",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1239,7 +1239,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Sizzling Spins",
-      "game_code": "sizzlingspinsmobile",
+      "game_code": "sizzlingspins",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1247,7 +1247,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Space Race",
-      "game_code": "spaceracemobile",
+      "game_code": "spacerace",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1255,7 +1255,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Speed Cash",
-      "game_code": "speedcashmobile",
+      "game_code": "speedcash",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1263,7 +1263,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Spin Party",
-      "game_code": "spinpartymobile",
+      "game_code": "spinparty",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1271,7 +1271,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Star Joker",
-      "game_code": "starjokermobile",
+      "game_code": "starjoker",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1279,7 +1279,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Sticky Joker",
-      "game_code": "stickyjokermobile",
+      "game_code": "stickyjoker",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1287,7 +1287,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Street Magic",
-      "game_code": "streetmagicmobile",
+      "game_code": "streetmagic",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1295,7 +1295,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Super Flip",
-      "game_code": "superflipmobile",
+      "game_code": "superflip",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1303,7 +1303,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Super Wheel",
-      "game_code": "superwheelmobile",
+      "game_code": "superwheel",
       "game_type_id": "Table",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1311,7 +1311,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Sweet 27",
-      "game_code": "sweet27mobile",
+      "game_code": "sweet27",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1319,7 +1319,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Sweet Alchemy",
-      "game_code": "sweetalchemymobile",
+      "game_code": "sweetalchemy",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1327,7 +1327,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Sweet Alchemy Bingo",
-      "game_code": "sweetalchemybingomobile",
+      "game_code": "sweetalchemybingo",
       "game_type_id": "Video",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1335,7 +1335,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Testament",
-      "game_code": "testamentmobile",
+      "game_code": "testament",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1343,7 +1343,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Thats Rich",
-      "game_code": "thatsrichmobile",
+      "game_code": "thatsrich",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1351,7 +1351,7 @@ class AlController extends Controller
     },
     {
       "game_name": "The Sword and The Grail",
-      "game_code": "theswordandthegrailmobile",
+      "game_code": "theswordandthegrail",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1359,7 +1359,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Tome of Madness",
-      "game_code": "tomeofmadnessmobile",
+      "game_code": "tomeofmadness",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1367,7 +1367,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Tower Quest",
-      "game_code": "towerquestmobile",
+      "game_code": "towerquest",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1375,7 +1375,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Troll Hunters",
-      "game_code": "trollhuntersmobile",
+      "game_code": "trollhunters",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1383,7 +1383,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Troll Hunters 2",
-      "game_code": "trollhunters2mobile",
+      "game_code": "trollhunters2",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1391,7 +1391,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Twisted Sister",
-      "game_code": "twistedsistermobile",
+      "game_code": "twistedsister",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1399,7 +1399,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Viking Runecraft",
-      "game_code": "vikingrunecraftmobile",
+      "game_code": "vikingrunecraft",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1407,7 +1407,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wild Blood",
-      "game_code": "wildbloodmobile",
+      "game_code": "wildblood",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1415,7 +1415,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wild Blood 2",
-      "game_code": "wildblood2mobile",
+      "game_code": "wildblood2",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1423,7 +1423,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wild Falls",
-      "game_code": "wildfallsmobile",
+      "game_code": "wildfalls",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1431,7 +1431,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wild Frames",
-      "game_code": "wildframesmobile",
+      "game_code": "wildframes",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1439,7 +1439,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wild Melon",
-      "game_code": "wildmelonmobile",
+      "game_code": "wildmelon",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1447,7 +1447,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wild North",
-      "game_code": "wildnorthmobile",
+      "game_code": "wildnorth",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1455,7 +1455,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wild Rails",
-      "game_code": "wildrailsmobile",
+      "game_code": "wildrails",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1463,7 +1463,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wildhound Derby",
-      "game_code": "wildhoundderbymobile",
+      "game_code": "wildhoundderby",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1471,7 +1471,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Win-A-Beest",
-      "game_code": "winabeestmobile",
+      "game_code": "winabeest",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1479,7 +1479,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Wizard of Gems",
-      "game_code": "wizardofgemsmobile",
+      "game_code": "wizardofgems",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1487,7 +1487,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Xmas Joker",
-      "game_code": "christmasjokermobile",
+      "game_code": "christmasjoker",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1495,7 +1495,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Xmas Magic",
-      "game_code": "xmasmagicmobile",
+      "game_code": "xmasmagic",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1503,7 +1503,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Celebration of Wealth",
-      "game_code": "celebrationofwealthmobile",
+      "game_code": "celebrationofwealth",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1511,7 +1511,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Temple of Wealth ",
-      "game_code": "templeofwealthmobile",
+      "game_code": "templeofwealth",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1519,7 +1519,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Beast of Wealth",
-      "game_code": "beastofwealthmobile",
+      "game_code": "beastofwealth",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1527,7 +1527,7 @@ class AlController extends Controller
     },
     {
       "game_name": "Jolly Roger 2",
-      "game_code": "jollyroger2mobile",
+      "game_code": "jollyroger2",
       "game_type_id": "Slot",
       "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
       "provider_id": "32",
@@ -1567,8 +1567,8 @@ class AlController extends Controller
         );
         array_push($data2,$game);
     }
-    // DB::table('games')->insert($data2);
-    return $data2;
+    DB::table('games')->insert($data2);
+    return 'OK';
   }
 
     // public function tapulan(){
