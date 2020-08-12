@@ -244,7 +244,7 @@ class CQ9Controller extends Controller
     	$gamecode = $request->gamecode;
     	$gamehall = $request->gamehall;
     	$roundid = $request->roundid;
-    	$eventime = $request->eventTime; // created
+    	$eventime = $request->createTime; // created
 		$createtime = date(DATE_RFC3339);
 		$action = 'endroud';
 
