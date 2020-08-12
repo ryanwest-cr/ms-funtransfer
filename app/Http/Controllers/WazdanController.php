@@ -287,7 +287,7 @@ class WazdanController extends Controller
                 );
                 $win = 0;
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+                $balance = round($client_response->fundtransferresponse->balance,2);
                 $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
                 $json_data = array(
                     "transid" => $datadecoded["transactionId"],
@@ -405,7 +405,7 @@ class WazdanController extends Controller
                 );
                 $win = $datadecoded["amount"] == 0 ? 0 : 1;
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+                $balance = round($client_response->fundtransferresponse->balance,2);
                 $game_details = Helper::getInfoPlayerGameRound($datadecoded["user"]["token"]);
                 $json_data = array(
                     "transid" => $datadecoded["transactionId"],
