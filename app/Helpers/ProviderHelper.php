@@ -310,7 +310,7 @@ class ProviderHelper{
 	 * @param  $[game_type] [<1=bet,2=win,3=refund>]
 	 * 
 	 */
-	public static function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
+	public static function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail, $general_details=null){
 		$gametransactionext = array(
 			"game_trans_id" => $game_trans_id,
 			"provider_trans_id" => $provider_trans_id,
@@ -322,6 +322,7 @@ class ProviderHelper{
 			"mw_request"=>json_encode($mw_request),
 			"client_response" =>json_encode($client_response),
 			"transaction_detail" =>json_encode($transaction_detail),
+			"general_details" =>json_encode($general_details)
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
 		return $gamestransaction_ext_ID;
