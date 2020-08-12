@@ -392,3 +392,4 @@ $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
 
 // $app->get('al-games','AlController@insertGamesTapulanMode');
 $app->post('api/booming/gamelist','BoomingGamingController@gameList');
+$app->post('api/booming/getsession','BoomingGamingController@sessionPlayer');

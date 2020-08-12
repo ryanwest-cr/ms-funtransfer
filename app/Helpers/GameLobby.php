@@ -367,6 +367,47 @@ class GameLobby{
         return $url;
     }
 
+    public static function boomingGamingUrl($data){
+        $url = config('providerlinks.booming.api_url').'/v2/session';
+        //send to provider request operator
+        $client_details = ProviderHelper::getClientDetails('token',$data["token"]);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        try{
+            $requesttosend = array (
+                'game_id' => $data["game_code"],
+                'balance' => $player_details->playerdetailsresponse->balance,
+                'locale' => 'en',
+                'variant' => 'desktop',
+                'currency' => $client_details->default_currency,
+                'player_id' => $client_details->player_id,
+                'callback' => 'https://localhost:9090/api/booming/callback',
+                'rollback_callback' => 'https://localhost:9090/api/booming/rollback'
+            );
+            $nonce = hexdec(substr(md5(config('providerlinks.booming.api_key').microtime()),0,8));
+            $sha256 =  hash('sha256', json_encode($requesttosend, JSON_FORCE_OBJECT));
+            $concat = '/v2/session'.$nonce.$sha256;
+            $secrete = hash_hmac('sha512', $concat, config('providerlinks.booming.api_secret'));
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/vnd.api+json',
+                    'X-Bg-Api-Key' => config('providerlinks.booming.api_key'),
+                    'X-Bg-Nonce'=> $nonce,
+                    'X-Bg-Signature' => $secrete
+                ]
+            ]);
+            $guzzle_response = $client->post($url);
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            return json_encode($client_response);
+        }catch(\Exception $e){
+            $error = [
+                'error' => $e->getMessage()
+            ];
+            return $error;
+        }
+      
+
+    }
+
     public static function habanerolaunchUrl( $game_code = null, $token = null){
         $brandID = "2416208c-f3cb-ea11-8b03-281878589203";
         $apiKey = "3C3C5A48-4FE0-4E27-A727-07DE6610AAC8";

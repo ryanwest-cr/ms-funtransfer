@@ -394,6 +394,17 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider') == "Booming Games"){ 
+                    $url = GameLobby::boomingGamingUrl($request->all());
+                    return $url;
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => $url,
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
                 elseif($request->input('game_provider')=="HabaneroGaming"){ 
                     // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
                     // $lang = GameLobby::getLanguage($request->game_provider,$request->lang);

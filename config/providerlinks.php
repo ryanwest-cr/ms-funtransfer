@@ -174,6 +174,11 @@ return [
         'pid' => 8888,
         'channel'=> 'desktop',
         'practice'=>0
+    ],
+    'booming' => [
+        'api_url' => 'https://api.intgr.booming-games.com',
+        'api_secret' => 'NQGRafUDbe/esU8r+zVWWW7cx6xZKE2gpqWXv4Fs17j88u0djV6NBi9Tgdtc0R6w',
+        'api_key' =>'xvkwXPp52AUPLBGCXmD5UA==',
     ]
 
     
