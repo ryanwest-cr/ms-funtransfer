@@ -174,9 +174,12 @@ return [
         'pid' => 8888,
         'channel'=> 'desktop',
         'practice'=>0
+    ],
+    'manna'=>[
+        'AUTH_URL'=> 'https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
+        'GAME_LINK_URL' => 'https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
+        'API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a'
     ]
-
-    
 ];
 
 ?>
