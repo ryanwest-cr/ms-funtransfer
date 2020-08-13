@@ -237,6 +237,7 @@ class BoomingGamingController extends Controller
                             ],
                             "error" => null
                         ];
+                        
 
 						$amount = $data['transfer_amount'];
 				 	    $round_id = $data['bet_id'];
