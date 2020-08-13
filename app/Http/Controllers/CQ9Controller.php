@@ -28,9 +28,9 @@ class CQ9Controller extends Controller
     }
 
     public function checkAuth($wtoken){
-    	$api_tokens = config('providerlinks.cqgames.api_tokens');
+    	$wallet_token = config('providerlinks.cqgames.wallet_token');
 		$access_granted = false;
-		foreach ($api_tokens as $key){
+		foreach ($wallet_token as $key){
 			if($wtoken == $key){
 				$access_granted = true;
 			}
@@ -100,9 +100,8 @@ class CQ9Controller extends Controller
 	}
 
     public function CheckPlayer(Request $request, $account){
-    	// $header = $request->header('Authorization');
     	$header = $request->header('wtoken');
-    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
+    	// Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
     		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
