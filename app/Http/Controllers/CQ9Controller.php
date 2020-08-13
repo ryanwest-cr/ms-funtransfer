@@ -27,24 +27,24 @@ class CQ9Controller extends Controller
     	$this->provider_db_id = config('providerlinks.cqgames.pdbid');
     }
 
-  //   public function checkAuth($wtoken){
-  //   	$api_tokens = config('providerlinks.cqgames.api_tokens');
-		// $access_granted = false;
-		// foreach ($api_tokens as $key){
-		// 	if($wtoken == $key){
-		// 		$access_granted = true;
-		// 	}
-		// }
-		// return $access_granted;
-  //   }
-
     public function checkAuth($wtoken){
-    	if($wtoken == $this->api_token){
-    		return true;
-    	}else{
-    		return false;
-    	}
+    	$api_tokens = config('providerlinks.cqgames.api_tokens');
+		$access_granted = false;
+		foreach ($api_tokens as $key){
+			if($wtoken == $key){
+				$access_granted = true;
+			}
+		}
+		return $access_granted;
     }
+
+    // public function checkAuth($wtoken){
+    // 	if($wtoken == $this->api_token){
+    // 		return true;
+    // 	}else{
+    // 		return false;
+    // 	}
+    // }
 
     // Adding Games!
 	public function getGameList(){
