@@ -353,7 +353,7 @@ class GameLobby{
           "return_url_info" => 1, // url link
           "callback_version" => 2, // POST CALLBACK
         ];
-        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.tgg.secretkey'));
+        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.tgg.api_key'));
         $requesttosend['signature'] = $signature;
         $client = new Client([
             'headers' => [ 
