@@ -304,8 +304,8 @@ class PNGController extends Controller
             }
             else{
                 $array_data = array(
-                    "statusCode" => 1,
-                    "statusMessage" => "Session Expired",
+                    "statusCode" => 4,
+                    "statusMessage" => "WRONGUSERNAMEPASSWORD",
                 );
                 return PNGHelper::arrayToXml($array_data,"<balance/>");
             }
