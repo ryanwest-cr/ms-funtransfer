@@ -233,7 +233,7 @@ class ProviderHelper{
 		 		["gte.game_transaction_type", "=", $game_transaction_type],
 		 	]);
 		}  
-		$result= $transaction_db->first();
+		$result = $transaction_db->latest()->first(); // Added Latest (CQ9) 08-12-20 - Al
 		return $result ? $result : 'false';
 	}
 
