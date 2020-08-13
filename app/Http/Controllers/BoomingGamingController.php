@@ -47,10 +47,11 @@ class BoomingGamingController extends Controller
  
 
     public function callBack(Request $request){
-        Helper::saveLog('Booming Callback ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), 'ENDPOINT HIT');
+        $bg_nonce = $request->header('bg-nonce');
+        $bg_signature = $request->header('bg-signature');
+        Helper::saveLog('Booming Callback ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $bg_signature);
         $data = $request->all();
-        $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-       
+        $client_details = ProviderHelper::getClientDetails('player_id',$data["player_id"]);
         if($client_details != null){
             try{
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -170,25 +171,19 @@ class BoomingGamingController extends Controller
                 endif;
             }catch(\Exception $e){
                 $msg = array(
-                    "data" => null,
-                    "error" => [
-                        'code' => '3001',
-                        "message" => $e->getMessage(),
-                    ]
+                    'error' => '3001',
+                    'message' => $e->getMessage(),
                 );
-                Helper::saveLog('Booming Bet error '.$data['transaction_id'], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
+                Helper::saveLog('Booming Callback error', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
                 return json_encode($msg, JSON_FORCE_OBJECT); 
             }
 
 		}else{
             $errormessage = array(
-                'data' => null,
-                'error' => [
-				'code' 	=> '3004',
-                'message'  	=> 'Player is not exist'
-                ]
+                'error' => '2012',
+                'message' => 'Invalid Player ID'
             );
-            Helper::saveLog('Booming Bet error', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT),  $errormessage);
+            Helper::saveLog('Booming Callback error', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT),  $errormessage);
             return json_encode($errormessage, JSON_FORCE_OBJECT); 
 		}
         
