@@ -8,6 +8,7 @@ use App\Helpers\ProviderHelper;
 use App\Helpers\SkyWind;
 use App\Helpers\GameLobby;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
 use DB;
@@ -55,7 +56,9 @@ class SkyWindController extends Controller
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
-            ]
+            ],
+            // ['verify' => true]
+            ['verify' => '/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem']
         ]);
         $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",

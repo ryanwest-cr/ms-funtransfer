@@ -75,7 +75,7 @@ class PNGController extends Controller
             $client_details = $this->_getClientDetails('token', $xmlparser->externalGameSessionId);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($xmlparser->transactionId);
-                if(Helper::getBalance($client_details) < round($xmlparser->real,2)){
+                if(Helper::getBalance($client_details) < $xmlparser->real){
                     $array_data = array(
                         "real" => round(Helper::getBalance($client_details),2),
                         "statusCode" => 7,
@@ -224,7 +224,7 @@ class PNGController extends Controller
                 );
                 $win = $xmlparser->real == 0 ? 0 : 1;
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+                $balance = round($client_response->fundtransferresponse->balance,2);
                 $game_details = Helper::getInfoPlayerGameRound($xmlparser->externalGameSessionId);
                 $json_data = array(
                     "transid" => $xmlparser->transactionId,
@@ -268,6 +268,13 @@ class PNGController extends Controller
         $data = $request->getContent();
         $xmlparser = new SimpleXMLElement($data);
         $accessToken = "secrettoken";
+        if($accessToken != $xmlparser->accessToken){
+            $array_data = array(
+                "statusCode" => 4,
+                "statusMessage" => "WRONGUSERNAMEPASSWORD",
+            );
+            return PNGHelper::arrayToXml($array_data,"<balance/>");
+        }
         if($xmlparser->externalGameSessionId){
             $client_details = $this->_getClientDetails('token', $xmlparser->externalGameSessionId);
             if($client_details){
@@ -304,8 +311,8 @@ class PNGController extends Controller
             }
             else{
                 $array_data = array(
-                    "statusCode" => 1,
-                    "statusMessage" => "Session Expired",
+                    "statusCode" => 4,
+                    "statusMessage" => "WRONGUSERNAMEPASSWORD",
                 );
                 return PNGHelper::arrayToXml($array_data,"<balance/>");
             }

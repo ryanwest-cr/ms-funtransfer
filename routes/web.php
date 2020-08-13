@@ -172,6 +172,7 @@ $app->post('api/aws/single/wallet/fund/query', 'AWSController@singleFundQuery');
 $app->post('api/aws/single/wallet/altest', 'AWSController@changeAccount');
 // SILKSTONE ROUTES (SEAMLESS WALLET)
 // $app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
+$app->post('skywind/api/getgamelist', 'SkyWindController@getGamelist'); // TEST
 $app->post('skywind/api/getauth', 'SkyWindController@getAuth'); // TEST
 $app->post('skywind/api/getauth2', 'SkyWindController@getAuth2'); // TEST
 $app->post('skywind/api/getgames', 'SkyWindController@getGamelist'); // TEST
@@ -202,6 +203,10 @@ $app->post('api/cq9/transaction/game/bets','CQ9Controller@playerBets');
 $app->post('api/cq9/transaction/game/refunds','CQ9Controller@playerRefunds');
 $app->post('api/cq9/transaction/game/cancel','CQ9Controller@playerCancel');
 $app->post('api/cq9/transaction/game/amend','CQ9Controller@playerAmend');
+$app->post('api/cq9/transaction/game/wins','CQ9Controller@playerWins');
+$app->post('api/cq9/transaction/game/amends','CQ9Controller@playerAmends');
+
+
 $app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
 $app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
 

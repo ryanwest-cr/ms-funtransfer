@@ -979,12 +979,37 @@ class SolidGamingController extends Controller
 						GameRound::end($json_data['roundid']);
 					}
 				}
+
+				$client = new Client([
+				    'headers' => [ 
+				    	'Content-Type' => 'application/json',
+				    	'Authorization' => 'Bearer '.$client_details->client_access_token
+				    ]
+				]);
+				
+				$guzzle_response = $client->post($client_details->player_details_url,
+				    ['body' => json_encode(
+				        	["access_token" => $client_details->client_access_token,
+								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+								"type" => "playerdetailsrequest",
+								"datesent" => Helper::datesent(),
+								"gameid" => "",
+								"clientid" => $client_details->client_id,
+								"playerdetailsrequest" => [
+									"client_player_id" => $client_details->client_player_id,
+									"token" => $client_details->player_token,
+									"gamelaunch" => true
+								]]
+				    )]
+				);
+				
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
 				
 				$http_status = 200;
 				$response = [
 					"status" => "OK",
 					"currency" => $client_details->currency,
-					"balance" => $client_response->fundtransferresponse->balance,
+					"balance" => $client_response->playerdetailsresponse->balance,
 				];
 			
 			}

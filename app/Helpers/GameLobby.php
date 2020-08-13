@@ -257,9 +257,17 @@ class GameLobby{
     public static function cq9LaunchUrl($game_code, $token){
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        $api_tokens = config('providerlinks.cqgames.api_tokens');
+        if(array_key_exists($client_details->default_currency, $api_tokens)){
+            $auth = $api_tokens[$client_details->default_currency];
+            // $auth = $api_tokens['USD'];
+        }else{
+            return 'false';
+        }
         $client = new Client([
             'headers' => [ 
-                'Authorization' => config('providerlinks.cqgames.api_token'),
+                'Authorization' => $auth,
+                // 'Authorization' => config('providerlinks.cqgames.api_token'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ]
         ]);
