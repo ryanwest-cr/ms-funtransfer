@@ -269,7 +269,11 @@ class PNGController extends Controller
         $xmlparser = new SimpleXMLElement($data);
         $accessToken = "secrettoken";
         if($accessToken != $xmlparser->accessToken){
-
+            $array_data = array(
+                "statusCode" => 4,
+                "statusMessage" => "WRONGUSERNAMEPASSWORD",
+            );
+            return PNGHelper::arrayToXml($array_data,"<balance/>");
         }
         if($xmlparser->externalGameSessionId){
             $client_details = $this->_getClientDetails('token', $xmlparser->externalGameSessionId);
