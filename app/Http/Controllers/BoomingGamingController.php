@@ -23,13 +23,15 @@ class BoomingGamingController extends Controller
     }
     
     public function gameList(){
-        $nonce = hexdec(substr(md5($this->api_key.microtime()),0,8));
-        // $nonce = crc32($this->api_key.microtime());
+        $nonce = hash('sha256', time());
+        $nonce = hexdec(substr(hash_hmac('sha512', $nonce, $this->api_key),0,10));
         $url =  $this->api_url.'/v2/games';
         $requesttosend = "";
         $sha256 =  hash('sha256', $requesttosend);
         $concat = '/v2/games'.$nonce.$sha256;
         $secrete = hash_hmac('sha512', $concat, $this->api_secret);
+
+        
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/vnd.api+json',
@@ -44,36 +46,7 @@ class BoomingGamingController extends Controller
     }
 
     //THIS IS PART OF GAMELAUNCH GET SESSION AND URL
-    public function sessionPlayer(Request $request){
-        $url = $this->api_url.'/v2/session';
-        //send to provider request operator
-        $requesttosend = array (
-            'game_id' => '55f2dc09ba36f81816000001',
-            'balance' => '123',
-            'locale' => 'en',
-            'variant' => 'desktop',
-            'currency' => 'EUR',
-            'player_id' => $this->prefix.'_98',
-            'callback' => 'https://localhost:9090/api/booming/callback',
-            'rollback_callback' => 'https://localhost:9090/api/booming/rollback',
-        );
-       $nonce = crc32($this->api_key.time());
-       $sha256 =  hash('sha256', json_encode($requesttosend, JSON_FORCE_OBJECT));
-       $concat = '/v2/session'.$nonce.$sha256;
-       $secrete = hash_hmac('sha512', $concat, $this->api_key);
-       $client = new Client([
-           'headers' => [ 
-               'Content-Type' => 'application/vnd.api+json',
-               'X-Bg-Api-Key' => $this->api_key,
-               'X-Bg-Nonce'=> $nonce,
-               'X-Bg-Signature' => $secrete
-           ]
-       ]);
-      
-       $guzzle_response = $client->post($url);
-       $client_response = json_decode($guzzle_response->getBody()->getContents());
-       return json_encode($client_response);
-    }
+ 
 
     public function callBack(Request $request){
         Helper::saveLog('Booming Bet ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), 'ENDPOINT HIT');
@@ -224,7 +197,7 @@ class BoomingGamingController extends Controller
         
     }
 
-    public function rollback(Request $request){
+    // public function rollback(Request $request){
 
-    }
+    // }
 }

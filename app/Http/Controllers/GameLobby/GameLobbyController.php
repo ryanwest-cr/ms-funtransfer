@@ -399,9 +399,10 @@ class GameLobbyController extends Controller
                     return $url;
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => $url,
+                        "url" => $url->play_url,
                         "game_launch" => true
                     );
+                    return $msg;
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
