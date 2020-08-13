@@ -99,7 +99,7 @@ class MannaPlayController extends Controller
 
 						$http_status = 200;
 						$response = [
-							"balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2);
+							"balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2)
 						];
 					}
 				
@@ -242,7 +242,7 @@ class MannaPlayController extends Controller
 									$http_status = 200;
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
-										"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2); 
+										"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 									];
 								}
 							}
@@ -396,7 +396,7 @@ class MannaPlayController extends Controller
 										$http_status = 200;
 										$response = [
 											"transaction_id" => $json_data['transaction_id'],
-											"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2); 
+											"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 										];
 									}
 								}
@@ -516,7 +516,7 @@ class MannaPlayController extends Controller
 								$http_status = 200;
 								$response = [
 									"transaction_id" => $json_data['transaction_id'],
-									"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2); 
+									"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 								];
 							}
 						}
