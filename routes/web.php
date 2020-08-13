@@ -203,7 +203,7 @@ $app->post('api/cq9/transaction/game/refunds','CQ9Controller@playerRefunds');
 $app->post('api/cq9/transaction/game/cancel','CQ9Controller@playerCancel');
 $app->post('api/cq9/transaction/game/amend','CQ9Controller@playerAmend');
 $app->post('api/cq9/transaction/game/wins','CQ9Controller@playerWins');
-$app->post('api/cq9/transaction/game/amends ','CQ9Controller@playerAmends');
+$app->post('api/cq9/transaction/game/amends','CQ9Controller@playerAmends');
 
 
 $app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
