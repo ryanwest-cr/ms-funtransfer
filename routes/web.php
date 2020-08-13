@@ -172,6 +172,7 @@ $app->post('api/aws/single/wallet/fund/query', 'AWSController@singleFundQuery');
 $app->post('api/aws/single/wallet/altest', 'AWSController@changeAccount');
 // SILKSTONE ROUTES (SEAMLESS WALLET)
 // $app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
+$app->post('skywind/api/getgamelist', 'SkyWindController@getGamelist'); // TEST
 $app->post('skywind/api/getauth', 'SkyWindController@getAuth'); // TEST
 $app->post('skywind/api/getauth2', 'SkyWindController@getAuth2'); // TEST
 $app->post('skywind/api/getgames', 'SkyWindController@getGamelist'); // TEST
