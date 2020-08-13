@@ -395,13 +395,13 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider') == "Booming Games"){ 
-                    Helper::saveLog('Booming Gamelaunch', 36, json_encode($request->all()), $request->input("game_code"));
                     $url = GameLobby::boomingGamingUrl($request->all());
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => $url->play_url,
                         "game_launch" => true
                     );
+                    Helper::saveLogCode('Booming GameCode', 36,  $request->input("game_code"), $url->session_id);
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
