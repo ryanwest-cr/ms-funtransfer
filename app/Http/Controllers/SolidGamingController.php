@@ -743,7 +743,7 @@ class SolidGamingController extends Controller
 		$client_response = [];
 
 		if($this->_isIdempotent($json_data['originaltransid'], true)) {
-			return $this->_isIdempotent($json_data['originaltransid'])->mw_response;
+			return $this->_isIdempotent($json_data['originaltransid'], true)->mw_response;
 		}
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid')) {

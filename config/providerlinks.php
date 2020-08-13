@@ -184,8 +184,13 @@ return [
     'manna'=>[
         'AUTH_URL'=> 'https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
         'GAME_LINK_URL' => 'https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
+<<<<<<< HEAD
         'API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a'
 >>>>>>> 587c9b29cd06da7bcbc2cf73015d4fcb1273929d
+=======
+        'AUTH_API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
+        'CLIENT_API_KEY' => '4dtXHSekHaFkAqbGcsWV2es4BTRLADQP'
+>>>>>>> f78222b28d522139d64be1ba1c0f0ccd74255add
     ]
 ];
 
