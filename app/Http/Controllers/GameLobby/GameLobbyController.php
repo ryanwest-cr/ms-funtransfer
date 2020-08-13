@@ -396,13 +396,12 @@ class GameLobbyController extends Controller
                 }
                 elseif($request->input('game_provider') == "Booming Games"){ 
                     $url = GameLobby::boomingGamingUrl($request->all());
-                    return $url;
+                    $data = json_encode($url);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => $url->play_url,
                         "game_launch" => true
                     );
-                    return $msg;
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }

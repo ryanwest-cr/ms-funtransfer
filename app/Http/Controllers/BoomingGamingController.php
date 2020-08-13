@@ -13,8 +13,7 @@ use DB;
 
 class BoomingGamingController extends Controller
 {
-    public $provider_db_id = 32; // no update databse insert provider
-    public $prefix = 'Booming';
+    public $provider_db_id = 36; // no update databse insert provider
 
     public function __construct(){
     	$this->api_key = config('providerlinks.booming.api_key');
@@ -23,8 +22,7 @@ class BoomingGamingController extends Controller
     }
     
     public function gameList(){
-        $nonce = hash('sha256', time());
-        $nonce = hexdec(substr(hash_hmac('sha512', $nonce, $this->api_key),0,10));
+        $nonce = date('mdYhisu');
         $url =  $this->api_url.'/v2/games';
         $requesttosend = "";
         $sha256 =  hash('sha256', $requesttosend);
@@ -49,9 +47,8 @@ class BoomingGamingController extends Controller
  
 
     public function callBack(Request $request){
-        Helper::saveLog('Booming Bet ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), 'ENDPOINT HIT');
+        Helper::saveLog('Booming Callback ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), 'ENDPOINT HIT');
         $data = $request->all();
-
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
        
         if($client_details != null){
@@ -197,7 +194,121 @@ class BoomingGamingController extends Controller
         
     }
 
-    // public function rollback(Request $request){
+    public function rollBack(Request $request){
+        Helper::saveLog('Booming Payout', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT),  "ENDPOINT HIT");
+        $data = $request->all();
+        if($data["operator_token"] != $this->operator_token && $data["secret_key"] != $this->secret_key):
+            $errormessage = array(
+                'data' => null,
+                'error' => [
+				'code' 	=> '3001',
+                'message'  	=> 'Value cannot be null'
+                ]
+            );
+            Helper::saveLog('Booming Payout error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+            return json_encode($errormessage, JSON_FORCE_OBJECT); 
+        endif;
 
-    // }
+        $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
+
+        $existing_bet = ProviderHelper::findGameTransaction($data['bet_transaction_id'], 'transaction_id', 1); // Find if win has bet record
+		$game_ext = ProviderHelper::findGameExt($data['bet_transaction_id'], 2, 'transaction_id'); // Find if this callback in game extension
+        $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
+       
+        if($game_ext == 'false'):
+			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win //temporary == make it !=
+				$requesttosend = [
+					  "access_token" => $client_details->client_access_token,
+					  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+					  "type" => "fundtransferrequest",
+					  "datesent" => Helper::datesent(),
+					  "gamedetails" => [
+					     "gameid" => $game_details->game_code, // $game_details->game_code
+				         "gamename" => $game_details->game_name
+					  ],
+					  "fundtransferrequest" => [
+							"playerinfo" => [
+							"client_player_id" => $client_details->client_player_id,
+							"token" => $data['operator_player_session'],
+						],
+						"fundinfo" => [
+						      "gamesessionid" => "",
+						      "transferid" => "",
+						      "transactiontype" => 'credit',
+						      "rollback" => "false",
+						      "currencycode" => $client_details->default_currency,
+						      "amount" => $data['transfer_amount']
+						]
+					  ]
+				];
+					try {
+						$client = new Client([
+		                    'headers' => [ 
+		                        'Content-Type' => 'application/json',
+		                        'Authorization' => 'Bearer '.$client_details->client_access_token
+		                    ]
+		                ]);
+						$guzzle_response = $client->post($client_details->fund_transfer_url,
+							['body' => json_encode($requesttosend)]
+						);
+						$client_response = json_decode($guzzle_response->getBody()->getContents());
+						
+                        $response =  [
+                            "data" => [
+                                "currency_code" => $client_details->default_currency,
+                                "balance_amount" => $client_response->fundtransferresponse->balance,
+                                "updated_time" => $this->getMilliseconds()
+                            ],
+                            "error" => null
+                        ];
+
+						$amount = $data['transfer_amount'];
+				 	    $round_id = $data['bet_id'];
+				 	    if($amount == 0 || $amount == '0' ):
+		 	  				$win = 0; // lost
+		 	  				$entry_id = 1; //lost
+		 	  				$income = $existing_bet->bet_amount - $amount;
+		 	  			else:
+		 	  				$win = 1; //win
+		 	  				$entry_id = 2; //win
+		 	  				$income = $existing_bet->bet_amount - $amount;
+						   endif;
+						   
+                        $this->updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
+                        $provider_request = $data;
+                        $mw_request = $requesttosend;
+                        $mw_response = $response;
+                        $client_response = $client_response;
+                        $game_transaction_type = 2;
+
+                        $this->creteBoomingtransaction($existing_bet->game_trans_id, $provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type, $amount, $data["transaction_id"], $round_id);
+						
+                        Helper::saveLog('Booming Win process', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT),  $response);
+					  	return $response;
+
+					}catch(\Exception $e){
+                        $errormessage = array(
+                            'data' => null,
+                            'error' => [
+                            'code' 	=> '3034',
+                            'message'  	=> $e->getMessage(),
+                            ]
+                        );
+                        Helper::saveLog('Booming Payout error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+                        return json_encode($errormessage, JSON_FORCE_OBJECT); 
+					}
+                endif;
+		else:
+			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
+            $errormessage = array(
+                'data' => null,
+                'error' => [
+                'code' 	=> '3034',
+                'message'  	=> 'Payout failed'
+                ]
+            );
+            Helper::saveLog('Booming Payout error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+            return json_encode($errormessage, JSON_FORCE_OBJECT); 
+		endif;
+    }
 }

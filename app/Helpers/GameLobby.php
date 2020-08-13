@@ -373,12 +373,7 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token',$data["token"]);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         try{
-            $milliseconds = round(microtime(true) * 1000);
-            // return $milliseconds;
-            // return date('mdyhismm');
-            $nonce = hash('sha256', $milliseconds);
-            $nonce = hexdec(substr(hash_hmac('sha512', $nonce, config('providerlinks.booming.api_key')),0,11));
-            Helper::saveLog('Booming', 53, $nonce,$nonce);
+            $nonce = date('mdYhisu');
             $requesttosend = array (
                 'game_id' => $data["game_code"],
                 'balance' => $player_details->playerdetailsresponse->balance,
@@ -386,8 +381,8 @@ class GameLobby{
                 'variant' => 'desktop',
                 'currency' => $client_details->default_currency,
                 'player_id' => (string)$client_details->player_id,
-                'callback' => 'https://localhost:9090/api/booming/callback',
-                'rollback_callback' => 'https://localhost:9090/api/booming/rollback'
+                'callback' =>  config('providerlinks.booming.call_back'),
+                'rollback_callback' =>  config('providerlinks.booming.roll_back')
             );
             $sha256 =  hash('sha256', json_encode($requesttosend, JSON_FORCE_OBJECT));
             $concat = '/v2/session'.$nonce.$sha256;
@@ -402,7 +397,7 @@ class GameLobby{
             ]);
             $guzzle_response = $client->post($url,  ['body' => json_encode($requesttosend)]);
             $client_response = json_decode($guzzle_response->getBody()->getContents());
-            return json_encode($client_response);
+            return $client_response;
         }catch(\Exception $e){
             $error = [
                 'error' => $e->getMessage()
