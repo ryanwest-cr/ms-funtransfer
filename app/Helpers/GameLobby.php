@@ -555,7 +555,7 @@ class GameLobby{
         $auth_token = new Client([ // auth_token
                 'headers' => [ 
                     'Content-Type' => 'application/json',
-                    'apiKey' => config("providerlinks.manna.API_KEY")
+                    'apiKey' => config("providerlinks.manna.AUTH_API_KEY")
                 ]
             ]);
 
@@ -577,7 +577,7 @@ class GameLobby{
         $game_link = new Client([
                 'headers' => [ 
                     'Content-Type' => 'application/json',
-                    'apiKey' => config("providerlinks.manna.API_KEY"),
+                    'apiKey' => config("providerlinks.manna.AUTH_API_KEY"),
                     'token' => $auth_result->token
                 ]
             ]);

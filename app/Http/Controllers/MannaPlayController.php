@@ -49,7 +49,7 @@ class MannaPlayController extends Controller
 		}
 		else
 		{
-			if($api_key != env('MANNA_API_KEY')) {
+			if($api_key != config("providerlinks.manna.CLIENT_API_KEY")) {
 				$http_status = 200;
 				$response = [
 							"errorCode" =>  10105,
@@ -132,7 +132,7 @@ class MannaPlayController extends Controller
 		}
 		else
 		{
-			if($api_key != env('MANNA_API_KEY')) {
+			if($api_key != config("providerlinks.manna.CLIENT_API_KEY")) {
 				$http_status = 200;
 				$response = [
 							"errorCode" =>  10105,
@@ -280,7 +280,7 @@ class MannaPlayController extends Controller
 		}
 		else
 		{
-			if($api_key != env('MANNA_API_KEY')) {
+			if($api_key != config("providerlinks.manna.CLIENT_API_KEY")) {
 				$http_status = 200;
 				$response = [
 							"errorCode" =>  10105,
@@ -434,7 +434,7 @@ class MannaPlayController extends Controller
 		}
 		else
 		{
-			if($api_key != env('MANNA_API_KEY')) {
+			if($api_key != config("providerlinks.manna.CLIENT_API_KEY")) {
 				$http_status = 200;
 				$response = [
 							"errorCode" =>  10105,
