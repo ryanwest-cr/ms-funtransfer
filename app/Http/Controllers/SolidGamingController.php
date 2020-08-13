@@ -997,7 +997,7 @@ class SolidGamingController extends Controller
 								"clientid" => $client_details->client_id,
 								"playerdetailsrequest" => [
 									"client_player_id" => $client_details->client_player_id,
-									"token" => $$client_details->player_token,
+									"token" => $client_details->player_token,
 									"gamelaunch" => true
 								]]
 				    )]
