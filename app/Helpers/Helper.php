@@ -400,7 +400,10 @@ class Helper
 		/*var_dump($trans_data); die();*/
 		return DB::table('game_transactions')->where("game_trans_id",$existingdata->game_trans_id)->update($trans_data);
 	}
-
+	/**
+	 * @token = player_token
+	 * @response_data = token | player_id |
+	 */
 	public static function getGameCode($token,$provider_id){
 		$game_code = DB::table('seamless_request_logs')
 			->where('response_data', $token)
