@@ -403,6 +403,7 @@ class GameLobby{
             $error = [
                 'error' => $e->getMessage()
             ];
+            Helper::saveLog('Booming Balance error', 36, json_encode($data), $e->getMessage());
             return $error;
         }
 
