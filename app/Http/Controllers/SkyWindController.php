@@ -58,7 +58,7 @@ class SkyWindController extends Controller
                 'Content-Type' => 'application/json',
             ],
             // ['verify' => true]
-            ['verify' => '/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem']
+            ['verify' => '/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem']
         ]);
         $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
