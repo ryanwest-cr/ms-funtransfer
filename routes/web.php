@@ -202,6 +202,10 @@ $app->post('api/cq9/transaction/game/bets','CQ9Controller@playerBets');
 $app->post('api/cq9/transaction/game/refunds','CQ9Controller@playerRefunds');
 $app->post('api/cq9/transaction/game/cancel','CQ9Controller@playerCancel');
 $app->post('api/cq9/transaction/game/amend','CQ9Controller@playerAmend');
+$app->post('api/cq9/transaction/game/wins','CQ9Controller@playerWins');
+$app->post('api/cq9/transaction/game/amends','CQ9Controller@playerAmends');
+
+
 $app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
 $app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
 
@@ -392,3 +396,6 @@ $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
 
 // $app->get('al-games','AlController@insertGamesTapulanMode');
 $app->post('api/booming/gamelist','BoomingGamingController@gameList');
+$app->post('api/booming/getsession','BoomingGamingController@sessionPlayer');
+$app->post('api/booming/callback','BoomingGamingController@callBack');
+$app->post('api/booming/rollback','BoomingGamingController@rollBack');

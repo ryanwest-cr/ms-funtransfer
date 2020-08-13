@@ -53,31 +53,35 @@ class AlController extends Controller
 
   // public function tapulan(){
 
-  //     $array = '[{
-  //     "game_name": "3-Hand Casino Holdem",
-  //     "game_code": "threehandholdem",
-  //     "game_type_id": "Table",
-  //     "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
-  //     "provider_id": "32",
-  //     "sub_provider_id": "57"
-  //   },
-  //   {
-  //     "game_name": "Beast of Wealth",
-  //     "game_code": "beastofwealth",
-  //     "game_type_id": "Slot",
-  //     "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
-  //     "provider_id": "32",
-  //     "sub_provider_id": "57"
-  //   },
-  //   {
-  //     "game_name": "Jolly Roger 2",
-  //     "game_code": "jollyroger2",
-  //     "game_type_id": "Slot",
-  //     "icon": "https://onlinegambling.com.ph/wp-content/uploads/2019/06/play-n-go.jpg",
-  //     "provider_id": "32",
-  //     "sub_provider_id": "57"
-  //   }
-  // ]';
+  //     $array = '[
+  //       {
+  //           "gameId": 258,
+  //           "gameName": "Turbo Play",
+  //           "provider": "wazdan",
+  //           "RTP": 96.1,
+  //           "freeRoundsSupported": false,
+  //           "widgetSupported": false,
+  //           "goldenchipsSupported": false
+  //       },
+  //       {
+  //           "gameId": 328030,
+  //           "gameName": "Magic Of The Ring",
+  //           "provider": "wazdan",
+  //           "RTP": 96.47,
+  //           "freeRoundsSupported": true,
+  //           "widgetSupported": false,
+  //           "goldenchipsSupported": false
+  //       },
+  //       {
+  //           "gameId": 393566,
+  //           "gameName": "Sizzling 70s",
+  //           "provider": "wazdan",
+  //           "RTP": 0,
+  //           "freeRoundsSupported": true,
+  //           "widgetSupported": false,
+  //           "goldenchipsSupported": false
+  //       }
+  //   ]';
 
   //   // $someArray = json_decode($array, JSON_FORCE_OBJECT);
   //   $foo = utf8_encode($array);
@@ -85,29 +89,29 @@ class AlController extends Controller
 
   //   $data2 = array();
   //   foreach($data as $g){
-  //       if($g['game_type_id'] == "Slot"){
-  //         $game_type = 1;
-  //       }else if($g['game_type_id'] == "BlackJack"){
-  //         $game_type = 5;
-  //       }else if($g['game_type_id'] == "Video"){
-  //         $game_type = 12;
-  //       }else if($g['game_type_id'] == "Table"){
-  //         $game_type = 5;
-  //       }else if($g['game_type_id'] == "Poker"){
-  //         $game_type = 3;
-  //       }else if($g['game_type_id'] == "Roulette"){
-  //         $game_type = 5;
-  //       }else if($g['game_type_id'] == "Fixed Odds"){
-  //         $game_type = 17;
-  //       }
+  //       // if($g['game_type_id'] == "Slot"){
+  //       //   $game_type = 1;
+  //       // }else if($g['game_type_id'] == "BlackJack"){
+  //       //   $game_type = 5;
+  //       // }else if($g['game_type_id'] == "Video"){
+  //       //   $game_type = 12;
+  //       // }else if($g['game_type_id'] == "Table"){
+  //       //   $game_type = 5;
+  //       // }else if($g['game_type_id'] == "Poker"){
+  //       //   $game_type = 3;
+  //       // }else if($g['game_type_id'] == "Roulette"){
+  //       //   $game_type = 5;
+  //       // }else if($g['game_type_id'] == "Fixed Odds"){
+  //       //   $game_type = 17;
+  //       // }
 
   //       $game = array(
-  //           "game_type_id"=> $game_type,
-  //           "provider_id"=>$g['provider_id'],
-  //           "sub_provider_id"=> $g['sub_provider_id'],
-  //           "game_name"=> $g['game_name'],
-  //           "game_code"=>$g["game_code"],
-  //           "icon"=>$g["icon"]
+  //           "game_type_id"=> 1,
+  //           "provider_id"=> 33,
+  //           "sub_provider_id"=> 57,
+  //           "game_name"=> $g['gameName'],
+  //           "game_code"=>$g["gameId"],
+  //           "icon"=> 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcS9Oza5sOOuv12mmaLfvpzkjoCKTx2oFKbpPQ&usqp=CAU'
   //       );
   //       array_push($data2,$game);
   //   }

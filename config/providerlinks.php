@@ -175,9 +175,17 @@ return [
         'channel'=> 'desktop',
         'practice'=>0
     ],
+    'booming' => [
+        'api_url' => 'https://api.intgr.booming-games.com',
+        'api_secret' => 'NQGRafUDbe/esU8r+zVWWW7cx6xZKE2gpqWXv4Fs17j88u0djV6NBi9Tgdtc0R6w',
+        'api_key' =>'xvkwXPp52AUPLBGCXmD5UA==',
+        'call_back' => 'https://localhost:9090/api/booming/callback',
+        'roll_back' => 'https://localhost:9090/api/booming/rollback'
+    ],
     'manna'=>[
         'AUTH_URL'=> 'https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
         'GAME_LINK_URL' => 'https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
+        'API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
         'AUTH_API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
         'CLIENT_API_KEY' => '4dtXHSekHaFkAqbGcsWV2es4BTRLADQP'
     ]
