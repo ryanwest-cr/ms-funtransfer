@@ -57,9 +57,9 @@ class SkyWindController extends Controller
             'headers' => [ 
                 'Content-Type' => 'application/json',
             ],
-            ['verify' => true]
+            // ['verify' => true]
+            ['verify' => '/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem']
         ]);
-        // $client->setDefaultOption('verify', '/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem');
         $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
              "username" => "TGAMESU_USER",
