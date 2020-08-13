@@ -414,11 +414,11 @@ class Helper
 	 */
 	public static function saveLogCode($method, $provider_id = 0, $request_data, $response_data) {
 		$data = [
-					"method_name" => $method,
-					"provider_id" => $provider_id,
-					"request_data" => $request_data,
-					"response_data" => $response_data
-				];
+			"method_name" => $method,
+			"provider_id" => $provider_id,
+			"request_data" => $request_data,
+			"response_data" => $response_data
+		];
 		DB::table('seamless_request_logs')->insert($data);
 	}
 }

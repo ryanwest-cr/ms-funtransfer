@@ -381,7 +381,7 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token',$data["token"]);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         try{
-            $nonce = date('mdYhisu');
+            $nonce = date('mdYHisu', strtotime('+8 hours'));
             $requesttosend = array (
                 'game_id' => $data["game_code"],
                 'balance' => $player_details->playerdetailsresponse->balance,
