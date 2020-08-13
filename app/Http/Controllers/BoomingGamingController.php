@@ -44,8 +44,6 @@ class BoomingGamingController extends Controller
     }
 
     //THIS IS PART OF GAMELAUNCH GET SESSION AND URL
- 
-
     public function callBack(Request $request){
         $bg_nonce = $request->header('bg-nonce');
         $bg_signature = $request->header('bg-signature');
@@ -55,19 +53,17 @@ class BoomingGamingController extends Controller
         if($client_details != null){
             try{
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-            $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
-            $game_ext = Providerhelper::findGameExt($data['transaction_id'], 1, 'transaction_id'); 
+            $game_code = Helper::getGameCode($data["session_id"], $this->provider_db_id);
+            $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code->request_data);
+            $game_ext = Providerhelper::findGameExt($data['round'], 1, 'transaction_id'); 
                 if($game_ext == 'false'): // NO BET found mw
                     //if the amount is grater than to the bet amount  error message
-                    if($player_details->playerdetailsresponse->balance < $data['transfer_amount']):
+                    if($player_details->playerdetailsresponse->balance < $data['bet']):
                         $errormessage = array(
-                            'data' => null,
-                            'error' => [
-                            'code' 	=> '3202',
-                            'message'  	=> 'No enough cash balance to bet'
-                            ]
+                            'error' => '2006',
+                            'message' => 'Invalid balance'
                         );
-                        Helper::saveLog('Booming Bet error '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+                        Helper::saveLog('Booming Callback error ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
                         return json_encode($errormessage, JSON_FORCE_OBJECT); 
                     endif;
 
@@ -83,7 +79,7 @@ class BoomingGamingController extends Controller
                         "fundtransferrequest" => [
                                 "playerinfo" => [
                                 "client_player_id" => $client_details->client_player_id,
-                                "token" => $data['operator_player_session'],
+                                "token" => $client_details->player_token,
                             ],
                             "fundinfo" => [
                                 "gamesessionid" => "",
@@ -91,7 +87,7 @@ class BoomingGamingController extends Controller
                                 "transactiontype" => 'debit',
                                 "rollback" => "false",
                                 "currencycode" => $client_details->default_currency,
-                                "amount" => $data['transfer_amount']
+                                "amount" => $data['bet']
                             ]
                         ]
                         ];
@@ -110,22 +106,21 @@ class BoomingGamingController extends Controller
                         $client_response = json_decode($guzzle_response->getBody()->getContents());
                         $response =  [
                             "data" => [
-                                "currency_code" => $client_details->default_currency,
-                                "balance_amount" => $client_response->fundtransferresponse->balance,
-                                "updated_time" => $this->getMilliseconds()
-                            ],
-                            "error" => null
+                                "balance" => $client_details->default_currency,
+                                "return" => $client_response->fundtransferresponse->balance,
+                                "error" => ""
+                            ]
                         ];
 
                         $token_id = $client_details->token_id;
-                        $bet_amount =  $data['transfer_amount'];
+                        $bet_amount =  $data['bet'];
                         $payout = 0;
                         $entry_id = 1; //1 bet , 2win
                         $win = 0;// 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
                         $payout_reason = 'Bet';
                         $income = 0;
-                        $provider_trans_id = $data['transaction_id'];
-                        $round_id = $data['bet_id'];
+                        $provider_trans_id = $data['customer_id'];
+                        $round_id = $data['round'];
 
                         $gametransaction_id = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, $payout_reason , $income, $provider_trans_id, $round_id);
                         
@@ -137,37 +132,23 @@ class BoomingGamingController extends Controller
 
                         $this->creteBoomingtransaction($gametransaction_id, $provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type, $bet_amount, $provider_trans_id, $round_id);
                     
-                        Helper::saveLog('Booming Bet Process '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
+                        Helper::saveLog('Booming Callback Process ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
                         return json_encode($response, JSON_FORCE_OBJECT); 
                     }catch(\Exception $e){
                         $msg = array(
-                            "data" => null,
-                            "error" => [
-                                'code' => '3001',
-                                "message" => $e->getMessage(),
-                            ]
+                            'error' => '2099',
+                            'message' => $e->getMessage(),
                         );
-                        Helper::saveLog('Booming Bet error '.$data['transaction_id'], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
+                        Helper::saveLog('Booming Bet error', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
                         return json_encode($msg, JSON_FORCE_OBJECT); 
                     }
                 else:
-                    //if found
-                    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER NEED A ERROR RESPONSE!
-                    $game_not_succes = Providerhelper::findGameExt($data['transaction_id'], 2, 'transaction_id'); 
-                    if($game_not_succes == 'false'): // if no process win it means thi is not succeful make idempotent response
-                        Helper::saveLog('Booming Bet idempotent response'.$data['transaction_id'], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), json_decode($game_ext->mw_response));
-                        return $game_ext->mw_response;
-                    else:
-                        $errormessage = array(
-                            'data' => null,
-                            'error' => [
-                                'code' 	=> '3033',
-                                'message'  	=> 'Bet failed'
-                            ]
-                        );
-                        Helper::saveLog('Booming Bet error '.$request['transaction_id'], $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT), $errormessage);
-                        return json_encode($errormessage, JSON_FORCE_OBJECT); 
-                    endif;
+                    $errormessage = array(
+                        'error' => '2099',
+                        'message' => 'Generic validation error'
+                    );
+                    Helper::saveLog('Booming Callback error', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT), $errormessage);
+                    return json_encode($errormessage, JSON_FORCE_OBJECT); 
                 endif;
             }catch(\Exception $e){
                 $msg = array(
@@ -306,4 +287,20 @@ class BoomingGamingController extends Controller
             return json_encode($errormessage, JSON_FORCE_OBJECT); 
 		endif;
     }
+
+    public static function creteBoomingtransaction($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response, $game_transaction_type, $amount=null, $provider_trans_id=null, $round_id=null){
+		$gametransactionext = array(
+			"game_trans_id" => $gametransaction_id,
+			"provider_trans_id" => $round_id,
+			"round_id" => $provider_trans_id,
+			"amount" => $amount,
+			"game_transaction_type"=>$game_transaction_type,
+			"provider_request" => json_encode($provider_request),
+			"mw_request"=>json_encode($mw_request),
+			"mw_response" =>json_encode($mw_response),
+			"client_response" =>json_encode($client_response),
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		return $gametransactionext;
+	}
 }
