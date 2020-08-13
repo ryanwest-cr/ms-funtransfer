@@ -75,7 +75,7 @@ class PNGController extends Controller
             $client_details = $this->_getClientDetails('token', $xmlparser->externalGameSessionId);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($xmlparser->transactionId);
-                if(Helper::getBalance($client_details) < round($xmlparser->real,2)){
+                if(Helper::getBalance($client_details) < $xmlparser->real){
                     $array_data = array(
                         "real" => round(Helper::getBalance($client_details),2),
                         "statusCode" => 7,
