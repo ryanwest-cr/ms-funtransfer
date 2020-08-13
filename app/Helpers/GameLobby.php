@@ -259,7 +259,8 @@ class GameLobby{
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $api_tokens = config('providerlinks.cqgames.api_tokens');
         if(array_key_exists($client_details->default_currency, $api_tokens)){
-            $auth = $api_tokens[$client_details->default_currency];
+            // $auth = $api_tokens[$client_details->default_currency];
+            $auth = $api_tokens['USD'];
         }else{
             return 'false';
         }
