@@ -381,7 +381,7 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token',$data["token"]);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         try{
-            $nonce = date('mdYHisu', strtotime('+8 hours'));
+            $nonce = date('mdYHisu', strtotime('+10 hours'));
             $requesttosend = array (
                 'game_id' => $data["game_code"],
                 'balance' => $player_details->playerdetailsresponse->balance,
@@ -405,6 +405,7 @@ class GameLobby{
             ]);
             $guzzle_response = $client->post($url,  ['body' => json_encode($requesttosend)]);
             $client_response = json_decode($guzzle_response->getBody()->getContents());
+            Helper::saveLogCode('Booming nonce', 36, $nonce, $nonce);
             Helper::saveLog('Booming session process', 36, json_encode($data), $client_response);
             return $client_response;
         }catch(\Exception $e){

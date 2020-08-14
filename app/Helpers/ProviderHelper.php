@@ -398,4 +398,12 @@ class ProviderHelper{
 	// 							->first();	
 	// 	return ($search_result ? $search_result : false);
 	// }
+
+	public static function getNonceprevious($provider_id) {
+		$nonce_previous = DB::table('seamless_request_logs')
+			->where('method_name', 'Booming nonce')
+			->where('provider_id',$provider_id)
+	    	->first();
+	    return $nonce_previous ? $nonce_previous : 'false';
+	}
 }

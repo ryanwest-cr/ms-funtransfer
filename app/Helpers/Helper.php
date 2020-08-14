@@ -424,4 +424,6 @@ class Helper
 		];
 		DB::table('seamless_request_logs')->insert($data);
 	}
+
+	
 }
