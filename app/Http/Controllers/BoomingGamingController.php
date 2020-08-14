@@ -73,7 +73,7 @@ class BoomingGamingController extends Controller
                         return json_encode($errormessage, JSON_FORCE_OBJECT); 
                     endif;
                     $amount = $data["bet"] - $data["win"];
-                    $transactiontype = $data["win"] == '0.0' ? 'debit' : 'credit';
+                    $transactiontype = $data["win"] == '0.0' || $data["win"] == '0' ? 'debit' : 'credit';
                     $requesttosend = [
                         "access_token" => $client_details->client_access_token,
                         "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
