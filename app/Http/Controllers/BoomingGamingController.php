@@ -45,6 +45,7 @@ class BoomingGamingController extends Controller
 
     //THIS IS PART OF GAMELAUNCH GET SESSION AND URL
     public function callBack(Request $request){
+        
         $header = [
             'bg_nonce' => $request->header('bg-nonce'),
             'bg_signature' => $request->header('bg-signature')
@@ -73,7 +74,7 @@ class BoomingGamingController extends Controller
                         return json_encode($errormessage, JSON_FORCE_OBJECT); 
                     endif;
                     $amount = $data["bet"] - $data["win"];
-                    $transactiontype = (int)$data["win"] > 0 ? 'debit' : 'credit';
+                    $transactiontype = (int)$data["win"] == 0.0 ? 'debit' : 'credit';
                     $requesttosend = [
                         "access_token" => $client_details->client_access_token,
                         "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
