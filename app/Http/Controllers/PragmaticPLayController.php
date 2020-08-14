@@ -22,11 +22,12 @@ class PragmaticPLayController extends Controller
 
     public function authenticate(Request $request)
     {
-        
         $enc_body = file_get_contents("php://input");
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
+        
+        Helper::saveLog('PP authenticate', $this->provider_id, json_encode($data) , "");
 
         // $hash = md5('providerId='.$data->providerId.'&token='.$data->token.$this->key);
         $dataSort = json_decode($json_encode, true);
