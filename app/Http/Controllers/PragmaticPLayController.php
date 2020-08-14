@@ -39,6 +39,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             ];
             return $response;
+            Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
                
         $providerId = $data->providerId;
@@ -100,6 +101,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             ];
             return $response;
+            Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
@@ -138,6 +140,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             ];
             return $response;
+            Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
 
         Helper::saveLog('PP bet request', $this->provider_id,json_encode($data), "");
@@ -359,6 +362,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             ];
             return $response;
+            Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
@@ -419,6 +423,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             ];
             return $response;
+            Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
 
         $response = array(
@@ -450,6 +455,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             ];
             return $response;
+            Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
 
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->get();
@@ -566,6 +572,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             ];
             return $response;
+            Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
@@ -644,6 +651,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             ];
             return $response;
+            Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }else{
             return "lahos";
         }
