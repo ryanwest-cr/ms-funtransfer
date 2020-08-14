@@ -13,7 +13,9 @@ use GuzzleHttp\Client;
 class PragmaticPLayController extends Controller
 {
     public $key;
+    public $provider_id = "49";
 
+    
     public function __construct(){
     	$this->key = config('providerlinks.tpp.secret_key');
     }
@@ -62,7 +64,7 @@ class PragmaticPLayController extends Controller
                 "decription" => "Success"
             );
 
-            Helper::saveLog('PP authenticate', 49, json_encode($data) , $response);
+            Helper::saveLog('PP authenticate', $provider_id, json_encode($data) , $response);
 
             
         }else{
@@ -84,7 +86,7 @@ class PragmaticPLayController extends Controller
         $data = json_decode($json_encode);
 
 
-        Helper::saveLog('PP balance', 49, json_encode($data) , "balance");
+        Helper::saveLog('PP balance', $provider_id, json_encode($data) , "balance");
         // $hash = md5('providerId='.$data->providerId.'&userId='.$data->userId.$this->key);
 
         $dataSort = json_decode($json_encode, true);
@@ -111,7 +113,7 @@ class PragmaticPLayController extends Controller
             "description" => "Success"
         );
 
-        Helper::saveLog('PP balance', 49, json_encode($data) , $response);
+        Helper::saveLog('PP balance', $provider_id, json_encode($data) , $response);
         
         return $response;
     }
@@ -137,7 +139,7 @@ class PragmaticPLayController extends Controller
             return $response;
         }
 
-        Helper::saveLog('PP bet request', 49,json_encode($data), "");
+        Helper::saveLog('PP bet request', $provider_id,json_encode($data), "");
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -164,7 +166,7 @@ class PragmaticPLayController extends Controller
                 "error" => 1,
                 "description" => "Not Enough Balance"
             );
-            Helper::saveLog('PP bet not enough balance', 49,json_encode($data) , $response);
+            Helper::saveLog('PP bet not enough balance', $provider_id,json_encode($data) , $response);
         }else{
 
             $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
@@ -180,7 +182,7 @@ class PragmaticPLayController extends Controller
                     "description" => "Successs"
                 );
 
-                Helper::saveLog('PP bet duplicate', 49,json_encode($data) , $response);
+                Helper::saveLog('PP bet duplicate', $provider_id,json_encode($data) , $response);
 
             }else{
 
@@ -219,7 +221,7 @@ class PragmaticPLayController extends Controller
         
                 $game_trans_ext = ProviderHelper::createGameTransExt( $gametrans, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 1, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
                
-                Helper::saveLog('PP bet initial', 49,json_encode($data) , $response);
+                Helper::saveLog('PP bet initial', $provider_id,json_encode($data) , $response);
 
             }    
             
@@ -237,7 +239,7 @@ class PragmaticPLayController extends Controller
 
         
         
-        Helper::saveLog('PP result request', 49, json_encode($data) ,"result");
+        Helper::saveLog('PP result request', $provider_id, json_encode($data) ,"result");
         
         // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         $dataSort = json_decode($json_encode, true);
@@ -334,7 +336,7 @@ class PragmaticPLayController extends Controller
             "description" => "Success",
         );
 
-        Helper::saveLog('PP result', 49, json_encode($data) , $response);
+        Helper::saveLog('PP result', $provider_id, json_encode($data) , $response);
         
         return $response;
     }
@@ -346,7 +348,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP endRound request', 49, json_encode($data) ,"endRound");
+        Helper::saveLog('PP endRound request', $provider_id, json_encode($data) ,"endRound");
 
         $hash = md5('gameId='.$data->gameId.'&platform='.$data->platform.'&providerId='.$data->providerId.'&roundId='.$data->roundId.'&userId='.$data->userId.$this->key);
         
@@ -379,7 +381,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
         
-        Helper::saveLog('PP getBalancePerGame request', 49, json_encode($data) ,"getBalancePerGame");
+        Helper::saveLog('PP getBalancePerGame request', $provider_id, json_encode($data) ,"getBalancePerGame");
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -405,7 +407,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
         
-        Helper::saveLog('PP sessionExpired request', 49, json_encode($data) ,"sessionExpired");
+        Helper::saveLog('PP sessionExpired request', $provider_id, json_encode($data) ,"sessionExpired");
 
         $dataSort = json_decode($json_encode, true);
         $hash = $this->hashParam($dataSort);
@@ -423,7 +425,7 @@ class PragmaticPLayController extends Controller
             "description" => "Success"
         );
 
-        Helper::saveLog('PP sessionExpired request', 49, json_encode($data) , $response);
+        Helper::saveLog('PP sessionExpired request', $provider_id, json_encode($data) , $response);
         return $response;
 
     }
@@ -435,7 +437,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP refund request', 49, json_encode($data) , "");
+        Helper::saveLog('PP refund request', $provider_id, json_encode($data) , "");
 
         // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         $dataSort = json_decode($json_encode, true);
@@ -501,7 +503,7 @@ class PragmaticPLayController extends Controller
     
             $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $bet_amount, 3, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
     
-            Helper::saveLog('PP refund request', 49, json_encode($data) , $response);
+            Helper::saveLog('PP refund request', $provider_id, json_encode($data) , $response);
             // $response_log = array(
             //     "transactionId" => $game_trans[0]->game_trans_id,
             //     "error" => 0,
@@ -527,7 +529,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP bonus', 49, json_encode($data) , "");
+        Helper::saveLog('PP bonus', $provider_id, json_encode($data) , "");
 
         $game_trans = DB::table("game_transactions")->where("round_id","=",$data->roundId)->first();
         $game_details = DB::table("games")->where("game_id","=",$game_trans->game_id)->first();
@@ -552,7 +554,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP promoWin request', 49, json_encode($data) , "");
+        Helper::saveLog('PP promoWin request', $provider_id, json_encode($data) , "");
 
         $dataSort = json_decode($json_encode, true);
         $hash = "amount=$data->amount&campaignId=$data->campaignId&campaignType=$data->campaignType&currency=$data->currency&providerId=$data->providerId&reference=$data->reference&timestamp=$data->timestamp&userId=$data->userId$this->key";
@@ -621,7 +623,7 @@ class PragmaticPLayController extends Controller
             "error" => 0,
             "description" => "Success",
         );
-        Helper::saveLog('PP promoWin request', 49, json_encode($data) , $response);
+        Helper::saveLog('PP promoWin response', $provider_id, json_encode($data) , $response);
         return $response;
     }
 
@@ -631,7 +633,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP jackpotWin request', 49, json_encode($data) , "");
+        Helper::saveLog('PP jackpotWin request', $provider_id, json_encode($data) , "");
 
         $dataSort = json_decode($json_encode, true);
         $hash = $this->hashParam($dataSort);
