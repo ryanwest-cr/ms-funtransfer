@@ -60,7 +60,7 @@ class BoomingGamingController extends Controller
             $game_code = $request_data->game_code;
             $url = $request_data->url;
             $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code);
-            $game_ext = Providerhelper::findGameExt($data['customer_id'], 2, 'transaction_id'); 
+            $game_ext = $this->findGameExt($data['session_id'], $data["round"], 2, 'transaction_id'); 
                 if($game_ext == 'false'): // NO BET found mw
                     //if the amount is grater than to the bet amount  error message
                     if($player_details->playerdetailsresponse->balance < $data['bet']):
@@ -113,23 +113,17 @@ class BoomingGamingController extends Controller
                         $client_response = json_decode($guzzle_response->getBody()->getContents());
                         $response =  [
                             "balance" => (string)$client_response->fundtransferresponse->balance,
-                            "return" => $url,
-                            'error' => 'reality_check',
-                            'message' => 'Continue to the game.',
-                            'buttons' => [
-                                'title' => 'OK',
-                                'action' => 'close_dialog',
-                            ]
+                            "return" => $url
                         ];
 
                         $token_id = $client_details->token_id;
                         $bet_amount =  $data['bet'];
                         $payout = $data["win"];
                         $entry_id =  2; //1 bet , 2win
-                        $win = $data["win"] == '0' ? 0 : 1;// 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
+                        $win = $data["win"] == '0.0' ? 0 : 1;// 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
                         
                         $income = $amount;
-                        $provider_trans_id = $data['customer_id']; // this is customerid
+                        $provider_trans_id = $data['session_id']; // this is customerid
                         $round_id = $data['round'];// this is round
 
                         $gametransaction_id = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, null , $income, $provider_trans_id, $round_id);
@@ -140,7 +134,7 @@ class BoomingGamingController extends Controller
                         $client_response = $client_response;
                         $game_transaction_type = 2;
 
-                        $this->creteBoomingtransaction($gametransaction_id, $provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type, $bet_amount, $data['customer_id'], $data['round']);
+                        $this->creteBoomingtransaction($gametransaction_id, $provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type, $bet_amount, $data['session_id'], $data['round']);
                     
                         Helper::saveLog('Booming Callback Process ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
                         return json_encode($response, JSON_FORCE_OBJECT); 
@@ -188,8 +182,7 @@ class BoomingGamingController extends Controller
         Helper::saveLog('Booming Rollback ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $header);
         $data = $request->all();
         $client_details = ProviderHelper::getClientDetails('player_id',$data["player_id"]);
-        // $existing_bet = ProviderHelper::findGameTransaction($data['customer_id'], 'transaction_id', 2); // Find if win has bet record
-		$game_ext = ProviderHelper::findGameExt($data['customer_id'], 3, 'transaction_id'); // Find if this callback in game extension
+        $game_ext = $this->findGameExt($data['session_id'], $data["round"], 3, 'transaction_id');
         $get_savelog = Helper::getGameCode($data["session_id"], $this->provider_db_id);
         $request_data = json_decode($get_savelog->request_data); // get request_data 
         $game_code = $request_data->game_code;
@@ -238,13 +231,7 @@ class BoomingGamingController extends Controller
                             
                             $response =  [
                                 "balance" => (string)$client_response->fundtransferresponse->balance,
-                                "return" => $url,
-                                'error' => 'reality_check',
-                                'message' => 'Continue to the game.',
-                                'buttons' => [
-                                    'title' => 'OK',
-                                    'action' => 'close_dialog',
-                                ]
+                                "return" => $url
                             ];
                             
                             $token_id = $client_details->token_id;
@@ -254,7 +241,7 @@ class BoomingGamingController extends Controller
                             $win = 4;// 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
                             
                             $income = $amount;
-                            $provider_trans_id = $data['customer_id']; // this is customerid
+                            $provider_trans_id = $data['session_id']; // this is customerid
                             $round_id = $data['round'];// this is round
     
                             $gametransaction_id = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, null , $income, $provider_trans_id, $round_id);
@@ -265,9 +252,9 @@ class BoomingGamingController extends Controller
                             $client_response = $client_response;
                             $game_transaction_type = 3;
     
-                            $this->creteBoomingtransaction($gametransaction_id, $provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type, $bet_amount, $data['customer_id'], $data['round']);
+                            $this->creteBoomingtransaction($gametransaction_id, $provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type, $bet_amount, $data['session_id'], $data['round']);
                         
-                            Helper::saveLog('Booming Callback Process ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
+                            Helper::saveLog('Booming Rollback Process ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
                             return json_encode($response, JSON_FORCE_OBJECT);
     
                         }catch(\Exception $e){
@@ -275,7 +262,7 @@ class BoomingGamingController extends Controller
                                 'error' => '2099',
                                 'message' => $e->getMessage()
                             ];
-                            Helper::saveLog('Booming Payout error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
+                            Helper::saveLog('Booming Rollback error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
                             return json_encode($errormessage, JSON_FORCE_OBJECT); 
                         }
                       
@@ -321,5 +308,20 @@ class BoomingGamingController extends Controller
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
 		return $gametransactionext;
-	}
+    }
+
+    public  static function findGameExt($provider_identifier,$round, $game_transaction_type, $type) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+        if ($type == 'transaction_id') {
+			$transaction_db->where([
+                ["gte.provider_trans_id", "=", $provider_identifier],
+                ["gte.round_id", "=", $round],
+		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 	]);
+		}
+		$result = $transaction_db->latest()->first(); // Added Latest (CQ9) 08-12-20 - Al
+		return $result ? $result : 'false';
+    }
+    
+    
 }
