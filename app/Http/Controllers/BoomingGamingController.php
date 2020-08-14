@@ -111,9 +111,23 @@ class BoomingGamingController extends Controller
 
                         $client_response = json_decode($guzzle_response->getBody()->getContents());
                         $response =  [
-                            "data" => [
-                                "balance" => (string)$client_response->fundtransferresponse->balance,
-                                "return" => $url
+                            "balance" => (string)$client_response->fundtransferresponse->balance,
+                            "return" => $url,
+                            'error' => 'reality_check',
+                            'message' => 'Status Ok',
+                            'buttons' => [
+                                [
+                                    'title'=> 'OK',
+                                    'action'=> 'close_dialog',
+                                ],
+                                [
+                                    'title'=> 'History',
+                                    'action'=> 'history',
+                                ],
+                                [
+                                    'title'=> 'Exit game',
+                                    'action'=> 'exit'
+                                ]
                             ]
                         ];
 
@@ -232,10 +246,23 @@ class BoomingGamingController extends Controller
                             $client_response = json_decode($guzzle_response->getBody()->getContents());
                             
                             $response =  [
-                                "data" => [
-                                    "balance" => (string)$client_response->fundtransferresponse->balance,
-                                    "return" => $url,
-                                    "error" => ""
+                                "balance" => (string)$client_response->fundtransferresponse->balance,
+                                "return" => $url,
+                                'error' => 'reality_check',
+                                'message' => 'Status Ok',
+                                'buttons' => [
+                                    [
+                                        'title'=> 'OK',
+                                        'action'=> 'close_dialog',
+                                    ],
+                                    [
+                                        'title'=> 'History',
+                                        'action'=> 'history',
+                                    ],
+                                    [
+                                        'title'=> 'Exit game',
+                                        'action'=> 'exit'
+                                    ]
                                 ]
                             ];
                             
