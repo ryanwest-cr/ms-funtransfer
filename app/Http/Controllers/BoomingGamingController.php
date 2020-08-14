@@ -67,12 +67,13 @@ class BoomingGamingController extends Controller
                         $errormessage = array(
                             'error' => '2006',
                             'message' => 'Invalid balance'
+                            
                         );
                         Helper::saveLog('Booming Callback error ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
                         return json_encode($errormessage, JSON_FORCE_OBJECT); 
                     endif;
                     $amount = $data["bet"] - $data["win"];
-                    $transactiontype = $data["win"] == '0' ? 'debit' : 'credit';
+                    $transactiontype = $data["win"] == '0.0' ? 'debit' : 'credit';
                     $requesttosend = [
                         "access_token" => $client_details->client_access_token,
                         "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -112,7 +113,13 @@ class BoomingGamingController extends Controller
                         $client_response = json_decode($guzzle_response->getBody()->getContents());
                         $response =  [
                             "balance" => (string)$client_response->fundtransferresponse->balance,
-                            "return" => $url
+                            "return" => $url,
+                            'error' => 'reality_check',
+                            'message'=> '',
+                            'buttons' => [
+                                'title' => 'OK',
+                                'action' => 'close_dialog'
+                            ]
                         ];
 
                         $token_id = $client_details->token_id;
@@ -231,7 +238,13 @@ class BoomingGamingController extends Controller
                             
                             $response =  [
                                 "balance" => (string)$client_response->fundtransferresponse->balance,
-                                "return" => $url
+                                "return" => $url,
+                                'error' => 'reality_check',
+                                'message'=> '',
+                                'buttons' => [
+                                    'title' => 'OK',
+                                    'action' => 'close_dialog'
+                                ]
                             ];
                             
                             $token_id = $client_details->token_id;
