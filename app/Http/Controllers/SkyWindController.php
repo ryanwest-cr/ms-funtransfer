@@ -53,26 +53,83 @@ class SkyWindController extends Controller
     // }
 
     public function getAuth(Request $request){
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ],
-            // ['verify' => true]
-            ['verify' => '/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem']
-        ]);
-        $requesttosend = [
+
+      // $postData = [
+      //        "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+      //        "username" => "TGAMESU_USER",
+      //        "password" => "Tgames1234"
+      //   ];
+
+      // // Set the URL to visit
+      // $url = "https://api.gcpstg.m27613.com/v1/login";
+      // // In this example we are referring to a page that handles xml
+      // $headers = array( "Content-Type: application/json",);
+      // // Initialise Curl
+      // $curl = curl_init();
+      // if ($curl === false)
+      // {
+      //     throw new Exception(' cURL init failed');
+      // }
+      // // Configure curl for website
+      // curl_setopt($curl, CURLOPT_URL, $url);
+      // // curl_setopt(#curl, CURLOPT_HTTPHEADER, &$headers);
+      // curl_setopt($curl, CURLOPT_POST, true);
+      // curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
+      // curl_setopt($curl, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem");
+      // curl_setopt($curl, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem");
+      // // curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
+      // curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, TRUE);
+      // curl_setopt($curl, CURLOPT_POST, 1);
+      // curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+      // curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+      // // Causes curl to return the result on success which should help us avoid using the writeback option
+      // curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+      // $result = curl_exec($curl);
+      // return $result;
+
+      $url = "https://api.gcpstg.m27613.com/v1/login";
+      $data =  [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
              "username" => "TGAMESU_USER",
              "password" => "Tgames1234"
         ];
-        $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
-                ['body' => json_encode($requesttosend)]
-        );
-        // $client_response = json_decode($guzzle_response->getBody()->getContents());
-        // return $client_response;
-        $response = json_encode(json_decode($guzzle_response->getBody()->getContents()));
-        $url = json_decode($response, true);
-        return $url;
+
+      $postdata = json_encode($data);
+
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+      curl_setopt($ch, CURLOPT_POST, 1);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+      curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem");
+      curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem");
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+      $result = curl_exec($ch);
+      curl_close($ch);
+      print_r ($result);
+
+        // $client = new Client([
+        //     'headers' => [ 
+        //         'Content-Type' => 'application/json',
+        //     ],
+        //     // ['verify' => true]
+        //     ['verify' => '/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem']
+        // ]);
+        // $requesttosend = [
+        //      "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+        //      "username" => "TGAMESU_USER",
+        //      "password" => "Tgames1234"
+        // ];
+        // $guzzle_response = $client->post('https://api.gcpstg.m27613.com/v1/login',
+        //         ['body' => json_encode($requesttosend)]
+        // );
+        // // $client_response = json_decode($guzzle_response->getBody()->getContents());
+        // // return $client_response;
+        // $response = json_encode(json_decode($guzzle_response->getBody()->getContents()));
+        // $url = json_decode($response, true);
+        // return $url;
     }
 
     public function getGamelist(){
