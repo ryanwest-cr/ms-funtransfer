@@ -312,7 +312,7 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 		Helper::saveLog('IA Deposit Response', 15,json_encode($cha), $params);
-		// $this->userWager();
+		$this->userWager();
 		return $params;
 	}
 
