@@ -112,8 +112,7 @@ class BoomingGamingController extends Controller
 
                         $client_response = json_decode($guzzle_response->getBody()->getContents());
                         $response =  [
-                            "balance" => (string)$client_response->fundtransferresponse->balance,
-                            "return" => $url
+                            "balance" => (string)$client_response->fundtransferresponse->balance
                         ];
 
                         $token_id = $client_details->token_id;
@@ -230,8 +229,7 @@ class BoomingGamingController extends Controller
                             $client_response = json_decode($guzzle_response->getBody()->getContents());
                             
                             $response =  [
-                                "balance" => (string)$client_response->fundtransferresponse->balance,
-                                "return" => $url
+                                "balance" => (string)$client_response->fundtransferresponse->balance
                             ];
                             
                             $token_id = $client_details->token_id;
