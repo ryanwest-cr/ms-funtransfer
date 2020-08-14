@@ -184,7 +184,7 @@ class IAESportsController extends Controller
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
 		Helper::saveLog('IA Deposit DECODED', 15,json_encode($cha), $data);
-		// dd($client_details);
+		// dd($cha);
 		if(empty($client_details)):
 			$params = [
 	            "code" => 111003,
@@ -272,6 +272,7 @@ class IAESportsController extends Controller
 	        ];	
 
         	$bet_details = $this->getOrderData($cha->projectId);
+        	// dd($bet_details);
         	// dd($bet_details);
 	        if($bet_details->bet_amount){
  	  			if($bet_details->bet_amount > $cha->money){
@@ -415,7 +416,7 @@ class IAESportsController extends Controller
 		endif;
 
 		Helper::saveLog('IA Withrawal Response', 15,json_encode($cha), $params);
-		$this->userWager();
+		// dd($this->userWager());
 		return $params;
 	}
 
@@ -546,6 +547,7 @@ class IAESportsController extends Controller
 		$timeout = 5;
 		$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
 		$data = json_decode($this->rehashen($client_response[1], true));
+		dd($data);
 		$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
 		if($data):
 			foreach ($data->data->list as $matches):
