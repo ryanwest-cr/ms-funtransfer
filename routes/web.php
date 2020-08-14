@@ -208,7 +208,9 @@ $app->post('api/cq9/transaction/game/amends','CQ9Controller@playerAmends');
 
 
 $app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
+$app->get('api/cq9/gameboy/player/lotto/balance/{account}','CQ9Controller@CheckBalanceLotto'); // New
 $app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
+
 
 $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
 $app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');

@@ -28,15 +28,23 @@ class CQ9Controller extends Controller
     }
 
     public function checkAuth($wtoken){
-    	$api_tokens = config('providerlinks.cqgames.api_tokens');
+    	$wallet_token = config('providerlinks.cqgames.wallet_token');
 		$access_granted = false;
-		foreach ($api_tokens as $key){
+		foreach ($wallet_token as $key){
 			if($wtoken == $key){
 				$access_granted = true;
 			}
 		}
 		return $access_granted;
     }
+
+    // public function checkAuth($wtoken){
+    // 	if($wtoken == $this->api_token){
+    // 		return true;
+    // 	}else{
+    // 		return false;
+    // 	}
+    // }
 
     // Adding Games!
 	public function getGameList(){
@@ -92,9 +100,8 @@ class CQ9Controller extends Controller
 	}
 
     public function CheckPlayer(Request $request, $account){
-    	// $header = $request->header('Authorization');
     	$header = $request->header('wtoken');
-    	Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
+    	// Helper::saveLog('CQ9 Check Player', $this->provider_db_id, json_encode($request->all()), $header);
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
     		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
@@ -116,7 +123,7 @@ class CQ9Controller extends Controller
     }
 
     public function CheckBalance(Request $request, $account){
-    	Helper::saveLog('CQ9 Balance Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+    	// Helper::saveLog('CQ9 Balance Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	if($client_details != null){
@@ -132,6 +139,25 @@ class CQ9Controller extends Controller
     		$data = ["data" => false,"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]];
     	}
     	// Helper::saveLog('CQ9 Balance Player', $this->provider_db_id, json_encode($request->all()), $data);
+    	return $data;
+    }
+
+    public function CheckBalanceLotto(Request $request, $account){
+    	$user_id = Providerhelper::explodeUsername('_', $account);
+    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
+    	if($client_details != null){
+    		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+			$data = [
+	    		"data" => [
+	    			"balance" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+	    			"currency" => $client_details->default_currency,
+	    		],
+	    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
+	    	];
+    	}else{
+    		$data = ["data" => false,"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]];
+    	}
+    	Helper::saveLog('CQ9 BalanceLotto Player', $this->provider_db_id, json_encode($request->all()), $data);
     	return $data;
     }
 

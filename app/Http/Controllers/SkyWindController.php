@@ -53,6 +53,105 @@ class SkyWindController extends Controller
     // }
 
     public function getAuth(Request $request){
+
+      // $postData = [
+      //        "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+      //        "username" => "TGAMESU_USER",
+      //        "password" => "Tgames1234"
+      //   ];
+
+      // // Set the URL to visit
+      // $url = "https://api.gcpstg.m27613.com/v1/login";
+      // // In this example we are referring to a page that handles xml
+      // $header = array( "Content-Type: application/json",);
+      // // Initialise Curl
+      // $curl = curl_init();
+      // if ($curl === false)
+      // {
+      //     throw new Exception(' cURL init failed');
+      // }
+      // // Configure curl for website
+      // curl_setopt($curl, CURLOPT_URL, $url);
+      // // curl_setopt(#curl, CURLOPT_HTTPHEADER, &$headers);
+      // curl_setopt($curl, CURLOPT_POST, true);
+      // curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
+      // curl_setopt($curl, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem");
+      // curl_setopt($curl, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem");
+      // // curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
+      // curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, TRUE);
+      // curl_setopt($curl, CURLOPT_POST, 1);
+      // curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+      // curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+      // // Causes curl to return the result on success which should help us avoid using the writeback option
+      // curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+      // $result = curl_exec($curl);
+      // return $result;
+
+      // $url = "https://api.gcpstg.m27613.com/v1/login";
+      // $data =  [
+      //        "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
+      //        "username" => "TGAMESU_USER",
+      //        "password" => "Tgames1234"
+      //   ];
+
+      // $postData = json_encode($data);
+
+      // $ch = curl_init($url);
+      // curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+      // curl_setopt($ch, CURLOPT_POST, 1);
+      // curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+      // curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem");
+      // curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem");
+      // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+      // curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+      // $result = curl_exec($ch);
+      // curl_close($ch);
+      // dd($result);
+
+      // $timeout = 10;
+      // $error = '';
+      // $status = 1;
+      // $ch = curl_init();
+      // curl_setopt($ch, CURLOPT_HEADER, 0);
+      // if(!empty($header))
+      // {
+      //     curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+      // }
+      
+      // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+      // curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+      // curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem");
+      // curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem");
+      // curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)');
+      // curl_setopt($ch, CURLOPT_URL, $url);
+      // if(!empty($postData))
+      // {
+      //     curl_setopt($ch, CURLOPT_POST, true);
+      //     curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+      // }
+      
+      // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      // curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+      // curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+      // $handles = curl_exec($ch);
+      // $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      // if($httpcode < 200 || $httpcode >= 300)
+      // {
+      //     $status = 0;
+      //     $error = $httpcode;
+      // }
+      // if(curl_errno($ch))
+      // {
+      //     $error = curl_error($ch);
+      //     $status = 0;
+      // }
+      
+      // curl_close($ch);
+      
+      // return array($status, $handles, $error);
+
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',

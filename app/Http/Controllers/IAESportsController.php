@@ -184,7 +184,7 @@ class IAESportsController extends Controller
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
 		Helper::saveLog('IA Deposit DECODED', 15,json_encode($cha), $data);
-		// dd($client_details);
+		// dd($cha);
 		if(empty($client_details)):
 			$params = [
 	            "code" => 111003,
@@ -271,25 +271,38 @@ class IAESportsController extends Controller
 				"message" => "Success",
 	        ];	
 
-        	$bet_details = $this->getOrderData($cha->projectId);
-        	// dd($bet_details);
-	        if($bet_details->bet_amount){
- 	  			if($bet_details->bet_amount > $cha->money){
- 	  				$win = 0; // lost
- 	  				$entry_id = 1; //lost
- 	  				$income = $bet_details->bet_amount - $cha->money;
- 	  			}else{
- 	  				$win = 1; //win
- 	  				$entry_id = 2; //win
- 	  				$income = $bet_details->bet_amount - $cha->money;
- 	  			}
+	        if($transaction_code == 16 || $transaction_code == 17){ // AUTO CHESS GAME
+	        	$transaction_type = 'credit';
+				$token_id = $client_details->token_id;
+				$bet_amount = $cha->money;
+				$pay_amount = $cha->money; // Zero Payout
+				$method = 2;
+				$win_or_lost = 1;
+				$payout_reason = $this->getCodeType($desc_json['code']) .' : '.$desc_json['message'];
+				$income = '-'.$bet_amount;	
+				$provider_trans_id = $cha->orderId;
+	        	$gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+			    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 2, $cha, $params, $requesttosend, $client_response, $params);
+	        }else{
+	        	$bet_details = $this->getOrderData($cha->projectId);
+	        	// dd($bet_details);
+	        	// dd($bet_details);
+		        if($bet_details->bet_amount){
+	 	  			if($bet_details->bet_amount > $cha->money){
+	 	  				$win = 0; // lost
+	 	  				$entry_id = 1; //lost
+	 	  				$income = $bet_details->bet_amount - $cha->money;
+	 	  			}else{
+	 	  				$win = 1; //win
+	 	  				$entry_id = 2; //win
+	 	  				$income = $bet_details->bet_amount - $cha->money;
+	 	  			}
 
- 	  			$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
-			    $this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
- 	  		}
-	     
-		    $game_transextension = $this->createGameTransExt($bet_details->game_trans_id ,$cha->orderId, $cha->projectId, $cha->money, 2, $cha, $params, $requesttosend, $client_response, $params);
-
+	 	  			$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
+				    $this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
+	 	  		}
+			    $game_transextension = $this->createGameTransExt($bet_details->game_trans_id ,$cha->orderId, $cha->projectId, $cha->money, 2, $cha, $params, $requesttosend, $client_response, $params);
+	        }
 		  
 	     else:
 		    $params = [
@@ -315,13 +328,14 @@ class IAESportsController extends Controller
 		$cha = json_decode($this->rehashen($data, true));
 		// dd($cha);
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES);
+		$transaction_code = $desc_json['code']; // 13,15 refund, 
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = $this->_getClientDetails('player_id', $prefixed_username[1]);
 		Helper::saveLog('IA Withdrawal DECODED', 15,json_encode($cha), $data);
 		// $cha_data = $cha->currencyInfo;
 		// $chachi = json_decode($cha_data,JSON_UNESCAPED_SLASHES);
 		// return $chachi['short_name'];
-
+		// dd($cha);
 		if(empty($client_details)):
 			$params = [
 	            "code" => 111003,
@@ -403,9 +417,14 @@ class IAESportsController extends Controller
 				"message" => "Success",
 	        ];	
 
-		    $gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
-		    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
-
+	        if($transaction_code == 16 || $transaction_code == 17){ // AUTO CHESS GAME
+	        	$gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, 0, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+		 	    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
+	        }else{
+	        	$gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+		 	    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
+	        }
+		    
 		else:
 		    $params = [
 	            "code" => $status_code,
@@ -546,8 +565,9 @@ class IAESportsController extends Controller
 		$timeout = 5;
 		$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
 		$data = json_decode($this->rehashen($client_response[1], true));
+		// dd($data);
 		$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
-		if($data):
+		if(isset($data)):
 			foreach ($data->data->list as $matches):
 				if($matches->prize_status == 2):
 					array_push($order_ids, $matches->order_id);

@@ -267,6 +267,7 @@ class GameLobby{
         $client = new Client([
             'headers' => [ 
                 'Authorization' => $auth,
+                // 'Authorization' => config('providerlinks.cqgames.api_token'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ]
         ]);
@@ -352,7 +353,7 @@ class GameLobby{
           "return_url_info" => 1, // url link
           "callback_version" => 2, // POST CALLBACK
         ];
-        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.tgg.secretkey'));
+        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.tgg.api_key'));
         $requesttosend['signature'] = $signature;
         $client = new Client([
             'headers' => [ 
@@ -375,12 +376,12 @@ class GameLobby{
     }
 
     public static function boomingGamingUrl($data){
-        Helper::saveLog('Booming Balance ', 36, json_encode($data), "ENDPOINT HIT");
+        Helper::saveLog('Booming session ', 36, json_encode($data), "ENDPOINT HIT");
         $url = config('providerlinks.booming.api_url').'/v2/session';
         $client_details = ProviderHelper::getClientDetails('token',$data["token"]);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         try{
-            $nonce = date('mdYhisu');
+            $nonce = date('mdYHisu', strtotime('+14 hours'));
             $requesttosend = array (
                 'game_id' => $data["game_code"],
                 'balance' => $player_details->playerdetailsresponse->balance,
@@ -404,13 +405,14 @@ class GameLobby{
             ]);
             $guzzle_response = $client->post($url,  ['body' => json_encode($requesttosend)]);
             $client_response = json_decode($guzzle_response->getBody()->getContents());
-            Helper::saveLog('Booming Balance process', 36, json_encode($data), $client_response);
+            Helper::saveLogCode('Booming nonce', 36, $nonce, $nonce);
+            Helper::saveLog('Booming session process', 36, json_encode($data), $client_response);
             return $client_response;
         }catch(\Exception $e){
             $error = [
                 'error' => $e->getMessage()
             ];
-            Helper::saveLog('Booming Balance error', 36, json_encode($data), $e->getMessage());
+            Helper::saveLog('Booming session error', 36, json_encode($data), $e->getMessage());
             return $error;
         }
 
@@ -452,13 +454,13 @@ class GameLobby{
         // $hashCurrentBalance =  md5("externalPlayerId=".$userid."&secureLogin=".$stylename.$key);
         // $currentBalance = "https://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/balance/current/?externalPlayerId=$userid&secureLogin=$stylename&hash=$hashCurrentBalance";
 
-        $paramEncoded = urlencode("token=".$token."&symbol=".$game_code."&technology=F&platform=WEB&language=en&lobbyUrl=daddy.betrnk.games");
+        $paramEncoded = urlencode("token=".$token."&symbol=".$game_code."&technology=H5&platform=WEB&language=en&lobbyUrl=daddy.betrnk.games");
         $url = "$gameluanch_url?key=$paramEncoded&stylename=$stylename";
         // $result = file_get_contents($url);
         $result = json_encode($url);
         
         // $result = json_decode(json_decode($result));
-        Helper::saveLog('start game url PP', 49, $result,"");
+        Helper::saveLog('start game url PP', 49, $result,"$result");
         return $url;
 
         // return isset($result->gameURL) ? $result->gameURL : false;
