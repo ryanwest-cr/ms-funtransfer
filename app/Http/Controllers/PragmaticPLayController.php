@@ -752,12 +752,11 @@ class PragmaticPLayController extends Controller
                 if($i == 0){
                     $param .= $key ."=". $item;
                 }else{
-                    $param .= "&amp;".$key ."=". $item;
+                    $param .= "&".$key ."=". $item;
                 }
                 $i++;
             }
         }
-        return $param.$this->key;
         return $hash = md5($param.$this->key);
     }
 
