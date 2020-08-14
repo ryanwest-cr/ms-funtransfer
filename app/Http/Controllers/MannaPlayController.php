@@ -49,7 +49,7 @@ class MannaPlayController extends Controller
 		}
 		else
 		{
-			if($api_key != env('MANNA_API_KEY')) {
+			if($api_key != config("providerlinks.manna.CLIENT_API_KEY")) {
 				$http_status = 200;
 				$response = [
 							"errorCode" =>  10105,
@@ -99,7 +99,7 @@ class MannaPlayController extends Controller
 
 						$http_status = 200;
 						$response = [
-							"balance" => $client_response->playerdetailsresponse->balance
+							"balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2)
 						];
 					}
 				
@@ -132,7 +132,7 @@ class MannaPlayController extends Controller
 		}
 		else
 		{
-			if($api_key != env('MANNA_API_KEY')) {
+			if($api_key != config("providerlinks.manna.CLIENT_API_KEY")) {
 				$http_status = 200;
 				$response = [
 							"errorCode" =>  10105,
@@ -242,7 +242,7 @@ class MannaPlayController extends Controller
 									$http_status = 200;
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
-										"balance" => $client_response->fundtransferresponse->balance
+										"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 									];
 								}
 							}
@@ -280,7 +280,7 @@ class MannaPlayController extends Controller
 		}
 		else
 		{
-			if($api_key != env('MANNA_API_KEY')) {
+			if($api_key != config("providerlinks.manna.CLIENT_API_KEY")) {
 				$http_status = 200;
 				$response = [
 							"errorCode" =>  10105,
@@ -396,7 +396,7 @@ class MannaPlayController extends Controller
 										$http_status = 200;
 										$response = [
 											"transaction_id" => $json_data['transaction_id'],
-											"balance" => $client_response->fundtransferresponse->balance
+											"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 										];
 									}
 								}
@@ -434,7 +434,7 @@ class MannaPlayController extends Controller
 		}
 		else
 		{
-			if($api_key != env('MANNA_API_KEY')) {
+			if($api_key != config("providerlinks.manna.CLIENT_API_KEY")) {
 				$http_status = 200;
 				$response = [
 							"errorCode" =>  10105,
@@ -516,7 +516,7 @@ class MannaPlayController extends Controller
 								$http_status = 200;
 								$response = [
 									"transaction_id" => $json_data['transaction_id'],
-									"balance" => $client_response->fundtransferresponse->balance
+									"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 								];
 							}
 						}

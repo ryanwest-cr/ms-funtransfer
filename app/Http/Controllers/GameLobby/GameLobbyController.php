@@ -148,6 +148,24 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider')=="PlayNGo Direct"){
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::pngLaunchUrl($request->game_code,$token,$request->exitUrl),
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="Wazdan Direct"){
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::wazdanLaunchUrl($request->game_code,$token,$request->exitUrl),
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
                  elseif($request->input('game_provider')=="Bole Gaming"){
                     $country_code =  $request->has('country_code') ? $request->country_code : 'PH';
                     $url = GameLobby::boleLaunchUrl($request->game_code,$token,$request->exitUrl,$country_code);
@@ -187,7 +205,7 @@ class GameLobbyController extends Controller
                 }
                 elseif($request->input('game_provider')=="CQGames"){ // request->token
                     $url = GameLobby::cq9LaunchUrl($request->game_code,$token);
-                    if($url){
+                    if($url!= 'false'){
                         $msg = array(
                             "game_code" => $request->input("game_code"),
                             "url" => $url,
@@ -373,6 +391,21 @@ class GameLobbyController extends Controller
                         "url" => $url,
                         "game_launch" => true
                     );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider') == "Booming Games"){ 
+                    $url = GameLobby::boomingGamingUrl($request->all());
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => $url->play_url,
+                        "game_launch" => true
+                    );
+                    $array = [
+                        'game_code' => $request->input("game_code"),
+                        'url' =>  $url->play_url
+                    ];
+                    Helper::saveLogCode('Booming GameCode', 36, json_encode($array), $url->session_id);
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }

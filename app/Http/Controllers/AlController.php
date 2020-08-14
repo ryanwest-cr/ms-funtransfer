@@ -51,8 +51,75 @@ class AlController extends Controller
         return $player_details;
     }
 
+  // public function tapulan(){
 
-    public function tapulan(){
+  //     $array = '[
+  //       {
+  //           "gameId": 258,
+  //           "gameName": "Turbo Play",
+  //           "provider": "wazdan",
+  //           "RTP": 96.1,
+  //           "freeRoundsSupported": false,
+  //           "widgetSupported": false,
+  //           "goldenchipsSupported": false
+  //       },
+  //       {
+  //           "gameId": 328030,
+  //           "gameName": "Magic Of The Ring",
+  //           "provider": "wazdan",
+  //           "RTP": 96.47,
+  //           "freeRoundsSupported": true,
+  //           "widgetSupported": false,
+  //           "goldenchipsSupported": false
+  //       },
+  //       {
+  //           "gameId": 393566,
+  //           "gameName": "Sizzling 70s",
+  //           "provider": "wazdan",
+  //           "RTP": 0,
+  //           "freeRoundsSupported": true,
+  //           "widgetSupported": false,
+  //           "goldenchipsSupported": false
+  //       }
+  //   ]';
+
+  //   // $someArray = json_decode($array, JSON_FORCE_OBJECT);
+  //   $foo = utf8_encode($array);
+  //   $data = json_decode($foo, true);
+
+  //   $data2 = array();
+  //   foreach($data as $g){
+  //       // if($g['game_type_id'] == "Slot"){
+  //       //   $game_type = 1;
+  //       // }else if($g['game_type_id'] == "BlackJack"){
+  //       //   $game_type = 5;
+  //       // }else if($g['game_type_id'] == "Video"){
+  //       //   $game_type = 12;
+  //       // }else if($g['game_type_id'] == "Table"){
+  //       //   $game_type = 5;
+  //       // }else if($g['game_type_id'] == "Poker"){
+  //       //   $game_type = 3;
+  //       // }else if($g['game_type_id'] == "Roulette"){
+  //       //   $game_type = 5;
+  //       // }else if($g['game_type_id'] == "Fixed Odds"){
+  //       //   $game_type = 17;
+  //       // }
+
+  //       $game = array(
+  //           "game_type_id"=> 1,
+  //           "provider_id"=> 33,
+  //           "sub_provider_id"=> 57,
+  //           "game_name"=> $g['gameName'],
+  //           "game_code"=>$g["gameId"],
+  //           "icon"=> 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcS9Oza5sOOuv12mmaLfvpzkjoCKTx2oFKbpPQ&usqp=CAU'
+  //       );
+  //       array_push($data2,$game);
+  //   }
+  //   DB::table('games')->insert($data2);
+  //   return 'OK';
+  // }
+
+    // public function tapulan(){
     //   $array = '[{
     //     "game_code": "SGHeySushi",
     //     "game_name": "Hey Sushi",
@@ -89,7 +156,7 @@ class AlController extends Controller
     //   }
     //   DB::table('games')->insert($data2);
     //   return 'ok';
-  }
+  // }
 
   // public function insertGamesTapulanMode(Request $request){
   //     $games = file_get_contents("http://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/getCasinoGames/?secureLogin=tg_tigergames&hash=502c379dee1413a935959d072c9a2b35");
@@ -115,5 +182,6 @@ class AlController extends Controller
   //      }
 
   // }
+
 
 }

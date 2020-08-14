@@ -51,8 +51,8 @@ class OryxGamingController extends Controller
 							"errorDescription" => "Token provided in request not found in Wallet."
 						];
 			
-			$client_details = $this->_getClientDetails($client_code);
-
+			$client_details = $this->_getClientDetails('token', $token);
+			
 			if ($client_details) {
 				$client = new Client([
 				    'headers' => [ 
@@ -66,10 +66,11 @@ class OryxGamingController extends Controller
 				        	["access_token" => $client_details->client_access_token,
 								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 								"type" => "playerdetailsrequest",
-								"datesent" => "",
+								"datesent" => Helper::datesent(),
 								"gameid" => "",
 								"clientid" => $client_details->client_id,
 								"playerdetailsrequest" => [
+									"client_player_id" => $client_details->client_player_id,
 									"token" => $token,
 									"gamelaunch" => true
 								]]
@@ -104,7 +105,7 @@ class OryxGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('authentication', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('authentication', 18, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -132,8 +133,7 @@ class OryxGamingController extends Controller
 						];
 
 			// Find the player and client details
-			$client_details = $this->_getClientDetails($client_code);
-			$player_details = PlayerHelper::getPlayerDetails($player_id);
+			$client_details = $this->_getClientDetails('player_id', $player_id);
 
 			if ($client_details) {
 
@@ -163,11 +163,12 @@ class OryxGamingController extends Controller
 					        		"access_token" => $client_details->client_access_token,
 									"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 									"type" => "playerdetailsrequest",
-									"datesent" => "",
+									"datesent" => Helper::datesent(),
 									"gameid" => "",
 									"clientid" => $client_details->client_id,
 									"playerdetailsrequest" => [
-										"token" => $player_details->player_token,
+										"client_player_id" => $client_details->client_player_id,
+										"token" => $client_details->player_token,
 										"gamelaunch" => "false"
 									]]
 					    )]
@@ -186,7 +187,7 @@ class OryxGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('balance', 3, file_get_contents("php://input"), $response);
+		Helper::saveLog('balance', 18, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -212,11 +213,10 @@ class OryxGamingController extends Controller
 							"httpstatus" => "404"
 						];
 
-			$client_details = $this->_getClientDetails($client_code);
-			$player_details = PlayerHelper::getPlayerDetails($json_data['playerId']);
+			$client_details = $this->_getClientDetails('player_id', $json_data['playerId']);
 
-			if ($client_details && $player_details != NULL) {
-				GameRound::create($json_data['roundId'], $player_details->token_id);
+			if ($client_details) {
+				GameRound::create($json_data['roundId'], $client_details->token_id);
 
 				// Check if the game is available for the client
 				$subscription = new GameSubscription();
@@ -262,21 +262,22 @@ class OryxGamingController extends Controller
 											  "access_token" => $client_details->client_access_token,
 											  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 											  "type" => "fundtransferrequest",
-											  "datetsent" => "",
+											  "datesent" => Helper::datesent(),
 											  "gamedetails" => [
 											    "gameid" => "",
 											    "gamename" => ""
 											  ],
 											  "fundtransferrequest" => [
 													"playerinfo" => [
-													"token" => $player_details->player_token
+														"client_player_id" => $client_details->client_player_id,
+														"token" => $client_details->player_token
 												],
 												"fundinfo" => [
 												      "gamesessionid" => "",
 												      "transactiontype" => 'debit',
 												      "transferid" => "",
 												      "rollback" => "false",
-												      "currencycode" => $player_details->currency,
+												      "currencycode" => $client_details->currency,
 												      "amount" => 0
 												]
 											  ]
@@ -320,21 +321,22 @@ class OryxGamingController extends Controller
 										  "access_token" => $client_details->client_access_token,
 										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 										  "type" => "fundtransferrequest",
-										  "datetsent" => "",
+										  "datesent" => Helper::datesent(),
 										  "gamedetails" => [
 										    "gameid" => "",
 										    "gamename" => ""
 										  ],
 										  "fundtransferrequest" => [
 												"playerinfo" => [
-												"token" => $player_details->player_token
+													"client_player_id" => $client_details->client_player_id,
+													"token" => $client_details->player_token
 											],
 											"fundinfo" => [
 											      "gamesessionid" => "",
 											      "transactiontype" => $transactiontype,
 											      "transferid" => "",
 											      "rollback" => "false",
-											      "currencycode" => $player_details->currency,
+											      "currencycode" => $client_details->currency,
 											      "amount" => /*($transactiontype == 'debit' ? "-" : "").*/$json_data[$key]["amount"]
 											]
 										  ]
@@ -370,7 +372,7 @@ class OryxGamingController extends Controller
 									$json_data['income'] = $json_data[$key]['amount'];
 
 									$game_details = Game::find($json_data["gameCode"]);
-									GameTransaction::save($transactiontype, $json_data, $game_details, $client_details, $player_details);
+									GameTransaction::save($transactiontype, $json_data, $game_details, $client_details, $client_details);
 
 									$response = [
 										"responseCode" => "OK",
@@ -456,7 +458,7 @@ class OryxGamingController extends Controller
 										  "access_token" => $client_details->client_access_token,
 										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 										  "type" => "fundtransferrequest",
-										  "datetsent" => "",
+										  "datesent" => Helper::datesent(),
 										  "gamedetails" => [
 										    "gameid" => "",
 										    "gamename" => ""
@@ -531,7 +533,7 @@ class OryxGamingController extends Controller
 												  "access_token" => $client_details->client_access_token,
 												  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 												  "type" => "fundtransferrequest",
-												  "datetsent" => "",
+												  "datesent" => Helper::datesent(),
 												  "gamedetails" => [
 												    "gameid" => "",
 												    "gamename" => ""
@@ -582,63 +584,34 @@ class OryxGamingController extends Controller
 
 	}
 
-	public function endPlayerRound(Request $request) 
-	{
-		$json_data = json_decode(file_get_contents("php://input"), true);
-		$client_code = RouteParam::get($request, 'brand_code');
+	
 
-		$response = [
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "The provided playerid don’t exist.",
-						"httpstatus" => "404"
-					];
-
-		$client_details = $this->_getClientDetails($client_code);
-		$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);
-
-		if ($client_details && $player_details != NULL) {
-			if(!GameRound::check($json_data['roundid'])) {
-				$response = [
-					"errorcode" =>  "ROUND_ENDED",
-					"errormessage" => "Game round have already been closed",
-					"httpstatus" => "404"
-				];
-			}
-			else
-			{
-				
-				if(array_key_exists("roundended", $json_data)) {
-					if ($json_data["roundended"] == "true") {
-						GameRound::end($json_data['roundid']);
-					}
-				}
-				
-				$response = [
-					"status" => "OK",
-					"currency" => $client_response->fundtransferresponse->currencycode,
-					"balance" => $client_response->fundtransferresponse->balance,
-				];
-			
-			}
-			
-		}
-
-		Helper::saveLog('rollback', 2, file_get_contents("php://input"), $response);
-		echo json_encode($response);
-
-	}
-
-	private function _getClientDetails($client_code) {
-
+	private function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
-				 ->select('c.client_id', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
+				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
-				 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
-				 ->where('client_code', $client_code);
+				 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id");
+				 
+				if ($type == 'token') {
+					$query->where([
+				 		["pst.player_token", "=", $value],
+				 		["pst.status_id", "=", 1]
+				 	]);
+				}
+
+				if ($type == 'player_id') {
+					$query->where([
+				 		["p.player_id", "=", $value],
+				 		["pst.status_id", "=", 1]
+				 	]);
+				}
 
 				 $result= $query->first();
 
 		return $result;
+
 	}
 
 	private function to_pennies($value)

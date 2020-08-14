@@ -919,7 +919,7 @@ class PaymentGatewayController extends Controller
                                         'message' => 'Your Tiger Pay withdrawal request with transaction number '.$order_details->id.'  has been approved. The payment has been tranferred to your account. Thank you!',
                                         'AuthenticationCode' => $authenticationCode
                                     );
-                                    PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"IWALLETPAYOUT UPDATE TRANSACTION");
+                                    PaymentHelper::savePayTransactionLogs($order_details->id,json_encode($requesttoclient, true), $responsefromclient->getBody(),"WMT UPDATE TRANSACTION");
                             }
                             elseif($request->status_id == 3){
                                 $http = new Client();

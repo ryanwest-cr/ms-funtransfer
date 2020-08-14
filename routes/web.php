@@ -81,6 +81,19 @@ $app->post('/api/manna/{brand_code}/bet', 'MannaPlayController@debitProcess');
 $app->post('/api/manna/{brand_code}/win', 'MannaPlayController@creditProcess');
 $app->post('/api/manna/{brand_code}/betrollback', 'MannaPlayController@rollbackTransaction');
 
+// QTech Games Endpoints
+$app->get('/api/qtech/{brand_code}/accounts/{player_id}/session?gameId={game_id}', 'QTechController@authPlayer');
+$app->post('/api/qtech/{brand_code}/accounts/{player_id}/balance?gameId={game_id}', 'QTechController@getBalance');
+$app->post('/api/qtech/{brand_code}/transactions', 'QTechController@gameTransaction');
+$app->post('/api/qtech/{brand_code}/transactions/rollback', 'QTechController@rollbackTransaction');
+$app->post('/api/qtech/{brand_code}/bonus/status', 'QTechController@bonusStatus');
+
+// Vivo Gaming Endpoints
+$app->get('/api/vivo/{brand_code}/authenticate', 'VivoController@authPlayer');
+$app->get('/api/vivo/{brand_code}/changebalance', 'VivoController@gameTransaction');
+$app->get('/api/vivo/{brand_code}/status', 'VivoController@transactionStatus');
+$app->get('/api/vivo/{brand_code}/getbalance', 'VivoController@getBalance');
+
 // ICG Gaming Endpoints
 $app->get('/api/icgaming/gamelist','ICGController@getGameList');
 $app->post('/api/icgaming/gamelaunch','ICGController@gameLaunchURL');
@@ -159,6 +172,7 @@ $app->post('api/aws/single/wallet/fund/query', 'AWSController@singleFundQuery');
 $app->post('api/aws/single/wallet/altest', 'AWSController@changeAccount');
 // SILKSTONE ROUTES (SEAMLESS WALLET)
 // $app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
+$app->post('skywind/api/getgamelist', 'SkyWindController@getGamelist'); // TEST
 $app->post('skywind/api/getauth', 'SkyWindController@getAuth'); // TEST
 $app->post('skywind/api/getauth2', 'SkyWindController@getAuth2'); // TEST
 $app->post('skywind/api/getgames', 'SkyWindController@getGamelist'); // TEST
@@ -174,9 +188,9 @@ $app->post('skywind/api/rollback', 'SkyWindController@gameRollback');
 //Report API
 
 // CQ9 Gaming
-$app->post('api/cq9/transaction/game/bet','CQ9Controller@playerBet');
-$app->post('api/cq9/transaction/game/endround','CQ9Controller@playrEndround');
-$app->post('api/cq9/transaction/game/rollout','CQ9Controller@playerRollout');
+$app->post('api/cq9/transaction/game/bet','CQ9Controller@playerBet'); //
+$app->post('api/cq9/transaction/game/endround','CQ9Controller@playrEndround'); //
+$app->post('api/cq9/transaction/game/rollout','CQ9Controller@playerRollout'); //
 $app->post('api/cq9/transaction/game/takeall','CQ9Controller@playerTakeall');
 $app->post('api/cq9/transaction/game/rollin','CQ9Controller@playerRollin'); //
 $app->post('api/cq9/transaction/game/debit','CQ9Controller@playerDebit');
@@ -184,13 +198,19 @@ $app->post('api/cq9/transaction/game/credit','CQ9Controller@playerCredit');
 $app->post('api/cq9/transaction/game/bonus','CQ9Controller@playerBonus');
 $app->post('api/cq9/transaction/user/payoff','CQ9Controller@playerPayoff');
 $app->post('api/cq9/transaction/game/refund','CQ9Controller@playerRefund');
-$app->post('api/cq9/transaction/game/record','CQ9Controller@playerRecord'); //
+$app->get('api/cq9/transaction/game/record/{mtcode}','CQ9Controller@playerRecord'); 
 $app->post('api/cq9/transaction/game/bets','CQ9Controller@playerBets');
 $app->post('api/cq9/transaction/game/refunds','CQ9Controller@playerRefunds');
 $app->post('api/cq9/transaction/game/cancel','CQ9Controller@playerCancel');
 $app->post('api/cq9/transaction/game/amend','CQ9Controller@playerAmend');
+$app->post('api/cq9/transaction/game/wins','CQ9Controller@playerWins');
+$app->post('api/cq9/transaction/game/amends','CQ9Controller@playerAmends');
+
+
 $app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
+$app->get('api/cq9/gameboy/player/lotto/balance/{account}','CQ9Controller@CheckBalanceLotto'); // New
 $app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
+
 
 $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
 $app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
@@ -231,8 +251,20 @@ $app->post('/api/fc/getbalance','FCController@getBalance');
 $app->post('/api/fc/transaction','FCController@transactionMake');
 $app->post('/api/fc/cancelbet','FCController@cancelBet');
 $app->post('/api/fc/gamelaunch','FCController@gameLaunch');
-
-
+//PNG Endpoints
+$app->post('/api/png/authenticate','PNGController@authenticate');
+$app->post('/api/png/reserve','PNGController@reserve');
+$app->post('/api/png/release','PNGController@release');
+$app->post('/api/png/balance','PNGController@balance');
+$app->post('/api/png/cancelReserve','PNGController@cancelReserve');
+//Wazdan Endpoints
+$app->post('/api/wazdan/authenticate','WazdanController@authenticate');
+$app->post('/api/wazdan/getStake','WazdanController@getStake');
+$app->post('/api/wazdan/rollbackStake','WazdanController@rollbackState');
+$app->post('/api/wazdan/returnWin','WazdanController@returnWin');
+$app->post('/api/wazdan/getFunds','WazdanController@getFunds');
+$app->post('/api/wazdan/gameClose','WazdanController@gameClose');
+$app->post('/api/wazdan/hash','WazdanController@hashCode');
 // BETRNK LOTTO
 $app->post('/api/betrnk/lotto', 'BetrnkController@getUrl');
 
@@ -366,3 +398,6 @@ $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
 
 
 // $app->get('al-games','AlController@insertGamesTapulanMode');
+$app->post('api/booming/gamelist','BoomingGamingController@gameList');
+$app->post('api/booming/callback','BoomingGamingController@callBack');
+$app->post('api/booming/rollback','BoomingGamingController@rollBack');

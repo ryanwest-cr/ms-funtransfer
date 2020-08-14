@@ -85,7 +85,15 @@ return [
     'cqgames' => [
         "pdbid"=> 30, // Database ID nothing todo with the provider!
         'api_url' => 'http://api.cqgame.games',
-        'api_token' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiI1ZjIyODY1ZWNkNTY1ZjAwMDEzZjUyZDAiLCJhY2NvdW50IjoidGlnZXJnYW1lcyIsIm93bmVyIjoiNWYyMjg2NWVjZDU2NWYwMDAxM2Y1MmQwIiwicGFyZW50Ijoic2VsZiIsImN1cnJlbmN5IjoiVVNEIiwianRpIjoiMjQ3NDQ1MTQzIiwiaWF0IjoxNTk2MDk4MTQyLCJpc3MiOiJDeXByZXNzIiwic3ViIjoiU1NUb2tlbiJ9.fdoQCWGPkYNLoROGR9jzMs4axnZbRJCnnLZ8T2UDCwU',
+        // 'api_token' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiI1ZjIyODY1ZWNkNTY1ZjAwMDEzZjUyZDAiLCJhY2NvdW50IjoidGlnZXJnYW1lcyIsIm93bmVyIjoiNWYyMjg2NWVjZDU2NWYwMDAxM2Y1MmQwIiwicGFyZW50Ijoic2VsZiIsImN1cnJlbmN5IjoiVVNEIiwianRpIjoiMjQ3NDQ1MTQzIiwiaWF0IjoxNTk2MDk4MTQyLCJpc3MiOiJDeXByZXNzIiwic3ViIjoiU1NUb2tlbiJ9.fdoQCWGPkYNLoROGR9jzMs4axnZbRJCnnLZ8T2UDCwU',
+        'api_tokens' => [
+            'USD' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiI1ZjIyODY1ZWNkNTY1ZjAwMDEzZjUyZDAiLCJhY2NvdW50IjoidGlnZXJnYW1lcyIsIm93bmVyIjoiNWYyMjg2NWVjZDU2NWYwMDAxM2Y1MmQwIiwicGFyZW50Ijoic2VsZiIsImN1cnJlbmN5IjoiVVNEIiwianRpIjoiMjQ3NDQ1MTQzIiwiaWF0IjoxNTk2MDk4MTQyLCJpc3MiOiJDeXByZXNzIiwic3ViIjoiU1NUb2tlbiJ9.fdoQCWGPkYNLoROGR9jzMs4axnZbRJCnnLZ8T2UDCwU',
+            'CNY' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiI1ZjM0ZDg1YWNkNTY1ZjAwMDE0MDBjZTYiLCJhY2NvdW50IjoidGlnZXJnYW1lc19jbnkiLCJvd25lciI6IjVmMjI4NjVlY2Q1NjVmMDAwMTNmNTJkMCIsInBhcmVudCI6IjVmMjI4NjVlY2Q1NjVmMDAwMTNmNTJkMCIsImN1cnJlbmN5IjoiQ05ZIiwianRpIjoiNjY2MjE3MzgxIiwiaWF0IjoxNTk3Mjk4Nzc4LCJpc3MiOiJDeXByZXNzIiwic3ViIjoiU1NUb2tlbiJ9.5xRfW4vHJLi7PeBmZGckSAIw9KoeL_al-dwcnV5dYL4',
+        ],
+        'wallet_token' => [
+            'USD' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyaWQiOiI1ZjIyODY1ZWNkNTY1ZjAwMDEzZjUyZDAiLCJhY2NvdW50IjoidGlnZXJnYW1lcyIsIm93bmVyIjoiNWYyMjg2NWVjZDU2NWYwMDAxM2Y1MmQwIiwicGFyZW50Ijoic2VsZiIsImN1cnJlbmN5IjoiVVNEIiwianRpIjoiMjQ3NDQ1MTQzIiwiaWF0IjoxNTk2MDk4MTQyLCJpc3MiOiJDeXByZXNzIiwic3ViIjoiU1NUb2tlbiJ9.fdoQCWGPkYNLoROGR9jzMs4axnZbRJCnnLZ8T2UDCwU',
+            'CNY' => '7CBCiX3qf5zMfYijIAmanbP2JB2HiBAi',
+        ]
     ],
     'sagaming' => [
         "pdbid"=> 25, // Database ID nothing todo with the provider!
@@ -161,8 +169,34 @@ return [
         'gamelaunch_url' => 'https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do',
         'secureLogin' => 'tg_tigergames', //or stylename
         'secret_key' => 'testKey',
+    ],
+    'wazdan'=>[
+        'operator' => 'tigergames',
+        'license' => 'curacao',
+        'hmac_scret_key' => 'uTDVNr4wu6Y78SNbr36bqsSCH904Rcn1',
+        'partnercode'=> 'gd1wiurg',
+        'gamelaunchurl' => 'https://gl-staging.wazdanep.com/'
+    ],
+    'png'=>[
+        'root_url'=> 'https://agastage.playngonetwork.com',
+        'pid' => 8888,
+        'channel'=> 'desktop',
+        'practice'=>0
+    ],
+    'booming' => [
+        'api_url' => 'https://api.intgr.booming-games.com',
+        'api_secret' => 'NQGRafUDbe/esU8r+zVWWW7cx6xZKE2gpqWXv4Fs17j88u0djV6NBi9Tgdtc0R6w',
+        'api_key' =>'xvkwXPp52AUPLBGCXmD5UA==',
+        'call_back' => 'https://api-test.betrnk.games/public/api/booming/callback',
+        'roll_back' => 'https://api-test.betrnk.games/public/api/booming/rollback'
+    ],
+    'manna'=>[
+        'AUTH_URL'=> 'https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
+        'GAME_LINK_URL' => 'https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
+        'API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
+        'AUTH_API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
+        'CLIENT_API_KEY' => '4dtXHSekHaFkAqbGcsWV2es4BTRLADQP'
     ]
-    
 ];
 
 ?>

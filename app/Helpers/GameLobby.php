@@ -49,6 +49,24 @@ class GameLobby{
                   "&exir_url=".$exit_url;
         return $gameurl;
     }
+    public static function wazdanLaunchUrl($game_code,$token,$exitUrl){
+        $lang = "en";
+        $timestamp = Carbon::now()->timestamp;
+        $exit_url = $exitUrl;
+        Helper::savePLayerGameRound($game_code,$token);
+        $gameurl = config('providerlinks.wazdan.gamelaunchurl').config('providerlinks.wazdan.partnercode').'/gamelauncher?operator='.config('providerlinks.wazdan.operator').
+                  '&game='.$game_code.'&mode=real&token='.$token.'&license='.config('providerlinks.wazdan.license').'&lang='.$lang.'&platform=desktop';
+        return $gameurl;
+    }
+    public static function pngLaunchUrl($game_code,$token,$exitUrl){
+        $lang = "en";
+        $timestamp = Carbon::now()->timestamp;
+        $exit_url = $exitUrl;
+        Helper::savePLayerGameRound($game_code,$token);
+        $gameurl = config('providerlinks.png.root_url').'/casino/ContainerLauncher?pid='.config('providerlinks.png.pid').'&gid='.$game_code.'&channel='.
+                   config('providerlinks.png.channel').'&lang='.$lang.'&practice='.config('providerlinks.png.practice').'&ticket='.$token.'&origin='.$exit_url;
+        return $gameurl;
+    }
     public static function edpLaunchUrl($game_code,$token,$exitUrl){
         $profile = "nofullscreen_money.xml";
         $sha1key = sha1($exitUrl.''.config("providerlinks.endorphina.nodeId").''.$profile.''.$token.''.config("providerlinks.endorphina.secretkey"));
@@ -239,9 +257,17 @@ class GameLobby{
     public static function cq9LaunchUrl($game_code, $token){
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        $api_tokens = config('providerlinks.cqgames.api_tokens');
+        if(array_key_exists($client_details->default_currency, $api_tokens)){
+            $auth = $api_tokens[$client_details->default_currency];
+            // $auth = $api_tokens['USD'];
+        }else{
+            return 'false';
+        }
         $client = new Client([
             'headers' => [ 
-                'Authorization' => config('providerlinks.cqgames.api_token'),
+                'Authorization' => $auth,
+                // 'Authorization' => config('providerlinks.cqgames.api_token'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ]
         ]);
@@ -327,7 +353,7 @@ class GameLobby{
           "return_url_info" => 1, // url link
           "callback_version" => 2, // POST CALLBACK
         ];
-        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.tgg.secretkey'));
+        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.tgg.api_key'));
         $requesttosend['signature'] = $signature;
         $client = new Client([
             'headers' => [ 
@@ -345,8 +371,51 @@ class GameLobby{
 
     public static function pgsoftlaunchUrl( $game_code = null, $token = null){
         $operator_token = config('providerlinks.pgsoft.operator_token');
-        $url = "https://m.pg-redirect.net/".$game_code."/index.html?language=en-us&bet_type=1&operator_token=".$operator_token."&operator_player_session=".$token;
+        $url = "https://m.pg-redirect.net/".$game_code."/index.html?language=en-us&bet_type=1&operator_token=".urlencode($operator_token)."&operator_player_session=".urlencode($token);
         return $url;
+    }
+
+    public static function boomingGamingUrl($data){
+        Helper::saveLog('Booming session ', 36, json_encode($data), "ENDPOINT HIT");
+        $url = config('providerlinks.booming.api_url').'/v2/session';
+        $client_details = ProviderHelper::getClientDetails('token',$data["token"]);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        try{
+            $nonce = date('mdYHisu', strtotime('+10 hours'));
+            $requesttosend = array (
+                'game_id' => $data["game_code"],
+                'balance' => $player_details->playerdetailsresponse->balance,
+                'locale' => 'en',
+                'variant' => 'desktop',
+                'currency' => $client_details->default_currency,
+                'player_id' => (string)$client_details->player_id,
+                'callback' =>  config('providerlinks.booming.call_back'),
+                'rollback_callback' =>  config('providerlinks.booming.roll_back')
+            );
+            $sha256 =  hash('sha256', json_encode($requesttosend, JSON_FORCE_OBJECT));
+            $concat = '/v2/session'.$nonce.$sha256;
+            $secrete = hash_hmac('sha512', $concat, config('providerlinks.booming.api_secret'));
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/vnd.api+json',
+                    'X-Bg-Api-Key' => config('providerlinks.booming.api_key'),
+                    'X-Bg-Nonce'=> $nonce,
+                    'X-Bg-Signature' => $secrete
+                ]
+            ]);
+            $guzzle_response = $client->post($url,  ['body' => json_encode($requesttosend)]);
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            Helper::saveLogCode('Booming nonce', 36, $nonce, $nonce);
+            Helper::saveLog('Booming session process', 36, json_encode($data), $client_response);
+            return $client_response;
+        }catch(\Exception $e){
+            $error = [
+                'error' => $e->getMessage()
+            ];
+            Helper::saveLog('Booming session error', 36, json_encode($data), $e->getMessage());
+            return $error;
+        }
+
     }
 
     public static function habanerolaunchUrl( $game_code = null, $token = null){
@@ -537,11 +606,11 @@ class GameLobby{
         $auth_token = new Client([ // auth_token
                 'headers' => [ 
                     'Content-Type' => 'application/json',
-                    'apiKey' => 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a'
+                    'apiKey' => config("providerlinks.manna.AUTH_API_KEY")
                 ]
             ]);
 
-        $auth_token_response = $auth_token->post('https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
+        $auth_token_response = $auth_token->post(config("providerlinks.manna.AUTH_URL"),
                 ['body' => json_encode(
                         [
                             "id" => "betrnk",
@@ -559,12 +628,12 @@ class GameLobby{
         $game_link = new Client([
                 'headers' => [ 
                     'Content-Type' => 'application/json',
-                    'apiKey' => 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
+                    'apiKey' => config("providerlinks.manna.AUTH_API_KEY"),
                     'token' => $auth_result->token
                 ]
             ]);
 
-        $game_link_response = $game_link->post('https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
+        $game_link_response = $game_link->post(config("providerlinks.manna.GAME_LINK_URL"),
                 ['body' => json_encode(
                         [
                             "account" => $client_details->username,

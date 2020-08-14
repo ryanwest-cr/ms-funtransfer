@@ -17,12 +17,11 @@ class TGGController extends Controller
     	$this->api_url = config('providerlinks.tgg.api_url');
 	}
 	
-	public $provider_db_id = 29;
+	public $provider_db_id = 29; // 29 on test ,, 27 prod
 
 	public function index(Request $request){
 		
 		Helper::saveLog('TGG index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
-
 		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->api_key,'check_signature');
 		// return $signature_checker;
 		if($signature_checker == 'false'):

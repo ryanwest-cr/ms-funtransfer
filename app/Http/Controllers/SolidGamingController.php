@@ -110,6 +110,7 @@ class SolidGamingController extends Controller
 			}
 		}
 
+
 		Helper::saveLog('authentication', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -152,7 +153,7 @@ class SolidGamingController extends Controller
 				        		"access_token" => $client_details->client_access_token,
 								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 								"type" => "playerdetailsrequest",
-								"datesent" => "",
+								"datesent" => Helper::datesent(),
 								"gameid" => "",
 								"clientid" => $client_details->client_id,
 								"playerdetailsrequest" => [
@@ -239,7 +240,7 @@ class SolidGamingController extends Controller
 					        		"access_token" => $client_details->client_access_token,
 									"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 									"type" => "playerdetailsrequest",
-									"datesent" => "",
+									"datesent" => Helper::datesent(),
 									"gameid" => "",
 									"clientid" => $client_details->client_id,
 									"playerdetailsrequest" => [
@@ -274,7 +275,13 @@ class SolidGamingController extends Controller
 	public function debitProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		/*$client_code = RouteParam::get($request, 'brand_code');*/
+		$body = [];
+		$response = [];
+		$client_response = [];
+
+		if($this->_isIdempotent($json_data['transid'])) {
+			return $this->_isIdempotent($json_data['transid'])->mw_response;
+		}
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 				$http_status = 400;
@@ -333,7 +340,7 @@ class SolidGamingController extends Controller
 									  "access_token" => $client_details->client_access_token,
 									  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 									  "type" => "fundtransferrequest",
-									  "datetsent" => "",
+									  "datesent" => Helper::datesent(),
 									  "gamedetails" => [
 									    "gameid" => "",
 									    "gamename" => ""
@@ -385,7 +392,7 @@ class SolidGamingController extends Controller
 								$json_data['income'] = $json_data['amount'];
 
 								$game_details = Game::find($json_data["gamecode"]);
-								GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
+								$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
 								$http_status = 200;
 								$response = [
@@ -393,6 +400,8 @@ class SolidGamingController extends Controller
 									"currency" => $client_details->currency,
 									"balance" => $client_response->fundtransferresponse->balance,
 								];
+
+								Helper::createSolidGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
 							}
 						}
 					}
@@ -400,7 +409,7 @@ class SolidGamingController extends Controller
 			}
 		}
 		
-		/*Helper::saveClientLog('debit', 2, $body, $client_response);*/
+		
 		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -409,7 +418,13 @@ class SolidGamingController extends Controller
 	public function creditProcess(Request $request)
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		/*$client_code = RouteParam::get($request, 'brand_code');*/
+		$body = [];
+		$response = [];
+		$client_response = [];
+
+		if($this->_isIdempotent($json_data['transid'])) {
+			return $this->_isIdempotent($json_data['transid'])->mw_response;
+		}
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 				$http_status = 404;
@@ -460,13 +475,12 @@ class SolidGamingController extends Controller
 						    ]
 						]);
 						
-						$guzzle_response = $client->post($client_details->fund_transfer_url,
-						    ['body' => json_encode(
+						$body = json_encode(
 						        	[
 									  "access_token" => $client_details->client_access_token,
 									  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 									  "type" => "fundtransferrequest",
-									  "datetsent" => "",
+									  "datesent" => Helper::datesent(),
 									  "gamedetails" => [
 									    "gameid" => "",
 									    "gamename" => ""
@@ -487,7 +501,10 @@ class SolidGamingController extends Controller
 										]
 									  ]
 									]
-						    )]
+						    );
+
+						$guzzle_response = $client->post($client_details->fund_transfer_url,
+						    ['body' => $body]
 						);
 
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
@@ -505,7 +522,7 @@ class SolidGamingController extends Controller
 
 							$json_data['income'] = $json_data['amount'] - $json_data["amount"];
 
-							GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+							$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
 
 							$http_status = 200;
 							$response = [
@@ -513,11 +530,14 @@ class SolidGamingController extends Controller
 								"currency" => $client_details->currency,
 								"balance" => $client_response->fundtransferresponse->balance,
 							];
+
+							Helper::createSolidGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 2);
 						}
 					}
 				}
 			}
 		}
+		
 		
 		Helper::saveLog('credit', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
@@ -526,7 +546,13 @@ class SolidGamingController extends Controller
 	public function debitAndCreditProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		/*$client_code = RouteParam::get($request, 'brand_code');*/
+		$body = [];
+		$response = [];
+		$client_response = [];
+
+		if($this->_isIdempotent($json_data['transid'])) {
+			return $this->_isIdempotent($json_data['transid'])->mw_response;
+		}
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'betamount', 'winamount', 'roundended')) {
 
@@ -590,13 +616,12 @@ class SolidGamingController extends Controller
 							    ]
 							]);
 							
-							$debit_guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => json_encode(
+							$debit_body = json_encode(
 							        	[
 										  "access_token" => $client_details->client_access_token,
 										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 										  "type" => "fundtransferrequest",
-										  "datetsent" => "",
+										  "datesent" => Helper::datesent(),
 										  "gamedetails" => [
 										    "gameid" => "",
 										    "gamename" => ""
@@ -616,17 +641,21 @@ class SolidGamingController extends Controller
 											]
 										  ]
 										]
-							    )]
+							    );
+
+							$debit_guzzle_response = $client->post($client_details->fund_transfer_url,
+							    ['body' => $debit_body]
 							);
+
 							$debit_client_response = json_decode($debit_guzzle_response->getBody()->getContents());
 
-							$credit_guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => json_encode(
+
+							$credit_body = json_encode(
 							        	[
 										  "access_token" => $client_details->client_access_token,
 										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 										  "type" => "fundtransferrequest",
-										  "datetsent" => "",
+										  "datesent" => Helper::datesent(),
 										  "gamedetails" => [
 										    "gameid" => "",
 										    "gamename" => ""
@@ -646,7 +675,10 @@ class SolidGamingController extends Controller
 											]
 										  ]
 										]
-							    )]
+							    );
+
+							$credit_guzzle_response = $client->post($client_details->fund_transfer_url,
+							    ['body' => $credit_body]
 							);
 
 							$credit_client_response = json_decode($credit_guzzle_response->getBody()->getContents());
@@ -675,18 +707,22 @@ class SolidGamingController extends Controller
 									$json_data["amount"] = $json_data["betamount"];
 									$json_data['income'] = $json_data['betamount'];
 
-									GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
-						
+									$debit_game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
+									
 									$json_data["amount"] = $json_data["winamount"];
 									$json_data["reason"] = "";
 									
-									GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+									$credit_game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
 									
 									$response = [
 										"status" => "OK",
 										"currency" => $client_details->currency,
 										"balance" => $credit_client_response->fundtransferresponse->balance,
 									];
+
+									Helper::createSolidGameTransactionExt($debit_game_transaction_id, $json_data, $debit_body, $response, $debit_client_response, 1);
+
+									Helper::createSolidGameTransactionExt($credit_game_transaction_id, $json_data, $credit_body, $response, $credit_client_response, 2);
 								}
 							}
 						}
@@ -702,7 +738,13 @@ class SolidGamingController extends Controller
 	public function rollBackTransaction(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		/*$client_code = RouteParam::get($request, 'brand_code');*/
+		$body = [];
+		$response = [];
+		$client_response = [];
+
+		if($this->_isIdempotent($json_data['originaltransid'], true)) {
+			return $this->_isIdempotent($json_data['originaltransid'], true)->mw_response;
+		}
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid')) {
 				$http_status = 400;
@@ -760,13 +802,12 @@ class SolidGamingController extends Controller
 							    ]
 							]);
 							
-							$guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => json_encode(
+							$body = json_encode(
 							        	[
 										  "access_token" => $client_details->client_access_token,
 										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 										  "type" => "fundtransferrequest",
-										  "datetsent" => "",
+										  "datesent" => Helper::datesent(),
 										  "gamedetails" => [
 										    "gameid" => "",
 										    "gamename" => ""
@@ -786,7 +827,10 @@ class SolidGamingController extends Controller
 											]
 										  ]
 										]
-							    )]
+							    );
+
+							$guzzle_response = $client->post($client_details->fund_transfer_url,
+							    ['body' => $body]
 							);
 
 							$client_response = json_decode($guzzle_response->getBody()->getContents());
@@ -794,7 +838,7 @@ class SolidGamingController extends Controller
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
 								$json_data['income'] = $game_transaction->bet_amount;
-								GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
+								$game_transaction_id = GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 								
 								$http_status = 200;
 								$response = [
@@ -802,6 +846,10 @@ class SolidGamingController extends Controller
 									"currency" => $client_details->currency,
 									"balance" => $client_response->fundtransferresponse->balance,
 								];
+
+								$json_data['transid'] = $json_data['originaltransid'];
+								$json_data['amount'] = $game_transaction->bet_amount;
+								Helper::createSolidGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 3);
 							}
 						}
 					}
@@ -838,13 +886,12 @@ class SolidGamingController extends Controller
 									    ]
 									]);
 									
-									$guzzle_response = $client->post($client_details->fund_transfer_url,
-									    ['body' => json_encode(
+									$body = json_encode(
 									        	[
 												  "access_token" => $client_details->client_access_token,
 												  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
 												  "type" => "fundtransferrequest",
-												  "datetsent" => "",
+												  "datesent" => Helper::datesent(),
 												  "gamedetails" => [
 												    "gameid" => "",
 												    "gamename" => ""
@@ -864,7 +911,10 @@ class SolidGamingController extends Controller
 													]
 												  ]
 												]
-									    )]
+									    );
+
+									$guzzle_response = $client->post($client_details->fund_transfer_url,
+									    ['body' => $body]
 									);
 
 									$client_response = json_decode($guzzle_response->getBody()->getContents());
@@ -872,23 +922,24 @@ class SolidGamingController extends Controller
 									// If client returned a success response
 									if($client_response->fundtransferresponse->status->code == "200") {
 										$json_data['income'] = $value->bet_amount;
-										GameTransaction::save('rollback', $json_data, $value, $client_details, $client_details);
+										$game_transaction_id = GameTransaction::save('rollback', $json_data, $value, $client_details, $client_details);
+
+										$http_status = 200;
+										$response = [
+												"status" => "OK",
+												"currency" => $client_details->currency,
+												"balance" => $client_response->fundtransferresponse->balance,
+											];
+
+										$json_data['transid'] = $json_data['originaltransid'];
+										$json_data['amount'] = $value->bet_amount;
+										Helper::createSolidGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 3);
+
 									}
-
 								}
-
-								$http_status = 200;
-								$response = [
-										"status" => "OK",
-										"currency" => $client_details->currency,
-										"balance" => $client_response->fundtransferresponse->balance,
-									];
 							}
-
 						}
-						
 					}					
-				
 				}
 			}
 		}
@@ -928,12 +979,37 @@ class SolidGamingController extends Controller
 						GameRound::end($json_data['roundid']);
 					}
 				}
+
+				$client = new Client([
+				    'headers' => [ 
+				    	'Content-Type' => 'application/json',
+				    	'Authorization' => 'Bearer '.$client_details->client_access_token
+				    ]
+				]);
+				
+				$guzzle_response = $client->post($client_details->player_details_url,
+				    ['body' => json_encode(
+				        	["access_token" => $client_details->client_access_token,
+								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+								"type" => "playerdetailsrequest",
+								"datesent" => Helper::datesent(),
+								"gameid" => "",
+								"clientid" => $client_details->client_id,
+								"playerdetailsrequest" => [
+									"client_player_id" => $client_details->client_player_id,
+									"token" => $client_details->player_token,
+									"gamelaunch" => true
+								]]
+				    )]
+				);
+				
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
 				
 				$http_status = 200;
 				$response = [
 					"status" => "OK",
 					"currency" => $client_details->currency,
-					"balance" => $client_response->fundtransferresponse->balance,
+					"balance" => $client_response->playerdetailsresponse->balance,
 				];
 			
 			}
@@ -986,5 +1062,23 @@ class SolidGamingController extends Controller
 
 	}
 
+	private function _isIdempotent($transaction_id, $is_rollback = false) {
+		$result = false;
+		$query = DB::table('game_transaction_ext')
+								->where('provider_trans_id', $transaction_id);
+		if ($is_rollback == true) {
+					$query->where([
+				 		["game_transaction_type", "=", 3]
+				 	]);
+				}
+
+		$transaction_exist = $query->first();
+
+		if($transaction_exist) {
+			$result = $transaction_exist;
+		}
+
+		return $result;								
+	}
 
 }
