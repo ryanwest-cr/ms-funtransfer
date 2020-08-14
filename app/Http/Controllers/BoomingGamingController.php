@@ -262,7 +262,7 @@ class BoomingGamingController extends Controller
     
                         }catch(\Exception $e){
                             $errormessage = [
-                                'error' => '2012',
+                                'error' => '2099',
                                 'message' => $e->getMessage()
                             ];
                             Helper::saveLog('Booming Payout error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
@@ -272,8 +272,8 @@ class BoomingGamingController extends Controller
                 else:
                         // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
                         $errormessage = [
-                            'error' => '2012',
-                            'message' => 'Invalid Player ID'
+                            'error' => '2010',
+                            'message' => 'Unsupported parameters provided'
                         ];
                     Helper::saveLog('Booming Rollback error', $this->provider_db_id,  json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
                     return json_encode($errormessage, JSON_FORCE_OBJECT); 
