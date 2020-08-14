@@ -454,13 +454,13 @@ class GameLobby{
         // $hashCurrentBalance =  md5("externalPlayerId=".$userid."&secureLogin=".$stylename.$key);
         // $currentBalance = "https://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/balance/current/?externalPlayerId=$userid&secureLogin=$stylename&hash=$hashCurrentBalance";
 
-        $paramEncoded = urlencode("token=".$token."&symbol=".$game_code."&technology=F&platform=WEB&language=en&lobbyUrl=daddy.betrnk.games");
+        $paramEncoded = urlencode("token=".$token."&symbol=".$game_code."&technology=H5&platform=WEB&language=en&lobbyUrl=daddy.betrnk.games");
         $url = "$gameluanch_url?key=$paramEncoded&stylename=$stylename";
         // $result = file_get_contents($url);
         $result = json_encode($url);
         
         // $result = json_decode(json_decode($result));
-        Helper::saveLog('start game url PP', 49, $result,"");
+        Helper::saveLog('start game url PP', 49, $result,"$result");
         return $url;
 
         // return isset($result->gameURL) ? $result->gameURL : false;
