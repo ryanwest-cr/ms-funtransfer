@@ -114,7 +114,12 @@ class BoomingGamingController extends Controller
                         $response =  [
                             "balance" => (string)$client_response->fundtransferresponse->balance,
                             "return" => $url,
-                            'error' => 'reality_check'
+                            'error' => 'reality_check',
+                            'message' => 'Continue to the game.',
+                            'buttons' => [
+                                'title' => 'OK',
+                                'action' => 'close_dialog',
+                            ]
                         ];
 
                         $token_id = $client_details->token_id;
@@ -194,7 +199,7 @@ class BoomingGamingController extends Controller
             try{
                 if($game_ext == 'false'):
                     $amount = $data["bet"] - $data["win"];
-                    $transactiontype = $data["win"] == '0' ? 'debit' : 'credit';
+                    $transactiontype = $data["win"] == '0.0' ? 'debit' : 'credit';
                     $requesttosend = [
                             "access_token" => $client_details->client_access_token,
                             "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -234,7 +239,12 @@ class BoomingGamingController extends Controller
                             $response =  [
                                 "balance" => (string)$client_response->fundtransferresponse->balance,
                                 "return" => $url,
-                                'error' => 'reality_check'
+                                'error' => 'reality_check',
+                                'message' => 'Continue to the game.',
+                                'buttons' => [
+                                    'title' => 'OK',
+                                    'action' => 'close_dialog',
+                                ]
                             ];
                             
                             $token_id = $client_details->token_id;
