@@ -114,12 +114,7 @@ class BoomingGamingController extends Controller
                         $response =  [
                             "balance" => (string)$client_response->fundtransferresponse->balance,
                             "return" => $url,
-                            'error' => 'reality_check',
-                            'message'=> '',
-                            'buttons' => [
-                                'title' => 'OK',
-                                'action' => 'close_dialog'
-                            ]
+                            'error' => 'reality_check'
                         ];
 
                         $token_id = $client_details->token_id;
@@ -239,12 +234,7 @@ class BoomingGamingController extends Controller
                             $response =  [
                                 "balance" => (string)$client_response->fundtransferresponse->balance,
                                 "return" => $url,
-                                'error' => 'reality_check',
-                                'message'=> '',
-                                'buttons' => [
-                                    'title' => 'OK',
-                                    'action' => 'close_dialog'
-                                ]
+                                'error' => 'reality_check'
                             ];
                             
                             $token_id = $client_details->token_id;
