@@ -112,23 +112,7 @@ class BoomingGamingController extends Controller
                         $client_response = json_decode($guzzle_response->getBody()->getContents());
                         $response =  [
                             "balance" => (string)$client_response->fundtransferresponse->balance,
-                            "return" => $url,
-                            'error' => 'reality_check',
-                            'message' => 'Status Ok',
-                            'buttons' => [
-                                [
-                                    'title'=> 'OK',
-                                    'action'=> 'close_dialog',
-                                ],
-                                [
-                                    'title'=> 'History',
-                                    'action'=> 'history',
-                                ],
-                                [
-                                    'title'=> 'Exit game',
-                                    'action'=> 'exit'
-                                ]
-                            ]
+                            "return" => $url
                         ];
 
                         $token_id = $client_details->token_id;
@@ -247,23 +231,7 @@ class BoomingGamingController extends Controller
                             
                             $response =  [
                                 "balance" => (string)$client_response->fundtransferresponse->balance,
-                                "return" => $url,
-                                'error' => 'reality_check',
-                                'message' => 'Status Ok',
-                                'buttons' => [
-                                    [
-                                        'title'=> 'OK',
-                                        'action'=> 'close_dialog',
-                                    ],
-                                    [
-                                        'title'=> 'History',
-                                        'action'=> 'history',
-                                    ],
-                                    [
-                                        'title'=> 'Exit game',
-                                        'action'=> 'exit'
-                                    ]
-                                ]
+                                "return" => $url
                             ];
                             
                             $token_id = $client_details->token_id;
