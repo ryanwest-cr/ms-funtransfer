@@ -16,7 +16,7 @@ class WMTController extends Controller
     public function makeSettlement(Request $request){
         $requestfromprovider = json_decode($request->getContent(),TRUE);
         Helper::saveLog("WMT LOGS TEST",15,$request->getContent(),"test");
-        if($requestfromprovider["txn_status"]==200){
+        if($requestfromprovider["result"]==0){
             $player_details = $this->_getClientDetails("token",$requestfromprovider["merchant_txn_id"]);
             $converted = $this->currencyConverter($player_details->default_currency,$requestfromprovider["currency"],$requestfromprovider["amount"]);
             $update_deposit = DB::table('pay_transactions')
