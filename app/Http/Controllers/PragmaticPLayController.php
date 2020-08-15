@@ -182,7 +182,7 @@ class PragmaticPLayController extends Controller
                     "bonus" => 0.00,
                     "usedPromo" => 0,
                     "error" => 0,
-                    "description" => "Successs"
+                    "description" => "Success"
                 );
 
                 Helper::saveLog('PP bet duplicate', $this->provider_id,json_encode($data) , $response);
