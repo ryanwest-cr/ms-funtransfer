@@ -405,7 +405,10 @@ class PragmaticPLayController extends Controller
             );
             array_push($response,$data);
         endforeach; 
-        
+        $response = array(
+             "gamesBalances" => $response
+        );
+        return $response;
         Helper::saveLog('PP getBalancePerGame response', $this->provider_id, json_encode($data) ,$response);
         // return $game_bal;
 
