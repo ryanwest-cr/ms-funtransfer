@@ -408,7 +408,7 @@ class PragmaticPLayController extends Controller
         $response = array(
              "gamesBalances" => $response
         );
-       
+
         Helper::saveLog('PP getBalancePerGame response', $this->provider_id, json_encode($data) ,$response);
         // return $game_bal;
 
@@ -603,6 +603,8 @@ class PragmaticPLayController extends Controller
             ]
         ]);
 
+
+        try {
         $game_details = Helper::findGameDetails('game_code', $this->provider_id, 'vs25pyramid');
         $tokenId = $client_details->token_id;
         $roundId = $data->campaignId;
@@ -651,6 +653,13 @@ class PragmaticPLayController extends Controller
         );
         Helper::saveLog('PP promoWin response', $this->provider_id, json_encode($data) , $response);
         return $response;
+        }catch(\Exception $e){
+            $error = [
+                'error' => $e->getMessage()
+            ];
+            Helper::saveLog('PP ERROR', $this->provider_id, json_encode($data), $e->getMessage());
+            return $error;
+        }
     }
 
     public function jackpotWin(Request $request){
