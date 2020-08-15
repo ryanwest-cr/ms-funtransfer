@@ -188,7 +188,8 @@ return [
         'api_secret' => 'NQGRafUDbe/esU8r+zVWWW7cx6xZKE2gpqWXv4Fs17j88u0djV6NBi9Tgdtc0R6w',
         'api_key' =>'xvkwXPp52AUPLBGCXmD5UA==',
         'call_back' => 'https://api-test.betrnk.games/public/api/booming/callback',
-        'roll_back' => 'https://api-test.betrnk.games/public/api/booming/rollback'
+        'roll_back' => 'https://api-test.betrnk.games/public/api/booming/rollback',
+        'provider_db_id' => 36,
     ],
     'manna'=>[
         'AUTH_URL'=> 'https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',

@@ -13,12 +13,12 @@ use DB;
 
 class BoomingGamingController extends Controller
 {
-    public $provider_db_id = 36; // no update databse insert provider
 
     public function __construct(){
     	$this->api_key = config('providerlinks.booming.api_key');
     	$this->api_secret = config('providerlinks.booming.api_secret');
-    	$this->api_url = config('providerlinks.booming.api_url');
+        $this->api_url = config('providerlinks.booming.api_url');
+        $this->provider_db_id = config('providerlinks.booming.provider_db_id');
     }
     
     public function gameList(){
@@ -74,7 +74,7 @@ class BoomingGamingController extends Controller
                         return json_encode($errormessage, JSON_FORCE_OBJECT); 
                     endif;
                     $amount = $data["bet"] - $data["win"];
-                    $transactiontype = (int)$data["win"] == 0.0 ? 'debit' : 'credit';
+                    $transactiontype = $data["win"] == '0.0' ? "debit" : "credit";
                     $requesttosend = [
                         "access_token" => $client_details->client_access_token,
                         "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
