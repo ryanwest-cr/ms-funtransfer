@@ -46,7 +46,7 @@ class PragmaticPLayController extends Controller
         $hash = $data->hash;
         $token = $data->token;
         $client_details = ProviderHelper::getClientDetails('token',$token);
-        
+       
         if($client_details != null)
         {
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -58,7 +58,7 @@ class PragmaticPLayController extends Controller
             $response = array(
                 "userId" => $userid,
                 "currency" => $currency,
-                "cash" => number_format($balance, 2, '.', ''),
+                "cash" => floatval(number_format($balance, 2, '.', '')),
                 "bonus" => 0.00,
                 "country" => $country,
                 "jurisdiction" => "99",
@@ -110,7 +110,7 @@ class PragmaticPLayController extends Controller
    
         $response = array(
             "currency" => $client_details->default_currency,
-            "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
+            "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
             "bonus" => 0.00,
             "error" => 0,
             "description" => "Success"
@@ -148,8 +148,7 @@ class PragmaticPLayController extends Controller
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $game_details = Helper::findGameDetails('game_code', 26, $data->gameId);
-
+        $game_details = Helper::findGameDetails('game_code', 22, $data->gameId);
 
         $client = new Client([
             'headers' => [ 
@@ -166,7 +165,7 @@ class PragmaticPLayController extends Controller
         if($bet_amount > $player_details->playerdetailsresponse->balance){
 
             $response = array(
-                "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
+                "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                 "error" => 1,
                 "description" => "Not Enough Balance"
             );
@@ -179,7 +178,7 @@ class PragmaticPLayController extends Controller
                 $response = array(
                     "transactionId" => $checkGameTrans[0]->game_trans_id,
                     "currency" => $client_details->default_currency,
-                    "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
+                    "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                     "bonus" => 0.00,
                     "usedPromo" => 0,
                     "error" => 0,
@@ -197,7 +196,7 @@ class PragmaticPLayController extends Controller
                 $response = array(
                     "transactionId" => $gametrans,
                     "currency" => $client_details->default_currency,
-                    "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', ''),
+                    "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
                     "bonus" => 0.00,
                     "usedPromo" => 0,
                     "error" => 0,
@@ -262,7 +261,7 @@ class PragmaticPLayController extends Controller
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $game_details = Helper::findGameDetails('game_code', 26, $data->gameId);
+        $game_details = Helper::findGameDetails('game_code', 22, $data->gameId);
         
         $checkExt = ProviderHelper::findGameExt($data->roundId, '2', 'round_id');
 
@@ -270,7 +269,7 @@ class PragmaticPLayController extends Controller
             $response_log = array(
                 "transactionId" => $checkGameTrans[0]->game_trans_id,
                 "currency" => $client_details->default_currency,
-                "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
+                "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                 "bonus" => 0,
                 "error" => 0,
                 "description" => "Success",
@@ -334,7 +333,7 @@ class PragmaticPLayController extends Controller
         $response = array(
             "transactionId" => $game_trans_ext,
             "currency" => $client_details->default_currency,
-            "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', ''),
+            "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
             "bonus" => 0,
             "error" => 0,
             "description" => "Success",
@@ -370,7 +369,7 @@ class PragmaticPLayController extends Controller
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
    
         $response = array(
-            "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
+            "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
             "bonus" => 0.00,
             "error" => 0,
             "description" => "Success"
@@ -397,7 +396,7 @@ class PragmaticPLayController extends Controller
             "gamesBalances" => [
                 
                 "gameID" => $data->gameIdList,
-                "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
+                "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                 "bonus" => 0.00
                 
             ]
@@ -586,18 +585,19 @@ class PragmaticPLayController extends Controller
             ]
         ]);
 
-        $game_details = Helper::findGameDetails('game_code', 26, 'vs25pyramid');
+        $game_details = Helper::findGameDetails('game_code', 22, 'vs25pyramid');
         $tokenId = $client_details->token_id;
         $roundId = $data->campaignId;
         
         $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$roundId)->get();
+
         $checkExt = ProviderHelper::findGameExt($roundId, '2', 'round_id');
         
         if($checkExt  != 'false'){
             $response_log = array(
                 "transactionId" => $checkGameTrans[0]->game_trans_id,
                 "currency" => $client_details->default_currency,
-                "cash" => number_format($player_details->playerdetailsresponse->balance, 2, '.', ''),
+                "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                 "bonus" => 0,
                 "error" => 0,
                 "description" => "Success",
@@ -610,23 +610,23 @@ class PragmaticPLayController extends Controller
         // Pyramid King
         $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, "vs25pyramid", "Pyramid King", $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "credit",$client_details->default_currency);
 
-        $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, 0.00, $data->amount, 1, 0, "Tournament", "Promo Win ", 0- $data->amount, $data->reference, $roundId);
+        $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, 0.00, $data->amount, 2, 1, "Tournament", "Promo Win ", 0- $data->amount, $data->reference, $roundId);
         
         $response_log = array(
             "transactionId" => $gametrans,
             "currency" => $client_details->default_currency,
-            "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', ''),
+            "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
             "bonus" => 0,
             "error" => 0,
             "description" => "Success",
         );
 
-        $game_trans_ext = ProviderHelper::createGameTransExt( $gametrans, $data->reference, $roundId, $data->amount, 1, $data, $response_log, $responseDetails['requesttosend'], $responseDetails['client_response'], "Promo Win Tournament");
+        $game_trans_ext = ProviderHelper::createGameTransExt( $gametrans, $data->reference, $roundId, $data->amount, 2, $data, $response_log, $responseDetails['requesttosend'], $responseDetails['client_response'], "Promo Win Tournament");
         
         $response = array(
             "transactionId" => $game_trans_ext,
             "currency" => $client_details->default_currency,
-            "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', ''),
+            "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
             "bonus" => 0,
             "error" => 0,
             "description" => "Success",
@@ -690,7 +690,7 @@ class PragmaticPLayController extends Controller
         $response = array(
             "transactionId" => $game_trans[0]->game_trans_id,
             "currency" => $client_details->default_currency,
-            "cash" => number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', ''),
+            "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
             "bonus" => 0,
             "error" => 0,
             "description" => "Success",
@@ -702,7 +702,7 @@ class PragmaticPLayController extends Controller
             "pay_amount" => $data->amount,
             "win" => true,
             "response" => $response
-        );
+            );
 
         $game_trans_ext = ProviderHelper::createGameTransExt($game_trans[0]->game_trans_id, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 2, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
 
