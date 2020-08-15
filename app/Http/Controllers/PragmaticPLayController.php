@@ -13,7 +13,7 @@ use GuzzleHttp\Client;
 class PragmaticPLayController extends Controller
 {
     public $key;
-    public $provider_id = 26; //26 
+    public $provider_id = 22; //26 
 
 
     public function __construct(){
@@ -604,23 +604,22 @@ class PragmaticPLayController extends Controller
         ]);
 
 
-        try {
+        // try {
         $game_details = Helper::findGameDetails('game_code', $this->provider_id, 'vs25pyramid');
         $tokenId = $client_details->token_id;
         $roundId = $data->campaignId;
-        
         $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$roundId)->get();
+        // return count($checkGameTrans);
+        // $checkExt = ProviderHelper::findGameExt($roundId, '2', 'round_id');
 
-        $checkExt = ProviderHelper::findGameExt($roundId, '2', 'round_id');
-        
-        if($checkExt  != 'false'){
+        if(count($checkGameTrans) > 0){
             $response_log = array(
                 "transactionId" => $checkGameTrans[0]->game_trans_id,
                 "currency" => $client_details->default_currency,
                 "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                 "bonus" => 0,
                 "error" => 0,
-                "description" => "Success",
+                "description" => "Successsss",
             );
 
             return $response_log;
@@ -653,13 +652,13 @@ class PragmaticPLayController extends Controller
         );
         Helper::saveLog('PP promoWin response', $this->provider_id, json_encode($data) , $response);
         return $response;
-        }catch(\Exception $e){
-            $error = [
-                'error' => $e->getMessage()
-            ];
-            Helper::saveLog('PP ERROR', $this->provider_id, json_encode($data), $e->getMessage());
-            return $error;
-        }
+        // }catch(\Exception $e){
+        //     $error = [
+        //         'error' => $e->getMessage()
+        //     ];
+        //     Helper::saveLog('PP ERROR', $this->provider_id, json_encode($data), $e->getMessage());
+        //     return $error;
+        // }
     }
 
     public function jackpotWin(Request $request){
