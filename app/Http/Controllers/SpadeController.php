@@ -16,7 +16,7 @@ class SpadeController extends Controller
 {
 
 	public $api_url, $merchant_id, $merchant_key = '';
-	public $provider_db_id = 21;
+	public $provider_db_id = 31;
 	public $prefix = 'TIGERG';
 	public $merchantCode = 'M888';
 	public $serialNo = '20120722224255982841';
@@ -82,10 +82,9 @@ class SpadeController extends Controller
 		return $response;
     }
 
- 	// 1 = place bet
-	// 2 = cancel bet
-	// 4 = payout
-	// 7 = Bonus
+	/**
+	 * @author's note 1 = place bet, 2 = cancel bet, 4 = payout, 7 = Bonus
+	 */
     public function makeTransfer(Request $request){
     	$data = file_get_contents("php://input");
 		$details = json_decode($data);
@@ -97,62 +96,108 @@ class SpadeController extends Controller
 			return $this->makePayout($details);
 		}else if($details->type == 4){
 			return $this->spadeBunos($details);
+		}else{
+			$response = [
+				"acctInfo" => [],
+				"merchantCode" => $this->merchantCode,"msg" => "Invalid Parameters","code" => 106,"serialNo" => $this->serialNo
+			];
+			return $response;
 		}
     }
 
 	public function placeBet($details){
+			$account = $details->acctId;
+			$acctId =  ProviderHelper::explodeUsername('_', $account);
+			$gameCode = $details->gameCode;
+			$provider_trans_id =  $details->referenceId;
+			$default_currency =  $details->currency;
+		    $client_details = Providerhelper::getClientDetails('player_id', $acctId);
+			if($client_details == null){
+				$response = [
+					"acctInfo" => [],
+					"merchantCode" => $this->merchantCode,"msg" => "Acct Not Found","code" => 50100,"serialNo" => $this->serialNo
+				];
+				return $response;
+			}
+			if($client_details->default_currency != $default_currency){
+				$response = [
+					"acctInfo" => [],
+					"merchantCode" => $this->merchantCode,"msg" => "Currency Invalid","code" => 50112,"serialNo" => $this->serialNo
+				];
+				return $response;
+			}
+			$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+			$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gameCode);
+			$transaction_type = 'debit';
+			$gameid = $game_details->game_id;
 			$token_id = $client_details->token_id;
 			$bet_amount = $amount;
-			$pay_amount= 0;
-			$method = 1;
+			$pay_amount= $amount;
+			$income = $bet_amount - $pay_amount;
+			$credit_debit = 1;
 			$win_or_lost = 5;
 			$payout_reason = 'BET';
-			$income = $amount;
-			$provider_trans_id = $mtcode;
+			$provider_trans_id = $provider_trans_id;
+			$roundid = $provider_trans_id;
 			$game_transaction_type = 1;
-			$game_id = $game_details->game_id;
-		    $client_response = $this->fundTransferRequest(
-		    	$client_details->client_access_token,
-		    	$client_details->client_api_key, 
-		    	$game_details->game_code, 
-		    	$game_details->game_name, 
-		    	$client_details->client_player_id, 
-		    	$client_details->player_token, 
-		    	abs($amount),
-		    	$client_details->fund_transfer_url, 
-		    	"debit",
-		    	$client_details->default_currency, 
-		    	false
-		    );
-		    if($client_response != 'false'){
-		    	$general_details = [
-					"provider" => [
-						"createtime" => $createtime,  // The Transaction Created!
-						"endtime" => date(DATE_RFC3339),
-						"eventtime" => $eventime,
-						"action" => $action
-					],
-					"client" => [
-						"before_balance" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
-				    	"after_balance"=> ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
-				    	"player_prefixed"=> $account,
-				    	"player_id"=> $user_id
-					]
+	        $client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			$requesttosend = [
+				  "access_token" => $client_details->client_access_token,
+				  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				  "type" => "fundtransferrequest",
+				  "datesent" => Helper::datesent(),
+				  "gamedetails" => [
+				    "gameid" => $game_details->game_code, // $game_details->game_code
+				    "gamename" => $game_details->game_name
+				  ],
+				  "fundtransferrequest" => [
+					  "playerinfo" => [
+						"client_player_id" => $client_details->client_player_id,
+						"token" => $client_details->player_token,
+					  ],
+					  "fundinfo" => [
+						      "gamesessionid" => "",
+						      "transactiontype" => $transaction_type,
+						      "transferid" => "",
+						      "rollback" => false,
+						      "currencycode" => $client_details->currency,
+						      "amount" => abs($details->amount)
+					   ],
+				  ],
+			];
+			try {
+				$guzzle_response = $client->post($client_details->fund_transfer_url,
+			   	 	['body' => json_encode($requesttosend)]
+				);
+		    	$client_response = json_decode($guzzle_response->getBody()->getContents());
+		    	$gamerecord  = $this->createGameTransaction($token_id, $gameid, $bet_amount,  $pay_amount, $credit_debit, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
+		        $game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $details, $response, $requesttosend, $client_response, $response);
+		       $response = [
+					"transferId" => "0ab9bdca06c14811b24653468e609838",
+					"merchantCode" => $this->merchantCode,
+					"merchantTxId" => "20130813014319279367",
+					"acctId" => $account ,
+					"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''))
+					"msg" => "success",
+					"code" => 0,
+					"serialNo" => $this->serialNo
 				];
-				$mw_response = [
-		    		"data" => [
-		    			"balance" => ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
-		    			"currency" => $client_details->default_currency,
-		    		],
-		    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
-		    	];
-				$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
-			    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $roundid, $amount, $game_transaction_type, $provider_request, $mw_response, $client_response['requesttosend'], $client_response['client_response'], $mw_response,$general_details);
-			}else{
-				$mw_response = ["data" => [],"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
-				Helper::saveLog('CQ9 playerBet Failed', $this->provider_db_id, json_encode($request->all()), $mw_response);
+				return $response;
+
+			} catch (\Exception $e) {
+				$response = [
+					"acctInfo" => [],
+					"merchantCode" => $this->merchantCode,"msg" => "System Error","code" => 1,"serialNo" => $this->serialNo
+				];
+				Helper::saveLog('Spade Failed Bet Call', $this->provider_db_id, $details, $e->getMessage());
+				return $response;
 			}
-			return $mw_response;
+			
 	}
 
 	public function cancelBet($details){

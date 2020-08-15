@@ -172,60 +172,6 @@ class ProviderHelper{
 
 	/**
 	 * GLOBAL
-	 * Client Send Fundtransfer
-	 * @return [array]
-	 * 
-	 */
-	public static function fundTransferRequest($client_access_token,$client_api_key,$game_code,$game_name,$client_player_id,$player_token,$amount,$fund_transfer_url,$transtype,$currency,$rollback=false){
-    	try {
-    		$client = new Client([
-			    'headers' => [ 
-			    	'Content-Type' => 'application/json',
-			    	'Authorization' => 'Bearer '.$client_access_token
-			    ]
-			]);
-	        $requesttosend = [
-		            "access_token" => $client_access_token,
-		            "hashkey" => md5($client_api_key.$client_access_token),
-		            "type" => "fundtransferrequest",
-		            "datesent" => Helper::datesent(),
-			            "gamedetails" => [
-			            "gameid" => $game_code, // $game_code
-			            "gamename" => $game_name
-		            ],
-	            	"fundtransferrequest" => [
-		                "playerinfo" => [
-		                "client_player_id" => $client_player_id,
-		                "token" => $player_token,
-	                ],
-	                "fundinfo" => [
-	                        "gamesessionid" => "",
-	                        "transactiontype" => $transtype,
-	                        "transferid" => "",
-	                        "rollback" => $rollback,
-	                        "currencycode" => $currency,
-	                        "amount" => $amount
-	                ],
-	            ],
-	        ];
-	        // return $requesttosend;
-	        $guzzle_response = $client->post($fund_transfer_url,
-	            ['body' => json_encode($requesttosend)]
-	        );
-	        $client_response = json_decode($guzzle_response->getBody()->getContents());
-	        $data = [
-	            'requesttosend' => $requesttosend,
-	            'client_response' => $client_response,
-	        ];
-	        return $data;
-    	} catch (\Exception $e) {
-    		Helper::saveLog('Called Failed!', $this->provider_db_id, json_encode($requesttosend), $e->getMessage());
-    		return 'false';
-    	}
-    }
-
-	/**
-	 * GLOBAL
      * Find Game Transaction
      * @param [string] $[identifier] [<ID of the game transaction>]
      * @param [int] $[type] [<transaction_id, round_id, refundbet>]
