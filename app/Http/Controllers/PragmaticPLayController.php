@@ -13,7 +13,7 @@ use GuzzleHttp\Client;
 class PragmaticPLayController extends Controller
 {
     public $key;
-    public $provider_id = "49";
+    public $provider_id = 26;
 
 
     public function __construct(){
@@ -148,7 +148,7 @@ class PragmaticPLayController extends Controller
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $game_details = Helper::findGameDetails('game_code', 22, $data->gameId);
+        $game_details = Helper::findGameDetails('game_code', $this->provider_id, $data->gameId);
 
         $client = new Client([
             'headers' => [ 
@@ -261,7 +261,7 @@ class PragmaticPLayController extends Controller
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $game_details = Helper::findGameDetails('game_code', 22, $data->gameId);
+        $game_details = Helper::findGameDetails('game_code', $this->provider_id, $data->gameId);
         
         $checkExt = ProviderHelper::findGameExt($data->roundId, '2', 'round_id');
 
@@ -585,7 +585,7 @@ class PragmaticPLayController extends Controller
             ]
         ]);
 
-        $game_details = Helper::findGameDetails('game_code', 22, 'vs25pyramid');
+        $game_details = Helper::findGameDetails('game_code', $this->provider_id, 'vs25pyramid');
         $tokenId = $client_details->token_id;
         $roundId = $data->campaignId;
         
