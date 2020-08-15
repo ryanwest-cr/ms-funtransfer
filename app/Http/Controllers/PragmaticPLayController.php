@@ -608,7 +608,7 @@ class PragmaticPLayController extends Controller
         $game_details = Helper::findGameDetails('game_code', $this->provider_id, 'vs25pyramid');
         $tokenId = $client_details->token_id;
         $roundId = $data->campaignId;
-        $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$roundId)->get();
+        $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$roundId)->where("provider_trans_id","=", $data->reference)->get();
         // return count($checkGameTrans);
         // $checkExt = ProviderHelper::findGameExt($roundId, '2', 'round_id');
 
