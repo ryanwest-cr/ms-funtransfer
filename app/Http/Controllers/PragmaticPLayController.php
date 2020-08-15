@@ -13,7 +13,7 @@ use GuzzleHttp\Client;
 class PragmaticPLayController extends Controller
 {
     public $key;
-    public $provider_id = 26;
+    public $provider_id = 26; //26 
 
 
     public function __construct(){
@@ -391,16 +391,30 @@ class PragmaticPLayController extends Controller
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-       
-        $response = [
-            "gamesBalances" => [
-                
-                "gameID" => $data->gameIdList,
-                "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
+        $gameIdList = explode(",", $data->gameIdList);
+
+        $response = array();
+        foreach($gameIdList as $item):
+
+            $games = DB::select('select g.game_code, FORMAT(sum(gt.pay_amount- gt.bet_amount),2) as sub_total, case when  FORMAT(sum(gt.pay_amount- gt.bet_amount),2) > 0 then  FORMAT(sum(gt.pay_amount- gt.bet_amount),2) else 0 end as total from game_transactions gt inner join games g using (game_id) where g.provider_id = '.$this->provider_id.' and g.game_code = "'.$item.'"');
+            $data = array(
+                "gameID" => $item,
+                "cash" => floatval(number_format($games[0]->total, 2, '.', '')),
                 "bonus" => 0.00
-                
-            ]
-        ];
+            );
+            array_push($response,$data);
+        endforeach; 
+        
+         Helper::saveLog('PP getBalancePerGame response', $this->provider_id, json_encode($data) ,$response);
+        // return $game_bal;
+
+        // $response = [
+        //     "gamesBalances" => [
+        //         "gameID" => $data->gameIdList,
+        //         "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
+        //         "bonus" => 0.00
+        //     ]
+        // ];
         return $response;
     }
 
