@@ -399,13 +399,14 @@ class PragmaticPLayController extends Controller
             $games = DB::select('select g.game_code, FORMAT(sum(gt.pay_amount- gt.bet_amount),2) as sub_total, case when  FORMAT(sum(gt.pay_amount- gt.bet_amount),2) > 0 then  FORMAT(sum(gt.pay_amount- gt.bet_amount),2) else 0 end as total from game_transactions gt inner join games g using (game_id) where g.provider_id = '.$this->provider_id.' and g.game_code = "'.$item.'"');
             $data = array(
                 "gameID" => $item,
-                "cash" => floatval(number_format($games[0]->total, 2, '.', '')),
+                // "cash" => floatval(number_format($games[0]->total, 2, '.', '')),
+                "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                 "bonus" => 0.00
             );
             array_push($response,$data);
         endforeach; 
         
-         Helper::saveLog('PP getBalancePerGame response', $this->provider_id, json_encode($data) ,$response);
+        Helper::saveLog('PP getBalancePerGame response', $this->provider_id, json_encode($data) ,$response);
         // return $game_bal;
 
         // $response = [
