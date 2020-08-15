@@ -119,7 +119,7 @@ class BoomingGamingController extends Controller
                         $token_id = $client_details->token_id;
                         $bet_amount =  $data['bet'];
                         $payout = $data["win"];
-                        $entry_id =  2; //1 bet , 2win
+                        $entry_id =   $data["win"] == '0.0' ? 1 : 2; //1 lost , 2win
                         $win = $data["win"] == '0.0' ? 0 : 1;// 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
                         
                         $income = $amount;
@@ -236,14 +236,13 @@ class BoomingGamingController extends Controller
                             $token_id = $client_details->token_id;
                             $bet_amount =  $data['bet'];
                             $payout = $data["win"];
-                            $entry_id =  2; //1 bet , 2win
                             $win = 4;// 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
-                            
+                            $entry_id =   $data["win"] == '0.0' ? 1 : 2; //1 lost , 2win
                             $income = $amount;
                             $provider_trans_id = $data['session_id']; // this is customerid
                             $round_id = $data['round'];// this is round
     
-                            $gametransaction_id = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, null, null , $income, $provider_trans_id, $round_id);
+                            $gametransaction_id = Helper::saveGame_transaction($token_id, $game_details->game_id, $bet_amount, $payout, $entry_id,  $win, "Booming Rollback", null , $income, $provider_trans_id, $round_id);
                             
                             $provider_request = $data;
                             $mw_request = $requesttosend;
