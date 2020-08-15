@@ -601,10 +601,9 @@ class GameLobby{
     }
 
     public static function solidLaunchUrl($game_code,$token,$exitUrl){
-        /*$client_details = GameLobby::getClientDetails('token', $token);*/
-        $client_code = 'BETRNKMW'; /*$client_details->client_code ? $client_details->client_code : 'BETRNKMW';*/
-        $url = $exitUrl;
-        $url = 'https://instage.solidgaming.net/api/launch/'.$client_code.'/'.$game_code.'?language=en&currency=USD&token='.$token.'';
+        $client_code = config("providerlinks.solid.BRAND");
+        $launch_url = config("providerlinks.solid.LAUNCH_URL");
+        $url = $launch_url.$client_code.'/'.$game_code.'?language=en&currency=USD&token='.$token.'';
         return $url;
     }
 
