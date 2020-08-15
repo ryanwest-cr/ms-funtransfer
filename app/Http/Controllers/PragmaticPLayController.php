@@ -619,7 +619,7 @@ class PragmaticPLayController extends Controller
                 "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                 "bonus" => 0,
                 "error" => 0,
-                "description" => "Successsss",
+                "description" => "Success",
             );
 
             return $response_log;
@@ -794,4 +794,17 @@ class PragmaticPLayController extends Controller
         return $hash = md5($param.$this->key);
     }
 
+    public function checkGameTrans($round_id, $game_code){
+        $check = DB::table('game_transactions as gs')
+                ->select('*')
+                ->leftJoin('games as g','gs.game_id','=','g.game_id')
+                ->where('g.game_code','=',$game_code)
+                ->where('gs.round_id','=',$round_id)->get();
+        if(count($check) > 0){
+            return "true";
+        }else{
+            return "false";
+        }
+
+    }
 }

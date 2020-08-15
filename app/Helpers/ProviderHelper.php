@@ -406,4 +406,5 @@ class ProviderHelper{
 	    	->first();
 	    return $nonce_previous ? $nonce_previous : 'false';
 	}
+
 }
