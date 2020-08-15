@@ -13,7 +13,7 @@ use GuzzleHttp\Client;
 class PragmaticPLayController extends Controller
 {
     public $key;
-    public $provider_id = 22; //26 
+    public $provider_id = 26; //26 
 
 
     public function __construct(){
@@ -604,7 +604,7 @@ class PragmaticPLayController extends Controller
         ]);
 
 
-        // try {
+        try {
         $game_details = Helper::findGameDetails('game_code', $this->provider_id, 'vs25pyramid');
         $tokenId = $client_details->token_id;
         $roundId = $data->campaignId;
@@ -652,13 +652,13 @@ class PragmaticPLayController extends Controller
         );
         Helper::saveLog('PP promoWin response', $this->provider_id, json_encode($data) , $response);
         return $response;
-        // }catch(\Exception $e){
-        //     $error = [
-        //         'error' => $e->getMessage()
-        //     ];
-        //     Helper::saveLog('PP ERROR', $this->provider_id, json_encode($data), $e->getMessage());
-        //     return $error;
-        // }
+        }catch(\Exception $e){
+            $error = [
+                'error' => $e->getMessage()
+            ];
+            Helper::saveLog('PP ERROR', $this->provider_id, json_encode($data), $e->getMessage());
+            return $error;
+        }
     }
 
     public function jackpotWin(Request $request){
