@@ -82,42 +82,92 @@ class SpadeController extends Controller
 		return $response;
     }
 
-
  	// 1 = place bet
 	// 2 = cancel bet
 	// 4 = payout
 	// 7 = Bonus
-
     public function makeTransfer(Request $request){
     	$data = file_get_contents("php://input");
-    	// dd($data);
 		$details = json_decode($data);
-		dd($details);
 		if($details->type == 1){
-			return $this->placeBet();
+			return $this->placeBet($details);
 		}else if($details->type == 2){
-			return $this->cancelBet();
+			return $this->cancelBet($details);
 		}else if($details->type == 3){
-			return $this->makePayout();
+			return $this->makePayout($details);
 		}else if($details->type == 4){
-			return $this->spadeBunos();
+			return $this->spadeBunos($details);
 		}
     }
 
-	public function placeBet(){
-		return 'placeBet';
+	public function placeBet($details){
+			$token_id = $client_details->token_id;
+			$bet_amount = $amount;
+			$pay_amount= 0;
+			$method = 1;
+			$win_or_lost = 5;
+			$payout_reason = 'BET';
+			$income = $amount;
+			$provider_trans_id = $mtcode;
+			$game_transaction_type = 1;
+			$game_id = $game_details->game_id;
+		    $client_response = $this->fundTransferRequest(
+		    	$client_details->client_access_token,
+		    	$client_details->client_api_key, 
+		    	$game_details->game_code, 
+		    	$game_details->game_name, 
+		    	$client_details->client_player_id, 
+		    	$client_details->player_token, 
+		    	abs($amount),
+		    	$client_details->fund_transfer_url, 
+		    	"debit",
+		    	$client_details->default_currency, 
+		    	false
+		    );
+		    if($client_response != 'false'){
+		    	$general_details = [
+					"provider" => [
+						"createtime" => $createtime,  // The Transaction Created!
+						"endtime" => date(DATE_RFC3339),
+						"eventtime" => $eventime,
+						"action" => $action
+					],
+					"client" => [
+						"before_balance" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+				    	"after_balance"=> ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
+				    	"player_prefixed"=> $account,
+				    	"player_id"=> $user_id
+					]
+				];
+				$mw_response = [
+		    		"data" => [
+		    			"balance" => ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
+		    			"currency" => $client_details->default_currency,
+		    		],
+		    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
+		    	];
+				$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
+			    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $roundid, $amount, $game_transaction_type, $provider_request, $mw_response, $client_response['requesttosend'], $client_response['client_response'], $mw_response,$general_details);
+			}else{
+				$mw_response = ["data" => [],"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+				Helper::saveLog('CQ9 playerBet Failed', $this->provider_db_id, json_encode($request->all()), $mw_response);
+			}
+			return $mw_response;
 	}
 
-	public function cancelBet(){
+	public function cancelBet($details){
 		return 'cancelBet';
 	}
 
-	public function makePayout(){
+	public function makePayout($details){
 		return 'makePayout';
 	}
 
 
-	public function spadeBunos(){
+	public function spadeBunos($details){
+		return $details->type;
 		return 'spadeBunos';
 	}
+
+
 }
