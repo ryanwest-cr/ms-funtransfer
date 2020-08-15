@@ -206,14 +206,18 @@ $app->post('api/cq9/transaction/game/amend','CQ9Controller@playerAmend');
 $app->post('api/cq9/transaction/game/wins','CQ9Controller@playerWins');
 $app->post('api/cq9/transaction/game/amends','CQ9Controller@playerAmends');
 
-
 $app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
 $app->get('api/cq9/gameboy/player/lotto/balance/{account}','CQ9Controller@CheckBalanceLotto'); // New
 $app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
 
-
 $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
 $app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
+
+// Spade Gaming
+$app->post('api/spade','SpadeController@index');
+$app->post('api/spade/authorize','SpadeController@index');
+$app->post('api/spade/getBalance','SpadeController@getBalance');
+$app->post('api/spade/transfer','SpadeController@makeTransfer');
 
 //SAGaming 
 $app->post('api/sa/debugme','SAGamingController@debugme');
