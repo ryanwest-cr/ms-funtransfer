@@ -197,6 +197,13 @@ return [
         'API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
         'AUTH_API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
         'CLIENT_API_KEY' => '4dtXHSekHaFkAqbGcsWV2es4BTRLADQP'
+    ],
+    'solid'=>[
+        'LAUNCH_URL'=> 'https://instage.solidgaming.net/api/launch/',
+        'API_ENDPOINT' => 'https://instage.solidgaming.net/api/wallet/',
+        'BRAND' => 'BETRNKMW',
+        'AUTH_USER' => 'betrnkmw-stage',
+        'AUTH_PASSWORD' => 'wyE4PEGHWkWyU5TjdNk2g'
     ]
 ];
 
