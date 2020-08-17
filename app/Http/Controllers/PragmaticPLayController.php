@@ -170,13 +170,31 @@ class PragmaticPLayController extends Controller
                 "description" => "Not Enough Balance"
             );
             Helper::saveLog('PP bet not enough balance', $this->provider_id,json_encode($data) , $response);
-        }else{
+            return $response;
+        }
 
-            $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
-            if(count($checkGameTrans) > 0){
+        $checkGameTrans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->where('provider_trans_id','=',$data->reference)->get();
+        if(count($checkGameTrans) > 0){
 
+            $response = array(
+                "transactionId" => $checkGameTrans[0]->game_trans_id,
+                "currency" => $client_details->default_currency,
+                "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
+                "bonus" => 0.00,
+                "usedPromo" => 0,
+                "error" => 0,
+                "description" => "Success"
+            );
+
+            Helper::saveLog('PP bet duplicate', $this->provider_id,json_encode($data) , $response);
+            return $response;
+        }
+        $checkDoubleBet = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
+        if(count($checkDoubleBet) > 0){
+            $checkDuplicate = DB::table('game_transaction_ext')->where("round_id","=",$data->roundId)->where('provider_trans_id','=',$data->reference)->get();
+            if(count($checkDuplicate) > 0){
                 $response = array(
-                    "transactionId" => $checkGameTrans[0]->game_trans_id,
+                    "transactionId" => $checkDoubleBet[0]->game_trans_id,
                     "currency" => $client_details->default_currency,
                     "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
                     "bonus" => 0.00,
@@ -184,52 +202,80 @@ class PragmaticPLayController extends Controller
                     "error" => 0,
                     "description" => "Success"
                 );
+                Helper::saveLog('PP bet duplicate in double', $this->provider_id,json_encode($data) , $response);
+                return $response;
+            }
 
-                Helper::saveLog('PP bet duplicate', $this->provider_id,json_encode($data) , $response);
+            $amount = $checkDoubleBet[0]->bet_amount + $data->amount;
+            $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $data->amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency );
 
-            }else{
+            $updateDoubleBet = DB::table('game_transactions')->where('game_trans_id','=',$checkDoubleBet[0]->game_trans_id)->update(["bet_amount" => $amount, "transaction_reason" => "Double Bet"]);
 
-                $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency );
-                
-                $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, $bet_amount, 0.00, 1, 0, null, null, $bet_amount, $data->reference, $roundId);
-        
-                $response = array(
-                    "transactionId" => $gametrans,
-                    "currency" => $client_details->default_currency,
-                    "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
-                    "bonus" => 0.00,
-                    "usedPromo" => 0,
-                    "error" => 0,
-                    "description" => "Success"
-                );
-        
-                $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
-        
-                // $response = array(
-                //     "transactionId" => $game_trans[0]->game_trans_id,
-                //     "currency" => $client_details->default_currency,
-                //     "cash" => $clientDetalsResponse['client_response']->fundtransferresponse->balance,
-                //     "bonus" => 0,
-                //     "error" => 0,
-                //     "description" => "Success"
-                // );
-        
-                $trans_details = array(
-                    "game_trans_id" => $game_trans[0]->game_trans_id,
-                    "bet_amount" => $game_trans[0]->bet_amount,
-                    "pay_amount" => $data->amount,
-                    "win" => false,
-                    "response" => $response 
-                );
-        
-                $game_trans_ext = ProviderHelper::createGameTransExt( $gametrans, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 1, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
-               
-                Helper::saveLog('PP bet initial', $this->provider_id,json_encode($data) , $response);
-
-            }    
-            
+            $response_log = array(
+                "transactionId" => $checkDoubleBet[0]->game_trans_id,
+                "currency" => $client_details->default_currency,
+                "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
+                "bonus" => 0.00,
+                "usedPromo" => 0,
+                "error" => 0,
+                "description" => "Success"
+            );
+            $trans_details = array(
+                "game_trans_id" => $checkDoubleBet[0]->game_trans_id,
+                "bet_amount" => $amount,
+                "win" => false,
+                "response" => $response_log
+            );
+            $game_trans_ext = ProviderHelper::createGameTransExt( $checkDoubleBet[0]->game_trans_id, $data->reference, $data->roundId, $amount, 1, $data, $response_log, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+            $response = array(
+                "transactionId" => $game_trans_ext,
+                "currency" => $client_details->default_currency,
+                "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
+                "bonus" => 0.00,
+                "usedPromo" => 0,
+                "error" => 0,
+                "description" => "Success"
+            );
+            Helper::saveLog('PP bet additional', $this->provider_id,json_encode($data) , $response);
+            return $response;
         }
+        $responseDetails = $this->responsetosend($client_details->client_access_token, $client_details->client_api_key, $game_details->game_code, $game_details->game_name, $client_details->client_player_id, $client_details->player_token, $bet_amount, $client, $client_details->fund_transfer_url, "debit",$client_details->default_currency );
         
+        $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, $bet_amount, 0.00, 1, 0, null, null, $bet_amount, $data->reference, $roundId);
+
+        $response = array(
+            "transactionId" => $gametrans,
+            "currency" => $client_details->default_currency,
+            "cash" => floatval(number_format($responseDetails['client_response']->fundtransferresponse->balance, 2, '.', '')),
+            "bonus" => 0.00,
+            "usedPromo" => 0,
+            "error" => 0,
+            "description" => "Success"
+        );
+
+        $game_trans = DB::table('game_transactions')->where("round_id","=",$data->roundId)->get();
+
+        // $response = array(
+        //     "transactionId" => $game_trans[0]->game_trans_id,
+        //     "currency" => $client_details->default_currency,
+        //     "cash" => $clientDetalsResponse['client_response']->fundtransferresponse->balance,
+        //     "bonus" => 0,
+        //     "error" => 0,
+        //     "description" => "Success"
+        // );
+
+        $trans_details = array(
+            "game_trans_id" => $game_trans[0]->game_trans_id,
+            "bet_amount" => $game_trans[0]->bet_amount,
+            "pay_amount" => $data->amount,
+            "win" => false,
+            "response" => $response 
+        );
+
+        $game_trans_ext = ProviderHelper::createGameTransExt( $gametrans, $game_trans[0]->provider_trans_id, $game_trans[0]->round_id, $data->amount, 1, $data, $response, $responseDetails['requesttosend'], $responseDetails['client_response'], $trans_details);
+       
+        Helper::saveLog('PP bet initial', $this->provider_id,json_encode($data) , $response);
+  
         return $response;
     }
 
