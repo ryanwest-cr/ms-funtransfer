@@ -17,7 +17,7 @@ class ClientRequestHelper{
             $transaction->game_trans_id = $transaction->game_trans_id;
         }
         else{
-            $transaction = DB::table("game_transaction_ext")->latest()->first();
+            $transaction = DB::table("game_transactions")->latest()->first();
             $transaction->game_trans_id = $transaction->game_trans_id +1;
         }
         $transaction_ext = DB::table("game_transaction_ext")->latest()->first();
