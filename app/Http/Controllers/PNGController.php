@@ -117,7 +117,7 @@ class PNGController extends Controller
                             "transferid" => "",
                             "rollback" => "false",
                             "currencycode" => $client_details->currency,
-                            "amount" => round($xmlparser->real,2) #change data here
+                            "amount" => (float)$xmlparser->real #change data here
                       ]
                     ]
                       ];
