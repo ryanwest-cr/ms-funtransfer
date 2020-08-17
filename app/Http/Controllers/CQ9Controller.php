@@ -178,11 +178,11 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
     	}
-    	if(!$this->validRFCDade($request->eventTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->eventTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 
 		$account = $request->account;
     	$gamecode = $request->gamecode;
@@ -302,11 +302,11 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
     	}
-    	if(!$this->validRFCDade($request->createTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->createTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 		$data_details = ProviderHelper::rawToObj($request->data, true);
     	$account = $request->account;
     	$gamecode = $request->gamecode;
@@ -436,11 +436,11 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
     	}
-    	if(!$this->validRFCDade($request->eventTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->eventTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 
 	  	$account = $request->account;
     	$gamecode = $request->gamecode;
@@ -557,11 +557,11 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
     	}
-    	if(!$this->validRFCDade($request->eventTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->eventTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 
     	$account = $request->account;
     	$gamecode = $request->gamecode;
@@ -683,22 +683,24 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playerRollout Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$provider_request = $request->all();
-    	$check_wtoken = $this->checkAuth($header);
-    	if(!$check_wtoken){
-    		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
-			return $mw_response;
-    	}
+   //  	$check_wtoken = $this->checkAuth($header);
+   //  	if(!$check_wtoken){
+   //  		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
+			// Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
+			// return $mw_response;
+   //  	}
     	if(!$request->has('account') || !$request->has('eventTime') || !$request->has('gamehall') || !$request->has('gamecode') || !$request->has('roundid') || !$request->has('amount') || !$request->has('mtcode')){
     		$mw_response = ["data" => null,"status" => ["code" => "1003","message" => 'Parameter error.',"datetime" => date(DATE_RFC3339)]
 	    	];
 			return $mw_response;
     	}
-    	if(!$this->validRFCDade($request->eventTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+    	// dd(strtotime($request->eventTime));
+    	// dd($this->validRFCDade($request->eventTime));	
+   //  	if(!$this->validRFCDade($request->eventTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 
     	$account = $request->account;
     	$gamecode = $request->gamecode;
@@ -823,11 +825,11 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
     	}
-    	if(!$this->validRFCDade($request->eventTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->eventTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 
     	$account = $request->account;
     	$gamecode = $request->gamecode;
@@ -941,10 +943,10 @@ class CQ9Controller extends Controller
 				return $mw_response;
     		}
     	}
-    	if(!$this->validRFCDade($request->eventTime) || !$this->validRFCDade($request->createTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->eventTime) || !$this->validRFCDade($request->createTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]];
+			// return $mw_response;
+   //  	}
     	$account = $request->account;
     	$gamecode = $request->gamecode;
     	$gamehall = $request->gamehall;
@@ -1089,11 +1091,11 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
     	}
-    	if(!$this->validRFCDade($request->eventTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->eventTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 
     	$account = $request->account;
     	$gamecode = 'AB1'; // $request->gamecode;
@@ -1210,11 +1212,11 @@ class CQ9Controller extends Controller
 			return $mw_response;
     	}
     	$mtcode = $request->mtcode;
-    	if(!$this->validRFCDade($request->eventTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->eventTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 
 		$find_mtcode = $this->findTranPID($mtcode);
   		if($find_mtcode == 'false'){
@@ -1355,11 +1357,11 @@ class CQ9Controller extends Controller
 			Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
     	}
-    	if(!$this->validRFCDade($provider_request->createTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($provider_request->createTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
 
     	$data_details = $provider_request->data;
     	$account = $provider_request->account;
@@ -2136,6 +2138,7 @@ class CQ9Controller extends Controller
 
     public function validRFCDade($date) {
 	    if (\DateTime::createFromFormat(\DateTime::RFC3339, $date) === FALSE) {
+	    	// return \DateTime::createFromFormat(\DateTime::RFC3339, $date);
 	        return false;
 	    } else {
 	        return true;
