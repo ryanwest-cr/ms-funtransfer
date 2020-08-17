@@ -9,10 +9,12 @@ use DB;
 
 class ClientRequestHelper{
     
-    public static function getTransactionId($provider_trans_id,$roundId){
-        $transaction = DB::table("game_transactions")
-                    ->where("provider_trans_id",$provider_trans_id)
-                    ->where("round_id",$roundId)->first();
+    public static function getTransactionId($player_token,$game_round){
+        $transaction = DB::table("player_session_tokens as pst")
+                        ->leftJoin("game_transactions as gt","pst.token_id","=","gt.token_id")
+                        ->where("pst.player_token",$player_token)
+                        ->where("gt.round_id",$game_round)
+                        ->first();
         if($transaction){
             $transaction->game_trans_id = $transaction->game_trans_id;
         }

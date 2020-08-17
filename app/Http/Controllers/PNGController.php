@@ -93,8 +93,8 @@ class PNGController extends Controller
                     return PNGHelper::arrayToXml($array_data,"<reserve/>");       
                 }
                 //This is Temporarily Permanent
-                //This require to send Provider Transaction ID and the roundID
-                    $transaction_data = ClientRequestHelper::getTransactionId($xmlparser->transactionId,$xmlparser->roundId);
+                //This require to send TOKEN ID and the roundID
+                    $transaction_data = ClientRequestHelper::getTransactionId($xmlparser->externalGameSessionId,$xmlparser->roundId);
                 //
                 $client = new Client([
                     'headers' => [ 
@@ -192,8 +192,8 @@ class PNGController extends Controller
                     return PNGHelper::arrayToXml($array_data,"<release/>");
                 }
                 //This is Temporarily Permanent
-                //This require to send Provider Transaction ID and the roundID
-                $transaction_data = ClientRequestHelper::getTransactionId($xmlparser->transactionId,$xmlparser->roundId);
+                //This require to send TOKEN ID and the roundID
+                $transaction_data = ClientRequestHelper::getTransactionId($xmlparser->externalGameSessionId,$xmlparser->roundId);
                 //
                 $client = new Client([
                     'headers' => [ 
@@ -355,8 +355,8 @@ class PNGController extends Controller
                 return PNGHelper::arrayToXml($array_data,"<cancelReserve/>");
             }
             //This is Temporarily Permanent
-            //This require to send Provider Transaction ID and the roundID
-            $transaction_data = ClientRequestHelper::getTransactionId($xmlparser->transactionId,$xmlparser->roundId);
+            //This require to send TOKEN ID and the roundID
+            $transaction_data = ClientRequestHelper::getTransactionId($xmlparser->externalGameSessionId,$xmlparser->roundId);
             //
             $client = new Client([
                 'headers' => [ 
