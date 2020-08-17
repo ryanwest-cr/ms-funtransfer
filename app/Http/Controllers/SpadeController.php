@@ -27,6 +27,24 @@ class SpadeController extends Controller
     // 	$this->merchant_key = config('providerlinks.aws.merchant_key');
     // }
 
+	public function getGameList(Request $request){
+		$api = "https://api-egame-staging.sgplay.net/api/getgames";
+		$requesttosend = [
+			'serialNo' =>  $this->generateSerialNo(),
+			'merchantCode' => $this->merchantCode
+		];
+		$client = new Client([
+            'headers' => [ 
+                'API' => "authorize",
+                'DataType' => "JSON"
+            ]
+        ]);
+		$guzzle_response = $client->get($api,['body' => json_encode($requesttosend)]);
+		$client_response = json_decode($guzzle_response->getBody()->getContents());
+		return json_encode($client_response);
+	}
+
+
     public function index(Request $request){
     	// var_dump(apache_request_headers()); die();
     	$data = file_get_contents("php://input");

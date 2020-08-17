@@ -218,7 +218,7 @@ $app->post('api/spade','SpadeController@index');
 $app->post('api/spade/authorize','SpadeController@index');
 $app->post('api/spade/getBalance','SpadeController@getBalance');
 $app->post('api/spade/transfer','SpadeController@makeTransfer');
-
+$app->post('api/spade/getgame','SpadeController@getGameList');
 //SAGaming 
 $app->post('api/sa/debugme','SAGamingController@debugme');
 $app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
