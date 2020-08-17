@@ -297,7 +297,7 @@ class CQ9Controller extends Controller
 			Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
     	}
-    	if(!$request->has('account') || !$request->has('createTime') || !$request->has('gamehall') || !$request->has('gamecode') || !$request->has('roundid') || !$request->has('data') || !$request->has('mtcode')){
+    	if(!$request->has('account') || !$request->has('createTime') || !$request->has('gamehall') || !$request->has('gamecode') || !$request->has('roundid') || !$request->has('data')){
     		$mw_response = ["data" => null,"status" => ["code" => "1003","message" => 'Parameter error.',"datetime" => date(DATE_RFC3339)]
 	    	];
 			return $mw_response;
@@ -331,7 +331,13 @@ class CQ9Controller extends Controller
 			$mw_response = ["data" => null,"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]];
 			Helper::saveLog('CQ9 playrEndround ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
-		}	
+		}
+		$game_ext_exist = ProviderHelper::findGameExt($roundid, 2, 'round_id');
+		if($game_ext_exist != 'false'){
+			$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Duplicae Transaction',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 playrEndround ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
+			return $mw_response;
+		}		
 		$game_transaction = ProviderHelper::findGameTransaction($game_ext_check->game_trans_id, 'game_transaction');
 		try {
 	    	$total_amount = array();
