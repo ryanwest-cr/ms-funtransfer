@@ -242,7 +242,7 @@ $app->post('/api/eightprovider/win', 'EightProviderController@gameWin'); // DEPR
 $app->post('/api/eightprovider/refund', 'EightProviderController@gameRefund'); // DEPRECATED
 $app->post('/api/eightprovider/deposit', 'EightProviderController@gameDeposit'); // DEPRECATED
 $app->post('/api/eightprovider/withdrawal', 'EightProviderController@gameWithdrawal'); // DEPRECATED
-
+$app->post('/api/gettransaction', 'AlController@testTransaction');
 
 //BNG Endpoints
 $app->post('/api/bng', 'BNGController@index');
