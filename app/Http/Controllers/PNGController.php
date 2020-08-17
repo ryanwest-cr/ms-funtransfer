@@ -117,7 +117,7 @@ class PNGController extends Controller
                             "transferid" => "",
                             "rollback" => "false",
                             "currencycode" => $client_details->currency,
-                            "amount" => round($xmlparser->real,2) #change data here
+                            "amount" => $xmlparser->real #change data here
                       ]
                     ]
                       ];
@@ -133,7 +133,7 @@ class PNGController extends Controller
                 $game_details = Helper::getInfoPlayerGameRound($xmlparser->externalGameSessionId);
                 $json_data = array(
                     "transid" => $xmlparser->transactionId,
-                    "amount" => round($xmlparser->real,2),
+                    "amount" => $xmlparser->real,
                     "roundid" => $xmlparser->roundId
                 );
                 if(isset($client_response->fundtransferresponse->status->code) 
@@ -212,7 +212,7 @@ class PNGController extends Controller
                             "transferid" => "",
                             "rollback" => "false",
                             "currencycode" => $client_details->currency,
-                            "amount" => round($xmlparser->real,2)
+                            "amount" => $xmlparser->real
                       ]
                     ]
                       ];
@@ -228,7 +228,7 @@ class PNGController extends Controller
                 $game_details = Helper::getInfoPlayerGameRound($xmlparser->externalGameSessionId);
                 $json_data = array(
                     "transid" => $xmlparser->transactionId,
-                    "amount" => round($xmlparser->real,2),
+                    "amount" => $xmlparser->real,
                     "roundid" => $xmlparser->roundId,
                     "payout_reason" => null,
                     "win" => $win,
@@ -370,7 +370,7 @@ class PNGController extends Controller
                         "transferid" => "",
                         "rollback" => "true",
                         "currencycode" => $client_details->currency,
-                        "amount" => round($xmlparser->real,2)
+                        "amount" => $xmlparser->real
                   ]
                 ]
                   ];
@@ -386,7 +386,7 @@ class PNGController extends Controller
                 $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
                 $json_data = array(
                     "transid" => $xmlparser->transactionId,
-                    "amount" => round($xmlparser->real,2),
+                    "amount" => $xmlparser->real,
                     "roundid" => 0,
                 );
                 $game = Helper::getGameTransaction($xmlparser->externalGameSessionId,$xmlparser->roundId);
