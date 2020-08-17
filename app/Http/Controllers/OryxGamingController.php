@@ -94,7 +94,7 @@ class OryxGamingController extends Controller
 						"playerId" => "$player_id",
 						"currencyCode" => "USD",
 						"languageCode" => "ENG",
-						"balance" => $this->to_pennies($client_response->playerdetailsresponse->balance),
+						"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
 						"sessionToken" => $token
 					];
 				}
@@ -181,7 +181,7 @@ class OryxGamingController extends Controller
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
 						$response = [
-							"balance" => $this->to_pennies($client_response->playerdetailsresponse->balance)
+							"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
 						];
 					}
 				}
@@ -197,6 +197,10 @@ class OryxGamingController extends Controller
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$client_code = RouteParam::get($request, 'brand_code');
+
+		/*if($this->_isIdempotent($json_data['transid'])) {
+			return $this->_isIdempotent($json_data['transid'])->mw_response;
+		}*/
 
 		if(!CallParameters::check_keys($json_data, 'playerId', 'roundId', 'gameCode', 'roundAction', 'sessionToken')) {
 				$http_status = 401;
@@ -253,39 +257,66 @@ class OryxGamingController extends Controller
 								if ($json_data["roundAction"] == "CLOSE") {
 									GameRound::end($json_data['roundId']);
 								}
+								elseif $json_data["roundAction"] == "CANCEL") {
+									$bulk_rollback_result = GameTransaction::bulk_rollback($json_data['roundId']);
 
-								$transactiontype = 'close_round';
+									if($bulk_rollback_result) {
+										foreach ($bulk_rollback_result as $key => $value) {
+											
+											$client = new Client([
+											    'headers' => [ 
+											    	'Content-Type' => 'application/json',
+											    	'Authorization' => 'Bearer '.$client_details->client_access_token
+											    ]
+											]);
+											
+											$body = json_encode(
+											        	[
+														  "access_token" => $client_details->client_access_token,
+														  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+														  "type" => "fundtransferrequest",
+														  "datesent" => Helper::datesent(),
+														  "gamedetails" => [
+														    "gameid" => "",
+														    "gamename" => ""
+														  ],
+														  "fundtransferrequest" => [
+																"playerinfo" => [
+																	"client_player_id" => $client_details->client_player_id,
+																	"token" => $client_details->player_token
+															],
+															"fundinfo" => [
+															      "gamesessionid" => $value->round_id,
+															      "transactiontype" => "credit",
+															      "transferid" => $value->game_trans_id,
+															      "rollback" => "true",
+															      "currencycode" => $client_details->currency,
+															      "amount" => $this->_toDollars($value->bet_amount)
+															]
+														  ]
+														]
+											    );
 
-								$guzzle_response = $client->post($client_details->fund_transfer_url,
-								    ['body' => json_encode(
-								        	[
-											  "access_token" => $client_details->client_access_token,
-											  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-											  "type" => "fundtransferrequest",
-											  "datesent" => Helper::datesent(),
-											  "gamedetails" => [
-											    "gameid" => "",
-											    "gamename" => ""
-											  ],
-											  "fundtransferrequest" => [
-													"playerinfo" => [
-														"client_player_id" => $client_details->client_player_id,
-														"token" => $client_details->player_token
-												],
-												"fundinfo" => [
-												      "gamesessionid" => "",
-												      "transactiontype" => 'debit',
-												      "transferid" => "",
-												      "rollback" => "false",
-												      "currencycode" => $client_details->currency,
-												      "amount" => 0
-												]
-											  ]
-											]
-								    )]
-								);
+											$guzzle_response = $client->post($client_details->fund_transfer_url,
+											    ['body' => $body]
+											);
 
-								$client_response = json_decode($guzzle_response->getBody()->getContents());
+											$client_response = json_decode($guzzle_response->getBody()->getContents());
+
+											// If client returned a success response
+											if($client_response->fundtransferresponse->status->code == "200") {
+												$json_data['income'] = $this->_toDollars($value->bet_amount);
+												$game_transaction_id = GameTransaction::save('rollback', $json_data, $value, $client_details, $client_details);
+
+
+												$json_data['transid'] = '';
+												$json_data['amount'] = $this->_toDollars($value->bet_amount);
+												Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 3);
+
+											}
+										}
+									}
+								}
 
 								if(isset($client_response->fundtransferresponse->status->code) 
 							&& $client_response->fundtransferresponse->status->code == "200") {
@@ -303,9 +334,10 @@ class OryxGamingController extends Controller
 
 									$game_details = Game::find($json_data["gameCode"]);
 
+									$http_status = 200;
 									$response = [
 										"responseCode" => "OK",
-										"balance" => $this->to_pennies($client_response->fundtransferresponse->balance),
+										"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
 									];
 								}
 							}
@@ -315,69 +347,147 @@ class OryxGamingController extends Controller
 							$transactiontype = (array_key_exists('bet', $json_data) == true ? 'debit' : 'credit');
 							$key = ($transactiontype == 'debit' ? "bet" : "win");
 
-							$guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => json_encode(
-							        	[
-										  "access_token" => $client_details->client_access_token,
-										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-										  "type" => "fundtransferrequest",
-										  "datesent" => Helper::datesent(),
-										  "gamedetails" => [
-										    "gameid" => "",
-										    "gamename" => ""
-										  ],
-										  "fundtransferrequest" => [
-												"playerinfo" => [
-													"client_player_id" => $client_details->client_player_id,
-													"token" => $client_details->player_token
-											],
-											"fundinfo" => [
-											      "gamesessionid" => "",
-											      "transactiontype" => $transactiontype,
-											      "transferid" => "",
-											      "rollback" => "false",
-											      "currencycode" => $client_details->currency,
-											      "amount" => $json_data[$key]["amount"]
+							if(array_key_exists('bet', $json_data)) {
+								$body = json_encode(
+								        	[
+											  "access_token" => $client_details->client_access_token,
+											  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+											  "type" => "fundtransferrequest",
+											  "datesent" => Helper::datesent(),
+											  "gamedetails" => [
+											    "gameid" => "",
+											    "gamename" => ""
+											  ],
+											  "fundtransferrequest" => [
+													"playerinfo" => [
+														"client_player_id" => $client_details->client_player_id,
+														"token" => $client_details->player_token
+												],
+												"fundinfo" => [
+												      "gamesessionid" => "",
+												      "transactiontype" => $transactiontype,
+												      "transferid" => "",
+												      "rollback" => "false",
+												      "currencycode" => $client_details->currency,
+												      "amount" => $this->_toDollars($json_data[$key]["amount"])
+												]
+											  ]
 											]
-										  ]
-										]
-							    )]
-							);
+								    );
 
-							$client_response = json_decode($guzzle_response->getBody()->getContents());
+								$guzzle_response = $client->post($client_details->fund_transfer_url,
+								    ['body' => $body]
+								);
 
-							if(isset($client_response->fundtransferresponse->status->code) 
-						&& $client_response->fundtransferresponse->status->code == "402") {
-								$http_status = 200;
-								$response = [
-									"responseCode" =>  "OUT_OF_MONEY",
-									"errorDescription" => "Player ran out of money."
-								];
-							}
-							else
-							{
+								$client_response = json_decode($guzzle_response->getBody()->getContents());
+
 								if(isset($client_response->fundtransferresponse->status->code) 
-							&& $client_response->fundtransferresponse->status->code == "200") {
-
-									if(array_key_exists("roundAction", $json_data)) {
-										if ($json_data["roundAction"] == "CLOSE") {
-											GameRound::end($json_data['roundId']);
-										}
-									}
-
-									$json_data['roundid'] = $json_data['roundId'];
-									$json_data['transid'] = $json_data[$key]['transactionId'];
-									$json_data['amount'] = $json_data[$key]['amount'];
-									$json_data['reason'] = NULL;
-									$json_data['income'] = $json_data[$key]['amount'];
-
-									$game_details = Game::find($json_data["gameCode"]);
-									GameTransaction::save($transactiontype, $json_data, $game_details, $client_details, $client_details);
-
+							&& $client_response->fundtransferresponse->status->code == "402") {
+									$http_status = 200;
 									$response = [
-										"responseCode" => "OK",
-										"balance" => $this->to_pennies($client_response->fundtransferresponse->balance),
+										"responseCode" =>  "OUT_OF_MONEY",
+										"errorDescription" => "Player ran out of money."
 									];
+								}
+								else
+								{
+									if(isset($client_response->fundtransferresponse->status->code) 
+								&& $client_response->fundtransferresponse->status->code == "200") {
+
+										if(array_key_exists("roundAction", $json_data)) {
+											if ($json_data["roundAction"] == "CLOSE") {
+												GameRound::end($json_data['roundId']);
+											}
+										}
+
+										$json_data['roundid'] = $json_data['roundId'];
+										$json_data['transid'] = $json_data[$key]['transactionId'];
+										$json_data['amount'] = $this->_toDollars($json_data[$key]['amount']);
+										$json_data['reason'] = NULL;
+										$json_data['income'] = $this->_toDollars($json_data[$key]['amount']);
+
+										$game_details = Game::find($json_data["gameCode"]);
+										$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
+
+										$response = [
+											"responseCode" => "OK",
+											"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
+										];
+
+										Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
+									}
+								}
+							}
+
+							if(array_key_exists('win', $json_data)) {
+								$body = json_encode(
+								        	[
+											  "access_token" => $client_details->client_access_token,
+											  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+											  "type" => "fundtransferrequest",
+											  "datesent" => Helper::datesent(),
+											  "gamedetails" => [
+											    "gameid" => "",
+											    "gamename" => ""
+											  ],
+											  "fundtransferrequest" => [
+													"playerinfo" => [
+														"client_player_id" => $client_details->client_player_id,
+														"token" => $client_details->player_token
+												],
+												"fundinfo" => [
+												      "gamesessionid" => "",
+												      "transactiontype" => $transactiontype,
+												      "transferid" => "",
+												      "rollback" => "false",
+												      "currencycode" => $client_details->currency,
+												      "amount" => $this->_toDollars($json_data[$key]["amount"])
+												]
+											  ]
+											]
+								    );
+
+								$guzzle_response = $client->post($client_details->fund_transfer_url,
+								    ['body' => $body]
+								);
+
+								$client_response = json_decode($guzzle_response->getBody()->getContents());
+
+								if(isset($client_response->fundtransferresponse->status->code) 
+							&& $client_response->fundtransferresponse->status->code == "402") {
+									$http_status = 200;
+									$response = [
+										"responseCode" =>  "OUT_OF_MONEY",
+										"errorDescription" => "Player ran out of money."
+									];
+								}
+								else
+								{
+									if(isset($client_response->fundtransferresponse->status->code) 
+								&& $client_response->fundtransferresponse->status->code == "200") {
+
+										if(array_key_exists("roundAction", $json_data)) {
+											if ($json_data["roundAction"] == "CLOSE") {
+												GameRound::end($json_data['roundId']);
+											}
+										}
+
+										$json_data['roundid'] = $json_data['roundId'];
+										$json_data['transid'] = $json_data[$key]['transactionId'];
+										$json_data['amount'] = $this->_toDollars($json_data[$key]['amount']);
+										$json_data['reason'] = NULL;
+										$json_data['income'] = $this->_toDollars($json_data[$key]['amount']);
+
+										$game_details = Game::find($json_data["gameCode"]);
+										$game_transaction_id = GameTransaction::save('credit', $json_data, $game_details, $client_details, $client_details);
+
+										$response = [
+											"responseCode" => "OK",
+											"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
+										];
+
+										Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
+									}
 								}
 							}
 						}
@@ -438,13 +548,18 @@ class OryxGamingController extends Controller
 		return $result;								
 	}
 
-	private function to_pennies($value)
+	private function _toPennies($value)
 	{
 	    return intval(
 	        strval(floatval(
 	            preg_replace("/[^0-9.]/", "", $value)
 	        ) * 100)
 	    );
+	}
+
+	private function _toDollars($value)
+	{
+		return number_format(($value / 100), 2, '.', ' ');
 	}
 
 }
