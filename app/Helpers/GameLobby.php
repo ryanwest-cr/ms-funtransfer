@@ -382,6 +382,7 @@ class GameLobby{
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $get_previous = ProviderHelper::getNonceprevious(config('providerlinks.booming.provider_db_id'));
         try{
+           
             $nonce = date('mdYHisu');
             for ($i = 1 ;$i < 20; $i++){
                 if($nonce > $get_previous->request_data){
