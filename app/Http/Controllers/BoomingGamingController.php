@@ -76,6 +76,7 @@ class BoomingGamingController extends Controller
                     try {
                         $amount = $data["bet"] - $data["win"];
                         // $transactiontype = $data["win"] == '0.0' ? "debit" : "credit";
+                        //bet process
                         $requesttosend_debit = [
                             "access_token" => $client_details->client_access_token,
                             "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -115,7 +116,7 @@ class BoomingGamingController extends Controller
                         $response_debit =  [
                             "balance" => (string)$client_response->fundtransferresponse->balance
                         ];
-
+                        //win process
                         $requesttosend_credet = [
                             "access_token" => $client_details->client_access_token,
                             "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
@@ -179,7 +180,7 @@ class BoomingGamingController extends Controller
                         //win transaction
                         $this->creteBoomingtransaction($gametransaction_id, $provider_request,$requesttosend_credet,$response_credit,$client_response_credit,2, $data["win"], $data['session_id'], $data['round']);
                         Helper::saveLog('Booming Callback Process ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response_debit);
-                        return json_encode($response_debit, JSON_FORCE_OBJECT); 
+                        return json_encode($response_credit, JSON_FORCE_OBJECT); 
                     }catch(\Exception $e){
                         $msg = array(
                             'error' => '2099',
