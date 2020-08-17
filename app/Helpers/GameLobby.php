@@ -237,6 +237,13 @@ class GameLobby{
         return $url;
     }
 
+    public static function spadeLaunch($game_code,$token,$exitUrl,$lang='en_US'){
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        $domain =  $exitUrl;
+        $url = 'http://portal.e-games.com/auth/?acctId='.$client_details->player_id.'&language='.$lang.'&token='.$token.'&game='.$game_code.'&menumode=on&exitUrl='.$domain.'';
+        return $url;
+    }
+
     public static function skyWindLaunch($game_code, $token){
         $player_login = SkyWind::userLogin();
         $client_details = ProviderHelper::getClientDetails('token', $token);

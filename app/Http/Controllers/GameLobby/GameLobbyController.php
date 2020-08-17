@@ -194,6 +194,21 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider')=="SpadeGaming"){
+                    if($request->has('lang')){
+                        $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
+                    }else{
+                        $lang = GameLobby::getLanguage($request->game_provider, 'en');
+                    }
+                    $exitUrl = $request->has('exitUrl') ? $request->exitUrl : '';
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::spadeLaunch($request->game_code,$request->token,$exitUrl,$lang),
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
                 elseif($request->input('game_provider')=="SkyWind"){ // request->token
                     $msg = array(
                         "game_code" => $request->input("game_code"),
