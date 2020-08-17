@@ -45,7 +45,6 @@ class BoomingGamingController extends Controller
 
     //THIS IS PART OF GAMELAUNCH GET SESSION AND URL
     public function callBack(Request $request){
-        
         $header = [
             'bg_nonce' => $request->header('bg-nonce'),
             'bg_signature' => $request->header('bg-signature')
