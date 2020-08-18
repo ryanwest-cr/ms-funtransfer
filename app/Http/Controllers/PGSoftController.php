@@ -142,7 +142,7 @@ class PGSoftController extends Controller
         Helper::saveLog('PGSoft Bet ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), 'ENDPOINT HIT');
         $data = $request->all();
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-        if($data["is_validate_bet"] != 'true'){
+        if($data["is_validate_bet"] != 'True'){
             if($data["operator_token"] != $this->operator_token):
                 $errormessage = array(
                     'data' => null,
@@ -347,7 +347,7 @@ class PGSoftController extends Controller
         Helper::saveLog('PGSoft Payout', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT),  "ENDPOINT HIT");
         $data = $request->all();
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-        if($data["is_validate_bet"] != 'true'){
+        if($data["is_validate_bet"] != 'True'){
             if($data["operator_token"] != $this->operator_token):
                 $errormessage = array(
                     'data' => null,
@@ -458,7 +458,7 @@ class PGSoftController extends Controller
                         ];
 
 						$amount = $data['transfer_amount'];
-				 	    $round_id = $data['bet_id'];
+				 	    $round_id = $data['bet_transaction_id'];
 				 	    if($amount == 0 || $amount == '0' ):
 		 	  				$win = 0; // lost
 		 	  				$entry_id = 1; //lost
@@ -539,7 +539,7 @@ class PGSoftController extends Controller
     
     public function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id) {
 		$update = DB::table('game_transactions')
-			 ->where('round_id', $round_id)
+			 ->where('provider_trans_id', $round_id)
 			 ->update(['pay_amount' => $pay_amount, 
 				   'income' => $income, 
 				   'win' => $win, 
