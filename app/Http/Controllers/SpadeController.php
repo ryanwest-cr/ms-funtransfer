@@ -16,7 +16,7 @@ class SpadeController extends Controller
 {
 
 	public $api_url, $merchant_id, $merchant_key = '';
-	public $provider_db_id = 31;
+	public $provider_db_id = 37;
 	public $prefix = 'TIGERG';
 	public $merchantCode = 'TIGERG';
 	public $siteId = 'SITE_USD1';
@@ -28,35 +28,45 @@ class SpadeController extends Controller
     // }
 
 	public function getGameList(Request $request){
-		$api = "https://api-egame-staging.sgplay.net/api/getgames";
+		$api = "https://api-egame-staging.sgplay.net/api";
 		$requesttosend = [
 			'serialNo' =>  $this->generateSerialNo(),
-			'merchantCode' => $this->merchantCode
+			'merchantCode' => $this->merchantCode,
+			'currency' => 'USD'	
 		];
 		$client = new Client([
             'headers' => [ 
-                'API' => "authorize",
+                'API' => "getGames",
                 'DataType' => "JSON"
             ]
         ]);
-		$guzzle_response = $client->get($api,['body' => json_encode($requesttosend)]);
+		$guzzle_response = $client->post($api,['body' => json_encode($requesttosend)]);
 		$client_response = json_decode($guzzle_response->getBody()->getContents());
 		return json_encode($client_response);
 	}
 
 
     public function index(Request $request){
-    	// var_dump(apache_request_headers()); die();
     	$data = file_get_contents("php://input");
 		$details = json_decode($data);
-
+		Helper::saveLog('Spade authorize', $this->provider_db_id, json_encode($details), "");
 		$acctId =  ProviderHelper::explodeUsername('_', $details->acctId);
 		$client_details = Providerhelper::getClientDetails('player_id', $acctId);
 		if($client_details == null){
 			$response = [
-				"acctInfo" => [],
-				"merchantCode" => $this->merchantCode,"msg" => "Acct Not Found","code" => 50100,"serialNo" => $this->generateSerialNo()
+				"msg" => "Acct Not Found",
+				"code" => 50100
 			];
+			Helper::saveLog('Spade authorize error', $this->provider_db_id, json_encode($details), $response);
+			return $response;
+			
+		}
+		if($details->merchantCode != $this->merchantCode){
+			$response = [
+				"msg" => "Merchant Not Found",
+				"code" => 10113
+			];
+			Helper::saveLog('Spade authorize error', $this->provider_db_id, json_encode($details), $response);
 			return $response;
 		}
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -70,19 +80,32 @@ class SpadeController extends Controller
 			],
 			"merchantCode" => $this->merchantCode,"msg" => "success","code" => 0,"serialNo" => $this->generateSerialNo()
 		];
+		Helper::saveLog('Spade authorize process', $this->provider_db_id, json_encode($details), $response);
 		return $response;
     }
 
     public function getBalance(Request $request){
     	$data = file_get_contents("php://input");
 		$details = json_decode($data);
+		Helper::saveLog('Spade getBalance', $this->provider_db_id, json_encode($details), "");
+		Helper::saveLog('Spade getBalance', $this->provider_db_id, json_encode($request->all()), "");
 		$acctId =  ProviderHelper::explodeUsername('_', $details->acctId);
 		$client_details = Providerhelper::getClientDetails('player_id', $acctId);
 		if($client_details == null){
 			$response = [
-				"acctInfo" => [],
-				"merchantCode" => $this->merchantCode,"msg" => "Acct Not Found","code" => 50100,"serialNo" => $this->generateSerialNo()
+				"msg" => "Acct Not Found",
+				"code" => 50100
 			];
+			Helper::saveLog('Spade getBalance error', $this->provider_db_id, json_encode($details), $response);
+			return $response;
+			
+		}
+		if($details->merchantCode != $this->merchantCode){
+			$response = [
+				"msg" => "Merchant Not Found",
+				"code" => 10113
+			];
+			Helper::saveLog('Spade getBalance error', $this->provider_db_id, json_encode($details), $response);
 			return $response;
 		}
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -95,6 +118,7 @@ class SpadeController extends Controller
 			],
 			"merchantCode" => $this->merchantCode,"msg" => "success","code" => 0,"serialNo" => $this->generateSerialNo()
 		];
+		Helper::saveLog('Spade getBalance process', $this->provider_db_id, json_encode($details), $response);
 		return $response;
     }
 
@@ -110,7 +134,16 @@ class SpadeController extends Controller
     public function makeTransfer(Request $request){
     	$data = file_get_contents("php://input");
 		$details = json_decode($data);
+		if($details->merchantCode != $this->merchantCode){
+			$response = [
+				"msg" => "Merchant Not Found",
+				"code" => 10113
+			];
+			Helper::saveLog('Spade Transfer error', $this->provider_db_id,  json_encode($details), $response);
+			return $response;
+		}
 		if($details->type == 1){
+			Helper::saveLog('Spade Bet', $this->provider_db_id, json_encode($details), "");
 			return $this->placeBet($details);
 		}else if($details->type == 2){
 			return $this->cancelBet($details);
@@ -118,13 +151,6 @@ class SpadeController extends Controller
 			return $this->makePayout($details);
 		}else if($details->type == 4){
 			return $this->spadeBunos($details);
-		}else{
-			$response = [
-				"acctInfo" => [],
-				"merchantCode" => $this->merchantCode,"msg" => "Invalid Parameters","code" => 106,"serialNo" => $this->generateSerialNo()
-			];
-			Helper::saveLog('Spade Failed Call', $this->provider_db_id, json_encode($details), $response);
-			return $response;
 		}
     }
 
@@ -134,49 +160,43 @@ class SpadeController extends Controller
 			$acctId =  ProviderHelper::explodeUsername('_', $account);
 			$gameCode = $details->gameCode;
 			$provider_trans_id =  $details->transferId;
-			$roundid =  $details->referenceId;
+			$roundid =  $details->ticketId;
 			$default_currency =  $details->currency;
 			$amount = $details->amount;
 		    $client_details = Providerhelper::getClientDetails('player_id', $acctId);
 			if($client_details == null){
 				$response = [
-					"acctInfo" => [],
-					"merchantCode" => $this->merchantCode,"msg" => "Acct Not Found","code" => 50100,"serialNo" => $serialNo
+					"msg" => "Acct Not Found",
+					"code" => 50100
 				];
-				Helper::saveLog('Spade Failed Bet = '.$serialNo, $this->provider_db_id, json_encode($details), $response);
+				Helper::saveLog('Spade Bet error', $this->provider_db_id, json_encode($details), $response);
 				return $response;
 			}
 			$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 			if($client_details->default_currency != $default_currency){
 				$response = [
-					"acctInfo" => [],
-					"merchantCode" => $this->merchantCode,"msg" => "Currency Invalid","code" => 50112,"serialNo" => $serialNo
+					"msg" => "Currency Invalid ",
+					"code" => 50112
 				];
-				Helper::saveLog('Spade Failed Bet = '.$serialNo, $this->provider_db_id, json_encode($details), $response);
+				Helper::saveLog('Spade Bet error', $this->provider_db_id, json_encode($details), $response);
 				return $response;
 			}
-			$trasaction_check = PRoviderHelper::findGameExt($roundid, 1, 'round_id');
-			if($trasaction_check != 'false'){
-				$response = [
-					"acctInfo" => [],
-					"merchantCode" => $this->merchantCode,"msg" => "Duplicate referenceId","code" => 109,"serialNo" => $serialNo
-				];
-				Helper::saveLog('Spade Failed Bet = '.$serialNo, $this->provider_db_id, json_encode($details), $response);
-				return $response;
-			}
+			
 			$trasaction_check = PRoviderHelper::findGameExt($provider_trans_id, 1, 'transaction_id');
 			if($trasaction_check != 'false'){
 				$response = [
-					"transferId" => $trasaction_check->provider_trans_id ,
-					"merchantCode" => $this->merchantCode,
-					"merchantTxId" => $trasaction_check->game_trans_id,
-					"acctId" => $account ,
-					"balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
-					"msg" => "success (Duplicate TransferId)",
-					"code" => 0,
-					"serialNo" => $serialNo
+					"msg" => "Invalid Parameters",
+					"code" => 106
 				];
-				Helper::saveLog('Spade Failed Bet = '.$serialNo, $this->provider_db_id, json_encode($details), $response);
+				Helper::saveLog('Spade Bet error', $this->provider_db_id, json_encode($details), $response);
+				return $response;
+			}
+			if($amount > $player_details->playerdetailsresponse->balance){
+				$response = [
+					"msg" => "Insufficient Balance",
+					"code" => 50110
+				];
+				Helper::saveLog('Spade Bet error', $this->provider_db_id, json_encode($details), $response);
 				return $response;
 			}
 			$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gameCode);
@@ -187,7 +207,7 @@ class SpadeController extends Controller
 			$pay_amount= 0;
 			$income = $bet_amount - $pay_amount;
 			$credit_debit = 1;
-			$win_or_lost = 5;
+			$win_or_lost = 0;
 			$payout_reason = 'BET';
 			$provider_trans_id = $provider_trans_id;
 			$roundid = $roundid;
@@ -226,24 +246,25 @@ class SpadeController extends Controller
 				$guzzle_response = $client->post($client_details->fund_transfer_url,
 			   	 	['body' => json_encode($requesttosend)]
 				);
-		    	$client_response = json_decode($guzzle_response->getBody()->getContents());
-		    	$gamerecord  = ProviderHelper::createGameTransaction($token_id, $gameid, $bet_amount,  $pay_amount, $credit_debit, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
+				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$gamerecord  = ProviderHelper::createGameTransaction($token_id, $gameid, $bet_amount,  $pay_amount, $credit_debit, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
 		        $response = [
 					"transferId" => $gamerecord,
 					"merchantCode" => $this->merchantCode,
 					// "merchantTxId" => $gamerecord,
-					"acctId" => $account ,
+					"acctId" => $account,
 					"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
 					"msg" => "success",
 					"code" => 0,
 					"serialNo" => $serialNo
 				];
-				$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $roundid, $amount, $game_transaction_type, $details, $response, $requesttosend, $client_response, $response);
+				$this->cretetransactionExt($gamerecord,$details,$requesttosend,$response,$client_response, $game_transaction_type, $bet_amount, $provider_trans_id, $roundid);
+				Helper::saveLog('Spade Bet process', $this->provider_db_id, json_encode($details), $response);
 				return $response;
 			} catch (\Exception $e) {
 				$response = [
-					"acctInfo" => [],
-					"merchantCode" => $this->merchantCode,"msg" => "System Error","code" => 1,"serialNo" => $serialNo
+					"msg" => "Request Timeout",
+					"code" => 100
 				];
 				Helper::saveLog('Spade Failed Bet = '.$e->getMessage(), $this->provider_db_id, json_encode($details), $response);
 				return $response;
@@ -251,7 +272,109 @@ class SpadeController extends Controller
 	}
 
 	public function cancelBet($details){
+		$serialNo = $this->generateSerialNo();
+		$account = $details->acctId;
+		$acctId =  ProviderHelper::explodeUsername('_', $account);
+		$gameCode = $details->gameCode;
+		$provider_trans_id =  $details->transferId;
+		$roundid =  $details->referenceId;
+		$default_currency =  $details->currency;
+		$amount = $details->amount;
+	    $client_details = Providerhelper::getClientDetails('player_id', $acctId);
+		if($client_details == null){
+			$response = [
+				"acctInfo" => [],
+				"merchantCode" => $this->merchantCode,"msg" => "Acct Not Found","code" => 50100,"serialNo" => $serialNo
+			];
+			Helper::saveLog('Spade Failed Payout = '.$serialNo, $this->provider_db_id, json_encode($details), $response);
+			return $response;
+		}
+		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+			if($client_details->default_currency != $default_currency){
+			$response = [
+				"acctInfo" => [],
+				"merchantCode" => $this->merchantCode,"msg" => "Currency Invalid","code" => 50112,"serialNo" => $serialNo
+			];
+			Helper::saveLog('Spade Failed Payout = '.$serialNo, $this->provider_db_id, json_encode($details), $response);
+			return $response;
+		}
+		$trasaction_check = PRoviderHelper::findGameExt($provider_trans_id, 2, 'transaction_id');
+		if($trasaction_check != 'false'){
+			$response = [
+				"transferId" => $trasaction_check->game_trans_id,
+				"merchantCode" => $this->merchantCode,
+				// "merchantTxId" => $trasaction_check->game_trans_id,
+				"acctId" => $account ,
+				"balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
+				"msg" => "success (Duplicate TransferId)",
+				"code" => 0,
+				"serialNo" => $serialNo
+			];
+			Helper::saveLog('Spade Failed Payout = '.$serialNo, $this->provider_db_id, json_encode($details), $response);
+			return $response;
+		}
+		$trasaction_check = PRoviderHelper::findGameExt($roundid, 1, 'transaction_id');
+		// dd($trasaction_check);
+		if($trasaction_check == 'false'){
+			$response = [
+				"acctInfo" => [],
+				"merchantCode" => $this->merchantCode,"msg" => "Reference No. Not Found","code" => 109,"serialNo" => $serialNo
+			];
+			Helper::saveLog('Spade Failed Payout = '.$serialNo, $this->provider_db_id, json_encode($details), $response);
+			return $response;
+		}
 		
+		return 'hold-on';
+		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gameCode);
+		$transaction_type = 'credit';
+		$gameid = $game_details->game_id;
+		$token_id = $client_details->token_id;
+		$bet_amount = $trasaction_check->bet_amount;
+		$pay_amount= $amount;
+		$income = $bet_amount - $pay_amount;
+		$credit_debit = 2;
+		$win_or_lost = 1;
+		$payout_reason = 'Payout/Win';
+		$provider_trans_id = $provider_trans_id;
+		$roundid = $roundid;
+		$game_transaction_type = 2;
+        $client = new Client([
+		    'headers' => [ 
+		    	'Content-Type' => 'application/json',
+		    	'Authorization' => 'Bearer '.$client_details->client_access_token
+		    ]
+		]);
+		$requesttosend = [
+			  "access_token" => $client_details->client_access_token,
+			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			  "type" => "fundtransferrequest",
+			  "datesent" => Helper::datesent(),
+			  "gamedetails" => [
+			    "gameid" => $game_details->game_code, // $game_details->game_code
+			    "gamename" => $game_details->game_name
+			  ],
+			  "fundtransferrequest" => [
+				  "playerinfo" => [
+					"client_player_id" => $client_details->client_player_id,
+					"token" => $client_details->player_token,
+				  ],
+				  "fundinfo" => [
+					      "gamesessionid" => "",
+					      "transactiontype" => $transaction_type,
+					      "transferid" => "",
+					      "rollback" => false,
+					      "currencycode" => $client_details->currency,
+					      "amount" => abs($details->amount)
+				   ],
+			  ],
+		];
+		try {
+			 $this->updateBetTransaction($roundid, $pay_amount, $income, $win_or_lost, $entry_id);
+		 	 $game_transextension = ProviderHelper::createGameTransExt($game_ext_check->game_trans_id,$provider_trans_id, $roundid, $total_amount, $game_transaction_type, $provider_request, $mw_response, $client_response['requesttosend'], $client_response['client_response'], $mw_response, $general_details);
+			//
+		} catch (\Exception $e) {
+			
+		}
 	}
 
 	public function makePayout($details){
@@ -376,5 +499,21 @@ class SpadeController extends Controller
 	    		]);
 		return ($update ? true : false);
 	}
+
+	public static function cretetransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response, $game_transaction_type, $amount=null, $provider_trans_id=null, $round_id=null){
+		$gametransactionext = array(
+			"game_trans_id" => $gametransaction_id,
+			"provider_trans_id" => $provider_trans_id,
+			"round_id" => $round_id,
+			"amount" => $amount,
+			"game_transaction_type"=>$game_transaction_type,
+			"provider_request" => json_encode($provider_request),
+			"mw_request"=>json_encode($mw_request),
+			"mw_response" =>json_encode($mw_response),
+			"client_response" =>json_encode($client_response),
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		return $gametransactionext;
+    }
 
 }
