@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\AES;
 use App\Helpers\FCHelper;
 use GuzzleHttp\Client;
+use App\Helpers\ClientRequestHelper;
 use App\Helpers\Helper;
 use DB;
 class FCController extends Controller
@@ -49,51 +50,25 @@ class FCController extends Controller
             $game_transaction = Helper::checkGameTransaction($data["BankID"]);
             $bet_amount = $game_transaction ? 0 : round($data["Bet"],2);
             $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
-            $client = new Client([
-                'headers' => [ 
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.$client_details->client_access_token
-                ]
-            ]);
-            $requesttocient = [
-                "access_token" => $client_details->client_access_token,
-                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                "type" => "fundtransferrequest",
-                "datetsent" => "",
-                "gamedetails" => [
-                  "gameid" => "",
-                  "gamename" => ""
-                ],
-                "fundtransferrequest" => [
-                      "playerinfo" => [
-                      "client_player_id"=>$client_details->client_player_id,
-                      "token" => $client_details->player_token
-                  ],
-                  "fundinfo" => [
-                        "gamesessionid" => "",
-                        "transactiontype" => "debit",
-                        "transferid" => "",
-                        "rollback" => "false",
-                        "currencycode" => $client_details->currency,
-                        "amount" => $bet_amount, #change data here
-                  ]
-                ]
-                  ];
-                $guzzle_response = $client->post($client_details->fund_transfer_url,
-                ['body' => json_encode(
-                        $requesttocient
-                )],
-                ['defaults' => [ 'exceptions' => false ]]
-            );
-
-            $client_response = json_decode($guzzle_response->getBody()->getContents());
-            $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
             $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
             $json_data = array(
                 "transid" => $data["BankID"],
                 "amount" => round($data["Bet"],2),
                 "roundid" => $data["RecordID"]
             );
+            $game = Helper::getGameTransaction($client_details->player_token,$data["RecordID"]);
+            if(!$game){
+                $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
+            }
+            else{
+                $gametransactionid= $game->game_trans_id;
+            }
+            if(!$game_transaction){
+                $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,1);
+            } 
+            $client_response = ClientRequestHelper::fundTransfer($client_details,round($data["Bet"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
+            $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+            
             if(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "200"){
                 
@@ -101,16 +76,7 @@ class FCController extends Controller
                     "recordID"=>$data["RecordID"],
                     "balance" =>Helper::getBalance($client_details),
                 );
-                $game = Helper::getGameTransaction($client_details->player_token,$data["RecordID"]);
-                if(!$game){
-                    $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
-                }
-                else{
-                    $gametransactionid= $game->game_trans_id;
-                }
-                if(!$game_transaction){
-                    FCHelper::createFCGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,1);
-                }  
+                FCHelper::updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                 return response($response,200)
                     ->header('Content-Type', 'application/json');
             }
@@ -121,46 +87,7 @@ class FCController extends Controller
             $game_transaction = Helper::checkGameTransaction($data["BankID"],$data["RecordID"],2);
             $win_amount = $game_transaction ? 0 : round($data["Win"],2);
             $win_amount = $win_amount < 0 ? 0 :$win_amount;
-            $client = new Client([
-                'headers' => [ 
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.$client_details->client_access_token
-                ]
-            ]);
-            
-             $requesttocient = [
-                "access_token" => $client_details->client_access_token,
-                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                "type" => "fundtransferrequest",
-                "datetsent" => "",
-                "gamedetails" => [
-                  "gameid" => "",
-                  "gamename" => ""
-                ],
-                "fundtransferrequest" => [
-                      "playerinfo" => [
-                      "client_player_id"=>$client_details->client_player_id,
-                      "token" => $client_details->player_token
-                  ],
-                  "fundinfo" => [
-                        "gamesessionid" => "",
-                        "transactiontype" => "credit",
-                        "transferid" => "",
-                        "rollback" => "false",
-                        "currencycode" => $client_details->currency,
-                        "amount" => round($win_amount,2)
-                  ]
-                ]
-                  ];
-                $guzzle_response = $client->post($client_details->fund_transfer_url,
-                ['body' => json_encode(
-                        $requesttocient
-                )],
-                ['defaults' => [ 'exceptions' => false ]]
-            );
             $win = $data["Win"] == 0 ? 0 : 1;
-            $client_response = json_decode($guzzle_response->getBody()->getContents());
-            $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
             $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
             $json_data = array(
                 "transid" => $data["BankID"],
@@ -181,15 +108,19 @@ class FCController extends Controller
                 }
                 $gametransactionid = $game->game_trans_id;
             }
+            if(!$game_transaction){
+                $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,2);
+            }
+            $client_response = ClientRequestHelper::fundTransfer($client_details,round($win_amount,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
+            $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+            
             if(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "200"){
                 $response =array(
                     "Result"=>0,
                     "MainPoints" => $balance,
                 );
-                if(!$game_transaction){
-                    FCHelper::createFCGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,2);
-                }  
+                FCHelper::updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                 return response($response,200)
                     ->header('Content-Type', 'application/json');
             }
@@ -216,47 +147,7 @@ class FCController extends Controller
             $game_transaction = FCHelper::checkGameTransaction($data["BankID"]);
             $refund_amount = empty($game_transaction) ? 0 : $game_transaction->amount;
             $refund_amount = $refund_amount < 0 ? 0 :$refund_amount;
-            
-            $client = new Client([
-                'headers' => [ 
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.$client_details->client_access_token
-                ]
-            ]);
-            
-             $requesttocient = [
-                "access_token" => $client_details->client_access_token,
-                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                "type" => "fundtransferrequest",
-                "datetsent" => "",
-                "gamedetails" => [
-                  "gameid" => "",
-                  "gamename" => ""
-                ],
-                "fundtransferrequest" => [
-                      "playerinfo" => [
-                      "client_player_id"=>$client_details->client_player_id,
-                      "token" => $client_details->player_token
-                  ],
-                  "fundinfo" => [
-                        "gamesessionid" => "",
-                        "transactiontype" => "credit",
-                        "transferid" => "",
-                        "rollback" => "true",
-                        "currencycode" => $client_details->currency,
-                        "amount" => round($refund_amount,2)
-                  ]
-                ]
-                  ];
-                $guzzle_response = $client->post($client_details->fund_transfer_url,
-                ['body' => json_encode(
-                        $requesttocient
-                )],
-                ['defaults' => [ 'exceptions' => false ]]
-            );
             $win = 0;
-            $client_response = json_decode($guzzle_response->getBody()->getContents());
-            $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
             $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
             $json_data = array(
                 "transid" => $data["BankID"],
@@ -273,17 +164,21 @@ class FCController extends Controller
                 $gametransactionid = $game->game_trans_id;
 
             }
+            if(!empty($game_transaction)){
+                $data["RecordID"]= $game_transaction->round_id;
+                $data["Win"] = $refund_amount;
+                $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,3);
+            }
+            $client_response = ClientRequestHelper::fundTransfer($client_details,round($refund_amount,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
+            $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+            
             if(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "200"){
                 $response =array(
                     "Result"=>0,
                     "MainPoints" => $balance,
                 );
-                if(!empty($game_transaction)){
-                    $data["RecordID"]= $game_transaction->round_id;
-                    $data["Win"] = $refund_amount;
-                    FCHelper::createFCGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,3);
-                }   
+                FCHelper::updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                 return response($response,200)
                     ->header('Content-Type', 'application/json');
             }
