@@ -411,7 +411,7 @@ class BoleGamingController extends Controller
 			                $game_code = $game_id;
 			                $token_id = $client_details->token_id;
 			                $bet_amount = $pay_amount; 
-			                $pay_amount = 0;
+			                // $pay_amount = 0;
 			                $income = 0;
 			                $win_type = 0;
 			                $method = 1;
