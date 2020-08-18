@@ -149,9 +149,8 @@ class SkyWindController extends Controller
      */
     public  function getTicket(Request $request){
         Helper::saveLog('Skywind getTicket', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
-        // $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
-        // dd($client_details);
-        // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $response = [
             "error_code" => 0,
             "cust_session_id" => 'tst',

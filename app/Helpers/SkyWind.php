@@ -23,7 +23,7 @@ class SkyWind{
              "username" => config('providerlinks.skywind.seamless_username'),
              "password" => config('providerlinks.skywind.seamless_password')
         ];
-        Helper::saveLog('Skywind Key Request', config('providerlinks.skywind.provider_db_id'), json_encode($requesttosend), $requesttosend);
+        // Helper::saveLog('Skywind Key Request', config('providerlinks.skywind.provider_db_id'), json_encode($requesttosend), $requesttosend);
         $guzzle_response = $client->post($url,
                 ['body' => json_encode($requesttosend)]
         );
