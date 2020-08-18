@@ -343,7 +343,7 @@ class BoleGamingController extends Controller
 								]
 							];
 
-							ProviderHelper::updatecreateGameTransExt($game_transextension, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
+							ProviderHelper::updatecreateGameTransExt($game_transextension, json_decode($request->getContent()), $data, $client_response->requestoclient, $client_response, $data);
 
 							// OLD 
 							// if(in_array($json_data->game_code, $contest_games)){
