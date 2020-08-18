@@ -247,15 +247,14 @@ class GameLobby{
     public static function skyWindLaunch($game_code, $token){
         $player_login = SkyWind::userLogin();
         $client_details = ProviderHelper::getClientDetails('token', $token);
-        $url = ''.config('providerlinks.skywind.api_url').'/players/'.$player_login->username.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
-        // $url = ''.config('providerlinks.skywind.api_url').'/players/'.$client_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
         $client = new Client([
               'headers' => [ 
                   'Content-Type' => 'application/json',
                   'X-ACCESS-TOKEN' => $player_login->accessToken,
               ]
         ]);
-        $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'';
+        // $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'';
+         $url = ''.config('providerlinks.skywind.api_url').'/players/'.config('providerlinks.skywind.seamless_username').'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
         // try {
         $response = $client->get($url);
         $response = json_encode(json_decode($response->getBody()->getContents()));
