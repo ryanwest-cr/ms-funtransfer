@@ -345,7 +345,7 @@ class ICGController extends Controller
                             "hash" => md5($this->changeSecurityCode($client_details->default_currency).$client_details->username."".$balance),
                         ),
                     );
-                    Helper::updateICGGameTransactionExt($transactionId,$client_response->requesttocient,$response,$client_response);  
+                    Helper::updateICGGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);  
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
                 }
