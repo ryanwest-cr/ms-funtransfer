@@ -68,7 +68,7 @@ class FCController extends Controller
             } 
             $client_response = ClientRequestHelper::fundTransfer($client_details,round($data["Bet"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
             $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
-            
+            //Helper::saveLog('betGamecheck(FC)', 2, json_encode($transactionId), "data");
             if(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "200"){
                 
