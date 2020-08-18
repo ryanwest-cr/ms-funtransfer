@@ -169,7 +169,7 @@ class FCController extends Controller
                 $data["Win"] = $refund_amount;
                 $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,3);
             }
-            $client_response = ClientRequestHelper::fundTransfer($client_details,round($refund_amount,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
+            $client_response = ClientRequestHelper::fundTransfer($client_details,round($refund_amount,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
             $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
             
             if(isset($client_response->fundtransferresponse->status->code) 

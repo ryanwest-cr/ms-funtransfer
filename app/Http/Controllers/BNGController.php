@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use App\Helpers\Helper;
+use App\Helpers\ClientRequestHelper;
 use DB;
 class BNGController extends Controller
 {
@@ -208,54 +209,27 @@ class BNGController extends Controller
                 $game_transaction = Helper::checkGameTransaction($data["uid"]);
                 $bet_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
                 $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                $requesttocient = [
-                    "access_token" => $client_details->client_access_token,
-                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                    "type" => "fundtransferrequest",
-                    "datetsent" => "",
-                    "gamedetails" => [
-                      "gameid" => "",
-                      "gamename" => ""
-                    ],
-                    "fundtransferrequest" => [
-                          "playerinfo" => [
-                          "client_player_id"=>$client_details->client_player_id,
-                          "token" => $client_details->player_token
-                      ],
-                      "fundinfo" => [
-                            "gamesessionid" => "",
-                            "transactiontype" => "debit",
-                            "transferid" => "",
-                            "rollback" => "false",
-                            "currencycode" => $client_details->currency,
-                            "amount" => $bet_amount, #change data here
-                      ]
-                    ]
-                      ];
-                    $guzzle_response = $client->post($client_details->fund_transfer_url,
-                    ['body' => json_encode(
-                            $requesttocient
-                    )],
-                    ['defaults' => [ 'exceptions' => false ]]
-                );
-
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
                 $json_data = array(
                     "transid" => $data["uid"],
                     "amount" => round($data["args"]["bet"],2),
                     "roundid" => $data["args"]["round_id"]
                 );
+                $game = Helper::getGameTransaction($data['token'],$data["args"]["round_id"]);
+                if(!$game){
+                    $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
+                }
+                else{
+                    $gametransactionid= $game->game_trans_id;
+                }
+                $this->_setExtParameter($this->_getExtParameter()+1);
+                if(!$game_transaction){
+                    $transactionId=Helper::createBNGGameTransactionExt($gametransactionid,$data,null,null,null,1);
+                }  
+                $client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
+                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
-                    
                     $response =array(
                         "uid"=>$data["uid"],
                         "balance" => array(
@@ -263,20 +237,7 @@ class BNGController extends Controller
                             "version" => $this->_getExtParameter()
                         ),
                     );
-                    $game = Helper::getGameTransaction($data['token'],$data["args"]["round_id"]);
-                    if(!$game){
-                        $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
-                        // $game_transaction_id=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
-                        // Helper::saveGame_trans_ext($game_transaction_id,json_encode($json));
-                        // Helper::saveLog('betGame(ICG)', 12, json_encode($json), $response);
-                    }
-                    else{
-                        $gametransactionid= $game->game_trans_id;
-                    }
-                    $this->_setExtParameter($this->_getExtParameter()+1);
-                    if(!$game_transaction){
-                        Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,1);
-                    }  
+                    Helper::updateBNGGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
                 }
@@ -327,46 +288,7 @@ class BNGController extends Controller
                 $game_transaction = Helper::checkGameTransaction($data["uid"],$data["args"]["round_id"],2);
                 $win_amount = $game_transaction ? 0 : round($data["args"]["win"],2);
                 $win_amount = $win_amount < 0 ? 0 :$win_amount;
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                
-                 $requesttocient = [
-                    "access_token" => $client_details->client_access_token,
-                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                    "type" => "fundtransferrequest",
-                    "datetsent" => "",
-                    "gamedetails" => [
-                      "gameid" => "",
-                      "gamename" => ""
-                    ],
-                    "fundtransferrequest" => [
-                          "playerinfo" => [
-                          "client_player_id"=>$client_details->client_player_id,
-                          "token" => $client_details->player_token
-                      ],
-                      "fundinfo" => [
-                            "gamesessionid" => "",
-                            "transactiontype" => "credit",
-                            "transferid" => "",
-                            "rollback" => "false",
-                            "currencycode" => $client_details->currency,
-                            "amount" => round($win_amount,2)
-                      ]
-                    ]
-                      ];
-                    $guzzle_response = $client->post($client_details->fund_transfer_url,
-                    ['body' => json_encode(
-                            $requesttocient
-                    )],
-                    ['defaults' => [ 'exceptions' => false ]]
-                );
                 $win = $data["args"]["win"] == 0 ? 0 : 1;
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
                 $json_data = array(
                     "transid" => $data["uid"],
@@ -388,12 +310,14 @@ class BNGController extends Controller
                     }
                     $gametransactionid = $game->game_trans_id;
                 }
-                // $game_transaction_id =Helper::createGameTransaction('credit', $json_data, $game_details, $client_details);
-                // Helper::saveGame_trans_ext($game_transaction_id,json_encode($json));
-                // Helper::saveLog('winGame(ICG)', 12, json_encode($json), "data");
+                $this->_setExtParameter($this->_getExtParameter()+1);
+                if(!$game_transaction){
+                    $transactionId=Helper::createBNGGameTransactionExt($gametransactionid,$data,null,null,null,2);
+                } 
+                $client_response = ClientRequestHelper::fundTransfer($client_details,round($win_amount,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
+                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
-                    
                     $response =array(
                         "uid"=>$data["uid"],
                         "balance" => array(
@@ -401,10 +325,7 @@ class BNGController extends Controller
                             "version" => $this->_getExtParameter()
                         ),
                     );
-                    $this->_setExtParameter($this->_getExtParameter()+1);
-                    if(!$game_transaction){
-                        Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,2);
-                    }  
+                    Helper::updateBNGGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
                 }
@@ -436,46 +357,7 @@ class BNGController extends Controller
                 $game_transaction = Helper::checkGameTransaction($data["uid"],$data["args"]["round_id"],3);
                 $refund_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
                 $refund_amount = $refund_amount < 0 ? 0 :$refund_amount;
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                
-                 $requesttocient = [
-                    "access_token" => $client_details->client_access_token,
-                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                    "type" => "fundtransferrequest",
-                    "datetsent" => "",
-                    "gamedetails" => [
-                      "gameid" => "",
-                      "gamename" => ""
-                    ],
-                    "fundtransferrequest" => [
-                          "playerinfo" => [
-                          "client_player_id"=>$client_details->client_player_id,
-                          "token" => $client_details->player_token
-                      ],
-                      "fundinfo" => [
-                            "gamesessionid" => "",
-                            "transactiontype" => "credit",
-                            "transferid" => "",
-                            "rollback" => "true",
-                            "currencycode" => $client_details->currency,
-                            "amount" => round($refund_amount,2)
-                      ]
-                    ]
-                      ];
-                    $guzzle_response = $client->post($client_details->fund_transfer_url,
-                    ['body' => json_encode(
-                            $requesttocient
-                    )],
-                    ['defaults' => [ 'exceptions' => false ]]
-                );
                 $win = $data["args"]["win"] == 0 ? 0 : 1;
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
                 $json_data = array(
                     "transid" => $data["uid"],
@@ -490,9 +372,12 @@ class BNGController extends Controller
                     $gameupdate = Helper::updateGameTransaction($game,$json_data,"refund");
                     $gametransactionid = $game->game_trans_id;
                 }
-                // $game_transaction_id =Helper::createGameTransaction('credit', $json_data, $game_details, $client_details);
-                // Helper::saveGame_trans_ext($game_transaction_id,json_encode($json));
-                // Helper::saveLog('winGame(ICG)', 12, json_encode($json), "data");
+                $this->_setExtParameter($this->_getExtParameter()+1);
+                if(!$game_transaction){
+                    $transactionId=Helper::createBNGGameTransactionExt($gametransactionid,$data,null,null,null,3);
+                }
+                $client_response = ClientRequestHelper::fundTransfer($client_details,round($refund_amount,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
+                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
                     $response =array(
@@ -502,10 +387,7 @@ class BNGController extends Controller
                             "version" => $this->_getExtParameter()
                         ),
                     );
-                    $this->_setExtParameter($this->_getExtParameter()+1);
-                    if(!$game_transaction){
-                        Helper::createBNGGameTransactionExt($gametransactionid,$data,$requesttocient,$response,$client_response,3);
-                    }   
+                    Helper::updateBNGGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
                 }
