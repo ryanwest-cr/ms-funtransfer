@@ -7,6 +7,7 @@ use App\Helpers\AlHelper;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
 use GuzzleHttp\Client;
+use App\Helpers\ClientRequestHelper;
 use Session;
 use Auth;
 use DB;
@@ -182,6 +183,8 @@ class AlController extends Controller
   //      }
 
   // }
-
+    public function testTransaction(){
+      return ClientRequestHelper::getTransactionId("43210","87654321");
+    }
 
 }
