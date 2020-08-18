@@ -54,110 +54,10 @@ class SkyWindController extends Controller
 
     public function getAuth(Request $request){
 
-      // $postData = [
-      //        "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
-      //        "username" => "TGAMESU_USER",
-      //        "password" => "Tgames1234"
-      //   ];
-
-      // // Set the URL to visit
-      // $url = "https://api.gcpstg.m27613.com/v1/login";
-      // // In this example we are referring to a page that handles xml
-      // $header = array( "Content-Type: application/json",);
-      // // Initialise Curl
-      // $curl = curl_init();
-      // if ($curl === false)
-      // {
-      //     throw new Exception(' cURL init failed');
-      // }
-      // // Configure curl for website
-      // curl_setopt($curl, CURLOPT_URL, $url);
-      // // curl_setopt(#curl, CURLOPT_HTTPHEADER, &$headers);
-      // curl_setopt($curl, CURLOPT_POST, true);
-      // curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-      // curl_setopt($curl, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem");
-      // curl_setopt($curl, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem");
-      // // curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
-      // curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, TRUE);
-      // curl_setopt($curl, CURLOPT_POST, 1);
-      // curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
-      // curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-      // // Causes curl to return the result on success which should help us avoid using the writeback option
-      // curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-      // $result = curl_exec($curl);
-      // return $result;
-
-      // $url = "https://api.gcpstg.m27613.com/v1/login";
-      // $data =  [
-      //        "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
-      //        "username" => "TGAMESU_USER",
-      //        "password" => "Tgames1234"
-      //   ];
-
-      // $postData = json_encode($data);
-
-      // $ch = curl_init($url);
-      // curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-      // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-      // curl_setopt($ch, CURLOPT_POST, 1);
-      // curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
-      // curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem");
-      // curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem");
-      // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-      // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-      // curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-      // $result = curl_exec($ch);
-      // curl_close($ch);
-      // dd($result);
-
-      // $timeout = 10;
-      // $error = '';
-      // $status = 1;
-      // $ch = curl_init();
-      // curl_setopt($ch, CURLOPT_HEADER, 0);
-      // if(!empty($header))
-      // {
-      //     curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-      // }
-      
-      // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-      // curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-      // curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem");
-      // curl_setopt($ch, CURLOPT_CAPATH, "/etc/letsencrypt/live/api-test.betrnk.games/fullchain.pem");
-      // curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)');
-      // curl_setopt($ch, CURLOPT_URL, $url);
-      // if(!empty($postData))
-      // {
-      //     curl_setopt($ch, CURLOPT_POST, true);
-      //     curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-      // }
-      
-      // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-      // curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-      // curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-      // $handles = curl_exec($ch);
-      // $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-      // if($httpcode < 200 || $httpcode >= 300)
-      // {
-      //     $status = 0;
-      //     $error = $httpcode;
-      // }
-      // if(curl_errno($ch))
-      // {
-      //     $error = curl_error($ch);
-      //     $status = 0;
-      // }
-      
-      // curl_close($ch);
-      
-      // return array($status, $handles, $error);
-
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
             ],
-            // ['verify' => true]
-            ['verify' => '/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem']
         ]);
         $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
@@ -187,30 +87,6 @@ class SkyWindController extends Controller
         return $response;
     }
 
-    /* TEST */
-    public function gameLaunch(Request $request){
-      // try {
-        $player_login = SkyWind::userLogin();
-        $game_code = 'sw_2pd';
-        $username = 'TG_98';
-        $token = 'n58ec5e159f769ae0b7b3a0774fdbf80';
-        $url = ''.config('providerlinks.skywind.api_url').'/players/'.$username.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-                'X-ACCESS-TOKEN' => $player_login->accessToken,
-            ]
-        ]);
-        $response = $client->get($url);
-        $response = json_encode(json_decode($response->getBody()->getContents()));
-        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
-        $url = json_decode($response, true);
-        return $url;
-      // } catch (\Exception $e) {
-      //   return $e->getMessage();
-      // }
-    }
-
     /**
      * @author's note: provider ticket will be player token on our side!
      * @param  Request = [ticket,merch_id,merch_pwd,ip=optional]
@@ -218,8 +94,7 @@ class SkyWindController extends Controller
      * 
      */
     public function validateTicket(Request $request){
-      Helper::saveLog('Skywind Game Launch', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
-      Helper::saveLog('Skywind Game Launch', $this->provider_db_id, json_encode($request->all()), 'DEMO');
+      Helper::saveLog('Skywind Validate Ticket', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
       $raw_request = file_get_contents("php://input");
       parse_str($raw_request, $data);
       $token = $data['ticket'];
@@ -246,10 +121,9 @@ class SkyWindController extends Controller
      * 
      */
     public  function getTicket(Request $request){
-
-        // $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
-        // dd($client_details);
-        // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        Helper::saveLog('Skywind getTicket', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
+        $client_details = Providerhelper::getClientDetails('token', $request->token); // ticket
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $response = [
             "error_code" => 0,
             "cust_session_id" => 'tst',
@@ -261,6 +135,7 @@ class SkyWindController extends Controller
     }
 
     public  function getBalance(Request $request){
+      Helper::saveLog('Skywind getBalance Ticket', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
       $raw_request = file_get_contents("php://input");
       parse_str($raw_request, $data);
       $cust_id = $data['cust_id'];
@@ -286,10 +161,10 @@ class SkyWindController extends Controller
      * 
      */
     public  function gameDebit(Request $request){
-
         Helper::saveLog('Skywind Debit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $raw_request = file_get_contents("php://input");
         parse_str($raw_request, $data);
+        return $data;
 
         $cust_id = $data['cust_id'];
         $amount = $data['amount'];
@@ -304,17 +179,18 @@ class SkyWindController extends Controller
         $game_code = $data['game_code'];
 
         $client_details = Providerhelper::getClientDetails('player_id', $cust_id);
-        if($client_details == null){ 
-            $response = [
-                "error_code" => -2, // details/player not found
-            ];
+        if($client_details == null){  // details/player not found
+            $response = ["error_code" => -2];
             return $response;
         }
         $game_information = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code);
-        if($game_information == null){
-            $response = [
-                "error_code" => 240,  // game not found
-            ];
+        if($game_information == null){  // game not found
+            $response = [  "error_code" => 240];
+            return $response;
+        }
+        $game_ext_check = ProviderHelper::findGameExt($provider_trans_id, 1, 'transaction_id');
+        if($game_ext_check != 'false'){ // Duplicate transaction
+            $response = ["error_code" => 1];
             return $response;
         }
 
@@ -374,7 +250,6 @@ class SkyWindController extends Controller
      * 
      */
     public  function gameCredit(Request $request){
-
         Helper::saveLog('Skywind Credit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $raw_request = file_get_contents("php://input");
         parse_str($raw_request, $data);
@@ -385,22 +260,29 @@ class SkyWindController extends Controller
         $game_code = $data['game_code'];
 
         $client_details = Providerhelper::getClientDetails('player_id', $cust_id);
-        if($client_details == null){ 
-             $response = [
-                "error_code" => -2, // details/player not found
-            ];
+        if($client_details == null){   // details/player not found
+            $response = ["error_code" => -2];
             return $response;
         }
         $game_information = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code);
-        if($game_information == null){
-             $response = [
-                "error_code" => 240,  // game not found
-            ];
+        if($game_information == null){ // game not found
+            $response = ["error_code" => 240];
+            return $response;
+        }
+        $game_ext_idempotency = ProviderHelper::findGameExt($trx_id, 2, 'transaction_id');
+        if($game_ext_idempotency != 'false'){ // Duplicate transaction
+            $response = ["error_code" => 1];
+            return $response;
+        }
+        $game_ext_check = ProviderHelper::findGameExt($trx_id, 1, 'transaction_id');
+        if($game_ext_check == 'false'){ // Transaction not found
+            $response = ["error_code" => -7];
             return $response;
         }
 
-        $existing_bet = ProviderHelper::findGameTransaction($trx_id, 'transaction_id', 1); // Find if win has bet record
-
+        $provider_trans_id = $trx_id;
+        $roundid = $trx_id;
+        $existing_bet = ProviderHelper::findGameTransaction($game_ext_check->game_trans_id, 'game_transaction'); // Find if win has bet record
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
@@ -443,10 +325,12 @@ class SkyWindController extends Controller
 
         $win = 2;
         $entry_id = 2;
-        $income = $amount - $existing_bet->bet_amount;
+        $pay_amount = $amount;
+        $income = $existing_bet->bet_amount - $pay_amount;
+        $game_transaction_type = 2;
            
         $this->updateBetTransaction($trx_id, $amount, $income, $win, $entry_id);
-        $game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type, $data, $response, $requesttosend, $client_response, $response);
+        $game_transextension = $this->createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $roundid, $pay_amount, $game_transaction_type, $data, $response, $requesttosend, $client_response, $response);
         return $response;
     }
 
@@ -457,27 +341,51 @@ class SkyWindController extends Controller
      * @param  $[trx_id] [<original bet id>]
      * 
      */
-    public  function gameRollback(){
-
-        // $game_transaction = Providerhelper::findGameExt(162793188, 1, 'transaction_id');
-        // $game_transaction = SkyWind::admin_kiosk;
+    public  function gameRollback(Request $request){
+        Helper::saveLog('Skywind Rolback', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         // dd($this->seamless_key);
+        $raw_request = file_get_contents("php://input");
+        parse_str($raw_request, $data);
+        // return $data;
+        $cust_id = $data['cust_id'];
+        $trx_id = $data['trx_id'];
+        $game_code = $data['game_code'];
+        $event_id = $data['event_id'];
+        $event_type = $data['event_type'];
 
-        Helper::saveLog('Skywind Credit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
-        $client_details = Providerhelper::getClientDetails('player_id', $request->cust_id);
+        $client_details = Providerhelper::getClientDetails('player_id', $cust_id);
         if($client_details == null){ 
              $response = [
                 "error_code" => -2, // details/player not found
             ];
             return $response;
         }
-        $game_information = Helper::findGameDetails('game_code', $this->provider_db_id, $request->game_code);
+        $game_information = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code);
         if($game_information == null){
              $response = [
                 "error_code" => 240,  // game not found
             ];
             return $response;
         }
+        $game_ext_idempotency = ProviderHelper::findGameExt($trx_id, 3, 'transaction_id');
+        if($game_ext_idempotency != 'false'){ // Duplicate transaction
+            $response = ["error_code" => 1];
+            return $response;
+        }
+        $game_ext_check = ProviderHelper::findGameExt($trx_id, 1, 'transaction_id'); // find bet
+        if($game_ext_check == 'false'){ // Transaction not found
+            $response = ["error_code" => -7];
+            return $response;
+        }
+        $existing_bet = ProviderHelper::findGameTransaction($game_ext_check->game_trans_id, 'game_transaction'); // Find if win has bet record
+        $amount = $existing_bet->bet_amount;
+        $provider_trans_id = $trx_id;
+        $roundid = $event_id;
+        $win = 4;
+        $entry_id = $existing_bet->entry_id;
+        $pay_amount = $amount;
+        $income = $existing_bet->bet_amount - $pay_amount;
+        $game_transaction_type = 3;
 
         $client = new Client([
             'headers' => [ 
@@ -503,9 +411,9 @@ class SkyWindController extends Controller
                           "gamesessionid" => "",
                           "transactiontype" => 'credit',
                           "transferid" => "",
-                          "rollback" => false,
+                          "rollback" => true,
                           "currencycode" => $client_details->default_currency,
-                          "amount" => $request->amount
+                          "amount" => $amount
                    ],
               ],
         ];
@@ -516,10 +424,35 @@ class SkyWindController extends Controller
         $response = [
             "error_code" => 0,
             "balance" => $client_response->fundtransferresponse->balance,
-            "trx_id" => $request->trx_id,
+            "trx_id" => $trx_id,
         ];
+           
+        $this->updateBetTransaction($trx_id, $amount, $income, $win, $entry_id);
+        $game_transextension = $this->createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $roundid, $pay_amount, $game_transaction_type, $data, $response, $requesttosend, $client_response, $response);
         return $response;        
 
+    }
+
+
+    /**
+     * [gameCredit description]
+     * @param  $[event_type] [<rollback>]
+     * @param  $[trx_id] [<original bet id>]
+     * 
+     */
+    public  function getFreeBet(Request $request){
+        Helper::saveLog('Skywind Rolback', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        $raw_request = file_get_contents("php://input");
+        parse_str($raw_request, $data);
+        return $data;
+  
+        $merch_id = $data['merch_id'];
+        $cust_id = $data['cust_id'];
+        $merch_pwd = $data['merch_pwd'];
+        $cust_session_id = $data['cust_session_id'];
+        $game_code = $data['game_code'];
+        $coin_multiplier = $data['coin_multiplier'];
+        $coin_multiplier = $data['stake_all'];
     }
 
     /**
