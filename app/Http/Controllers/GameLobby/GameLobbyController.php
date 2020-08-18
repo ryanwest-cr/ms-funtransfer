@@ -210,11 +210,19 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider')=="SkyWind"){ // request->token
-                    $msg = array(
-                        "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::skyWindLaunch($request->game_code,$token), //TEST
-                        "game_launch" => true
-                    );
+                    $url = GameLobby::skyWindLaunch($request->game_code,$token);
+                    if($url!= 'false'){
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $url,
+                            "game_launch" => true
+                        );
+                    }else{
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "game_launch" => false
+                        );
+                    }
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
