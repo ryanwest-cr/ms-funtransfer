@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
 // use App\Helpers\CryptAES;
-use App\Helpers\ClientRequestHelper;
 use App\Helpers\CallParameters;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
@@ -51,8 +50,6 @@ class IAESportsController extends Controller
 	public $url_hotgames = 'http://api.ilustretest.com/index/gethotgame';
 	public $url_orders = 'http://api.ilustretest.com/user/searchprders';
 	public $url_activity_logs = 'http://api.ilustretest.com/user/searchprders';
-	public $game_code = 'ia-lobby';
-	public $game_name = 'IA Gaming';
 
 
 	/**
@@ -227,8 +224,54 @@ class IAESportsController extends Controller
 		$client_player = $this->playerDetailsCall($prefixed_username[1]);
 		if($client_player->playerdetailsresponse->balance > $cha->money):
 
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
 
-		    if($transaction_code == 16 || $transaction_code == 17){ // AUTO CHESS GAME // 1 WAY FLIGHT
+			$requesttosend = [
+			  "access_token" => $client_details->client_access_token,
+			  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			  "type" => "fundtransferrequest",
+			  "datesent" => Helper::datesent(),
+			  "gamedetails" => [
+			    "gameid" => 'ia-lobby',
+			    "gamename" => "IA Gaming"
+			  ],
+			  "fundtransferrequest" => [
+					"playerinfo" => [
+					"client_player_id" => $client_details->client_player_id,
+					"token" => $client_details->player_token
+				],
+				"fundinfo" => [
+				      "gamesessionid" => "",
+				      "transactiontype" => $transaction_type,
+				      "transferid" => "",
+				      "rollback" => $rollback,
+				      "currencycode" => $client_details->currency,
+				      "amount" => $cha->money // Amount to be send!
+				]
+			  ]
+			];
+
+			$guzzle_response = $client->post($client_details->fund_transfer_url,
+			    ['body' => json_encode($requesttosend)]
+			);
+
+		    $client_response = json_decode($guzzle_response->getBody()->getContents());
+
+		    $params = [
+	            "code" => $status_code,
+	            "data" => [
+	            	"available_balance" => $client_response->fundtransferresponse->balance,
+	            	"status" => 1,
+	            ],
+				"message" => "Success",
+	        ];	
+
+	        if($transaction_code == 16 || $transaction_code == 17){ // AUTO CHESS GAME
 	        	$transaction_type = 'credit';
 				$token_id = $client_details->token_id;
 				$bet_amount = $cha->money;
@@ -238,8 +281,8 @@ class IAESportsController extends Controller
 				$payout_reason = $this->getCodeType($desc_json['code']) .' : '.$desc_json['message'];
 				$income = '-'.$bet_amount;	
 				$provider_trans_id = $cha->orderId;
-	        	$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
-	        	$game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 2);
+	        	$gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+			    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 2, $cha, $params, $requesttosend, $client_response, $params);
 	        }else{
 	        	$bet_details = $this->getOrderData($cha->projectId);
 	        	// dd($bet_details);
@@ -256,24 +299,10 @@ class IAESportsController extends Controller
 	 	  			}
 
 	 	  			$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
-	 	  			$gamerecord = '';
 				    $this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
 	 	  		}
-			    $game_transextension = ProviderHelper::createGameTransExtV2($bet_details->game_trans_id,$cha->orderId, $cha->projectId, $cha->money, 2);
+			    $game_transextension = $this->createGameTransExt($bet_details->game_trans_id ,$cha->orderId, $cha->projectId, $cha->money, 2, $cha, $params, $requesttosend, $client_response, $params);
 	        }
-
-	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$gamerecord,$game_transextension,$transaction_type);
-
-		    $params = [
-	            "code" => $status_code,
-	            "data" => [
-	            	"available_balance" => $client_response->fundtransferresponse->balance,
-	            	"status" => 1,
-	            ],
-				"message" => "Success",
-	        ];	
-
-	      	ProviderHelper::updatecreateGameTransExt($game_transextension, $cha, $params, $client_response->requestoclient, $client_response,$params);
 		  
 	     else:
 		    $params = [
@@ -389,10 +418,10 @@ class IAESportsController extends Controller
 	        ];	
 
 	        if($transaction_code == 16 || $transaction_code == 17){ // AUTO CHESS GAME
-	        	$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, 0, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+	        	$gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, 0, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
 		 	    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
 	        }else{
-	        	$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+	        	$gamerecord  = $this->createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
 		 	    $game_transextension = $this->createGameTransExt($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1, $cha, $params, $requesttosend, $client_response, $params);
 	        }
 		    
@@ -560,24 +589,24 @@ class IAESportsController extends Controller
 		endif;
 	}
 
-	// public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
+	public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
 
-	// 	$gametransactionext = array(
-	// 		"game_trans_id" => $game_trans_id,
-	// 		"provider_trans_id" => $provider_trans_id,
-	// 		"round_id" => $round_id,
-	// 		"amount" => $amount,
-	// 		"game_transaction_type"=>$game_type,
-	// 		"provider_request" => json_encode($provider_request),
-	// 		"mw_response" =>json_encode($mw_response),
-	// 		"mw_request"=>json_encode($mw_request),
-	// 		"client_response" =>json_encode($client_response),
-	// 		"transaction_detail" =>json_encode($transaction_detail),
-	// 	);
-	// 	$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
-	// 	return $gametransactionext;
+		$gametransactionext = array(
+			"game_trans_id" => $game_trans_id,
+			"provider_trans_id" => $provider_trans_id,
+			"round_id" => $round_id,
+			"amount" => $amount,
+			"game_transaction_type"=>$game_type,
+			"provider_request" => json_encode($provider_request),
+			"mw_response" =>json_encode($mw_response),
+			"mw_request"=>json_encode($mw_request),
+			"client_response" =>json_encode($client_response),
+			"transaction_detail" =>json_encode($transaction_detail),
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		return $gametransactionext;
 
-	// }
+	}
 
 	/**
 	 * Find bet and update to win 
@@ -593,6 +622,28 @@ class IAESportsController extends Controller
 	        		  'transaction_reason' => 'Bet updated to win'
 	    		]);
 		return ($update ? true : false);
+	}
+
+	/**
+	 * Create Transaction
+	 * 
+	 */
+	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
+		$data = [
+					"token_id" => $token_id,
+					"game_id" => $game_id,
+					"round_id" => $round_id,
+					"bet_amount" => $bet_amount,
+					"provider_trans_id" => $provider_trans_id,
+					"pay_amount" => $payout,
+					"income" => $income,
+					"entry_id" => $entry_id,
+					"win" => $win,
+					"transaction_reason" => $transaction_reason,
+					"payout_reason" => $payout_reason
+				];
+		$data_saved = DB::table('game_transactions')->insertGetId($data);
+		return $data_saved;
 	}
 
 
