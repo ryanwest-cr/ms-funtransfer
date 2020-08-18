@@ -182,6 +182,7 @@ $app->post('skywind/api/get_balance', 'SkyWindController@getBalance');
 $app->post('skywind/api/debit', 'SkyWindController@gameDebit');
 $app->post('skywind/api/credit', 'SkyWindController@gameCredit');
 $app->post('skywind/api/rollback', 'SkyWindController@gameRollback');
+$app->post('skywind/api/get_free_bet', 'SkyWindController@getFreeBet');
 //Player API
 //Operator API
 //Lobby API
@@ -218,7 +219,7 @@ $app->post('api/spade','SpadeController@index');
 $app->post('api/spade/authorize','SpadeController@index');
 $app->post('api/spade/getBalance','SpadeController@getBalance');
 $app->post('api/spade/transfer','SpadeController@makeTransfer');
-
+$app->post('api/spade/getgame','SpadeController@getGameList');
 //SAGaming 
 $app->post('api/sa/debugme','SAGamingController@debugme');
 $app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
