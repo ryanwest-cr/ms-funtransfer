@@ -352,8 +352,17 @@ class Helper
 			$gametransactionext["provider_trans_id"] = 0;
 		}
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
-		return $gametransactionext;
+		return $gamestransaction_ext_ID;
 	}
+	public static function updateGameTransactionExt($gametransextid,$mw_request,$mw_response,$client_response){
+		$gametransactionext = array(
+			"mw_request"=>json_encode($mw_request),
+			"mw_response" =>json_encode($mw_response),
+			"client_response" =>json_encode($client_response),
+		);
+		DB::table('game_transaction_ext')->where("game_trans_ext_id",$gametransextid)->update($gametransactionext);
+	}
+
 	public static function createMannaGameTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type){
 		$gametransactionext = array(
 			"game_trans_id" => $gametransaction_id,

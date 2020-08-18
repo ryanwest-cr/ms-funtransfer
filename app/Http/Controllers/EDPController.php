@@ -8,6 +8,7 @@ use App\Helpers\GameTransaction;
 use App\Helpers\Helper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use App\Helpers\ClientRequestHelper;
 use DB;
 class EDPController extends Controller
 {
@@ -160,43 +161,6 @@ class EDPController extends Controller
                 $bet_amount = $game_transaction ? 0 : $request->amount;
                 $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
                 $game_details = Helper::getInfoPlayerGameRound($request->token);
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                $requesttocient = [
-                    "access_token" => $client_details->client_access_token,
-                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                    "type" => "fundtransferrequest",
-                    "datetsent" => "",
-                    "gamedetails" => [
-                            "gameid" => "",
-                            "gamename" => ""
-                        ],
-                    "fundtransferrequest" => [
-                          "playerinfo" => [
-                          "client_player_id"=>$client_details->client_player_id,
-                          "token" => $client_details->player_token
-                      ],
-                      "fundinfo" => [
-                            "gamesessionid" => "",
-                            "transactiontype" => "debit",
-                            "transferid" => "",
-                            "rollback" => "false",
-                            "currencycode" => $client_details->currency,
-                            "amount" => number_format($bet_amount/1000,2, '.', '') #change here
-                      ]
-                    ]
-                      ];
-                    $guzzle_response = $client->post($client_details->fund_transfer_url,
-                    ['body' => json_encode($requesttocient)],
-                    ['defaults' => [ 'exceptions' => false ]]
-                );
-                
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $game_details = Helper::getInfoPlayerGameRound($request->token);
                 $json_data = array(
                     "transid" => $request->id,
                     "amount" => $request->amount / 1000,
@@ -213,13 +177,16 @@ class EDPController extends Controller
                 else{
                     $gametransactionid = $game->game_trans_id;
                 }
+                $transactionId=Helper::createGameTransactionExt($gametransactionid,$request,null,null,null,1);
+                $client_response = ClientRequestHelper::fundTransfer($client_details,number_format($bet_amount/1000,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
+                
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
                     $sessions =array(
                         "transactionId" => $request->id,
                         "balance"=>round($client_response->fundtransferresponse->balance * 1000,2)
                     );
-                    Helper::createGameTransactionExt($gametransactionid,$request,$requesttocient,$sessions,$client_response,1);
+                    Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$sessions,$client_response);
                     return response($sessions,200)
                         ->header('Content-Type', 'application/json');
                 }
@@ -229,7 +196,7 @@ class EDPController extends Controller
                         "code" =>"INSUFFICIENT_FUNDS",
                         "message"=>"Player has insufficient funds"
                     );
-                    Helper::createGameTransactionExt($gametransactionid,$request,$requesttocient,$response,$client_response,1);
+                    Helper::createGameTransactionExt($gametransactionid,$request,$client_response->requestoclient,$response,$client_response,1);
                     return response($response,402)
                     ->header('Content-Type', 'application/json');
                 }
@@ -281,46 +248,6 @@ class EDPController extends Controller
                     $trans_id = $getgametransaction->provider_trans_id;
                     //Helper::saveLog("credit",9,json_encode($request->getContent()),$getgametransaction);
                 }
-                
-                
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                $requesttocient = [
-                    "access_token" => $client_details->client_access_token,
-                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                    "type" => "fundtransferrequest",
-                    "datetsent" => "",
-                    "gamedetails" => [
-                      "gameid" => "",
-                      "gamename" => ""
-                    ],
-                    "fundtransferrequest" => [
-                          "playerinfo" => [
-                          "client_player_id"=>$client_details->client_player_id,
-                          "token" => $client_details->player_token
-                      ],
-                      "fundinfo" => [
-                            "gamesessionid" => "",
-                            "transactiontype" => "credit",
-                            "transferid" => "",
-                            "rollback" => "false",
-                            "currencycode" => $client_details->currency,
-                            "amount" => number_format($win_amount/1000,2, '.', '')
-                      ]
-                    ]
-                      ];
-                try{
-                    $guzzle_response = $client->post($client_details->fund_transfer_url,
-                    ['body' => json_encode(
-                            $requesttocient
-                    )],
-                    ['defaults' => [ 'exceptions' => false ]]
-                );
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
                 $game_details = Helper::getInfoPlayerGameRound($request->token);
                 $json_data = array(
                     "transid" => $trans_id,
@@ -337,22 +264,16 @@ class EDPController extends Controller
                     $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
                     $gametransactionid = $game->game_trans_id;
                 }
+                $transactionId=Helper::createGameTransactionExt($gametransactionid,$request,null,null,null,2);
+                $client_response = ClientRequestHelper::fundTransfer($client_details,number_format($win_amount/1000,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
                 
                 $sessions =array(
                     "transactionId" => $trans_id,
                     "balance"=>round($client_response->fundtransferresponse->balance * 1000,2)
                 ); 
-                Helper::createGameTransactionExt($gametransactionid,$request,$requesttocient,$sessions,$client_response,2);
-                //Helper::saveGame_trans_ext($gametransactionid,json_encode(array("mw_response"=>$sessions,"type"=>"AFTERWIN")));
+                Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$sessions,$client_response);
                 return response($sessions,200)
                        ->header('Content-Type', 'application/json');
-                }
-                catch(ClientException $e){
-                  $client_response = $e->getResponse();
-                  $response = json_decode($client_response->getBody()->getContents(),True);
-                  return response($response,$client_response->getStatusCode())
-                   ->header('Content-Type', 'application/json');
-                }
             }
 
         }
@@ -373,45 +294,6 @@ class EDPController extends Controller
             $request->amount = $game_transaction?$request->amount:0;
             $client_details = $this->_getClientDetails('token', $request->token);
             if($client_details){
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                $requesttocient = [
-                    "access_token" => $client_details->client_access_token,
-                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                    "type" => "fundtransferrequest",
-                    "datetsent" => "",
-                    "gamedetails" => [
-                      "gameid" => "",
-                      "gamename" => ""
-                    ],
-                    "fundtransferrequest" => [
-                          "playerinfo" => [
-                          "client_player_id"=>$client_details->client_player_id,
-                          "token" => $client_details->player_token
-                      ],
-                      "fundinfo" => [
-                            "gamesessionid" => "",
-                            "transactiontype" => "credit",
-                            "transferid" => "",
-                            "rollback" => "false",
-                            "currencycode" => $client_details->currency,
-                            "amount" => number_format($request->amount/1000,2, '.', '')
-                      ]
-                    ]
-                      ];
-                try{
-                    $guzzle_response = $client->post($client_details->fund_transfer_url,
-                    ['body' => json_encode(
-                            $requesttocient
-                    )],
-                    ['defaults' => [ 'exceptions' => false ]]
-                );
-
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
                 $game_details = Helper::getInfoPlayerGameRound($request->token);
                 $json_data = array(
                     "transid" => $request->id,
@@ -426,20 +308,16 @@ class EDPController extends Controller
                 else{
                     $gametransactionid=0;
                 }
+                $transactionId=Helper::createGameTransactionExt($gametransactionid,$request,null,null,null,3);
+                $client_response = ClientRequestHelper::fundTransfer($client_details,number_format($request->amount/1000,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
+                
                 $sessions =array(
                     "transactionId" => $request->id,
                     "balance"=>round($client_response->fundtransferresponse->balance * 1000,2)
                 ); 
-                Helper::createGameTransactionExt($gametransactionid,$request,$requesttocient,$sessions,$client_response,3);
+                Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$sessions,$client_response);
                 return response($sessions,200)
                        ->header('Content-Type', 'application/json');
-                }
-                catch(ClientException $e){
-                  $client_response = $e->getResponse();
-                  $response = json_decode($client_response->getBody()->getContents(),True);
-                  return response($response,$client_response->getStatusCode())
-                   ->header('Content-Type', 'application/json');
-                }
             }
         }  
     }
