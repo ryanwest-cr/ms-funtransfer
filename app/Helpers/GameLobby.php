@@ -248,7 +248,7 @@ class GameLobby{
         $player_login = SkyWind::userLogin();
         $client_details = ProviderHelper::getClientDetails('token', $token);
         // $url = ''.config('providerlinks.skywind.api_url').'/players/'.$player_login->username.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
-        // // $url = ''.config('providerlinks.skywind.api_url').'/players/'.$client_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+        $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'?ticket='.$token.'';
         // $client = new Client([
         //       'headers' => [ 
         //           'Content-Type' => 'application/json',
@@ -262,8 +262,7 @@ class GameLobby{
             // $url = json_decode($response, true);
             // return isset($url['url']) ? $url['url'] : 'false';
 
-        $game_url = SkyWind::getGameUrl($game_code, $token);   
-        return $game_url;
+        return $url;
             
         // } catch (\Exception $e) {
         //     Helper::saveLog('Skywind Game Launch Failed', config('providerlinks.skywind.provider_db_id'), json_encode($player_login), $e->getMessage());
