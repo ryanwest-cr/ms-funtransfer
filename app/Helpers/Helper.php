@@ -309,7 +309,7 @@ class Helper
 			"mw_response" =>json_encode($mw_response),
 			"client_response" =>json_encode($client_response),
 		);
-		DB::table('game_transactions')->where("game_trans_id",$gametransextid)->update($gametransactionext);
+		DB::table('game_transaction_ext')->where("game_trans_id",$gametransextid)->update($gametransactionext);
 	}
 	public static function createBNGGameTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type){
 		$gametransactionext = array(
