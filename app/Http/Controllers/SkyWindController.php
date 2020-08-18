@@ -58,8 +58,6 @@ class SkyWindController extends Controller
             'headers' => [ 
                 'Content-Type' => 'application/json',
             ],
-            // ['verify' => true]
-            // ['verify' => '/etc/letsencrypt/live/api-test.betrnk.games/privkey.pem']
         ]);
         $requesttosend = [
              "secretKey" =>"47138d18-6b46-4bd4-8ae1-482776ccb82d",
@@ -89,30 +87,6 @@ class SkyWindController extends Controller
         return $response;
     }
 
-    /* TEST */
-    public function gameLaunch(Request $request){
-        $player_login = SkyWind::userLogin();
-        $game_code = 'sw_2pd';
-        $username = 'TG_98';
-        $token = 'n58ec5e159f769ae0b7b3a0774fdbf80';
-        $url = ''.config('providerlinks.skywind.api_url').'/players/'.$username.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-                'X-ACCESS-TOKEN' => $player_login->accessToken,
-            ]
-        ]);
-      // try {
-        $response = $client->get($url);
-        $response = json_encode(json_decode($response->getBody()->getContents()));
-        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
-        $url = json_decode($response, true);
-        return $url;
-      // } catch (\Exception $e) {
-      //   return $e->getMessage();
-      // }
-    }
-
     /**
      * @author's note: provider ticket will be player token on our side!
      * @param  Request = [ticket,merch_id,merch_pwd,ip=optional]
@@ -120,8 +94,7 @@ class SkyWindController extends Controller
      * 
      */
     public function validateTicket(Request $request){
-      Helper::saveLog('Skywind Game Launch', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
-      Helper::saveLog('Skywind Game Launch', $this->provider_db_id, json_encode($request->all()), 'DEMO');
+      Helper::saveLog('Skywind Validate Ticket', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
       $raw_request = file_get_contents("php://input");
       parse_str($raw_request, $data);
       $token = $data['ticket'];
@@ -162,6 +135,7 @@ class SkyWindController extends Controller
     }
 
     public  function getBalance(Request $request){
+      Helper::saveLog('Skywind getBalance Ticket', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
       $raw_request = file_get_contents("php://input");
       parse_str($raw_request, $data);
       $cust_id = $data['cust_id'];
