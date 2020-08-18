@@ -57,7 +57,7 @@ class SkyWind{
          ]);
 
         $response = $response->getBody()->getContents();
-        Helper::saveLog('Skywind Game Launch', 21, $requesttosend, json_encode($response));
+        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $requesttosend, json_encode($response));
         return $response;
     }
 

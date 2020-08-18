@@ -261,6 +261,9 @@ class GameLobby{
             Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
             $url = json_decode($response, true);
             return isset($url['url']) ? $url['url'] : 'false';
+
+        $game_url = SkyWind::getGameUrl($game_code, $token);   
+        return $game_url;
             
         // } catch (\Exception $e) {
         //     Helper::saveLog('Skywind Game Launch Failed', config('providerlinks.skywind.provider_db_id'), json_encode($player_login), $e->getMessage());
