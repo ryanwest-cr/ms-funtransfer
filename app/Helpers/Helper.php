@@ -303,7 +303,7 @@ class Helper
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
 		return $gamestransaction_ext_ID;
 	}
-	public static function updateICGGameTrasactionExt($gametransextid,$mw_request,$mw_response,$client_response){
+	public static function updateICGGameTransactionExt($gametransextid,$mw_request,$mw_response,$client_response){
 		$gametransactionext = array(
 			"mw_request"=>json_encode($mw_request),
 			"mw_response" =>json_encode($mw_response),
