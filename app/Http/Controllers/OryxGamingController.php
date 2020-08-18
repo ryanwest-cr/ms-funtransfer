@@ -90,6 +90,7 @@ class OryxGamingController extends Controller
 					// save token to system if not exist
 					TokenHelper::saveIfNotExist($player_id, $token);
 
+					$http_status = 200;
 					$response = [
 						"playerId" => "$player_id",
 						"currencyCode" => "USD",
@@ -179,7 +180,7 @@ class OryxGamingController extends Controller
 					
 					if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
-
+						$http_status = 200;
 						$response = [
 							"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
 						];
@@ -409,6 +410,7 @@ class OryxGamingController extends Controller
 										$game_details = Game::find($json_data["gameCode"]);
 										$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
+										$http_status = 200;
 										$response = [
 											"responseCode" => "OK",
 											"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
@@ -481,6 +483,7 @@ class OryxGamingController extends Controller
 										$game_details = Game::find($json_data["gameCode"]);
 										$game_transaction_id = GameTransaction::save('credit', $json_data, $game_details, $client_details, $client_details);
 
+										$http_status = 200;
 										$response = [
 											"responseCode" => "OK",
 											"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
