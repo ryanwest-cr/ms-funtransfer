@@ -29,7 +29,7 @@ class ClientRequestHelper{
         );
         return $data;
     }
-    public static function fundTransfer($client_details,$amount,$transactionId,$roundId,$type,$rollback=false){
+    public static function fundTransfer($client_details,$amount,$game_code,$game_name,$transactionId,$roundId,$type,$rollback=false){
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
@@ -40,13 +40,14 @@ class ClientRequestHelper{
             "access_token" => $client_details->client_access_token,
             "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
             "type" => "fundtransferrequest",
-            "datetsent" => "",
+            "datetsent" => Helper::datesent(),
             "gamedetails" => [
-              "gameid" => "",
-              "gamename" => ""
+              "gameid" => $game_code,
+              "gamename" => $game_name
             ],
             "fundtransferrequest" => [
                   "playerinfo" => [
+                  "player_username"=>$client_details->username,
                   "client_player_id"=>$client_details->client_player_id,
                   "token" => $client_details->player_token
               ],
@@ -56,7 +57,7 @@ class ClientRequestHelper{
                     "transactionId" => $transactionId, // this id is equivalent to game_transaction_ext game_trans_ext_id
                     "roundId" => $roundId,// this id is equivalent to game_transaction game_trans_id
                     "rollback" => $rollback,
-                    "currencycode" => $client_details->currency,
+                    "currencycode" => $client_details->default_currency,
                     "amount" => $amount #change data here
               ]
             ]
