@@ -289,7 +289,7 @@ class SkyWindController extends Controller
         Helper::saveLog('Skywind Debit', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $raw_request = file_get_contents("php://input");
         parse_str($raw_request, $data);
-        // return $data;
+        return $data;
 
         $cust_id = $data['cust_id'];
         $amount = $data['amount'];
@@ -556,6 +556,28 @@ class SkyWindController extends Controller
         $game_transextension = $this->createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $roundid, $pay_amount, $game_transaction_type, $data, $response, $requesttosend, $client_response, $response);
         return $response;        
 
+    }
+
+
+    /**
+     * [gameCredit description]
+     * @param  $[event_type] [<rollback>]
+     * @param  $[trx_id] [<original bet id>]
+     * 
+     */
+    public  function getFreeBet(Request $request){
+        Helper::saveLog('Skywind Rolback', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        $raw_request = file_get_contents("php://input");
+        parse_str($raw_request, $data);
+        return $data;
+  
+        $merch_id = $data['merch_id'];
+        $cust_id = $data['cust_id'];
+        $merch_pwd = $data['merch_pwd'];
+        $cust_session_id = $data['cust_session_id'];
+        $game_code = $data['game_code'];
+        $coin_multiplier = $data['coin_multiplier'];
+        $coin_multiplier = $data['stake_all'];
     }
 
     /**

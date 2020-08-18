@@ -182,6 +182,7 @@ $app->post('skywind/api/get_balance', 'SkyWindController@getBalance');
 $app->post('skywind/api/debit', 'SkyWindController@gameDebit');
 $app->post('skywind/api/credit', 'SkyWindController@gameCredit');
 $app->post('skywind/api/rollback', 'SkyWindController@gameRollback');
+$app->post('skywind/api/get_free_bet', 'SkyWindController@getFreeBet');
 //Player API
 //Operator API
 //Lobby API
