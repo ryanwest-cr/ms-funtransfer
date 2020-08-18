@@ -258,6 +258,7 @@ class ICGController extends Controller
                     "roundid" => $json["roundId"]
                 );
                 $game_details = Helper::getInfoPlayerGameRound($json["token"]);
+                Helper::saveLog('checkGamedetails(ICG)', 12, json_encode($game_details), $game_details);
                 $game = Helper::getGameTransaction($request->token,$request->gameId);
                 if(!$game){
                     $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
