@@ -29,6 +29,48 @@ class ClientRequestHelper{
         );
         return $data;
     }
+    public static function fundTransfer($client_details,$amount,$transactionId,$roundId,$type,$rollback=false){
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$client_details->client_access_token
+            ]
+        ]);
+        $requesttocient = [
+            "access_token" => $client_details->client_access_token,
+            "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+            "type" => "fundtransferrequest",
+            "datetsent" => "",
+            "gamedetails" => [
+              "gameid" => "",
+              "gamename" => ""
+            ],
+            "fundtransferrequest" => [
+                  "playerinfo" => [
+                  "client_player_id"=>$client_details->client_player_id,
+                  "token" => $client_details->player_token
+              ],
+              "fundinfo" => [
+                    "gamesessionid" => "",
+                    "transactiontype" => $type,
+                    "transactionId" => $transactionId, // this id is equivalent to game_transaction_ext game_trans_ext_id
+                    "roundId" => $roundId,// this id is equivalent to game_transaction game_trans_id
+                    "rollback" => $rollback,
+                    "currencycode" => $client_details->currency,
+                    "amount" => $amount #change data here
+              ]
+            ]
+              ];
+            $guzzle_response = $client->post($client_details->fund_transfer_url,
+            ['body' => json_encode(
+                    $requesttocient
+            )],
+            ['defaults' => [ 'exceptions' => false ]]
+        );
+        $client_reponse = json_decode($guzzle_response->getBody()->getContents());
+        $client_reponse->requestoclient = $requesttocient;
+        return $client_reponse;
+    }
 
 
 }
