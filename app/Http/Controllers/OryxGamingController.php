@@ -257,7 +257,7 @@ class OryxGamingController extends Controller
 								if ($json_data["roundAction"] == "CLOSE") {
 									GameRound::end($json_data['roundId']);
 								}
-								elseif $json_data["roundAction"] == "CANCEL") {
+								elseif ($json_data["roundAction"] == "CANCEL") {
 									$bulk_rollback_result = GameTransaction::bulk_rollback($json_data['roundId']);
 
 									if($bulk_rollback_result) {
