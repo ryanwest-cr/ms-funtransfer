@@ -315,7 +315,7 @@ class SAGamingController extends Controller
                 $provider_trans_id = $txnid;
 
                 ProviderHelper::updateBetTransaction($round_id, $pay_amount, $income, 1, 2);
-                $game_transextension = ProviderHelper::createGameTransExtV2($game_trans_ext->game_trans_id,$provider_trans_id, $round_id, $pay_amount, $game_transaction_type);
+                $game_transextension = ProviderHelper::createGameTransExtV2($game_trans->game_trans_id,$provider_trans_id, $round_id, $pay_amount, $game_transaction_type);
 
                 $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$transaction_check->game_trans_id,$game_transextension,$transaction_type);
 
