@@ -240,7 +240,7 @@ class GameLobby{
     public static function spadeLaunch($game_code,$token,$exitUrl,$lang='en_US'){
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $domain =  $exitUrl;
-        $url = 'http://portal.e-games.com/auth/?acctId='.$client_details->player_id.'&language='.$lang.'&token='.$token.'&game='.$game_code.'&menumode=on&exitUrl='.$domain.'';
+        $url = 'https://lobby-egame-staging.sgplay.net/TIGERG/auth/?acctId=TIGERG_'.$client_details->player_id.'&language='.$lang.'&token='.$token.'&game='.$game_code.'';
         return $url;
     }
 

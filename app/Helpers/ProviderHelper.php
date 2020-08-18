@@ -330,6 +330,48 @@ class ProviderHelper{
 
 	/**
 	 * GLOBAL
+	 * Create Game Transaction Extension
+	 * @param  $[game_type] [<1=bet,2=win,3=refund>]
+	 * 
+	 */
+	public static function createGameTransExtV2($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request='NO DATA', $mw_response='NO DATA', $mw_request='NO DATA', $client_response='NO DATA', $transaction_detail='NO DATA', $general_details=null){
+		$gametransactionext = array(
+			"game_trans_id" => $game_trans_id,
+			"provider_trans_id" => $provider_trans_id,
+			"round_id" => $round_id,
+			"amount" => $amount,
+			"game_transaction_type"=>$game_type,
+			"provider_request" => json_encode($provider_request),
+			"mw_response" =>json_encode($mw_response),
+			"mw_request"=>json_encode($mw_request),
+			"client_response" =>json_encode($client_response),
+			"transaction_detail" =>json_encode($transaction_detail),
+			"general_details" =>json_encode($general_details)
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		return $gamestransaction_ext_ID;
+	}
+
+	/**
+	 * GLOBAL
+	 * Update
+	 */
+	public  static function updatecreateGameTransExt($game_trans_ext_id, $provider_request, $mw_response, $mw_request, $client_response,$transaction_detail,$general_details='NO DATA') {
+   	    $update = DB::table('game_transaction_ext')
+                ->where('game_trans_ext_id', $game_trans_ext_id)
+                ->update([
+					"provider_request" => json_encode($provider_request),
+					"mw_response" =>json_encode($mw_response),
+					"mw_request"=>json_encode($mw_request),
+					"client_response" =>json_encode($client_response),
+					"transaction_detail" =>json_encode($transaction_detail),
+					"general_details" =>json_encode($general_details)
+	    		]);
+		return ($update ? true : false);
+	}
+
+	/**
+	 * GLOBAL
 	 * Check Provider if currency is registered 
 	 * 
 	 */
