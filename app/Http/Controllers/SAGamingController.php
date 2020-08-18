@@ -481,6 +481,8 @@ class SAGamingController extends Controller
             echo $this->makeArrayXML($data_response);
             return;
         }
+        
+        try {
 
         $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
 
