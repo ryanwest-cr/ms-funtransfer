@@ -88,7 +88,6 @@ class SpadeController extends Controller
     	$data = file_get_contents("php://input");
 		$details = json_decode($data);
 		Helper::saveLog('Spade getBalance', $this->provider_db_id, json_encode($details), "");
-		Helper::saveLog('Spade getBalance', $this->provider_db_id, json_encode($request->all()), "");
 		$acctId =  ProviderHelper::explodeUsername('_', $details->acctId);
 		$client_details = Providerhelper::getClientDetails('player_id', $acctId);
 		if($client_details == null){
