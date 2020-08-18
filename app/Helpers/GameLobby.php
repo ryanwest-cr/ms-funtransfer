@@ -255,17 +255,17 @@ class GameLobby{
                   'X-ACCESS-TOKEN' => $player_login->accessToken,
               ]
         ]);
-        try {
+        // try {
             $response = $client->get($url);
             $response = json_encode(json_decode($response->getBody()->getContents()));
             Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
             $url = json_decode($response, true);
             return isset($url['url']) ? $url['url'] : 'false';
             
-        } catch (\Exception $e) {
-            Helper::saveLog('Skywind Game Launch Failed', config('providerlinks.skywind.provider_db_id'), json_encode($player_login), $e->getMessage());
-            return 'false';
-        }
+        // } catch (\Exception $e) {
+        //     Helper::saveLog('Skywind Game Launch Failed', config('providerlinks.skywind.provider_db_id'), json_encode($player_login), $e->getMessage());
+        //     return 'false';
+        // }
     }
 
     public static function cq9LaunchUrl($game_code, $token){
