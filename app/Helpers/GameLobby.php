@@ -254,7 +254,7 @@ class GameLobby{
                   'X-ACCESS-TOKEN' => $player_login->accessToken,
               ]
         ]);
-        $response = $client->post($url);
+        $response = $client->get($url);
         $response = json_encode(json_decode($response->getBody()->getContents()));
         Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
         $url = json_decode($response, true);
