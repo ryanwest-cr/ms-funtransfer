@@ -182,7 +182,7 @@ class IAESportsController extends Controller
 	public function seamlessDeposit(Request $request)
 	{
 		$this->userWager();
-		// Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
@@ -218,7 +218,7 @@ class IAESportsController extends Controller
 		$transaction_type = 'credit';
 		$token_id = $client_details->token_id;
 		$game_details_info = Helper::findGameDetails('game_code', $this->provider_db_id, $this->game_code);
-		$game_details = $game_details->game_id; 
+		$game_details = $game_details_info->game_id; 
 		$bet_amount = $cha->money;
 		$pay_amount = $cha->money; // Zero Payout
 		$method = $transaction_type == 'debit' ? 1 : 2;
@@ -297,7 +297,7 @@ class IAESportsController extends Controller
 	public function seamlessWithdrawal(Request $request)
 	{
 		$this->userWager();
-		// Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
 		// dd($cha);
@@ -334,7 +334,7 @@ class IAESportsController extends Controller
 		$token_id = $client_details->token_id;
 		// $game_details = Game::find($json_data->game_code);
 		$game_details_info = Helper::findGameDetails('game_code', $this->provider_db_id, $this->game_code);
-		$game_details = $game_details->game_id; 
+		$game_details = $game_details_info->game_id; 
 		$bet_amount = $cha->money;
 		$pay_amount = 0; // Zero Payout
 		$method = $transaction_type == 'debit' ? 1 : 2;
