@@ -1367,7 +1367,6 @@ class CQ9Controller extends Controller
     }
 
     public function playerRecord(Request $request, $mtcode){
-    	Helper::saveLog('CQ9 playerRecord Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$transaction_record = $this->findTranPID($mtcode);
     	if($transaction_record != 'false'){
     		$game_ext_details = $transaction_record->general_details;
@@ -1413,6 +1412,7 @@ class CQ9Controller extends Controller
 				]
 	    	];
     	}
+    	Helper::saveLog('CQ9 playerRecord Player', $this->provider_db_id, json_encode($record), $mtcode);
     	return $record;
     }
     
