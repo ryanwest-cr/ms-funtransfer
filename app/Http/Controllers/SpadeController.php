@@ -47,26 +47,62 @@ class SpadeController extends Controller
 
 	public function index(Request $request){
 		$interface_type = $request->header('API');
-    	$data = file_get_contents("php://input");
+		$data = file_get_contents("php://input");
 		$details = json_decode($data);
-		Helper::saveLog('Spade index', $this->provider_db_id, json_encode($details), $interface_type);
+		Helper::saveLog('Spade authorize', $this->provider_db_id, json_encode($details), $interface_type);
+		$acctId =  ProviderHelper::explodeUsername('_', $details->acctId);
+		$client_details = Providerhelper::getClientDetails('player_id', $acctId);
+		if($client_details == null){
+			$response = [
+				"msg" => "Acct Not Found",
+				"code" => 50100
+			];
+			Helper::saveLog('Spade authorize error', $this->provider_db_id, json_encode($details), $response);
+			return $response;
+			
+		}
 		if($details->merchantCode != $this->merchantCode){
 			$response = [
 				"msg" => "Merchant Not Found",
 				"code" => 10113
 			];
-			Helper::saveLog('Spade Transfer error', $this->provider_db_id,  json_encode($details), $response);
+			Helper::saveLog('Spade authorize error', $this->provider_db_id, json_encode($details), $response);
 			return $response;
 		}
-		if($interface_type == 'authorize'){
-			return $this->authorize($details);
-		}else if($interface_type == 'getBalance'){
-			return $this->getBalance($details);
-		}else if($details->type == 3){
-			return $this->makePayout($details);
-		}else if($details->type == 4){
-			return $this->spadeBunos($details);
-		}
+		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+		$response = [
+			"acctInfo" => [
+				"acctId" => $this->prefix.'_'.$acctId,
+				"balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
+				"userName" => $this->prefix.$acctId,
+				"currency" => $client_details->default_currency,
+				"siteId" => $this->siteId
+			],
+			"merchantCode" => $this->merchantCode,"msg" => "success","code" => 0,"serialNo" => $this->generateSerialNo()
+		];
+		Helper::saveLog('Spade authorize process', $this->provider_db_id, json_encode($details), $response);
+		return $response;
+		// $interface_type = $request->header('API');
+    	// $data = file_get_contents("php://input");
+		// $details = json_decode($data);
+		// Helper::saveLog('Spade index', $this->provider_db_id, json_encode($details), $interface_type);
+		// if($details->merchantCode != $this->merchantCode){
+		// 	$response = [
+		// 		"msg" => "Merchant Not Found",
+		// 		"code" => 10113
+		// 	];
+		// 	Helper::saveLog('Spade Transfer error', $this->provider_db_id,  json_encode($details), $response);
+		// 	return $response;
+		// }
+		// if($interface_type == 'authorize'){
+		// 	return $this->authorize($details);
+		// }else if($interface_type == 'getBalance'){
+		// 	return $this->getBalance($details);
+		// }else if($details->type == 3){
+		// 	return $this->makePayout($details);
+		// }else if($details->type == 4){
+		// 	return $this->spadeBunos($details);
+		// }
 	}
 	
     public function authorize($details){
