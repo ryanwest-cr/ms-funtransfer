@@ -6,7 +6,6 @@ use App\Models\PlayerDetail;
 use App\Models\PlayerSessionToken;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
-use App\Helpers\ClientRequestHelper;
 use App\Helpers\GameTransaction;
 use App\Helpers\GameSubscription;
 use App\Helpers\GameRound;
@@ -325,14 +324,41 @@ class BoleGamingController extends Controller
 
 						try
 						{	
-							
-							$game_transextension = ProviderHelper::createGameTransExtV2($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2);
-
-			                $client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$check_game_ext->game_trans_id,$transaction_type);
-
-
+							$client = new Client([
+							    'headers' => [ 
+							    	'Content-Type' => 'application/json',
+							    	'Authorization' => 'Bearer '.$client_details->client_access_token
+							    ]
+							]);
+						    $requesttosend = [
+							  "access_token" => $client_details->client_access_token,
+							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+							  "type" => "fundtransferrequest",
+							  "datetsent" => Helper::datesent(),
+							  "gamedetails" => [
+							    "gameid" => $db_game_code,
+							    "gamename" => $db_game_name
+							  ],
+							  "fundtransferrequest" => [
+									"playerinfo" => [
+									"client_player_id" => $client_details->client_player_id,
+									"token" => $client_details->player_token
+								],
+								"fundinfo" => [
+								      "gamesessionid" => "",
+								      "transactiontype" => $transaction_type,
+								      "transferid" => "",
+								      "rollback" => "false",
+								      "currencycode" => $client_details->default_currency,
+								      "amount" => abs($pay_amount) // Amount to be send!
+								]
+							  ]
+							];
+			                $guzzle_response = $client->post($client_details->fund_transfer_url,
+			                    ['body' => json_encode($requesttosend)]
+			                );
+			                $client_response = json_decode($guzzle_response->getBody()->getContents());
 							Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), $client_response);
-
 							$data = [
 								"data" => [
 									"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')), 
@@ -344,8 +370,6 @@ class BoleGamingController extends Controller
 								]
 							];
 
-							ProviderHelper::updatecreateGameTransExt($game_transextension, json_decode($request->getContent()), $data, $client_response->requestoclient, $client_response, $data);
-
 							// OLD 
 							// if(in_array($json_data->game_code, $contest_games)){
 						 //    	$game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
@@ -354,6 +378,7 @@ class BoleGamingController extends Controller
 							// }
 							// END OLD
 							
+							$game_transextension = ProviderHelper::createGameTransExt($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
 
 							return $data;
 		               }catch (\Exception $e){
@@ -405,14 +430,47 @@ class BoleGamingController extends Controller
 					    $pay_amount = $json_data->amount;
 
 					    try {
-					    	
+					    	$client = new Client([
+							    'headers' => [ 
+							    	'Content-Type' => 'application/json',
+							    	'Authorization' => 'Bearer '.$client_details->client_access_token
+							    ]
+							]);
+						    $requesttosend = [
+			                      "access_token" => $client_details->client_access_token,
+			                      "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+			                      "type" => "fundtransferrequest",
+			                      "datesent" => Helper::datesent(),
+			                      "gamedetails" => [
+			                      	 "gameid" => $db_game_code,
+						   		     "gamename" => $db_game_name
+			                      ],
+			                      "fundtransferrequest" => [
+			                          "playerinfo" => [
+			                            "client_player_id" => $client_details->client_player_id,
+			                            "token" => $client_details->player_token,
+			                          ],
+			                          "fundinfo" => [
+			                                  "gamesessionid" => "",
+										      "transactiontype" => 'debit', // Game Buy In Debit
+										      "transferid" => "",
+										      "rollback" => "false",
+										      "currencycode" => $client_details->default_currency,
+										      "amount" => abs($pay_amount) // Amount!
+			                           ],
+			                      ],
+			                ];
+			                $guzzle_response = $client->post($client_details->fund_transfer_url,
+			                    ['body' => json_encode($requesttosend)]
+			                );
+			                $client_response = json_decode($guzzle_response->getBody()->getContents());
 					    	 // TEST
 			                $transaction_type = 'debit';
 			                $game_transaction_type = 1; // 1 Bet, 2 Win
 			                $game_code = $game_id;
 			                $token_id = $client_details->token_id;
 			                $bet_amount = $pay_amount; 
-			                // $pay_amount = 0;
+			                $pay_amount = 0;
 			                $income = 0;
 			                $win_type = 0;
 			                $method = 1;
@@ -421,14 +479,6 @@ class BoleGamingController extends Controller
 			                $provider_trans_id = $json_data->report_id;
 			                $round_id = $json_data->report_id;
 			                // TEST
-
-							$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  0, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-							$game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
-
-							$client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$gamerecord,$transaction_type);
-
-							Helper::saveLog('BOLE WALLET CALL GBI', 2, $request->getContent(), json_encode($client_response));
-							
 
 		                	$data = [
 								"data" => [
@@ -441,7 +491,9 @@ class BoleGamingController extends Controller
 								]
 							];
 
-							ProviderHelper::updatecreateGameTransExt($game_transextension, json_decode($request->getContent()), $data, $client_response->requestoclient, $client_response, $data);
+							Helper::saveLog('BOLE WALLET CALL GBI', 2, $request->getContent(), json_encode($client_response));
+							$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+          				    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type, json_decode($request->getContent()), $data, $requesttosend, $client_response, $data);
 
 							return $data;
 

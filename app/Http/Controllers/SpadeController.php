@@ -45,8 +45,31 @@ class SpadeController extends Controller
 		return json_encode($client_response);
 	}
 
-
-    public function index(Request $request){
+	public function index(Request $request){
+		$interface_type = $request->header('API');
+    	$data = file_get_contents("php://input");
+		$details = json_decode($data);
+		Helper::saveLog('Spade index', $this->provider_db_id, json_encode($details), $interface_type);
+		if($details->merchantCode != $this->merchantCode){
+			$response = [
+				"msg" => "Merchant Not Found",
+				"code" => 10113
+			];
+			Helper::saveLog('Spade Transfer error', $this->provider_db_id,  json_encode($details), $response);
+			return $response;
+		}
+		if($interface_type == 'authorize'){
+			return $this->authorize($details);
+		}else if($interface_type == 'getBalance'){
+			return $this->getBalance($details);
+		}else if($details->type == 3){
+			return $this->makePayout($details);
+		}else if($details->type == 4){
+			return $this->spadeBunos($details);
+		}
+	}
+	
+    public function authorize($details){
     	$data = file_get_contents("php://input");
 		$details = json_decode($data);
 		Helper::saveLog('Spade authorize', $this->provider_db_id, json_encode($details), "");

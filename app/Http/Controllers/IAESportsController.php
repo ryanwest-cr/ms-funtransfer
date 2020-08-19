@@ -262,7 +262,7 @@ class IAESportsController extends Controller
 			    $game_transextension = ProviderHelper::createGameTransExtV2($bet_details->game_trans_id,$cha->orderId, $cha->projectId, $cha->money, 2);
 	        }
 
-	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$gamerecord,$game_transextension,$transaction_type);
+	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension,$gamerecord,$transaction_type);
 
 		    $params = [
 	            "code" => $status_code,
@@ -283,7 +283,7 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 		Helper::saveLog('IA Deposit Response', 15,json_encode($cha), $params);
-		// $this->userWager();
+		$this->userWager();
 		return $params;
 	}
 
@@ -350,7 +350,7 @@ class IAESportsController extends Controller
 		 	    $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1);
 	        }
 
-	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$gamerecord,$game_transextension,$transaction_type);
+	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension,$gamerecord,$transaction_type);
 
             $params = [
 	            "code" => $status_code,
@@ -372,7 +372,7 @@ class IAESportsController extends Controller
 		endif;
 
 		Helper::saveLog('IA Withrawal Response', 15,json_encode($cha), $params);
-		// $this->userWager();
+		$this->userWager();
 		return $params;
 	}
 
