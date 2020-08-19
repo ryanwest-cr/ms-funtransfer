@@ -142,7 +142,7 @@ class PGSoftController extends Controller
         Helper::saveLog('PGSoft Bet ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), 'ENDPOINT HIT');
         $data = $request->all();
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-        if($request->has('is_validate_bet') && $data["is_validate_bet"] != 'True'){
+        if(!$request->has('is_validate_bet') || $request->has('is_validate_bet') && $data["is_validate_bet"] == 'False' ){
             if($data["operator_token"] != $this->operator_token):
                 $errormessage = array(
                     'data' => null,
@@ -348,7 +348,7 @@ class PGSoftController extends Controller
         Helper::saveLog('PGSoft Payout', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT),  "ENDPOINT HIT");
         $data = $request->all();
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-        if($request->has('is_validate_bet') && $data["is_validate_bet"] != 'True'){
+        if(!$request->has('is_validate_bet') || $request->has('is_validate_bet') && $data["is_validate_bet"] == 'False' ){
             if($data["operator_token"] != $this->operator_token):
                 $errormessage = array(
                     'data' => null,
