@@ -49,6 +49,7 @@ class SpadeController extends Controller
 		$interface_type = $request->header('API');
     	$data = file_get_contents("php://input");
 		$details = json_decode($data);
+		Helper::saveLog('Spade index', $this->provider_db_id, json_encode($details), $interface_type);
 		if($details->merchantCode != $this->merchantCode){
 			$response = [
 				"msg" => "Merchant Not Found",
