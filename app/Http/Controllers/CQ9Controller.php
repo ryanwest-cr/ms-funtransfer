@@ -1117,6 +1117,7 @@ class CQ9Controller extends Controller
 		    	];
 			
 				ProviderHelper::updatecreateGameTransExt($game_ext_check->game_trans_id, $provider_request, $mw_response, $client_response->requestoclient, $client_response, $mw_response,$general_details);
+				Helper::saveLog('CQ9 playerRollin Success', $this->provider_db_id, json_encode($request->all()), $mw_response);
 
 			}else{
 				$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
