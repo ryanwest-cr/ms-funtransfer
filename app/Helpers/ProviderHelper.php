@@ -68,6 +68,14 @@ class ProviderHelper{
 		}
     }
 
+    public static function checkIfHasUnderscore($string){
+    	// if(preg_match('/^[a-z]+_[a-z]+$/i', $string)){
+    	if(strpos($string, '_')){
+		   return true;
+		}else{
+		   return false;
+		}
+	}
 
     /**
      * GLOBAL 
