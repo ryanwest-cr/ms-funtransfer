@@ -181,6 +181,7 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessDeposit(Request $request)
 	{
+		$this->userWager();
 		// Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
@@ -216,7 +217,7 @@ class IAESportsController extends Controller
 		$game_code = '';
 		$transaction_type = 'credit';
 		$token_id = $client_details->token_id;
-		$game_details_info = Helper::findGameDetails('game_code', $this->provider_db_id, $this->gamecode);
+		$game_details_info = Helper::findGameDetails('game_code', $this->provider_db_id, $this->game_code);
 		$game_details = $game_details->game_id; 
 		$bet_amount = $cha->money;
 		$pay_amount = $cha->money; // Zero Payout
@@ -285,7 +286,6 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 		Helper::saveLog('IA Deposit Response', $this->provider_db_id,json_encode($cha), $params);
-		$this->userWager();
 		return $params;
 	}
 
@@ -296,6 +296,7 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessWithdrawal(Request $request)
 	{
+		$this->userWager();
 		// Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
@@ -332,7 +333,7 @@ class IAESportsController extends Controller
 		$transaction_type = 'debit';
 		$token_id = $client_details->token_id;
 		// $game_details = Game::find($json_data->game_code);
-		$game_details_info = Helper::findGameDetails('game_code', $this->provider_db_id, $this->gamecode);
+		$game_details_info = Helper::findGameDetails('game_code', $this->provider_db_id, $this->game_code);
 		$game_details = $game_details->game_id; 
 		$bet_amount = $cha->money;
 		$pay_amount = 0; // Zero Payout
@@ -375,7 +376,6 @@ class IAESportsController extends Controller
 		endif;
 
 		Helper::saveLog('IA Withrawal Response', $this->provider_db_id,json_encode($cha), $params);
-		$this->userWager();
 		return $params;
 	}
 
