@@ -987,9 +987,10 @@ class CQ9Controller extends Controller
     }
 
     public function playerRollin(Request $request){
-    	Helper::saveLog('CQ9 playerRollin Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
+    	Helper::saveLog('CQ9 playerRollin Player HIT 1', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$provider_request = $request->all();
+    	Helper::saveLog('CQ9 playerRollin Player HIT 2', $this->provider_db_id, json_encode($request->all()), $header);
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
     		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
