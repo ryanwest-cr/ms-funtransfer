@@ -174,21 +174,27 @@ class CQ9Controller extends Controller
     }
 
     public function CheckBalanceLotto(Request $request, $account){
+    	// Helper::saveLog('CQ9 Balance Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+    	$check_string_user = ProviderHelper::checkIfHasUnderscore($account);
+    	if(!$check_string_user){
+			$data = ["data" => false,"status" => ["code" => "1006","message" => 'Playerdoesnotexist not found',"datetime" => date(DATE_RFC3339)]];
+		   return $data;
+    	}
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	if($client_details != null){
     		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 			$data = [
 	    		"data" => [
-	    			"balance" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+	    			"balance" => $this->amountToFloat4DG($player_details->playerdetailsresponse->balance),
 	    			"currency" => $client_details->default_currency,
 	    		],
 	    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
 	    	];
     	}else{
-    		$data = ["data" => false,"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]];
+    		$data = ["data" => null,"status" => ["code" => "1006","message" => 'Playerdoesnotexist not found',"datetime" => date(DATE_RFC3339)]];
     	}
-    	Helper::saveLog('CQ9 BalanceLotto Player', $this->provider_db_id, json_encode($request->all()), $data);
+    	// Helper::saveLog('CQ9 Balance Player', $this->provider_db_id, json_encode($request->all()), $data);
     	return $data;
     }
 
@@ -261,7 +267,11 @@ class CQ9Controller extends Controller
 			return $mw_response;
    		}
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
-		// if($game_details == null){}
+		if($game_details == null){
+			$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 playerTakeall', $this->provider_db_id, json_encode($request->all()), $mw_response);
+			return $mw_response;
+		}
 		$game_ext_check = ProviderHelper::findGameExt($mtcode, 1, 'transaction_id');
 		if($game_ext_check != 'false'){
 			$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]];
@@ -383,7 +393,11 @@ class CQ9Controller extends Controller
 
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
-		// if($game_details == null){}
+		if($game_details == null){
+			$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 playerTakeall', $this->provider_db_id, json_encode($request->all()), $mw_response);
+			return $mw_response;
+		}
 		$game_ext_check = ProviderHelper::findGameExt($roundid, 1, 'round_id');
 		if($game_ext_check == 'false'){
 			$mw_response = ["data" => null,"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]];
@@ -503,7 +517,11 @@ class CQ9Controller extends Controller
 			return $mw_response;
    		}
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
-		// if($game_details == null){}
+		if($game_details == null){
+			$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 playerTakeall', $this->provider_db_id, json_encode($request->all()), $mw_response);
+			return $mw_response;
+		}
 		$game_ext_check = ProviderHelper::findGameExt($roundid, 1, 'round_id');
 		if($game_ext_check == 'false'){
 			$mw_response = ["data" => null,"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]];
@@ -641,7 +659,11 @@ class CQ9Controller extends Controller
 			return $mw_response;
    		}
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
-		// if($game_details == null){}
+		if($game_details == null){
+			$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 playerTakeall', $this->provider_db_id, json_encode($request->all()), $mw_response);
+			return $mw_response;
+		}
 		$game_ext_check = ProviderHelper::findGameExt($roundid, 1, 'round_id');
 		if($game_ext_check == 'false'){
 			$mw_response = ["data" => null,"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]];
@@ -730,14 +752,11 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
     	}
-    	// dd(strtotime($request->eventTime));
-    	// dd($this->validRFCDade($request->eventTime));	
     	if(!$this->validRFCDade($request->eventTime)){
     		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
 	    	];
 			return $mw_response;
     	}
-
     	$account = $request->account;
     	$gamecode = $request->gamecode;
     	$gamehall = $request->gamehall;
@@ -751,6 +770,7 @@ class CQ9Controller extends Controller
     	$check_string_user = ProviderHelper::checkIfHasUnderscore($account);
     	if(!$check_string_user){
 			$data = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 T ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
 		   return $data;
 		}
     	$user_id = Providerhelper::explodeUsername('_', $account);
@@ -758,40 +778,43 @@ class CQ9Controller extends Controller
     	if($client_details == null){
     		$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]
 	    	];
+	    	Helper::saveLog('CQ9 Rollout', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
     	}
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+		if($player_details == 'false'){
+			$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]
+	    	];
+	    	Helper::saveLog('CQ9 Rollout', $this->provider_db_id, json_encode($provider_request), $mw_response);
+			return $mw_response;
+		}
     	if($amount < 0){
    			$mw_response = [
-	    		"data" => null,
-	    		// [
-	    		// 	"balance" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
-	    		// 	"currency" => $client_details->default_currency,
-	    		// ],
-	    		"status" => ["code" => "1003","message" => 'Amount cannot be negative!',"datetime" => date(DATE_RFC3339)]
+	    		"data" => null,"status" => ["code" => "1003","message" => 'Amount cannot be negative!',"datetime" => date(DATE_RFC3339)]
 	    	];
+	    	Helper::saveLog('CQ9 Rollout', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
    		}
    		if($player_details->playerdetailsresponse->balance < $amount){
    			$mw_response = [
-	    		"data" => null,
-	    		// [
-	    		// 	"balance" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
-	    		// 	"currency" => $client_details->default_currency,
-	    		// ],
-	    		"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
+	    		"data" => null,"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
 	    	];
+	    	Helper::saveLog('CQ9 Rollout', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
    		}
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
-		// if($game_details == null){}
+		if($game_details == null){
+			$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 playerTakeall', $this->provider_db_id, json_encode($request->all()), $mw_response);
+			return $mw_response;
+		}
 		$game_ext_check = ProviderHelper::findGameExt($mtcode, 1, 'transaction_id');
 		if($game_ext_check != 'false'){
 			$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 T ALready Exist', $this->provider_db_id, $provider_request, $mw_response);
+			Helper::saveLog('CQ9 Rollout', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
 		}	
-		// try {
+		try {
 			$token_id = $client_details->token_id;
 			$bet_amount = $amount;
 			$pay_amount= 0;
@@ -802,19 +825,13 @@ class CQ9Controller extends Controller
 			$provider_trans_id = $mtcode;
 			$game_transaction_type = 1;
 			$game_id = $game_details->game_id;
-			$client_response = $this->fundTransferRequest(
-		    	$client_details->client_access_token,
-		    	$client_details->client_api_key, 
-		    	$game_details->game_code, 
-		    	$game_details->game_name, 
-		    	$client_details->client_player_id, 
-		    	$client_details->player_token, 
-		    	abs($amount),
-		    	$client_details->fund_transfer_url, 
-		    	"debit",
-		    	$client_details->default_currency, 
-		    	true
-		    );
+
+
+			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
+			$game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $roundid, $amount, $game_transaction_type);
+
+		    $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$gamerecord,$game_transextension, 'debit');
+
 			if($client_response != 'false'){
 				$general_details = [
 					"provider" => [
@@ -825,30 +842,30 @@ class CQ9Controller extends Controller
 					],
 		    		"client" => [
 		    			"before_balance" => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
-				    	"after_balance"=> ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
+				    	"after_balance"=> ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
 				    	"player_prefixed"=> $account,
 				    	"player_id"=> $user_id
 		    		]
 		    	];
 				$mw_response = [
 		    		"data" => [
-		    			"balance" => ProviderHelper::amountToFloat($client_response['client_response']->fundtransferresponse->balance),
+		    			"balance" => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
 		    			"currency" => $client_details->default_currency,
 		    		],
 		    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
 		    	];
-				$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundid);
-			    $game_transextension = ProviderHelper::createGameTransExt($gamerecord,$provider_trans_id, $roundid, $amount, $game_transaction_type, $provider_request, $mw_response, $client_response['requesttosend'], $client_response['client_response'], $mw_response, $general_details);
+				
+		    	ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, $mw_response,$general_details);
 			}else{
 				$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
 				Helper::saveLog('CQ9 playerRollout Failed', $this->provider_db_id, json_encode($request->all()), $mw_response);
 			}
 			return $mw_response;
-		// } catch (\Exception $e) {
-		// 	$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
-		// 	Helper::saveLog('CQ9 playerRollout Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
-		// 	return $mw_response;
-		// }
+		} catch (\Exception $e) {
+			$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 playerRollout Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
+			return $mw_response;
+		}
     }
 
     public function playerTakeall(Request $request){
@@ -881,6 +898,12 @@ class CQ9Controller extends Controller
 		$createtime = date(DATE_RFC3339);
 		$action = 'takeall';
 
+		$check_string_user = ProviderHelper::checkIfHasUnderscore($account);
+    	if(!$check_string_user){
+			$data = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 Takeall', $this->provider_db_id, json_encode($provider_request), $mw_response);
+		   return $data;
+		}
     	$user_id = Providerhelper::explodeUsername('_', $account);
     	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
     	if($client_details == null){
@@ -889,15 +912,18 @@ class CQ9Controller extends Controller
 			return $mw_response;
     	}
     	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-    	// dd($player_details);
     	if($player_details == 'false'){
-    		$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 T Server Error', $this->provider_db_id, json_encode($provider_request), $mw_response);
+    		$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]
+	    	];
 			return $mw_response;
     	}
     	$amount = $player_details->playerdetailsresponse->balance;
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
-		// if($game_details == null){}
+		if($game_details == null){
+			$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 playerTakeall', $this->provider_db_id, json_encode($request->all()), $mw_response);
+			return $mw_response;
+		}
 		$game_ext_check = ProviderHelper::findGameExt($mtcode, 1, 'transaction_id');
 		if($game_ext_check != 'false'){
 			$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]];
