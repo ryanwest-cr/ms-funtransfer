@@ -142,7 +142,7 @@ class PGSoftController extends Controller
         Helper::saveLog('PGSoft Bet ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), 'ENDPOINT HIT');
         $data = $request->all();
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-        if($data["is_validate_bet"] != 'True'){
+        if($request->has('is_validate_bet') && $data["is_validate_bet"] != 'True'){
             if($data["operator_token"] != $this->operator_token):
                 $errormessage = array(
                     'data' => null,
@@ -200,6 +200,7 @@ class PGSoftController extends Controller
                 return json_encode($errormessage, JSON_FORCE_OBJECT); 
             }
         }
+
         if($client_details != null){
             try{
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -347,7 +348,7 @@ class PGSoftController extends Controller
         Helper::saveLog('PGSoft Payout', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT),  "ENDPOINT HIT");
         $data = $request->all();
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-        if($data["is_validate_bet"] != 'True'){
+        if($request->has('is_validate_bet') && $data["is_validate_bet"] != 'True'){
             if($data["operator_token"] != $this->operator_token):
                 $errormessage = array(
                     'data' => null,
