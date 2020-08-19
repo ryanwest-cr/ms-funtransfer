@@ -1009,11 +1009,11 @@ class CQ9Controller extends Controller
 				return $mw_response;
     		}
     	}
-    	if(!$this->validRFCDade($request->eventTime) || !$this->validRFCDade($request->createTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]];
-    		Helper::saveLog('CQ9 playerRollin Player', $this->provider_db_id, json_encode($request->all()), $mw_response);
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($request->eventTime) || !$this->validRFCDade($request->createTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]];
+   //  		Helper::saveLog('CQ9 playerRollin Player', $this->provider_db_id, json_encode($request->all()), $mw_response);
+			// return $mw_response;
+   //  	}
     	$account = $request->account;
     	$gamecode = $request->gamecode;
     	$gamehall = $request->gamehall;
