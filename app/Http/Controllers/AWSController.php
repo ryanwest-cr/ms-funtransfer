@@ -151,21 +151,21 @@ class AWSController extends Controller
 		Helper::saveLog('AWS Single Fund Transfer', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-		// $explode1 = explode('"betAmount":', $data);
-		// $explode2 = explode('amount":', $explode1[0]);
-		// $amount_in_string = trim(str_replace(',', '', $explode2[0]));
-		// $amount_in_string = trim(str_replace('"', '', $amount_in_string));
+		$explode1 = explode('"betAmount":', $data);
+		$explode2 = explode('amount":', $explode1[0]);
+		$amount_in_string = trim(str_replace(',', '', $explode2[0]));
+		$amount_in_string = trim(str_replace('"', '', $amount_in_string));
 
-		// $signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
+		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
 		
-		// if($signature != $details->sign){
-		// 	$response = [
-		// 		"msg"=> "Sign check encountered error, please verify sign is correct",
-		// 		"code"=> 9200
-		// 	];
-		// 	Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
-		// 	return $response;
-		// }
+		if($signature != $details->sign){
+			$response = [
+				"msg"=> "Sign check encountered error, please verify sign is correct",
+				"code"=> 9200
+			];
+			Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
+			return $response;
+		}
 
 		$provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 		if($provider_reg_currency == 'false'){
@@ -241,7 +241,7 @@ class AWSController extends Controller
 			// AWS IS 1 WAY FLIGHT
 			$gamerecord  = $this->createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
 		    $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type);
-            $client_response = ClientRequestHelper::fundTransfer($client_details,abs($details->amount),$game_details->game_code,$game_details->game_name,$gamerecord,$game_transextension,$transaction_type);
+            $client_response = ClientRequestHelper::fundTransfer($client_details,abs($details->amount),$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,$transaction_type);
 
 			$response = [
 				"msg"=> "success",
