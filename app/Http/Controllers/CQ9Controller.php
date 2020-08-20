@@ -348,7 +348,7 @@ class CQ9Controller extends Controller
 				return $mw_response;
 	   		}
 
-	   		if(!$this->validRFCDade($data->amount->eventtime)){
+	   		if(!$this->validRFCDade($data->eventtime)){
 	    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
 		    	];
 		    	Helper::saveLog('CQ9 Endround', $this->provider_db_id, json_encode($provider_request), $mw_response);
@@ -471,8 +471,8 @@ class CQ9Controller extends Controller
 		    			"currency" => $client_details->default_currency,
 		    		],
 		    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)],
-		    		"test" => $multi_event_bag,
-		    		"test2" => $gametrans_ext_bag_id
+		    		// "test" => $multi_event_bag,
+		    		// "test2" => $gametrans_ext_bag_id
 	    	];
 			return $mw_response;
 		} catch (\Exception $e) {
@@ -1275,9 +1275,9 @@ class CQ9Controller extends Controller
 			$bet_amount = 0;
 			$pay_amount= $amount;
 			$method = 1;
-			$win_or_lost = 2;
+			$win_or_lost = 1;
 			$payout_reason = 'BUNOS GAME';
-			$income = 0*$amount;
+			$income = 0-$amount;
 			$provider_trans_id = $mtcode;
 			$game_transaction_type = 2;
 			$game_id = $game_details->game_id;
