@@ -215,8 +215,8 @@ $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
 $app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
 
 // Spade Gaming
-$app->post('api/spade','SpadeController@index');
-$app->post('api/spade/authorize','SpadeController@index');
+// $app->post('api/spade','SpadeController@index');
+$app->post('api/spade/authorize','SpadeController@authorize');
 $app->post('api/spade/getBalance','SpadeController@getBalance');
 $app->post('api/spade/transfer','SpadeController@makeTransfer');
 $app->post('api/spade/getgame','SpadeController@getGameList');
