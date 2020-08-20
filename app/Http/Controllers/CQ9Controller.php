@@ -1249,14 +1249,14 @@ class CQ9Controller extends Controller
 	    	Helper::saveLog('CQ9 Bet', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
    		}
-   		if($player_details->playerdetailsresponse->balance < $amount){
-   			$mw_response = [
-	    		"data" => null,
-	    		"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
-	    	];
-	    	Helper::saveLog('CQ9 Bet', $this->provider_db_id, json_encode($provider_request), $mw_response);
-			return $mw_response;
-   		}
+   // 		if($player_details->playerdetailsresponse->balance < $amount){
+   // 			$mw_response = [
+	  //   		"data" => null,
+	  //   		"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+	  //   	Helper::saveLog('CQ9 Bet', $this->provider_db_id, json_encode($provider_request), $mw_response);
+			// return $mw_response;
+   // 		}
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
 		if($game_details == null){
 			$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
@@ -1474,6 +1474,7 @@ class CQ9Controller extends Controller
 			return $mw_response;
     	}
 		$find_mtcode = $this->findTranPID($mtcode);
+		// dd($find_mtcode);
   		if($find_mtcode == 'false'){
   			$mw_response = ["data" => null,"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]];
 			Helper::saveLog('CQ9 playerRefund ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
@@ -1528,6 +1529,11 @@ class CQ9Controller extends Controller
 		    	];
 
 		    	ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, $mw_response);
+		    	// Update The General Details to refund transaction status
+    			$game_ext_details = $find_mtcode->general_details;
+		        $general_details_bag = json_decode($game_ext_details);
+				$general_details_bag->transaction_status = 'refund';
+				$this->updatecreateGameTransExtGD($find_mtcode->game_trans_ext_id, $general_details_bag);
 
 			}else{
 				$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
@@ -1560,7 +1566,7 @@ class CQ9Controller extends Controller
 						    "status" => [
 						      "createtime" => $general_details->multi_events->me_createtime,
 						      "endtime" => $general_details->multi_events->me_endtime,
-						      "status" => "success",
+						      "status" => isset($general_details->transaction_status) ? $general_details->transaction_status : "success",
 						      "message" => "success"
 						    ],
 						    "before" => $general_details->multi_events->before_balance,
@@ -1590,7 +1596,7 @@ class CQ9Controller extends Controller
 					    "status" => [
 					      "createtime" => $general_details->provider->createtime,
 					      "endtime" => $general_details->provider->endtime,
-					      "status" => "success",
+					      "status" => isset($general_details->transaction_status) ? $general_details->transaction_status : "success",
 					      "message" => "success"
 					    ],
 					    "before" => $general_details->client->before_balance,
