@@ -200,6 +200,7 @@ $app->post('api/cq9/transaction/game/bonus','CQ9Controller@playerBonus');
 $app->post('api/cq9/transaction/user/payoff','CQ9Controller@playerPayoff');
 $app->post('api/cq9/transaction/game/refund','CQ9Controller@playerRefund');
 $app->get('api/cq9/transaction/record/{mtcode}','CQ9Controller@playerRecord'); 
+
 $app->post('api/cq9/transaction/game/bets','CQ9Controller@playerBets');
 $app->post('api/cq9/transaction/game/refunds','CQ9Controller@playerRefunds');
 $app->post('api/cq9/transaction/game/cancel','CQ9Controller@playerCancel');
@@ -210,6 +211,9 @@ $app->post('api/cq9/transaction/game/amends','CQ9Controller@playerAmends');
 $app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
 $app->get('api/cq9/gameboy/player/lotto/balance/{account}','CQ9Controller@CheckBalanceLotto'); // New
 $app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
+$app->get('api/cq9/player/check','CQ9Controller@noRouteParamPassed'); // TEST
+$app->get('api/cq9/transaction/record','CQ9Controller@noRouteParamPassed');  // TEST
+$app->get('api/cq9/transaction/balance','CQ9Controller@noRouteParamPassed'); // TEST
 
 $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
 $app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
