@@ -53,7 +53,9 @@ class HabaneroController extends Controller
                         "currencycode" => $client_details->default_currency
                     ]
                 ];
-                Helper::saveLog('HBN auth', 24, json_encode($details), $response);
+                if($details->playerdetailrequest->gamelaunch == true):
+                    Helper::saveLog('HBN auth', 24, json_encode($details), $response);
+                endif;
                 return $response;
             }catch(\Exception $e){
                 $msg = array(
