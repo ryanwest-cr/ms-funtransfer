@@ -178,6 +178,16 @@ class MannaPlayController extends Controller
 						}
 						else
 						{
+							$json_data['income'] = $json_data['amount'];
+							$json_data['roundid'] = $json_data['round_id'];
+							$json_data['transid'] = $json_data['transaction_id'];
+							$game_details = Game::find($json_data["game_id"]);
+
+							$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
+
+							// Create an entry in the game extension table
+							Helper::createMannaGameTransactionExt($game_transaction_id, $json_data, [], [], [], 1);
+							
 							$client = new Client([
 							    'headers' => [ 
 							    	'Content-Type' => 'application/json',
@@ -217,8 +227,6 @@ class MannaPlayController extends Controller
 
 							$client_response = json_decode($guzzle_response->getBody()->getContents());
 
-							/*var_dump($client_response); die();*/
-
 							if(isset($client_response->fundtransferresponse->status->code) 
 						&& $client_response->fundtransferresponse->status->code == "402") {
 								$http_status = 200;
@@ -226,18 +234,12 @@ class MannaPlayController extends Controller
 												"errorCode" =>  10203,
 												"message" => "Insufficient balance",
 											];
+
 							}
 							else
 							{
 								if(isset($client_response->fundtransferresponse->status->code) 
 							&& $client_response->fundtransferresponse->status->code == "200") {
-
-									$json_data['income'] = $json_data['amount'];
-									$json_data['roundid'] = $json_data['round_id'];
-									$json_data['transid'] = $json_data['transaction_id'];
-
-									$game_details = Game::find($json_data["game_id"]);
-									$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
 									$http_status = 200;
 									$response = [
@@ -246,13 +248,14 @@ class MannaPlayController extends Controller
 									];
 								}
 							}
+
+							Helper::updateGameTransactionExt($game_transaction_id, $body, $response, $client_response);
 						}
 					}
 				}
 			}
 		}
 		
-		Helper::createMannaGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
 		Helper::saveLog('manna_debit', 16, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -343,6 +346,17 @@ class MannaPlayController extends Controller
 								}
 								else
 								{
+									$game_details = Game::find($json_data["game_id"]);
+
+									$json_data['income'] = $json_data['amount'] - $json_data["amount"];
+									$json_data['roundid'] = $json_data['round_id'];
+									$json_data['transid'] = $json_data['transaction_id'];
+
+									$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+
+									Helper::createMannaGameTransactionExt($game_transaction_id, $json_data, [], [], [], 2);
+
+
 									$client = new Client([
 									    'headers' => [ 
 									    	'Content-Type' => 'application/json',
@@ -385,20 +399,14 @@ class MannaPlayController extends Controller
 									if(isset($client_response->fundtransferresponse->status->code) 
 								&& $client_response->fundtransferresponse->status->code == "200") {
 										
-										$game_details = Game::find($json_data["game_id"]);
-
-										$json_data['income'] = $json_data['amount'] - $json_data["amount"];
-										$json_data['roundid'] = $json_data['round_id'];
-										$json_data['transid'] = $json_data['transaction_id'];
-
-										$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
-										
 										$http_status = 200;
 										$response = [
 											"transaction_id" => $json_data['transaction_id'],
 											"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 										];
 									}
+
+									Helper::updateGameTransactionExt($game_transaction_id, $body, $response, $client_response);
 								}
 							}
 						}
@@ -407,7 +415,6 @@ class MannaPlayController extends Controller
 			}
 		}
 		
-		Helper::createMannaGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 2);
 		Helper::saveLog('manna_credit', 16, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -450,6 +457,7 @@ class MannaPlayController extends Controller
 							];
 
 
+
 				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
 				/*$player_details = PlayerHelper::getPlayerDetails($json_data['sessionId'], 'token');*/
 
@@ -471,6 +479,10 @@ class MannaPlayController extends Controller
 						}
 						else
 						{
+							$game_transaction_id = GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
+
+							Helper::createMannaGameTransactionExt($game_transaction_id, $json_data, [], [], [], 3);
+
 							// If transaction is found, send request to the client
 							$client = new Client([
 							    'headers' => [ 
@@ -511,7 +523,6 @@ class MannaPlayController extends Controller
 
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
-								GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 								
 								$http_status = 200;
 								$response = [
@@ -519,6 +530,8 @@ class MannaPlayController extends Controller
 									"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 								];
 							}
+
+							Helper::updateGameTransactionExt($game_transaction_id, $body, $response, $client_response);
 						}
 					}
 					
