@@ -12,6 +12,8 @@ use App\Helpers\Game;
 use App\Helpers\CallParameters;
 use App\Helpers\PlayerHelper;
 use App\Helpers\TokenHelper;
+use App\Helpers\ProviderHelper;
+use App\Helpers\ClientRequestHelper;
 
 use App\Support\RouteParam;
 
@@ -178,46 +180,17 @@ class MannaPlayController extends Controller
 						}
 						else
 						{
-							$client = new Client([
-							    'headers' => [ 
-							    	'Content-Type' => 'application/json',
-							    	'Authorization' => 'Bearer '.$client_details->client_access_token
-							    ]
-							]);
+							$json_data['income'] = $json_data['amount'];
+							$json_data['roundid'] = $json_data['round_id'];
+							$json_data['transid'] = $json_data['transaction_id'];
+							$game_details = Game::find($json_data["game_id"]);
+
+							$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
+
+							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transaction_id'], $json_data['round_id'], $json_data['amount'], 1);
+
+			                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['round_id'], 'debit');
 							
-							$body = json_encode(
-							        	[
-										  "access_token" => $client_details->client_access_token,
-										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-										  "type" => "fundtransferrequest",
-										  "datetsent" => "",
-										  "gamedetails" => [
-										    "gameid" => "",
-										    "gamename" => ""
-										  ],
-										  "fundtransferrequest" => [
-												"playerinfo" => [
-												"token" => $client_details->player_token
-											],
-											"fundinfo" => [
-											      "gamesessionid" => "",
-											      "transactiontype" => "debit",
-											      "transferid" => "",
-											      "rollback" => "false",
-											      "currencycode" => $client_details->currency,
-											      "amount" => $json_data["amount"]
-											]
-										  ]
-										]
-							    );
-
-							$guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => $body]
-							);
-
-							$client_response = json_decode($guzzle_response->getBody()->getContents());
-
-							/*var_dump($client_response); die();*/
 
 							if(isset($client_response->fundtransferresponse->status->code) 
 						&& $client_response->fundtransferresponse->status->code == "402") {
@@ -226,18 +199,12 @@ class MannaPlayController extends Controller
 												"errorCode" =>  10203,
 												"message" => "Insufficient balance",
 											];
+
 							}
 							else
 							{
 								if(isset($client_response->fundtransferresponse->status->code) 
 							&& $client_response->fundtransferresponse->status->code == "200") {
-
-									$json_data['income'] = $json_data['amount'];
-									$json_data['roundid'] = $json_data['round_id'];
-									$json_data['transid'] = $json_data['transaction_id'];
-
-									$game_details = Game::find($json_data["game_id"]);
-									$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
 									$http_status = 200;
 									$response = [
@@ -246,13 +213,14 @@ class MannaPlayController extends Controller
 									];
 								}
 							}
+
+							ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 						}
 					}
 				}
 			}
 		}
 		
-		Helper::createMannaGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
 		Helper::saveLog('manna_debit', 16, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -343,55 +311,20 @@ class MannaPlayController extends Controller
 								}
 								else
 								{
-									$client = new Client([
-									    'headers' => [ 
-									    	'Content-Type' => 'application/json',
-									    	'Authorization' => 'Bearer '.$client_details->client_access_token
-									    ]
-									]);
-									
-									$body = json_encode(
-									        	[
-												  "access_token" => $client_details->client_access_token,
-												  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-												  "type" => "fundtransferrequest",
-												  "datetsent" => "",
-												  "gamedetails" => [
-												    "gameid" => "",
-												    "gamename" => ""
-												  ],
-												  "fundtransferrequest" => [
-														"playerinfo" => [
-														"token" => $client_details->player_token
-													],
-													"fundinfo" => [
-													      "gamesessionid" => "",
-													      "transactiontype" => "credit",
-													      "transferid" => "",
-													      "rollback" => "false",
-													      "currencycode" => $client_details->currency,
-													      "amount" => $json_data["amount"]
-													]
-												  ]
-												]
-									    );
+									$game_details = Game::find($json_data["game_id"]);
 
-									$guzzle_response = $client->post($client_details->fund_transfer_url,
-									    ['body' => $body]
-									);
+									$json_data['income'] = $json_data['amount'] - $json_data["amount"];
+									$json_data['roundid'] = $json_data['round_id'];
+									$json_data['transid'] = $json_data['transaction_id'];
 
-									$client_response = json_decode($guzzle_response->getBody()->getContents());
+									$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+
+									$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transaction_id'], $json_data['round_id'], $json_data['amount'], 1);
+
+			               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['round_id'], 'credit');
 
 									if(isset($client_response->fundtransferresponse->status->code) 
 								&& $client_response->fundtransferresponse->status->code == "200") {
-										
-										$game_details = Game::find($json_data["game_id"]);
-
-										$json_data['income'] = $json_data['amount'] - $json_data["amount"];
-										$json_data['roundid'] = $json_data['round_id'];
-										$json_data['transid'] = $json_data['transaction_id'];
-
-										$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
 										
 										$http_status = 200;
 										$response = [
@@ -399,6 +332,8 @@ class MannaPlayController extends Controller
 											"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
 										];
 									}
+
+									ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 								}
 							}
 						}
@@ -407,7 +342,6 @@ class MannaPlayController extends Controller
 			}
 		}
 		
-		Helper::createMannaGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 2);
 		Helper::saveLog('manna_credit', 16, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -450,6 +384,7 @@ class MannaPlayController extends Controller
 							];
 
 
+
 				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
 				/*$player_details = PlayerHelper::getPlayerDetails($json_data['sessionId'], 'token');*/
 
@@ -472,53 +407,29 @@ class MannaPlayController extends Controller
 						else
 						{
 							// If transaction is found, send request to the client
-							$client = new Client([
-							    'headers' => [ 
-							    	'Content-Type' => 'application/json',
-							    	'Authorization' => 'Bearer '.$client_details->client_access_token
-							    ]
-							]);
+							$json_data['roundid'] = $json_data['round_id'];
+							$json_data['transid'] = $json_data['transaction_id'];
+							$json_data['income'] = 0;
+							$game_details = Game::find($json_data["game_id"]);
+
+							$game_transaction_id = GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
+
+							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transaction_id'], $json_data['round_id'], $json_data['amount'], 3);
+
+	               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['round_id'], 'credit', true);
+
 							
-							$guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => json_encode(
-							        	[
-										  "access_token" => $client_details->client_access_token,
-										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-										  "type" => "fundtransferrequest",
-										  "datetsent" => "",
-										  "gamedetails" => [
-										    "gameid" => "",
-										    "gamename" => ""
-										  ],
-										  "fundtransferrequest" => [
-												"playerinfo" => [
-												"token" => $client_details->player_token
-											],
-											"fundinfo" => [
-											      "gamesessionid" => "",
-											      "transactiontype" => "credit",
-											      "transferid" => "",
-											      "rollback" => "true",
-											      "currencycode" => $client_details->currency,
-											      "amount" => $game_transaction->bet_amount
-											]
-										  ]
-										]
-							    )]
-							);
-
-							$client_response = json_decode($guzzle_response->getBody()->getContents());
-
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
-								GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 								
 								$http_status = 200;
 								$response = [
 									"transaction_id" => $json_data['transaction_id'],
-									"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) 
+									/*"balance" => bcdiv($client_response->fundtransferresponse->balance, 1, 2) */
 								];
 							}
+
+							ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 						}
 					}
 					
@@ -545,9 +456,8 @@ class MannaPlayController extends Controller
 	}*/
 
 	private function _getClientDetails($type = "", $value = "") {
-
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -563,13 +473,6 @@ class MannaPlayController extends Controller
 				if ($type == 'player_id') {
 					$query->where([
 				 		["p.player_id", "=", $value],
-				 		["pst.status_id", "=", 1]
-				 	]);
-				}
-
-				if ($type == 'username') {
-					$query->where([
-				 		["p.username", "=", $value],
 				 		["pst.status_id", "=", 1]
 				 	]);
 				}

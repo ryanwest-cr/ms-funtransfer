@@ -312,7 +312,7 @@ class OryxGamingController extends Controller
 
 												$json_data['transid'] = '';
 												$json_data['amount'] = $this->_toDollars($value->bet_amount);
-												Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 3);
+												// Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 3);
 
 											}
 										}
@@ -416,7 +416,7 @@ class OryxGamingController extends Controller
 											"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
 										];
 
-										Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
+										// Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
 									}
 								}
 							}
@@ -489,7 +489,7 @@ class OryxGamingController extends Controller
 											"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
 										];
 
-										Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
+										// Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
 									}
 								}
 							}

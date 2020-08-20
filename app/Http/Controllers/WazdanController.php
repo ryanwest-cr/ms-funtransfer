@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Helpers\Helper;
 use App\Helpers\WazdanHelper;
 use GuzzleHttp\Client;
+use App\Helpers\ClientRequestHelper;
 use DB;
 class WazdanController extends Controller
 {
@@ -44,6 +45,7 @@ class WazdanController extends Controller
                                 "gameid" => "",
                                 "clientid" => $client_details->client_id,
                                 "playerdetailsrequest" => [
+                                    "player_username"=>$client_details->username,
                                     "client_player_id"=>$client_details->client_player_id,
                                     "token" => $client_details->player_token,
                                     "gamelaunch" => "true"
@@ -129,62 +131,13 @@ class WazdanController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                $requesttocient = [
-                    "access_token" => $client_details->client_access_token,
-                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                    "type" => "fundtransferrequest",
-                    "datetsent" => "",
-                    "gamedetails" => [
-                      "gameid" => "",
-                      "gamename" => ""
-                    ],
-                    "fundtransferrequest" => [
-                          "playerinfo" => [
-                          "client_player_id"=>$client_details->client_player_id,
-                          "token" => $client_details->player_token
-                      ],
-                      "fundinfo" => [
-                            "gamesessionid" => "",
-                            "transactiontype" => "debit",
-                            "transferid" => "",
-                            "rollback" => "false",
-                            "currencycode" => $client_details->currency,
-                            "amount" => round($datadecoded["amount"],2) #change data here
-                      ]
-                    ]
-                      ];
-                    $guzzle_response = $client->post($client_details->fund_transfer_url,
-                    ['body' => json_encode(
-                            $requesttocient
-                    )],
-                    ['defaults' => [ 'exceptions' => false ]]
-                );
-
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = round($client_response->fundtransferresponse->balance,2);
                 $game_details = Helper::getInfoPlayerGameRound($datadecoded["user"]["token"]);
                 $json_data = array(
                     "transid" => $datadecoded["transactionId"],
                     "amount" => round($datadecoded["amount"],2),
                     "roundid" => $datadecoded["roundId"]
                 );
-                if(isset($client_response->fundtransferresponse->status->code) 
-                && $client_response->fundtransferresponse->status->code == "200"){
-                    
-                    $msg = array(
-                        "status" => 0,
-                        "funds" => array(
-                            "balance" => $balance
-                        ),
-                    );
-                    response($msg,200)->header('Content-Type', 'application/json');
-                    $game = WazdanHelper::getGameTransaction($datadecoded["user"]["token"],$datadecoded["roundId"]);
+                $game = WazdanHelper::getGameTransaction($datadecoded["user"]["token"],$datadecoded["roundId"]);
                     if(!$game){
                         $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
                         // $game_transaction_id=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
@@ -196,7 +149,20 @@ class WazdanController extends Controller
                         $gametransactionid = $game->game_trans_id;
                     }
                     
-                    WazdanHelper::createWazdanGameTransactionExt($gametransactionid,$datadecoded,$requesttocient,$msg,$client_response,1);  
+                $transactionId =WazdanHelper::createWazdanGameTransactionExt($gametransactionid,$datadecoded,null,null,null,1);  
+                $client_response = ClientRequestHelper::fundTransfer($client_details,round($datadecoded["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
+                $balance = round($client_response->fundtransferresponse->balance,2);
+                if(isset($client_response->fundtransferresponse->status->code) 
+                && $client_response->fundtransferresponse->status->code == "200"){
+                    
+                    $msg = array(
+                        "status" => 0,
+                        "funds" => array(
+                            "balance" => $balance
+                        ),
+                    );
+                    Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
+                    response($msg,200)->header('Content-Type', 'application/json');
                     return response($msg,200)
                         ->header('Content-Type', 'application/json');
                 }
@@ -248,46 +214,8 @@ class WazdanController extends Controller
                 return response($msg,200)
                 ->header('Content-Type', 'application/json');
             }
-            $client = new Client([
-                'headers' => [ 
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.$client_details->client_access_token
-                ]
-            ]);
-            
-             $requesttocient = [
-                "access_token" => $client_details->client_access_token,
-                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                "type" => "fundtransferrequest",
-                "datetsent" => "",
-                "gamedetails" => [
-                  "gameid" => "",
-                  "gamename" => ""
-                ],
-                "fundtransferrequest" => [
-                      "playerinfo" => [
-                      "client_player_id"=>$client_details->client_player_id,
-                      "token" => $client_details->player_token
-                  ],
-                  "fundinfo" => [
-                        "gamesessionid" => "",
-                        "transactiontype" => "credit",
-                        "transferid" => "",
-                        "rollback" => "true",
-                        "currencycode" => $client_details->currency,
-                        "amount" => round($datadecoded["amount"],2)
-                  ]
-                ]
-                  ];
-                $guzzle_response = $client->post($client_details->fund_transfer_url,
-                ['body' => json_encode(
-                        $requesttocient
-                )],
-                ['defaults' => [ 'exceptions' => false ]]
-                );
+           
                 $win = 0;
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = round($client_response->fundtransferresponse->balance,2);
                 $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
                 $json_data = array(
                     "transid" => $datadecoded["transactionId"],
@@ -316,6 +244,9 @@ class WazdanController extends Controller
                     $gametransactionid = $game->game_trans_id;
 
                 }
+                $transactionId = WazdanHelper::createWazdanGameTransactionExt($gametransactionid,$datadecoded,null,null,null,3);
+                $client_response = ClientRequestHelper::fundTransfer($client_details,round($datadecoded["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
+                $balance = round($client_response->fundtransferresponse->balance,2);
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
                     $msg = array(
@@ -324,7 +255,7 @@ class WazdanController extends Controller
                             "balance" => $balance
                         ),
                     );
-                    WazdanHelper::createWazdanGameTransactionExt($gametransactionid,$datadecoded,$requesttocient,$msg,$client_response,3);
+                    Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
                     return response($msg,200)
                         ->header('Content-Type', 'application/json');
                 }
@@ -366,46 +297,7 @@ class WazdanController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                
-                 $requesttocient = [
-                    "access_token" => $client_details->client_access_token,
-                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                    "type" => "fundtransferrequest",
-                    "datetsent" => "",
-                    "gamedetails" => [
-                      "gameid" => "",
-                      "gamename" => ""
-                    ],
-                    "fundtransferrequest" => [
-                          "playerinfo" => [
-                          "client_player_id"=>$client_details->client_player_id,
-                          "token" => $client_details->player_token
-                      ],
-                      "fundinfo" => [
-                            "gamesessionid" => "",
-                            "transactiontype" => "credit",
-                            "transferid" => "",
-                            "rollback" => "false",
-                            "currencycode" => $client_details->currency,
-                            "amount" => round($datadecoded["amount"],2)
-                      ]
-                    ]
-                      ];
-                    $guzzle_response = $client->post($client_details->fund_transfer_url,
-                    ['body' => json_encode(
-                            $requesttocient
-                    )],
-                    ['defaults' => [ 'exceptions' => false ]]
-                );
                 $win = $datadecoded["amount"] == 0 ? 0 : 1;
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                $balance = round($client_response->fundtransferresponse->balance,2);
                 $game_details = Helper::getInfoPlayerGameRound($datadecoded["user"]["token"]);
                 $json_data = array(
                     "transid" => $datadecoded["transactionId"],
@@ -419,7 +311,6 @@ class WazdanController extends Controller
                     $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
                 }
                 else{
-                    //$json_data["amount"] = round($data["args"]["win"],2)+ $game->pay_amount;
                     if($win == 0){
                         $gameupdate = Helper::updateGameTransaction($game,$json_data,"debit");
                     }else{
@@ -427,19 +318,18 @@ class WazdanController extends Controller
                     }
                     $gametransactionid = $game->game_trans_id;
                 }
-                // $game_transaction_id =Helper::createGameTransaction('credit', $json_data, $game_details, $client_details);
-                // Helper::saveGame_trans_ext($game_transaction_id,json_encode($json));
-                // Helper::saveLog('winGame(ICG)', 12, json_encode($json), "data");
+                $transactionId= WazdanHelper::createWazdanGameTransactionExt($gametransactionid,$datadecoded,null,null,null,2); 
+                $client_response = ClientRequestHelper::fundTransfer($client_details,round($datadecoded["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
+                $balance = round($client_response->fundtransferresponse->balance,2);
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
-                    
                     $msg = array(
                         "status" => 0,
                         "funds" => array(
                             "balance" => $balance
                         )
                     );
-                    WazdanHelper::createWazdanGameTransactionExt($gametransactionid,$datadecoded,$requesttocient,$msg,$client_response,2); 
+                    Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
                     return response($msg,200)
                         ->header('Content-Type', 'application/json');
                 }
@@ -483,6 +373,7 @@ class WazdanController extends Controller
                                 "gameid" => "",
                                 "clientid" => $client_details->client_id,
                                 "playerdetailsrequest" => [
+                                    "player_username"=>$client_details->username,
                                     "client_player_id"=>$client_details->client_player_id,
                                     "token" => $client_details->player_token,
                                     "gamelaunch" => "true"

@@ -213,6 +213,7 @@ class FCController extends Controller
                                 "gameid" => "",
                                 "clientid" => $client_details->client_id,
                                 "playerdetailsrequest" => [
+                                    "player_username"=>$client_details->username,
                                     "client_player_id"=>$client_details->client_player_id,
                                     "token" => $client_details->player_token,
                                     "gamelaunch" => "true"
