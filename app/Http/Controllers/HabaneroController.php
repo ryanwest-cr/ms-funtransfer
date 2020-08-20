@@ -71,7 +71,7 @@ class HabaneroController extends Controller
     public function fundtransferrequest(Request $request){
         $data = file_get_contents("php://input");
         $details = json_decode($data);
-        
+        Helper::saveLog('HBN request --------', 24, json_encode($details),"request");
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
         $checktoken = Helper::tokenCheck($client_details->player_token);
