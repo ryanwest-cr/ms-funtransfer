@@ -251,6 +251,19 @@ class HabaneroController extends Controller
                     return json_encode($msg, JSON_FORCE_OBJECT); 
                 }
             endif;
+            if($amount == 0 && $gamestatemode == 2):
+                $response = [
+                    "fundtransferresponse" => [
+                        "status" => [
+                            "success" => true,
+                        ],
+                        "balance" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
+                        "currencycode" => $client_details->default_currency,
+                    ]
+                ];  
+                Helper::saveLog('HBN trans duplicate call', 24, json_encode($details), $response);
+                return $response;
+            endif;
             if($amount > 0 && $gamestatemode == 2):
                 if(count($checkT) > 0):
                     $response = [
