@@ -2157,6 +2157,7 @@ class CQ9Controller extends Controller
 			$data = [
 	    		"data" => [
 	    			"balance" => $this->amountToFloat4DG($player_details->playerdetailsresponse->balance),
+	    			// "balance" => sprintf("%.4f", $player_details->playerdetailsresponse->balance),
 	    			"currency" => $client_details->default_currency,
 	    		],
 	    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
@@ -2249,19 +2250,39 @@ class CQ9Controller extends Controller
 
 	//ProviderHelper::amountToFloat
 	public function amountToFloat4DG($amount){
-		return sprintf('%01.4f', $amount);
-		
-		// return strlen($amount);
-		// $amount = 123456.01;
-		
+		 // $amount = 104010.61;
+		 $decimal = sprintf('%01.3f1', $amount);
+		 return round($decimal, 4);
+
+		//104010.60
+		// $amount = 12312.0000;
+		// // return $amount;
+		// return round($amount, 4);
+		// return sprintf('%01.4f', $amount);
+		// return intval($amount * 10000) / 10000;
+		// return number_format((float)$amount, 2);
+		// $decimal = 0000;
+		// // return strlen($amount);
+		// // $amount = 123456.01;
+		// // $amount = sprintf('%01.4f', $amount);
+		// $amount = $amount.$decimal;
+		// return $amount;
+		// 
+	
+		// return printf("%.4f", $amount);
+
+		// $degit = '.01';
+		// $decimal = sprintf('%01.4f', 123123.123011);
+		// return round($decimal, 4);
+
+
 		// $string = (string)$amount;
 		// if(strpos($string, '.')){
 		//    $decimal_places = explode('.', $amount);
 		//    $decimal_lenght = strlen($decimal_places[1]);
 		// }else{
-		//    return sprintf('%01.4f', $amount);
-		//    return $value = sprintf('%08d', $amount);
-		//    return $amount = (int)$amount.'.0000';
+		//   $amount = $amount.'.0000';
+		//   return round($amount, 4);
 		// }
 
 		// 160779.7,
