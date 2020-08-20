@@ -1275,7 +1275,7 @@ class CQ9Controller extends Controller
 			$bet_amount = 0;
 			$pay_amount= $amount;
 			$method = 1;
-			$win_or_lost = 2;
+			$win_or_lost = 1;
 			$payout_reason = 'BUNOS GAME';
 			$income = 0*$amount;
 			$provider_trans_id = $mtcode;
