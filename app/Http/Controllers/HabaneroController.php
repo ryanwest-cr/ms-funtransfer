@@ -53,7 +53,9 @@ class HabaneroController extends Controller
                         "currencycode" => $client_details->default_currency
                     ]
                 ];
-                Helper::saveLog('HBN auth', 24, json_encode($details), $response);
+                if($details->playerdetailrequest->gamelaunch == true):
+                    Helper::saveLog('HBN auth', 24, json_encode($details), $response);
+                endif;
                 return $response;
             }catch(\Exception $e){
                 $msg = array(
@@ -212,7 +214,7 @@ class HabaneroController extends Controller
                 return $response;
             endif;
             $amount = $details->fundtransferrequest->funds->fundinfo[0]->amount;
-            if($bet_amount < 0 && $gamestatemode == 0):
+            if($amount < 0 && $gamestatemode == 0):
                 if(count($checkT) > 0):
                     $response = [
                         "fundtransferresponse" => [
@@ -251,7 +253,20 @@ class HabaneroController extends Controller
                     return json_encode($msg, JSON_FORCE_OBJECT); 
                 }
             endif;
-            if($amount > 0 && $gamestatemode == 2):
+            if($amount == 0 && $gamestatemode == 2):
+                $response = [
+                    "fundtransferresponse" => [
+                        "status" => [
+                            "success" => true,
+                        ],
+                        "balance" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
+                        "currencycode" => $client_details->default_currency,
+                    ]
+                ];  
+                Helper::saveLog('HBN trans duplicate call', 24, json_encode($details), $response);
+                return $response;
+            endif;
+            if($amount > 0 && $gamestatemode == 2 || $amount > 0 && $gamestatemode == 0):
                 if(count($checkT) > 0):
                     $response = [
                         "fundtransferresponse" => [
@@ -284,13 +299,13 @@ class HabaneroController extends Controller
 
                     $update = DB::table('game_transactions')->where("game_trans_id","=",$checkTrans[0]->game_trans_id)->update(["round_id" => $round_id, "pay_amount" => 0.00, "income" => $amount, "win" => 0 ]);
                     $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$getTransExt[0]->game_trans_ext_id)->update(["amount" => $amount,"game_transaction_type" => 2,"provider_request" => json_encode($details),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
-                    Helper::saveLog('HBN trans double', 24, json_encode($details), $response);
+                    Helper::saveLog('HBN trans win', 24, json_encode($details), $response);
                     return $response;
                 }catch(\Exception $e){
                     $msg = array(
                         'message' => $e->getMessage(),
                     );
-                    Helper::saveLog('HBN trans double error', $this->provider_id, json_encode($details,JSON_FORCE_OBJECT), $msg);
+                    Helper::saveLog('HBN trans win error', $this->provider_id, json_encode($details,JSON_FORCE_OBJECT), $msg);
                     return json_encode($msg, JSON_FORCE_OBJECT); 
                 }
             endif;
