@@ -1552,6 +1552,14 @@ class CQ9Controller extends Controller
 		}
     }
 
+    public function noRouteParamPassed(Request $request){
+    	$mw_response = ["data" => null,"status" => ["code" => "1003","message" => 'Parameter error.',"datetime" => date(DATE_RFC3339)]
+    	];
+    	Helper::saveLog('CQ9 No PARAM PASSED', $this->provider_db_id, json_encode($request->all()), $mw_response);
+		return $mw_response;
+    }
+
+
     public function playerRecord(Request $request, $mtcode){
     	$transaction_record = $this->findTranPID($mtcode);
     	if($transaction_record != 'false'){
