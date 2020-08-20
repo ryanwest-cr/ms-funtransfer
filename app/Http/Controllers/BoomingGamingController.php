@@ -52,6 +52,7 @@ class BoomingGamingController extends Controller
         Helper::saveLog('Booming Callback ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $header);
         $data = $request->all();
         $client_details = ProviderHelper::getClientDetails('player_id',$data["player_id"]);
+      
         if($client_details != null){
             try{
             $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
@@ -152,12 +153,11 @@ class BoomingGamingController extends Controller
                             ['body' => json_encode($requesttosend_credet)]
                         );
                         $client_response_credit = json_decode($guzzle_response_credit->getBody()->getContents());
+                        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
                         $response_credit =  [
-                            "balance" => (string)$client_response_credit->fundtransferresponse->balance
+                            "balance" => (string)$player_details->playerdetailsresponse->balance
                         ];
-
-                     
-
+                       
                         $token_id = $client_details->token_id;
                         $bet_amount =  $data['bet'];
                         $payout = $data["win"];
