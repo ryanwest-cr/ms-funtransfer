@@ -1108,7 +1108,7 @@ class CQ9Controller extends Controller
 		$game_ext_check = ProviderHelper::findGameExt($roundid, 1, 'round_id');
 		if($game_ext_check == 'false'){
 			$mw_response = ["data" => null,"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 playerRollin ALready Exist', $this->provider_db_id, $provider_request, $mw_response);
+			Helper::saveLog('CQ9 playerRollin ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
 		}	
 		$check_duplicate = ProviderHelper::findGameExt($mtcode, 2, 'transaction_id');
