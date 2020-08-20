@@ -2502,9 +2502,8 @@ class CQ9Controller extends Controller
 
 	//ProviderHelper::amountToFloat
 	public function amountToFloat4DG($amount){
-		 // $amount = 104010.61;
-		 
-		$float = floatval(number_format((float)$amount, 2, '.', ''));
+		 // $amount = 104010.6136;
+		$float = floatval(number_format((float)$amount, 4, '.', ''));
     	return $float;
 
 		// if($amount == 0){
