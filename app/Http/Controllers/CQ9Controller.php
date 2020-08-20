@@ -370,9 +370,10 @@ class CQ9Controller extends Controller
 			Helper::saveLog('CQ9 playrEndround ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
 		}
-		$game_ext_exist = ProviderHelper::findGameExt($roundid, 2, 'round_id');
+		// $game_ext_exist = ProviderHelper::findGameExt($roundid, 2, 'round_id');
+		$game_ext_exist = ProviderHelper::findGameExt($data->mtcode, 2, 'transaction_id');
 		if($game_ext_exist != 'false'){
-			$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Duplicae Transaction',"datetime" => date(DATE_RFC3339)]];
+			$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Duplicate Transaction',"datetime" => date(DATE_RFC3339)]];
 			Helper::saveLog('CQ9 playrEndround ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
 		}		
