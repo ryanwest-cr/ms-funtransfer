@@ -204,6 +204,12 @@ return [
         'BRAND' => 'BETRNKMW',
         'AUTH_USER' => 'betrnkmw-stage',
         'AUTH_PASSWORD' => 'wyE4PEGHWkWyU5TjdNk2g'
+    ],
+    'habanero'=>[
+        'api_url' => 'https://app-test.insvr.com/go.ashx?',
+        'brandID' => '2416208c-f3cb-ea11-8b03-281878589203',
+        'apiKey' => '3C3C5A48-4FE0-4E27-A727-07DE6610AAC8',
+        'passKey' => 'Rja5ZK4kN1GA0R8C'
     ]
 ];
 

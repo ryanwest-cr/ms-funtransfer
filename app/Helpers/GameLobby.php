@@ -443,14 +443,18 @@ class GameLobby{
     }
 
     public static function habanerolaunchUrl( $game_code = null, $token = null){
-        $brandID = "2416208c-f3cb-ea11-8b03-281878589203";
-        $apiKey = "3C3C5A48-4FE0-4E27-A727-07DE6610AAC8";
+        // $brandID = "2416208c-f3cb-ea11-8b03-281878589203";
+        // $apiKey = "3C3C5A48-4FE0-4E27-A727-07DE6610AAC8";
+        $brandID = config('providerlinks.habanero.brandID');
+        $apiKey = config('providerlinks.habanero.apiKey');
+        $api_url = config('providerlinks.habanero.api_url');
 
         $client_details = Providerhelper::getClientDetails('token', $token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-        $url = "https://app-test.insvr.com/go.ashx?brandid=$brandID&keyname=$game_code&token=$token&mode=real&locale=en&mobile=0";
-
+        // $url = "https://app-test.insvr.com/go.ashx?brandid=$brandID&keyname=$game_code&token=$token&mode=real&locale=en&mobile=0";
+        $url = $api_url."brandid=$brandID&keyname=$game_code&token=$token&mode=real&locale=en&mobile=0";
+        Helper::saveLog('HBN gamelaunch', 24, json_encode($url), "");
         return $url;
     }
     
