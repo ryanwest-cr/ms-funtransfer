@@ -471,8 +471,8 @@ class CQ9Controller extends Controller
 		    			"currency" => $client_details->default_currency,
 		    		],
 		    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)],
-		    		"test" => $multi_event_bag,
-		    		"test2" => $gametrans_ext_bag_id
+		    		// "test" => $multi_event_bag,
+		    		// "test2" => $gametrans_ext_bag_id
 	    	];
 			return $mw_response;
 		} catch (\Exception $e) {
