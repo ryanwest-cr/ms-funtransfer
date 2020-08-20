@@ -277,7 +277,8 @@ class HabaneroController extends Controller
                             "currencycode" => $client_details->default_currency,
                         ]
                     ];  
-                    Helper::saveLog('HBN trans duplicate call', 24, json_encode($details), $response);
+                    $update = DB::table('game_transactions')->where("game_trans_id","=",$checkTrans[0]->game_trans_id)->update(["round_id" => $round_id ]);
+                    Helper::saveLog('HBN trans duplicate call amoung = 0 state = 0', 24, json_encode($details), $response);
                     return $response;
                 endif;
                 try{
@@ -422,7 +423,7 @@ class HabaneroController extends Controller
                     
                     $updateGameTrans = DB::table('game_transactions')->where('game_trans_id','=',$gamerecord)->update([ "round_id" => $round_id,"win" => $win, "pay_amount" => $payout, "income" => $income, "entry_id" => $entry_id ]);
                     $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext)->update(["amount" => $payout,"game_transaction_type" => $entry_id,"provider_request" => json_encode($details),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
-                    Helper::saveLog('HBN trans win', 24, json_encode($details), $response);
+                    Helper::saveLog($win == 0 ? 'HBN trans loss':'HBN trans win' , 24, json_encode($details), $response);
                     return $response;
                 }catch(\Exception $e){
                     $msg = array(
