@@ -348,7 +348,7 @@ class CQ9Controller extends Controller
 				return $mw_response;
 	   		}
 
-	   		if(!$this->validRFCDade($data->amount->eventtime)){
+	   		if(!$this->validRFCDade($data->eventtime)){
 	    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
 		    	];
 		    	Helper::saveLog('CQ9 Endround', $this->provider_db_id, json_encode($provider_request), $mw_response);
