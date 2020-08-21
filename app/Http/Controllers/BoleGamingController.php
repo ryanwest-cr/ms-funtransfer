@@ -331,20 +331,25 @@ class BoleGamingController extends Controller
 			                $client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$check_game_ext->game_trans_id,$transaction_type);
 
 
-							Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), $client_response);
+			                if(isset($client_response->fundtransferresponse->status->code) 
+					            && $client_response->fundtransferresponse->status->code == "200"){
 
-							$data = [
-								"data" => [
-									"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')), 
-									"currency" => $client_details->default_currency,
-								],
-								"status" => [
-									"code" => 0,
-									"msg" => "success"
-								]
-							];
+		                		Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), $client_response);
 
-							ProviderHelper::updatecreateGameTransExt($game_transextension, json_decode($request->getContent()), $data, $client_response->requestoclient, $client_response, $data);
+								$data = [
+									"data" => [
+										"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')), 
+										"currency" => $client_details->default_currency,
+									],
+									"status" => [
+										"code" => 0,
+										"msg" => "success"
+									]
+								];
+
+								ProviderHelper::updatecreateGameTransExt($game_transextension, json_decode($request->getContent()), $data, $client_response->requestoclient, $client_response, $data);
+
+							}
 
 							// OLD 
 							// if(in_array($json_data->game_code, $contest_games)){
@@ -427,21 +432,29 @@ class BoleGamingController extends Controller
 
 							$client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$gamerecord,$transaction_type);
 
+
+							if(isset($client_response->fundtransferresponse->status->code) 
+					            && $client_response->fundtransferresponse->status->code == "200"){
+
+								$data = [
+									"data" => [
+										"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
+										"currency" => $client_details->default_currency,
+									],
+									"status" => [
+										"code" => 0,
+										"msg" => "success"
+									]
+								];
+
+								ProviderHelper::updatecreateGameTransExt($game_transextension, json_decode($request->getContent()), $data, $client_response->requestoclient, $client_response, $data);
+
+							}elseif(isset($client_response->fundtransferresponse->status->code) 
+					            && $client_response->fundtransferresponse->status->code == "402"){
+								$data = ["resp_msg" => ["code" => 43802,"message" => "there is not enough gold","errors" => []]];
+							}
+
 							Helper::saveLog('BOLE WALLET CALL GBI', 2, $request->getContent(), json_encode($client_response));
-							
-
-		                	$data = [
-								"data" => [
-									"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
-									"currency" => $client_details->default_currency,
-								],
-								"status" => [
-									"code" => 0,
-									"msg" => "success"
-								]
-							];
-
-							ProviderHelper::updatecreateGameTransExt($game_transextension, json_decode($request->getContent()), $data, $client_response->requestoclient, $client_response, $data);
 
 							return $data;
 
