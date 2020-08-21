@@ -5,11 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
-use App\Helpers\AWSHelper;
-use App\Helpers\GameLobby;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
+use App\Helpers\ClientRequestHelper;
 use DB;
 
 class SpadeController extends Controller
@@ -26,7 +24,10 @@ class SpadeController extends Controller
     // 	$this->merchant_id = config('providerlinks.aws.merchant_id');
     // 	$this->merchant_key = config('providerlinks.aws.merchant_key');
     // }
-
+	
+	public function test(Request $request){
+		return 1;
+	}
 	public function getGameList(Request $request){
 		$api = "https://api-egame-staging.sgplay.net/api";
 		$requesttosend = [
