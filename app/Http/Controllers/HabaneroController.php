@@ -19,6 +19,26 @@ class HabaneroController extends Controller
     	$this->passkey = config('providerlinks.habanero.passKey');
     }
 
+    public static function sessionExpire($token){
+		$token = DB::table('player_session_tokens')
+			        ->select("*", DB::raw("NOW() as IMANTO"))
+			    	->where('player_token', $token)
+			    	->first();
+		if($token != null){
+			$check_token = DB::table('player_session_tokens')
+			->selectRaw("TIME_TO_SEC(TIMEDIFF( NOW(), '".$token->created_at."'))/60 as `time`")
+			->first();
+		    if(1440 > $check_token->time) {  // TIMEGAP IN MINUTES!
+		        $token = true; // True if Token can still be used!
+		    }else{
+		    	$token = false; // Expired Token
+		    }
+		}else{
+			$token = false; // Not Found Token
+		}
+	    return $token;
+	}
+
     public function playerdetailrequest(Request $request){
      
 
@@ -74,7 +94,7 @@ class HabaneroController extends Controller
         Helper::saveLog('HBN request --------', 24, json_encode($details),"request");
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
-        $checktoken = Helper::tokenCheck($client_details->player_token);
+        $checktoken = $this->sessionExpire($client_details->player_token);
         if($details->auth->passkey != $this->passkey){
             $response = [
                 "fundtransferresponse" => [
@@ -526,5 +546,5 @@ class HabaneroController extends Controller
 		return $gametransactionext;
 
 	}
-
+    
 }
