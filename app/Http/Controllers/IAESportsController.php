@@ -247,28 +247,28 @@ class IAESportsController extends Controller
 	        	// FIRST CALL BET ZERO
 	        	$auto_chess_bet = 0;
 	        	$gamerecord1  = ProviderHelper::createGameTransaction($token_id, $game_details, 0, 0, 1, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
-	        	$game_transextension1 = ProviderHelper::createGameTransExtV2($gamerecord1,$provider_trans_id, $cha->projectId, $cha->money, 1);
+	        	$game_transextension1 = ProviderHelper::createGameTransExtV2($gamerecord1,$provider_trans_id, $cha->projectId, $auto_chess_bet, 1);
 
-	        	$client_response = ClientRequestHelper::fundTransfer($client_details,$auto_chess_bet,$this->game_code,$this->game_name,$game_transextension1,$gamerecord1,'debit');
+	        	$client_response1 = ClientRequestHelper::fundTransfer($client_details,$auto_chess_bet,$this->game_code,$this->game_name,$game_transextension1,$gamerecord1,'debit');
 
-        		if(isset($client_response->fundtransferresponse->status->code) 
-                && $client_response->fundtransferresponse->status->code == "200"){
+        		if(isset($client_response1->fundtransferresponse->status->code) 
+                && $client_response1->fundtransferresponse->status->code == "200"){
 
 		        	// SECOND CALL ACTUAL WINNING
-		        	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord2,$cha->orderId, $cha->projectId, $cha->money, 2);
-		        	$client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension2,$gamerecord1,$transaction_type);
+		        	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord1,$cha->orderId, $cha->projectId, $cha->money, 2);
+		        	$client_response2 = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension2,$gamerecord1,$transaction_type);
 
 	    			$params = [
 			            "code" => $status_code,
 			            "data" => [
-			            	"available_balance" => $client_response->fundtransferresponse->balance,
+			            	"available_balance" => $client_response2->fundtransferresponse->balance,
 			            	"status" => 1,
 			            ],
 						"message" => "Success",
 			        ];	
-			        ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $params, $client_response->requestoclient, $client_response,$params);
-		       		ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response->requestoclient, $client_response,$params);
-	        		$this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
+			        ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $params, $client_response1->requestoclient, $client_response1,$params);
+		       		ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response2->requestoclient, $client_response2,$params);
+	        		$this->updateBetToWin($cha->projectId, $pay_amount, $income, 1, 2);
 	        		Helper::saveLog('IA Deposit AC', $this->provider_db_id,json_encode($cha), $params);
 	        		return $params;
 	        	}
@@ -399,7 +399,7 @@ class IAESportsController extends Controller
                   && $client_response->fundtransferresponse->status->code == "200"){
 		 	   
 		 	    	// AUTO MATIC 0 WIN AMOUNT
-		 	    	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord1,$cha->orderId, $cha->projectId, $cha->money, 1);
+		 	    	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord1,$cha->orderId, $cha->projectId, 0, 2);
 
                   	$client_response2 = ClientRequestHelper::fundTransfer($client_details,0,$this->game_code,$this->game_name,$game_transextension2,$gamerecord1,'credit');
 
@@ -414,7 +414,7 @@ class IAESportsController extends Controller
 
 		 	    	ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $params, $client_response->requestoclient, $client_response,$params);
 
-                  	ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response->requestoclient, $client_response,$params);
+                  	ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response2->requestoclient, $client_response2,$params);
                   	Helper::saveLog('IA Deposit AC', $this->provider_db_id,json_encode($cha), $params);
                 
 		 	    }elseif(isset($client_response->fundtransferresponse->status->code) 
