@@ -423,7 +423,7 @@ class SAGamingController extends Controller
 
             $game_transextension = ProviderHelper::createGameTransExtV2($game_trans_ext->game_trans_id,$txnid, $round_id, 0, 2);
             // When Player Lost Auto Callback 0 winning
-            $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id, 'credit');
+            $client_response = ClientRequestHelper::fundTransfer($client_details,0,$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id, 'credit');
 
             if(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "200"){
