@@ -231,15 +231,23 @@ class EightProviderController extends Controller
 
 						$amount = $data['data']['amount'];
 				 	    $round_id = $data['data']['round_id'];
-				 	    if($existing_bet->bet_amount > $amount):
-		 	  				$win = 0; // lost
-		 	  				$entry_id = 1; //lost
-		 	  				$income = $existing_bet->bet_amount - $amount;
-		 	  			else:
-		 	  				$win = 1; //win
-		 	  				$entry_id = 2; //win
-		 	  				$income = $existing_bet->bet_amount - $amount;
-		 	  			endif;
+
+				 	    // WIN IS ALWAYS WIN OLD
+				 	    //  if($existing_bet->bet_amount > $amount):
+		 	  			// 	$win = 0; // lost
+		 	  			// 	$entry_id = 1; //lost
+		 	  			// 	$income = $existing_bet->bet_amount - $amount;
+		 	  			// else:
+		 	  			// 	$win = 1; //win
+		 	  			// 	$entry_id = 2; //win
+		 	  			// 	$income = $existing_bet->bet_amount - $amount;
+		 	  			// endif;
+		 	  			// END OLD
+		 	  			
+		 	  			// REVISION 08/21/20
+		 	  			$win = 1; //win
+		 	  			$entry_id = 2; //win
+		 	  			$income = $existing_bet->bet_amount - $amount;
 
 						$this->updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
 						$game_transextension = ProviderHelper::createGameTransExtV2($existing_bet->game_trans_id,$data['callback_id'], $round_id, $data['data']['amount'], 2);
