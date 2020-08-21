@@ -181,7 +181,6 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessDeposit(Request $request)
 	{
-		$this->userWager();
 		Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
@@ -299,6 +298,7 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 		Helper::saveLog('IA Deposit Response', $this->provider_db_id,json_encode($cha), $params);
+		$this->userWager();
 		return $params;
 	}
 
@@ -309,7 +309,6 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessWithdrawal(Request $request)
 	{
-		$this->userWager();
 		Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
@@ -397,8 +396,8 @@ class IAESportsController extends Controller
 				"message" => "Insufficient balance",
 	        ];
 		endif;
-
 		Helper::saveLog('IA Withrawal Response', $this->provider_db_id,json_encode($cha), $params);
+		$this->userWager();
 		return $params;
 	}
 
