@@ -74,4 +74,51 @@ class ClientRequestHelper{
     }
 
 
+    /**
+     * GLOBAL
+     * Client Player Details API Call
+     * @return [Object]
+     * @param $[player_token] [<players token>]
+     * @param $[refreshtoken] [<Default False, True token will be requested>]
+     * 
+     */
+    public static function playerDetailsCall($player_token, $refreshtoken=false){
+        $client_details = ProviderHelper::getClientDetails('token', $player_token);
+        if($client_details){
+            try{
+                $client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.$client_details->client_access_token
+                    ]
+                ]);
+                $datatosend = ["access_token" => $client_details->client_access_token,
+                    "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                    "type" => "playerdetailsrequest",
+                    "datesent" => Helper::datesent(),
+                    "gameid" => "",
+                    "clientid" => $client_details->client_id,
+                    "playerdetailsrequest" => [
+                        "player_username"=>$client_details->username,
+                        "client_player_id" => $client_details->client_player_id,
+                        "token" => $player_token,
+                        "gamelaunch" => true,
+                        "refreshtoken" => $refreshtoken
+                    ]
+                ];
+            
+                $guzzle_response = $client->post($client_details->player_details_url,
+                    ['body' => json_encode($datatosend)]
+                );
+                $client_response = json_decode($guzzle_response->getBody()->getContents());
+                return $client_response;
+            }catch (\Exception $e){
+               return 'false';
+            }
+        }else{
+            return 'false';
+        }
+    }
+
+
 }
