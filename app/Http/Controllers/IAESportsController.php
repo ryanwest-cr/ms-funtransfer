@@ -267,17 +267,30 @@ class IAESportsController extends Controller
 
 	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension,$gamerecord,$transaction_type);
 
-		    $params = [
-	            "code" => $status_code,
-	            "data" => [
-	            	"available_balance" => $client_response->fundtransferresponse->balance,
-	            	"status" => 1,
-	            ],
-				"message" => "Success",
-	        ];	
 
-	      	ProviderHelper::updatecreateGameTransExt($game_transextension, $cha, $params, $client_response->requestoclient, $client_response,$params);
-		  
+	        if(isset($client_response->fundtransferresponse->status->code) 
+                && $client_response->fundtransferresponse->status->code == "200"){
+
+	        	$params = [
+		            "code" => $status_code,
+		            "data" => [
+		            	"available_balance" => $client_response->fundtransferresponse->balance,
+		            	"status" => 1,
+		            ],
+					"message" => "Success",
+		        ];	
+
+		      	ProviderHelper::updatecreateGameTransExt($game_transextension, $cha, $params, $client_response->requestoclient, $client_response,$params);
+
+			}elseif(isset($client_response->fundtransferresponse->status->code) 
+	            && $client_response->fundtransferresponse->status->code == "402"){
+				$params = [
+		            "code" => $status_code,
+		            "data" => [],
+					"message" => "Insufficient balance",
+		        ];
+			}
+
 	     else:
 		    $params = [
 	            "code" => $status_code,
@@ -356,16 +369,26 @@ class IAESportsController extends Controller
 
 	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension,$gamerecord,$transaction_type);
 
-            $params = [
-	            "code" => $status_code,
-	            "data" => [
-	            	"available_balance" => $client_response->fundtransferresponse->balance,
-	            	"status" => 1,
-	            ],
-				"message" => "Success",
-	        ];	
+	        if(isset($client_response->fundtransferresponse->status->code) 
+               && $client_response->fundtransferresponse->status->code == "200"){
+        		$params = [
+		            "code" => $status_code,
+		            "data" => [
+		            	"available_balance" => $client_response->fundtransferresponse->balance,
+		            	"status" => 1,
+		            ],
+					"message" => "Success",
+		        ];	
 
-	        ProviderHelper::updatecreateGameTransExt($game_transextension, $cha, $params, $client_response->requestoclient, $client_response,$params);
+		        ProviderHelper::updatecreateGameTransExt($game_transextension, $cha, $params, $client_response->requestoclient, $client_response,$params);
+			}elseif(isset($client_response->fundtransferresponse->status->code) 
+               && $client_response->fundtransferresponse->status->code == "402"){
+				  $params = [
+		            "code" => $status_code,
+		            "data" => [],
+					"message" => "Insufficient balance",
+		        ];
+			}
 
 		else:
 		    $params = [
