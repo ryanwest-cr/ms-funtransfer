@@ -180,8 +180,9 @@ class Helper
 		DB::table('player_session_tokens')->insert($player_session_token);
 		return $token;
 	}
-	public static function savePLayerGameRound($game_code,$player_token){
-		$game = DB::table("games")->where("game_code",$game_code)->first();
+	public static function savePLayerGameRound($game_code,$player_token,$sub_provider_name){
+		$sub_provider_id = DB::table("sub_providers")->where("sub_provider_name",$sub_provider_name)->first();
+		$game = DB::table("games")->where("game_code",$game_code)->where("sub_provider_id",$sub_provider_id->sub_provider_id)->first();
 		$player_game_round = array(
 			"player_token" => $player_token,
 			"game_id" => $game->game_id,

@@ -15,7 +15,7 @@ use App\Helpers\ProviderHelper;
 use DB;             
 use Carbon\Carbon;
 class GameLobby{
-    public static function icgLaunchUrl($game_code,$token,$exitUrl,$lang="en"){
+    public static function icgLaunchUrl($game_code,$token,$exitUrl,$provider,$lang="en"){
         $client = GameLobby::getClientDetails("token",$token);
         
         $game_list =GameLobby::icgGameUrl($client->default_currency);
@@ -23,24 +23,24 @@ class GameLobby{
         foreach($game_list["data"] as $game){
             if($game["productId"] == $game_code){
                 $lang = GameLobby::getLanguage("Iconic Gaming",$lang);
-                Helper::savePLayerGameRound($game["productId"],$token);
+                Helper::savePLayerGameRound($game["productId"],$token,$provider);
                 Helper::saveLog('GAMELAUNCH ICG', 11, json_encode($game_code), json_encode($game["href"]));
                 return $game["href"].'&token='.$token.'&lang='.$lang.'&home_URL='.$exitUrl;
                 
             }
         }
     }
-    public static function fcLaunchUrl($game_code,$token,$exitUrl,$lang="en"){
+    public static function fcLaunchUrl($game_code,$token,$exitUrl,$provider,$lang="en"){
         $client = GameLobby::getClientDetails("token",$token);
-        Helper::savePLayerGameRound($game_code,$token);
+        Helper::savePLayerGameRound($game_code,$token,$provider);
         $data = FCHelper::loginGame($client->player_id,$game_code,1,$exitUrl);
         return $data["Url"];
     }
-    public static function booongoLaunchUrl($game_code,$token,$exitUrl){
+    public static function booongoLaunchUrl($game_code,$token,$provider,$exitUrl){
         $lang = "en";
         $timestamp = Carbon::now()->timestamp;
         $exit_url = $exitUrl;
-        Helper::savePLayerGameRound($game_code,$token);
+        Helper::savePLayerGameRound($game_code,$token,$provider);
         $gameurl =  config("providerlinks.boongo.PLATFORM_SERVER_URL")
                   .config("providerlinks.boongo.PROJECT_NAME").
                   "/game.html?wl=".config("providerlinks.boongo.WL").
@@ -49,29 +49,29 @@ class GameLobby{
                   "&exir_url=".$exit_url;
         return $gameurl;
     }
-    public static function wazdanLaunchUrl($game_code,$token,$exitUrl){
+    public static function wazdanLaunchUrl($game_code,$token,$provider,$exitUrl){
         $lang = "en";
         $timestamp = Carbon::now()->timestamp;
         $exit_url = $exitUrl;
-        Helper::savePLayerGameRound($game_code,$token);
+        Helper::savePLayerGameRound($game_code,$token,$provider);
         $gameurl = config('providerlinks.wazdan.gamelaunchurl').config('providerlinks.wazdan.partnercode').'/gamelauncher?operator='.config('providerlinks.wazdan.operator').
                   '&game='.$game_code.'&mode=real&token='.$token.'&license='.config('providerlinks.wazdan.license').'&lang='.$lang.'&platform=desktop';
         return $gameurl;
     }
-    public static function pngLaunchUrl($game_code,$token,$exitUrl){
+    public static function pngLaunchUrl($game_code,$token,$provider,$exitUrl){
         $lang = "en";
         $timestamp = Carbon::now()->timestamp;
         $exit_url = $exitUrl;
-        Helper::savePLayerGameRound($game_code,$token);
+        Helper::savePLayerGameRound($game_code,$token,$provider);
         $gameurl = config('providerlinks.png.root_url').'/casino/ContainerLauncher?pid='.config('providerlinks.png.pid').'&gid='.$game_code.'&channel='.
                    config('providerlinks.png.channel').'&lang='.$lang.'&practice='.config('providerlinks.png.practice').'&ticket='.$token.'&origin='.$exit_url;
         return $gameurl;
     }
-    public static function edpLaunchUrl($game_code,$token,$exitUrl){
+    public static function edpLaunchUrl($game_code,$token,$provider,$exitUrl){
         $profile = "nofullscreen_money.xml";
         $sha1key = sha1($exitUrl.''.config("providerlinks.endorphina.nodeId").''.$profile.''.$token.''.config("providerlinks.endorphina.secretkey"));
         $sign = $sha1key; 
-        Helper::savePLayerGameRound($game_code,$token);
+        Helper::savePLayerGameRound($game_code,$token,$provider);
         Helper::saveLog('GAMELAUNCH EDP', 11, json_encode(config("providerlinks.endorphina.url").'?exit='.$exitUrl.'&nodeId='.config("providerlinks.endorphina.nodeId").'&profile='.$profile.'&token='.$token.'&sign='.$sign), json_encode($sign));
         return config("providerlinks.endorphina.url").'?exit='.$exitUrl.'&nodeId='.config("providerlinks.endorphina.nodeId").'&profile='.$profile.'&token='.$token.'&sign='.$sign;
     }

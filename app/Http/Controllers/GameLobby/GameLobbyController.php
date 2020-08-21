@@ -115,7 +115,7 @@ class GameLobbyController extends Controller
                 if($request->input('game_provider')=="Iconic Gaming"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$lang),
+                        "url" => GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$request->input('game_provider'),$lang),
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -124,7 +124,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="Booongo" || $request->input('game_provider')=="Playson"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::booongoLaunchUrl($request->game_code,$token,$request->exitUrl),
+                        "url" => GameLobby::booongoLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -133,7 +133,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="Endorphina Gaming"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::edpLaunchUrl($request->game_code,$token,$request->exitUrl),
+                        "url" => GameLobby::edpLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -142,7 +142,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="Fa Chai"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::fcLaunchUrl($request->game_code,$token,$request->exitUrl),
+                        "url" => GameLobby::fcLaunchUrl($request->game_code,$token,$request->exitUrl,$request->input('game_provider')),
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -151,7 +151,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="PlayNGo Direct"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::pngLaunchUrl($request->game_code,$token,$request->exitUrl),
+                        "url" => GameLobby::pngLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -160,7 +160,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="Wazdan Direct"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::wazdanLaunchUrl($request->game_code,$token,$request->exitUrl),
+                        "url" => GameLobby::wazdanLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
                         "game_launch" => true
                     );
                     return response($msg,200)
