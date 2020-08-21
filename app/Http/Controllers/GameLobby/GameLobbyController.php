@@ -122,6 +122,7 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider')=="Booongo" || $request->input('game_provider')=="Playson"){
+                    Helper::saveLog('PlaySonLaunch(ICG)', 12, json_encode($request->game_code), $request->input('game_provider'));
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::booongoLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
