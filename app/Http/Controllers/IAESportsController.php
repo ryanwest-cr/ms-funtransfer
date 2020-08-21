@@ -232,17 +232,47 @@ class IAESportsController extends Controller
 
 
 		    if($transaction_code == 16 || $transaction_code == 17){ // AUTO CHESS GAME // 1 WAY FLIGHT
+		    	// IF CALL IS CREDIT AUTO BET IS ZERO AND WIN WILL BE THE EXACT AMOUNT
 	        	$transaction_type = 'credit';
 				$token_id = $client_details->token_id;
 				$bet_amount = $cha->money;
 				$pay_amount = $cha->money; // Zero Payout
 				$method = 2;
+				$entry_id = 2; //win
 				$win_or_lost = 1;
 				$payout_reason = $this->getCodeType($desc_json['code']) .' : '.$desc_json['message'];
 				$income = '-'.$bet_amount;	
 				$provider_trans_id = $cha->orderId;
-	        	$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
-	        	$game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 2);
+
+	        	// FIRST CALL BET ZERO
+	        	$auto_chess_bet = 0;
+	        	$gamerecord1  = ProviderHelper::createGameTransaction($token_id, $game_details, 0, 0, 1, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+	        	$game_transextension1 = ProviderHelper::createGameTransExtV2($gamerecord1,$provider_trans_id, $cha->projectId, $cha->money, 1);
+
+	        	$client_response = ClientRequestHelper::fundTransfer($client_details,$auto_chess_bet,$this->game_code,$this->game_name,$game_transextension1,$gamerecord1,'debit');
+
+        		if(isset($client_response->fundtransferresponse->status->code) 
+                && $client_response->fundtransferresponse->status->code == "200"){
+
+		        	// SECOND CALL ACTUAL WINNING
+		        	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord2,$cha->orderId, $cha->projectId, $cha->money, 2);
+		        	$client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension2,$gamerecord1,$transaction_type);
+
+	    			$params = [
+			            "code" => $status_code,
+			            "data" => [
+			            	"available_balance" => $client_response->fundtransferresponse->balance,
+			            	"status" => 1,
+			            ],
+						"message" => "Success",
+			        ];	
+			        ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $params, $client_response->requestoclient, $client_response,$params);
+		       		ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response->requestoclient, $client_response,$params);
+	        		$this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
+	        		Helper::saveLog('IA Deposit AC', $this->provider_db_id,json_encode($cha), $params);
+	        		return $params;
+	        	}
+
 	        }else{
 	        	$bet_details = $this->getOrderData($cha->projectId);
 	        	// dd($bet_details);
@@ -259,7 +289,7 @@ class IAESportsController extends Controller
 
 	 	  			$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
 	 	  			$gamerecord = $bet_details->game_trans_id;
-				    ProviderHelper::updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
+				    $this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
 	 	  		}
 			    $game_transextension = ProviderHelper::createGameTransExtV2($bet_details->game_trans_id,$cha->orderId, $cha->projectId, $cha->money, 2);
 	        }
@@ -359,8 +389,44 @@ class IAESportsController extends Controller
 		if($client_player->playerdetailsresponse->balance > $cha->money):
 
 	        if($transaction_code == 16 || $transaction_code == 17){ // AUTO CHESS GAME
-	        	$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, 0, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
-		 	    $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1);
+	        	// IF CALL IS DEBIT AUTO BET IS EXACT AMOUNT AND WIN WILL BE 0
+	        	$gamerecord1  = ProviderHelper::createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, 0, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
+		 	    $game_transextension1 = ProviderHelper::createGameTransExtV2($gamerecord1,$cha->orderId, $cha->projectId, $cha->money, 1);
+
+		 	    $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension1,$gamerecord1,$transaction_type);
+
+		 	    if(isset($client_response->fundtransferresponse->status->code) 
+                  && $client_response->fundtransferresponse->status->code == "200"){
+		 	   
+		 	    	// AUTO MATIC 0 WIN AMOUNT
+		 	    	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord1,$cha->orderId, $cha->projectId, $cha->money, 1);
+
+                  	$client_response2 = ClientRequestHelper::fundTransfer($client_details,0,$this->game_code,$this->game_name,$game_transextension2,$gamerecord1,'credit');
+
+              	 	$params = [
+			            "code" => $status_code,
+			            "data" => [
+			            	"available_balance" => $client_response->fundtransferresponse->balance,
+			            	"status" => 1,
+			            ],
+						"message" => "Success",
+			        ];	
+
+		 	    	ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $params, $client_response->requestoclient, $client_response,$params);
+
+                  	ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response->requestoclient, $client_response,$params);
+                  	Helper::saveLog('IA Deposit AC', $this->provider_db_id,json_encode($cha), $params);
+                
+		 	    }elseif(isset($client_response->fundtransferresponse->status->code) 
+                  && $client_response->fundtransferresponse->status->code == "402"){
+		 	    	 $params = [
+			            "code" => $status_code,
+			            "data" => [],
+						"message" => "Insufficient balance",
+			        ];
+
+		 	    }
+		 	    return $params;
 	        }else{
 	        	$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $cha->projectId);
 		 	    $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$cha->orderId, $cha->projectId, $cha->money, 1);
@@ -578,17 +644,17 @@ class IAESportsController extends Controller
 	 * Find bet and update to win 
 	 *
 	 */
-	// public  function updateBetToWin($round_id, $pay_amount, $income, $win, $entry_id) {
- //   	    $update = DB::table('game_transactions')
- //                ->where('round_id', $round_id)
- //                ->update(['pay_amount' => $pay_amount, 
-	//         		  'income' => $income, 
-	//         		  'win' => $win, 
-	//         		  'entry_id' => $entry_id,
-	//         		  'transaction_reason' => 'Bet updated to win'
-	//     		]);
-	// 	return ($update ? true : false);
-	// }
+	public  function updateBetToWin($round_id, $pay_amount, $income, $win, $entry_id) {
+   	    $update = DB::table('game_transactions')
+                ->where('round_id', $round_id)
+                ->update(['pay_amount' => $pay_amount, 
+	        		  'income' => $income, 
+	        		  'win' => $win, 
+	        		  'entry_id' => $entry_id,
+	        		  'transaction_reason' => 'Bet updated to win'
+	    		]);
+		return ($update ? true : false);
+	}
 
 	/**
 	 * Currency Check
