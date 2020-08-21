@@ -1618,7 +1618,7 @@ class CQ9Controller extends Controller
 					      [
 					        "mtcode" => $mtcode,
 					        // "amount" => $amount, // old $transaction_record->amount
-					        "amount" => $transaction_record->amount, // old $transaction_record->amount
+					        "amount" => $this->amountToFloat4DG($transaction_record->amount), // old $transaction_record->amount
 					        "eventtime" => $general_details->provider->eventtime
 					      ]
 					    ]
