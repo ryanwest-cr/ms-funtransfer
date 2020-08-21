@@ -321,7 +321,7 @@ class CQ9Controller extends Controller
     	$roundid = $request->roundid;
     	$eventime = $request->createTime; // created
 		$createtime = date(DATE_RFC3339);
-		$action = 'endroud';
+		$action = 'endround';
 
  	    $check_string_user = ProviderHelper::checkIfHasUnderscore($account);
     	if(!$check_string_user){
@@ -370,9 +370,10 @@ class CQ9Controller extends Controller
 			Helper::saveLog('CQ9 playrEndround ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
 		}
-		$game_ext_exist = ProviderHelper::findGameExt($roundid, 2, 'round_id');
+		// $game_ext_exist = ProviderHelper::findGameExt($roundid, 2, 'round_id');
+		$game_ext_exist = ProviderHelper::findGameExt($data->mtcode, 2, 'transaction_id');
 		if($game_ext_exist != 'false'){
-			$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Duplicae Transaction',"datetime" => date(DATE_RFC3339)]];
+			$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Duplicate Transaction',"datetime" => date(DATE_RFC3339)]];
 			Helper::saveLog('CQ9 playrEndround ALready Exist', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
 		}		
@@ -416,11 +417,14 @@ class CQ9Controller extends Controller
 
 		    if($client_response != 'false'){
 
-		    	$multi_event_amount = $this->amountToFloat4DG($this->amountToFloat4DG($client_response->fundtransferresponse->balance) - $this->amountToFloat4DG($player_details->playerdetailsresponse->balance));
+		    	// $multi_event_amount = $this->amountToFloat4DG($this->amountToFloat4DG($client_response->fundtransferresponse->balance) - $this->amountToFloat4DG($player_details->playerdetailsresponse->balance));
+
+		    	$multi_event_amount = $this->amountToFloat4DG($this->amountToFloat4DG($player_details->playerdetailsresponse->balance) - $this->amountToFloat4DG($client_response->fundtransferresponse->balance));
 
 		    	$multi_event_array = [
 		    		"mtcode" => $provider_trans_id,
-	                "amount" => $multi_event_amount,
+	                "amount" => $data->amount,
+	                // "amount" => $multi_event_amount,
 	                "eventtime" => $data->eventtime
 		    	];
 		    	array_push($multi_event_bag['events'], $multi_event_array);
@@ -1334,12 +1338,12 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playerPayoff Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$provider_request = $request->all();
-		$check_wtoken = $this->checkAuth($header);
-    	if(!$check_wtoken){
-    		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
-			return $mw_response;
-    	}
+		// $check_wtoken = $this->checkAuth($header);
+  //   	if(!$check_wtoken){
+  //   		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
+		// 	Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
+		// 	return $mw_response;
+  //   	}
     	if(!$request->has('account') || !$request->has('eventTime') || !$request->has('amount') || !$request->has('mtcode')){
     		$mw_response = ["data" => null,"status" => ["code" => "1003","message" => 'Parameter error.',"datetime" => date(DATE_RFC3339)]
 	    	];
@@ -1549,6 +1553,14 @@ class CQ9Controller extends Controller
 		}
     }
 
+    public function noRouteParamPassed(Request $request){
+    	$mw_response = ["data" => null,"status" => ["code" => "1003","message" => 'Parameter error.',"datetime" => date(DATE_RFC3339)]
+    	];
+    	Helper::saveLog('CQ9 No PARAM PASSED', $this->provider_db_id, json_encode($request->all()), $mw_response);
+		return $mw_response;
+    }
+
+
     public function playerRecord(Request $request, $mtcode){
     	$transaction_record = $this->findTranPID($mtcode);
     	if($transaction_record != 'false'){
@@ -1585,7 +1597,7 @@ class CQ9Controller extends Controller
 		    		array_push($record['data']['event'], $key);
 		    	}
 			}else{
-				$amount = $this->amountToFloat4DG($this->amountToFloat4DG($general_details->client->after_balance)-$this->amountToFloat4DG($general_details->client->before_balance));
+				$amount = $this->amountToFloat4DG($this->amountToFloat4DG($general_details->client->before_balance)-$this->amountToFloat4DG($general_details->client->after_balance));
 				$record = [
 		    		"data"=>[
 			    		"_id" => $transaction_record->game_trans_ext_id,
@@ -1605,7 +1617,8 @@ class CQ9Controller extends Controller
 					    "event" => [
 					      [
 					        "mtcode" => $mtcode,
-					        "amount" => $amount, // old $transaction_record->amount
+					        // "amount" => $amount, // old $transaction_record->amount
+					        "amount" => $transaction_record->amount, // old $transaction_record->amount
 					        "eventtime" => $general_details->provider->eventtime
 					      ]
 					    ]
@@ -2499,13 +2512,16 @@ class CQ9Controller extends Controller
 
 	//ProviderHelper::amountToFloat
 	public function amountToFloat4DG($amount){
-		 // $amount = 104010.61;
-		 if($amount == 0){
-		 	return (int)$amount;
-		}else{
-			$decimal = sprintf('%01.3f1', $amount);
-		    return round($decimal, 4);
-		}
+		 // $amount = 104010.6136;
+		$float = floatval(number_format((float)$amount, 4, '.', ''));
+    	return $float;
+
+		// if($amount == 0){
+		//  	return (int)$amount;
+		// }else{
+		// 	$decimal = sprintf('%01.3f1', $amount);
+		//     return round($decimal, 4);
+		// }
 
 		//104010.60
 		// $amount = 12312.0000;

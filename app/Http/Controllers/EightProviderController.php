@@ -172,14 +172,24 @@ class EightProviderController extends Controller
 
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
 
-					$response = array(
-						'status' => 'ok',
-						'data' => [
-							'balance' => (string)$client_response->fundtransferresponse->balance,
-							'currency' => $client_details->default_currency,
-						],
-				 	 );
-			 		 ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+
+					if(isset($client_response->fundtransferresponse->status->code) 
+					             && $client_response->fundtransferresponse->status->code == "200"){
+						$response = array(
+							'status' => 'ok',
+							'data' => [
+								'balance' => (string)$client_response->fundtransferresponse->balance,
+								'currency' => $client_details->default_currency,
+							],
+					 	);
+				 	    ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+					}elseif(isset($client_response->fundtransferresponse->status->code) 
+					            && $client_response->fundtransferresponse->status->code == "402"){
+						$response = array(
+							"status" => 'error',
+							"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
+						);
+					}
 
 			   		// $trans_ext = $this->create8PTransactionExt($game_trans, $data, $requesttosend, $client_response, $client_response,$data, 1, $data['data']['amount'], $provider_trans_id,$round_id);
 				  	return $response;
@@ -231,7 +241,10 @@ class EightProviderController extends Controller
 
 						$amount = $data['data']['amount'];
 				 	    $round_id = $data['data']['round_id'];
-				 	    if($existing_bet->bet_amount > $amount):
+
+				 	    // WIN IS ALWAYS WIN OLD
+				 	     // if($existing_bet->bet_amount > $amount):
+				 	     if($amount == 0):
 		 	  				$win = 0; // lost
 		 	  				$entry_id = 1; //lost
 		 	  				$income = $existing_bet->bet_amount - $amount;
@@ -240,21 +253,30 @@ class EightProviderController extends Controller
 		 	  				$entry_id = 2; //win
 		 	  				$income = $existing_bet->bet_amount - $amount;
 		 	  			endif;
+		 	  			// END OLD
+		 	  			
+		 	  			// REVISION 08/21/20
+		 	  			// $win = 1; //win
+		 	  			// $entry_id = 2; //win
+		 	  			// $income = $existing_bet->bet_amount - $amount;
 
 						$this->updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
 						$game_transextension = ProviderHelper::createGameTransExtV2($existing_bet->game_trans_id,$data['callback_id'], $round_id, $data['data']['amount'], 2);
 
 						$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$existing_bet->game_trans_id,'credit');
 
-						$response = array(
-							'status' => 'ok',
-							'data' => [
-								'balance' => (string)$client_response->fundtransferresponse->balance,
-								'currency' => $client_details->default_currency,
-							],
-					 	 );
+						if(isset($client_response->fundtransferresponse->status->code) 
+			             	&& $client_response->fundtransferresponse->status->code == "200"){
+							$response = array(
+								'status' => 'ok',
+								'data' => [
+									'balance' => (string)$client_response->fundtransferresponse->balance,
+									'currency' => $client_details->default_currency,
+								],
+						 	 );
 
-						ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+							ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+						}
 						
 					  	return $response;
 
@@ -288,17 +310,23 @@ class EightProviderController extends Controller
 
 								$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'credit');
 
-								$response = array(
-									'status' => 'ok',
-									'data' => [
-										'balance' => (string)$client_response->fundtransferresponse->balance,
-										'currency' => $client_details->default_currency,
-									],
-							 	 );
 
-								ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+								if(isset($client_response->fundtransferresponse->status->code) 
+								    && $client_response->fundtransferresponse->status->code == "200"){
+									$response = array(
+										'status' => 'ok',
+										'data' => [
+											'balance' => (string)$client_response->fundtransferresponse->balance,
+											'currency' => $client_details->default_currency,
+										],
+								 	 );
 
-							  	return $response;
+									ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+
+							  		return $response;
+								}
+
+
 							}catch(\Exception $e){
 								$msg = array(
 									"status" => 'error',
@@ -407,18 +435,23 @@ class EightProviderController extends Controller
 				$game_transextension = ProviderHelper::createGameTransExtV2($existing_transaction->game_trans_id,$data['callback_id'], $data['data']['refund_round_id'], $data['data']['amount'], 4);
 
 				$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$existing_transaction->game_trans_id, $transaction_type);
-					
-				$response = array(
-					'status' => 'ok',
-					'data' => [
-						'balance' => (string)$client_response->fundtransferresponse->balance,
-						'currency' => $client_details->default_currency,
-					],
-			 	 );
 
-				ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
-				
-			  	return $response;
+
+				if(isset($client_response->fundtransferresponse->status->code) 
+				             && $client_response->fundtransferresponse->status->code == "200"){
+					$response = array(
+						'status' => 'ok',
+						'data' => [
+							'balance' => (string)$client_response->fundtransferresponse->balance,
+							'currency' => $client_details->default_currency,
+						],
+				 	 );
+
+					ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+					
+				  	return $response;
+				}
+									
 
 			}catch(\Exception $e){
 				$msg = array(
