@@ -423,7 +423,8 @@ class CQ9Controller extends Controller
 
 		    	$multi_event_array = [
 		    		"mtcode" => $provider_trans_id,
-	                "amount" => $multi_event_amount,
+	                "amount" => $data->amount,
+	                // "amount" => $multi_event_amount,
 	                "eventtime" => $data->eventtime
 		    	];
 		    	array_push($multi_event_bag['events'], $multi_event_array);
@@ -1337,12 +1338,12 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playerPayoff Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$provider_request = $request->all();
-		$check_wtoken = $this->checkAuth($header);
-    	if(!$check_wtoken){
-    		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
-			return $mw_response;
-    	}
+		// $check_wtoken = $this->checkAuth($header);
+  //   	if(!$check_wtoken){
+  //   		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
+		// 	Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
+		// 	return $mw_response;
+  //   	}
     	if(!$request->has('account') || !$request->has('eventTime') || !$request->has('amount') || !$request->has('mtcode')){
     		$mw_response = ["data" => null,"status" => ["code" => "1003","message" => 'Parameter error.',"datetime" => date(DATE_RFC3339)]
 	    	];
@@ -1616,7 +1617,8 @@ class CQ9Controller extends Controller
 					    "event" => [
 					      [
 					        "mtcode" => $mtcode,
-					        "amount" => $amount, // old $transaction_record->amount
+					        // "amount" => $amount, // old $transaction_record->amount
+					        "amount" => $transaction_record->amount, // old $transaction_record->amount
 					        "eventtime" => $general_details->provider->eventtime
 					      ]
 					    ]
