@@ -182,6 +182,7 @@ class Helper
 	}
 	public static function savePLayerGameRound($game_code,$player_token,$sub_provider_name){
 		$sub_provider_id = DB::table("sub_providers")->where("sub_provider_name",$sub_provider_name)->first();
+		Helper::saveLog('SAVEPLAYERGAME(ICG)', 12, json_encode($sub_provider_id), $sub_provider_name);
 		$game = DB::table("games")->where("game_code",$game_code)->where("sub_provider_id",$sub_provider_id->sub_provider_id)->first();
 		$player_game_round = array(
 			"player_token" => $player_token,
