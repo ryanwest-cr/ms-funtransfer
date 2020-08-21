@@ -243,21 +243,35 @@ class AWSController extends Controller
 		    $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type);
             $client_response = ClientRequestHelper::fundTransfer($client_details,abs($details->amount),$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,$transaction_type);
 
-			$response = [
-				"msg"=> "success",
-				"code"=> 0,
-				"data"=> [
-					"currency"=> $client_details->default_currency,
-					"amount"=> (double)$details->amount,
-					"accountId"=> $details->accountId,
-					"txnId"=> $details->txnId,
-					"eventTime"=> date('Y-m-d H:i:s'),
-					"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
-					"bonusBalance" => 0
-				]
-			];
-			ProviderHelper::updatecreateGameTransExt($game_transextension, $details, $response, $client_response->requestoclient, $client_response,$response);
+
+            if(isset($client_response->fundtransferresponse->status->code) 
+             && $client_response->fundtransferresponse->status->code == "200"){
+             	$response = [
+					"msg"=> "success",
+					"code"=> 0,
+					"data"=> [
+						"currency"=> $client_details->default_currency,
+						"amount"=> (double)$details->amount,
+						"accountId"=> $details->accountId,
+						"txnId"=> $details->txnId,
+						"eventTime"=> date('Y-m-d H:i:s'),
+						"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
+						"bonusBalance" => 0
+					]
+				];
+				ProviderHelper::updatecreateGameTransExt($game_transextension, $details, $response, $client_response->requestoclient, $client_response,$response);
+
+			}elseif(isset($client_response->fundtransferresponse->status->code) 
+            && $client_response->fundtransferresponse->status->code == "402"){
+				$response = [
+					"msg"=> "Insufficient balance",
+					"code"=> 1201
+				];
+				Helper::saveLog('AWS Single Fund Failed', $this->provider_db_id, $data, $response);
+			}
+
 			return $response;
+			
 		} catch (Exception $e) {
 			$response = [
 				"msg"=> "Fund transfer encountered error",
