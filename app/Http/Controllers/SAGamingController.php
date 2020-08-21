@@ -207,16 +207,22 @@ class SAGamingController extends Controller
                 $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,$transaction_type);
 
 
-                $data_response = [
-                    "username" => $username,
-                    "currency" => $client_details->default_currency,
-                    "amount" => $client_response->fundtransferresponse->balance,
-                    "error" => 0
-                ];
+                if(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "200"){
+                     $data_response = [
+                        "username" => $username,
+                        "currency" => $client_details->default_currency,
+                        "amount" => $client_response->fundtransferresponse->balance,
+                        "error" => 0
+                    ];
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
 
-                ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
-
-                Helper::saveLog('SA Gaming Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                    Helper::saveLog('SA Gaming Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                }elseif(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "402"){
+                     $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
+                }
+               
                 echo $this->makeArrayXML($data_response);
                 return;
             } catch (\Exception $e) {
@@ -320,15 +326,20 @@ class SAGamingController extends Controller
 
                 $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id,$transaction_type);
 
+                if(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "200"){
+                    $data_response = [
+                        "username" => $username,
+                        "currency" => $client_details->default_currency,
+                        "amount" => $client_response->fundtransferresponse->balance,
+                        "error" => 0
+                    ];
 
-                $data_response = [
-                    "username" => $username,
-                    "currency" => $client_details->default_currency,
-                    "amount" => $client_response->fundtransferresponse->balance,
-                    "error" => 0
-                ];
-
-                ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
+                }elseif(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "402"){
+                     $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
+                }
 
                 Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
                 echo $this->makeArrayXML($data_response);
@@ -509,14 +520,18 @@ class SAGamingController extends Controller
         $game_transextension = ProviderHelper::createGameTransExtV2($game_trans->game_trans_id,$txnid, $round_id, $amount, 3);
         $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans->game_trans_id,$transaction_type, true);
 
-        $data_response = [
-            "username" => $username,
-            "currency" => $client_details->default_currency,
-            "amount" => $client_response->fundtransferresponse->balance,
-            "error" => 0
-        ];
 
-        ProviderHelper::updatecreateGameTransExt($game_transextension, $data_response, $client_response->requestoclient, $client_response, $data_response);
+        if(isset($client_response->fundtransferresponse->status->code) 
+             && $client_response->fundtransferresponse->status->code == "200"){
+             $data_response = [
+                "username" => $username,
+                "currency" => $client_details->default_currency,
+                "amount" => $client_response->fundtransferresponse->balance,
+                "error" => 0
+            ];
+
+            ProviderHelper::updatecreateGameTransExt($game_transextension, $data_response, $client_response->requestoclient, $client_response, $data_response);
+        }
 
         Helper::saveLog('SA Gaming Cancel Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
         echo $this->makeArrayXML($data_response);

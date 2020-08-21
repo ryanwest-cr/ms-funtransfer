@@ -181,7 +181,6 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessDeposit(Request $request)
 	{
-		$this->userWager();
 		Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
@@ -269,7 +268,7 @@ class IAESportsController extends Controller
 
 
 	        if(isset($client_response->fundtransferresponse->status->code) 
-                && $client_response->fundtransferresponse->status->code == "200"){
+                && $client_response->fundtransferresponse->status->code == "200"):
 
 	        	$params = [
 		            "code" => $status_code,
@@ -282,14 +281,14 @@ class IAESportsController extends Controller
 
 		      	ProviderHelper::updatecreateGameTransExt($game_transextension, $cha, $params, $client_response->requestoclient, $client_response,$params);
 
-			}elseif(isset($client_response->fundtransferresponse->status->code) 
-	            && $client_response->fundtransferresponse->status->code == "402"){
+			elseif(isset($client_response->fundtransferresponse->status->code)
+	            && $client_response->fundtransferresponse->status->code == "402"):
 				$params = [
 		            "code" => $status_code,
 		            "data" => [],
 					"message" => "Insufficient balance",
 		        ];
-			}
+			endif;
 
 	     else:
 		    $params = [
@@ -299,6 +298,7 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 		Helper::saveLog('IA Deposit Response', $this->provider_db_id,json_encode($cha), $params);
+		$this->userWager();
 		return $params;
 	}
 
@@ -309,7 +309,6 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessWithdrawal(Request $request)
 	{
-		$this->userWager();
 		Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
@@ -370,7 +369,7 @@ class IAESportsController extends Controller
 	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension,$gamerecord,$transaction_type);
 
 	        if(isset($client_response->fundtransferresponse->status->code) 
-               && $client_response->fundtransferresponse->status->code == "200"){
+               && $client_response->fundtransferresponse->status->code == "200"):
         		$params = [
 		            "code" => $status_code,
 		            "data" => [
@@ -381,14 +380,14 @@ class IAESportsController extends Controller
 		        ];	
 
 		        ProviderHelper::updatecreateGameTransExt($game_transextension, $cha, $params, $client_response->requestoclient, $client_response,$params);
-			}elseif(isset($client_response->fundtransferresponse->status->code) 
-               && $client_response->fundtransferresponse->status->code == "402"){
+			elseif(isset($client_response->fundtransferresponse->status->code) 
+               && $client_response->fundtransferresponse->status->code == "402"):
 				  $params = [
 		            "code" => $status_code,
 		            "data" => [],
 					"message" => "Insufficient balance",
 		        ];
-			}
+			endif;
 
 		else:
 		    $params = [
@@ -397,8 +396,8 @@ class IAESportsController extends Controller
 				"message" => "Insufficient balance",
 	        ];
 		endif;
-
 		Helper::saveLog('IA Withrawal Response', $this->provider_db_id,json_encode($cha), $params);
+		$this->userWager();
 		return $params;
 	}
 
