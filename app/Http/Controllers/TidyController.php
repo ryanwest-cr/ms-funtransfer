@@ -291,7 +291,8 @@ class TidyController extends Controller
 	    	];
 			
 			//Initialize data to pass
-	    	$win = $amount > 0  ?  1 : 0;  /// 1win 0lost
+			$win = $amount > 0  ?  1 : 0;  /// 1win 0lost
+			$type = $amount > 0  ? "credit" : "debit";
 			$request_data = [
 				'win' => $win,
 				'amount' => $amount,

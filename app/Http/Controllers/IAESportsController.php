@@ -181,8 +181,7 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessDeposit(Request $request)
 	{
-		$this->userWager();
-		Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		// Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
@@ -299,6 +298,7 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 		Helper::saveLog('IA Deposit Response', $this->provider_db_id,json_encode($cha), $params);
+		$this->userWager();
 		return $params;
 	}
 
@@ -309,8 +309,7 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessWithdrawal(Request $request)
 	{
-		$this->userWager();
-		Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		// Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
 		// dd($cha);
@@ -397,7 +396,6 @@ class IAESportsController extends Controller
 				"message" => "Insufficient balance",
 	        ];
 		endif;
-
 		Helper::saveLog('IA Withrawal Response', $this->provider_db_id,json_encode($cha), $params);
 		return $params;
 	}
@@ -408,7 +406,6 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessBalance(Request $request)
 	{	
-
 		Helper::saveLog('IA Balance', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data_received = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data_received, true));
@@ -462,11 +459,11 @@ class IAESportsController extends Controller
 		// $params = ["orderId" => 'SGVFVUITDSUBBSRCGEJJ'];	
   		// $uhayuu = $this->hashen($params);
  		// dd($uhayuu);
-		Helper::saveLog('IA Search Order', 2, '', 'CALL RECEIVED');
-		Helper::saveLog('IA Search Order', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		// Helper::saveLog('IA Search Order', $this->provider_db_id, '', 'CALL RECEIVED');
+		Helper::saveLog('IA Search Order', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data_received = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data_received, true));
-		Helper::saveLog('IA Search DECODED', 2,json_encode($cha), $data_received);
+		Helper::saveLog('IA Search DECODED', $this->provider_db_id,json_encode($cha), $data_received);
 		if($this->getOrder($cha->orderId)):
 			$params = [
 	            "code" => 200,
@@ -525,32 +522,37 @@ class IAESportsController extends Controller
 			// "is_cancel" => 1, // Optional
 			// "receive_status" => 0 // Optional
         );
-        $uhayuu = $this->hashen($params);
-		$timeout = 5;
-		$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
-		$data = json_decode($this->rehashen($client_response[1], true));
-		// dd($data);
-		$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
-		if(isset($data)):
-			foreach ($data->data->list as $matches):
-				if($matches->prize_status == 2):
-					array_push($order_ids, $matches->order_id);
-				endif;
-			endforeach;
-		endif;
-		if(count($order_ids) > 0):
-			$update = $this->getAllGameTransaction($order_ids, 5);
-			if($update != 'false'):
-			    foreach($update as $up):
-			    	DB::table('game_transactions')
-	                ->where('round_id', $up->round_id)
-	                ->update([
-	        		  'win' => 0, 
-	        		  'transaction_reason' => 'Bet updated'
-		    		]);
-			    endforeach;
+		try {
+	        $uhayuu = $this->hashen($params);
+			$timeout = 5;
+			$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
+			$data = json_decode($this->rehashen($client_response[1], true));
+			// dd($data);
+			$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
+			if(isset($data)):
+				foreach ($data->data->list as $matches):
+					if($matches->prize_status == 2):
+						array_push($order_ids, $matches->order_id);
+					endif;
+				endforeach;
 			endif;
-		endif;
+			if(count($order_ids) > 0):
+				$update = $this->getAllGameTransaction($order_ids, 5);
+				if($update != 'false'):
+				    foreach($update as $up):
+				    	DB::table('game_transactions')
+		                ->where('round_id', $up->round_id)
+		                ->update([
+		        		  'win' => 0, 
+		        		  'transaction_reason' => 'Bet updated'
+			    		]);
+				    endforeach;
+				endif;
+	 		endif;
+	 		Helper::saveLog('IA Search Order SUCCESS', $this->provider_db_id, json_encode($params), 'SUCCESS');
+		} catch (\Exception $e) {
+			Helper::saveLog('IA Search Order Failed', $this->provider_db_id, json_encode($params), $e->getMessage());
+		}
 	}
 
 	// public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){

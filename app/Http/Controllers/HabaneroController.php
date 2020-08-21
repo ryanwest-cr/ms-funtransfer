@@ -19,6 +19,26 @@ class HabaneroController extends Controller
     	$this->passkey = config('providerlinks.habanero.passKey');
     }
 
+    public static function sessionExpire($token){
+		$token = DB::table('player_session_tokens')
+			        ->select("*", DB::raw("NOW() as IMANTO"))
+			    	->where('player_token', $token)
+			    	->first();
+		if($token != null){
+			$check_token = DB::table('player_session_tokens')
+			->selectRaw("TIME_TO_SEC(TIMEDIFF( NOW(), '".$token->created_at."'))/60 as `time`")
+			->first();
+		    if(1440 > $check_token->time) {  // TIMEGAP IN MINUTES!
+		        $token = true; // True if Token can still be used!
+		    }else{
+		    	$token = false; // Expired Token
+		    }
+		}else{
+			$token = false; // Not Found Token
+		}
+	    return $token;
+	}
+
     public function playerdetailrequest(Request $request){
      
 
@@ -74,7 +94,7 @@ class HabaneroController extends Controller
         Helper::saveLog('HBN request --------', 24, json_encode($details),"request");
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
-        $checktoken = Helper::tokenCheck($client_details->player_token);
+        $checktoken = $this->sessionExpire($client_details->player_token);
         if($details->auth->passkey != $this->passkey){
             $response = [
                 "fundtransferresponse" => [
@@ -87,7 +107,7 @@ class HabaneroController extends Controller
             Helper::saveLog('HBN trans passkey', 24, json_encode($details), $response);
             return $response;
         }
-        if($checktoken == false):
+        if($checktoken == false): //session check
             $response = [
                 "fundtransferresponse" => [
                     "status" => [
@@ -118,6 +138,21 @@ class HabaneroController extends Controller
         $debitandcredit = $details->fundtransferrequest->funds->debitandcredit;
         $provider_trans_id = $details->fundtransferrequest->gameinstanceid;
         $round_id = $details->fundtransferrequest->funds->fundinfo[0]->transferid;
+
+        if($player_details->playerdetailsresponse->balance < $bet_amount):
+            $response = [
+                "fundtransferresponse" => [
+                    "status" => [
+                        "success" => false,
+                        "nofunds" => true,
+                    ],
+                    "balance" => $player_details->playerdetailsresponse->balance,
+                    "currencycode" => $client_details->default_currency
+                ]
+            ];
+            Helper::saveLog('HBN trans balance not enough', 24, json_encode($details), $response);
+            return $response;
+        endif;
 
         $checkTrans = DB::table('game_transactions')->where('provider_trans_id','=',$provider_trans_id)->get();
      
@@ -167,20 +202,7 @@ class HabaneroController extends Controller
                 }
             endif;
             
-            if($player_details->playerdetailsresponse->balance < $bet_amount):
-                $response = [
-                    "fundtransferresponse" => [
-                        "status" => [
-                            "success" => false,
-                            "nofunds" => true,
-                        ],
-                        "balance" => $player_details->playerdetailsresponse->balance,
-                        "currencycode" => $client_details->default_currency
-                    ]
-                ];
-                Helper::saveLog('HBN trans balance not enough', 24, json_encode($details), $response);
-                return $response;
-            endif;
+            
             $getTrans = DB::table('game_transactions')->where('game_trans_id','=',$checkTrans[0]->game_trans_id)->get();
             $isretry = $details->fundtransferrequest->isretry;
             $isrecredit = $details->fundtransferrequest->isrecredit;
@@ -466,7 +488,7 @@ class HabaneroController extends Controller
         $details = json_decode($data);
 
         $queryRequest = DB::table("game_transactions")->where("provider_trans_id","=",$details->queryrequest->gameinstanceid)->get();
-        Helper::saveLog('queryrequest HBN', 47,$data," ");
+        Helper::saveLog('queryrequest HBN', $this->provider_id,$data," ");
         if(count($queryRequest) > 0){
             $response = [
                 "fundtransferresponse" => [
@@ -524,5 +546,5 @@ class HabaneroController extends Controller
 		return $gametransactionext;
 
 	}
-
+    
 }

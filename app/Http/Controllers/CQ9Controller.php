@@ -1618,7 +1618,7 @@ class CQ9Controller extends Controller
 					      [
 					        "mtcode" => $mtcode,
 					        // "amount" => $amount, // old $transaction_record->amount
-					        "amount" => $transaction_record->amount, // old $transaction_record->amount
+					        "amount" => $this->amountToFloat4DG($transaction_record->amount), // old $transaction_record->amount
 					        "eventtime" => $general_details->provider->eventtime
 					      ]
 					    ]
@@ -2513,7 +2513,8 @@ class CQ9Controller extends Controller
 	//ProviderHelper::amountToFloat
 	public function amountToFloat4DG($amount){
 		 // $amount = 104010.6136;
-		$float = floatval(number_format((float)$amount, 4, '.', ''));
+		$float = floatval(number_format((float)$amount, 2, '.', ''));
+		// $float = floatval(number_format((float)$amount, 4, '.', ''));
     	return $float;
 
 		// if($amount == 0){
