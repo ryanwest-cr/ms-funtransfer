@@ -184,7 +184,7 @@ class AWSController extends Controller
 			"msg"=> "Game not found",
 			"code"=> 1100
 			];
-			Helper::saveLog('AWS Single Fund Failed Game Not FOund', $this->provider_db_id, $data, $response);
+			Helper::saveLog('AWS Single Fund Failed Game Not Found', $this->provider_db_id, $data, $response);
 			return $response;
 		}
 
@@ -238,14 +238,24 @@ class AWSController extends Controller
 		}
 
 		try {
-			// AWS IS 1 WAY FLIGHT
-			$gamerecord  = $this->createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
-		    $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $pay_amount, $game_transaction_type);
-            $client_response = ClientRequestHelper::fundTransfer($client_details,abs($details->amount),$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,$transaction_type);
 
+		
+			$gamerecord  = $this->createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
+			// AWS IS 1 WAY FLIGHT
+			
+			$bet_amount_2way = abs($details->betAmount);
+			$win_amount_2way = abs($details->winAmount);
+
+		    $game_transextension1 = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $bet_amount_2way, 1);
+            $client_response = ClientRequestHelper::fundTransfer($client_details,abs($bet_amount_2way),$game_details->game_code,$game_details->game_name,$game_transextension1,$gamerecord,'debit');
 
             if(isset($client_response->fundtransferresponse->status->code) 
              && $client_response->fundtransferresponse->status->code == "200"){
+
+            	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $win_amount_2way, 2);
+
+            	$client_response2 = ClientRequestHelper::fundTransfer($client_details,abs($win_amount_2way),$game_details->game_code,$game_details->game_name,$game_transextension2,$gamerecord,'credit');
+
              	$response = [
 					"msg"=> "success",
 					"code"=> 0,
@@ -255,11 +265,13 @@ class AWSController extends Controller
 						"accountId"=> $details->accountId,
 						"txnId"=> $details->txnId,
 						"eventTime"=> date('Y-m-d H:i:s'),
-						"balance" => floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', '')),
+						"balance" => floatval(number_format((float)$client_response2->fundtransferresponse->balance, 2, '.', '')),
 						"bonusBalance" => 0
 					]
 				];
-				ProviderHelper::updatecreateGameTransExt($game_transextension, $details, $response, $client_response->requestoclient, $client_response,$response);
+				ProviderHelper::updatecreateGameTransExt($game_transextension1, $details, $response, $client_response->requestoclient, $client_response,$response);
+
+				ProviderHelper::updatecreateGameTransExt($game_transextension2, $details, $response, $client_response2->requestoclient, $client_response,$response);
 
 			}elseif(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "402"){
@@ -270,6 +282,7 @@ class AWSController extends Controller
 				Helper::saveLog('AWS Single Fund Failed', $this->provider_db_id, $data, $response);
 			}
 
+			Helper::saveLog('AWS Success GameTrans = '.$gamerecord, $this->provider_db_id, $data, $response);
 			return $response;
 			
 		} catch (Exception $e) {
