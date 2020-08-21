@@ -67,6 +67,7 @@ $app->post('/api/solid/{brand_code}/endsession', 'SolidGamingController@endPlaye
 $app->post('/api/oryx/{brand_code}/tokens/{token}/authenticate', 'OryxGamingController@authPlayer');
 $app->post('/api/oryx/{brand_code}/players/{player_id}/balance', 'OryxGamingController@getBalance');
 $app->post('/api/oryx/{brand_code}/game-transaction', 'OryxGamingController@gameTransaction');
+$app->put('/api/oryx/{brand_code}/game-transactions', 'OryxGamingController@gameTransactionV2');
 
 // SimplePlay Endpoints
 $app->post('/api/simpleplay/{brand_code}/GetUserBalance', 'SimplePlayController@getBalance');
@@ -211,9 +212,9 @@ $app->post('api/cq9/transaction/game/amends','CQ9Controller@playerAmends');
 $app->get('api/cq9/transaction/balance/{account}','CQ9Controller@CheckBalance');
 $app->get('api/cq9/gameboy/player/lotto/balance/{account}','CQ9Controller@CheckBalanceLotto'); // New
 $app->get('api/cq9/player/check/{account}','CQ9Controller@CheckPlayer');
-$app->get('api/cq9/player/check','CQ9Controller@noRouteParamPassed'); // TEST
-$app->get('api/cq9/transaction/record','CQ9Controller@noRouteParamPassed');  // TEST
-$app->get('api/cq9/transaction/balance','CQ9Controller@noRouteParamPassed'); // TEST
+$app->post('api/cq9/player/check','CQ9Controller@noRouteParamPassed'); // TEST
+$app->post('api/cq9/transaction/record','CQ9Controller@noRouteParamPassed');  // TEST
+$app->post('api/cq9/transaction/balance','CQ9Controller@noRouteParamPassed'); // TEST
 
 $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
 $app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
