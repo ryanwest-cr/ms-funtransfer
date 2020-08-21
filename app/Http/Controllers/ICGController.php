@@ -493,7 +493,7 @@ class ICGController extends Controller
                     $gametransactionid = $game->game_trans_id;
                 }
                 $transactionId=Helper::createICGGameTransactionExt($gametransactionid,$json,null,null,null,1);
-                $client_response = ClientRequestHelper::fundTransfer($client_details,round($json["amount"]/100,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
+                $client_response = ClientRequestHelper::fundTransfer($client_details,round($json["amount"]/100,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
                 $balance = round($client_response->fundtransferresponse->balance * 100,2);
                 
                 if(isset($client_response->fundtransferresponse->status->code) 
