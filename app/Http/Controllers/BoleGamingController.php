@@ -330,6 +330,7 @@ class BoleGamingController extends Controller
 
 			                $client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$check_game_ext->game_trans_id,$transaction_type);
 
+			                Helper::saveLog('BOLE CREDIT CR ID '.$json_data->report_id, $this->provider_db_id, json_encode($client_response), $request->getContent());
 
 			                if(isset($client_response->fundtransferresponse->status->code) 
 					            && $client_response->fundtransferresponse->status->code == "200"){
@@ -431,7 +432,7 @@ class BoleGamingController extends Controller
 							$game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
 
 							$client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$gamerecord,$transaction_type);
-
+							Helper::saveLog('BOLE DEBIT CR ID '.$json_data->report_id, $this->provider_db_id, json_encode($client_response), $request->getContent());
 
 							if(isset($client_response->fundtransferresponse->status->code) 
 					            && $client_response->fundtransferresponse->status->code == "200"){

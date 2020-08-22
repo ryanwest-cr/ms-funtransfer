@@ -170,7 +170,6 @@ class ProviderHelper{
 						"refreshtoken" => $refreshtoken
 					]
 				];
-			
 				$guzzle_response = $client->post($client_details->player_details_url,
 				    ['body' => json_encode($datatosend)]
 				);
