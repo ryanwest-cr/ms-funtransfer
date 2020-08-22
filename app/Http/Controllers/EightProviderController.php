@@ -189,9 +189,11 @@ class EightProviderController extends Controller
 							"status" => 'error',
 							"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
 						);
+
 					}
 
 			   		// $trans_ext = $this->create8PTransactionExt($game_trans, $data, $requesttosend, $client_response, $client_response,$data, 1, $data['data']['amount'], $provider_trans_id,$round_id);
+			   		Helper::saveLog('8Provider Bet', $this->provider_db_id, json_encode($data), $response);
 				  	return $response;
 				}catch(\Exception $e){
 					$msg = array(
@@ -278,6 +280,7 @@ class EightProviderController extends Controller
 							ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
 						}
 						
+						Helper::saveLog('8Provider Win', $this->provider_db_id, json_encode($data), $response);
 					  	return $response;
 
 					}catch(\Exception $e){
@@ -294,7 +297,7 @@ class EightProviderController extends Controller
 				  	    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 						
 							try {
-
+								Helper::saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), 'FREESPIN');
 								$payout_reason = 'Free Spin';
 						 		$win_or_lost = 1; // 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
 						 		$method = 2; // 1 bet, 2 win
@@ -341,7 +344,7 @@ class EightProviderController extends Controller
 								 	 );
 
 									ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
-
+									Helper::saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), $response);
 							  		return $response;
 								}
 
@@ -467,7 +470,7 @@ class EightProviderController extends Controller
 				 	 );
 
 					ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
-					
+					Helper::saveLog('8P REFUND', $this->provider_db_id, json_encode($data), $response);
 				  	return $response;
 				}
 									
