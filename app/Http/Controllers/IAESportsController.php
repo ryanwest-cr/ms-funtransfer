@@ -628,7 +628,7 @@ class IAESportsController extends Controller
 				    endforeach;
 				endif;
 	 		endif;
-	 		Helper::saveLog('IA Search Order SUCCESS', $this->provider_db_id, json_encode($params), 'SUCCESS');
+	 		Helper::saveLog('IA Search Order SUCCESS', $this->provider_db_id, json_encode($data), 'SUCCESS');
 		} catch (\Exception $e) {
 			Helper::saveLog('IA Search Order Failed', $this->provider_db_id, json_encode($params), $e->getMessage());
 		}
