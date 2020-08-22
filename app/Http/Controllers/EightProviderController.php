@@ -145,7 +145,6 @@ class EightProviderController extends Controller
 			    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);	
 
 			    $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			    Helper::saveLog('8Provider Bet PC', $this->provider_db_id, json_encode($player_details), 'ENDPOINT HIT');
 			   	if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
 			   		$msg = array(
 						"status" => 'error',
@@ -174,6 +173,7 @@ class EightProviderController extends Controller
 
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
 
+			       Helper::saveLog('8Provider Bet Client Response', $this->provider_db_id, json_encode($client_response), $data);
 
 					if(isset($client_response->fundtransferresponse->status->code) 
 					             && $client_response->fundtransferresponse->status->code == "200"){
