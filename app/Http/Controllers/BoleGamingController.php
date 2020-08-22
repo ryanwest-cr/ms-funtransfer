@@ -167,7 +167,7 @@ class BoleGamingController extends Controller
 			}
 			
 			$total_failed_req = count($this->findAllGameExt($json_data->report_id, 'transaction_id'));
-			if($total_failed_req > 15){
+			if($total_failed_req > 6){
 				$data = [
 					"data" => [],
 					"status" => [
