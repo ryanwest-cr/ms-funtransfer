@@ -181,7 +181,6 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessDeposit(Request $request)
 	{
-		$this->userWager();
 		// Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
@@ -342,7 +341,10 @@ class IAESportsController extends Controller
 	        ];
 		endif;
 		Helper::saveLog('IA Deposit Response', $this->provider_db_id,json_encode($cha), $params);
+
+		// $this->userWager(); // QUERY 1000 pages settle match
 		return $params;
+
 	}
 
 
@@ -393,7 +395,8 @@ class IAESportsController extends Controller
 		$bet_amount = $cha->money;
 		$pay_amount = 0; // Zero Payout
 		$method = $transaction_type == 'debit' ? 1 : 2;
-		$win_or_lost = 5; // 0 lost,  5 processing
+		// $win_or_lost = 5; // 0 lost,  5 processing // NO MORE WAITING MARK IT AS LOSE XD
+		$win_or_lost = 0; // 0 lost, 
 		$payout_reason = $this->getCodeType($desc_json['code']) .' : '.$desc_json['message'];
 		$income = $cha->money;	
 		$provider_trans_id = $cha->orderId;
