@@ -171,9 +171,9 @@ class EightProviderController extends Controller
 
 					$game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $round_id, $data['data']['amount'], 1);
 
-					$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
+					$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
 
-			       Helper::saveLog('8Provider Bet Client Response', $this->provider_db_id, json_encode($client_response), $data);
+			        Helper::saveLog('8Provider Bet CR '.$round_id, $this->provider_db_id, json_encode($client_response), $data);
 
 					if(isset($client_response->fundtransferresponse->status->code) 
 					             && $client_response->fundtransferresponse->status->code == "200"){
@@ -267,7 +267,8 @@ class EightProviderController extends Controller
 						$this->updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
 						$game_transextension = ProviderHelper::createGameTransExtV2($existing_bet->game_trans_id,$data['callback_id'], $round_id, $data['data']['amount'], 2);
 
-						$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$existing_bet->game_trans_id,'credit');
+						$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$existing_bet->game_trans_id,'credit');
+						Helper::saveLog('8Provider Win CR ID = '.$round_id, $this->provider_db_id, json_encode($client_response), $data);
 
 						if(isset($client_response->fundtransferresponse->status->code) 
 			             	&& $client_response->fundtransferresponse->status->code == "200"){
@@ -332,8 +333,8 @@ class EightProviderController extends Controller
 						 	    
 								$game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $round_id, $data['data']['amount'], $method); // method 5 freespin?
 
-								$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'credit');
-
+								$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'credit');
+								Helper::saveLog('8Provider Win CR ID = '.$round_id, $this->provider_db_id, json_encode($client_response), $data);
 
 								if(isset($client_response->fundtransferresponse->status->code) 
 								    && $client_response->fundtransferresponse->status->code == "200"){
@@ -458,8 +459,8 @@ class EightProviderController extends Controller
 
 				$game_transextension = ProviderHelper::createGameTransExtV2($existing_transaction->game_trans_id,$data['callback_id'], $data['data']['refund_round_id'], $data['data']['amount'], 4);
 
-				$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$existing_transaction->game_trans_id, $transaction_type);
-
+				$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$existing_transaction->game_trans_id, $transaction_type);
+				Helper::saveLog('8Provider Refund CR '.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($client_response), $data);
 
 				if(isset($client_response->fundtransferresponse->status->code) 
 				             && $client_response->fundtransferresponse->status->code == "200"){
