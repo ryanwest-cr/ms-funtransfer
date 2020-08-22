@@ -167,7 +167,7 @@ class BoleGamingController extends Controller
 			}
 			
 			$total_failed_req = count($this->findAllGameExt($json_data->report_id, 'transaction_id'));
-			if($total_failed_req > 15){
+			if($total_failed_req > 6){
 				$data = [
 					"data" => [],
 					"status" => [
@@ -175,7 +175,7 @@ class BoleGamingController extends Controller
 						"msg" => "Order Duplicate (This Transaction failed due to internal error, code 3 to stop the call)"
 					]
 				];
-				Helper::saveLog('BOLE FAILED CALL', $this->provider_db_id, $request->getContent(), $json_data->report_id);
+				Helper::saveLog('BOLE FATAL FAILED CALL '.$json_data->report_id, $this->provider_db_id, $request->getContent(), $data);
 				return $data;
 			}
 
