@@ -165,6 +165,20 @@ class BoleGamingController extends Controller
 				];
 				return $data;
 			}
+			
+			$total_failed_req dd($this->findAllGameExt($json_data->report_id, 'transaction_id'));
+			if($total_failed_req > 15){
+				$data = [
+					"data" => [],
+					"status" => [
+						"code" => 3,
+						"msg" => "Order Duplicate (This Transaction failed due to internal error, code 3 to stop the call)"
+					]
+				];
+				Helper::saveLog('BOLE FAILED CALL', $this->provider_db_id, $request->getContent(), $json_data->report_id);
+				return $data;
+			}
+
 
 			$client_currency_check = ProviderHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 			if($client_currency_check == 'false'){
@@ -562,11 +576,18 @@ class BoleGamingController extends Controller
 			$this->changeConfig('player_id', $client_details->player_id);
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			if(!$hashen){
-	            $data = [
-					"resp_msg" => [
-						"code" => 43006,
-						"message" => 'signature error',
-						"errors" => []
+	   //          $data = [
+				// 	"resp_msg" => [
+				// 		"code" => 43006,
+				// 		"message" => 'signature error',
+				// 		"errors" => []
+				// 	]
+				// ];
+				$data = [
+					"data" => [],
+					"status" => [
+						"code" => -1,
+						"msg" => "signature error"
 					]
 				];
 		        Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
@@ -588,16 +609,39 @@ class BoleGamingController extends Controller
 					]
 				];
 			}else{
+				// $data = [
+				// 	"resp_msg" => [
+				// 		"code" => 43101,
+				// 		"message" => 'the user does not exist',
+				// 		"errors" => []
+				// 	]
+				// ];
 				$data = [
-					"resp_msg" => [
-						"code" => 43101,
-						"message" => 'the user does not exist',
-						"errors" => []
+					"data" => [],
+					"status" => [
+						"code" => -1,
+						"msg" => "the user does not exist"
 					]
 				];
 			}
 			// Helper::saveLog('BOLE WALLET BALANCE', $this->provider_db_id, $request->getContent(), $data);
 			return $data;
+		}
+
+		public function findAllGameExt($provider_identifier, $type) {
+			$transaction_db = DB::table('game_transaction_ext as gte');
+	        if ($type == 'transaction_id') {
+				$transaction_db->where([
+			 		["gte.provider_trans_id", "=", $provider_identifier],
+			 	]);
+			}
+			if ($type == 'round_id') {
+				$transaction_db->where([
+			 		["gte.round_id", "=", $provider_identifier],
+			 	]);
+			}  
+			$result = $transaction_db->latest()->get(); // Added Latest (CQ9) 08-12-20 - Al
+			return $result ? $result : 'false';
 		}
 
 }
