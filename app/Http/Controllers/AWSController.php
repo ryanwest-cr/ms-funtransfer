@@ -151,21 +151,21 @@ class AWSController extends Controller
 		Helper::saveLog('AWS Single Fund Transfer', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-		$explode1 = explode('"betAmount":', $data);
-		$explode2 = explode('amount":', $explode1[0]);
-		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
-		$amount_in_string = trim(str_replace('"', '', $amount_in_string));
+		// $explode1 = explode('"betAmount":', $data);
+		// $explode2 = explode('amount":', $explode1[0]);
+		// $amount_in_string = trim(str_replace(',', '', $explode2[1]));
+		// $amount_in_string = trim(str_replace('"', '', $amount_in_string));
 
-		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
+		// $signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
 		
-		if($signature != $details->sign){
-			$response = [
-				"msg"=> "Sign check encountered error, please verify sign is correct",
-				"code"=> 9200
-			];
-			Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
-			return $response;
-		}
+		// if($signature != $details->sign){
+		// 	$response = [
+		// 		"msg"=> "Sign check encountered error, please verify sign is correct",
+		// 		"code"=> 9200
+		// 	];
+		// 	Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
+		// 	return $response;
+		// }
 
 		$provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 		if($provider_reg_currency == 'false'){
@@ -197,7 +197,8 @@ class AWSController extends Controller
 
 
 		if($transaction_type == 'credit'){
-			$pay_amount =  abs($details->amount);
+			$pay_amount =  abs($details->winAmount);
+			// $pay_amount =  abs($details->amount);
 			$income = $bet_amount - $pay_amount;
 			$win_type = $income > 0 ? 0 : 1;
 		}else{
