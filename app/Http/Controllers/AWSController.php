@@ -188,7 +188,9 @@ class AWSController extends Controller
 			return $response;
 		}
 
-		$transaction_type = $details->amount > 0 ? 'credit' : 'debit';
+		$transaction_type = $details->winAmount > 0 ? 'credit' : 'debit';
+		// $transaction_type = $details->amount > 0 ? 'credit' : 'debit';
+		// return $transaction_type;
 		$game_transaction_type = $transaction_type == 'debit' ? 1 : 2; // 1 Bet, 2 Win
 
 		$game_code = $game_details->game_id;
@@ -197,18 +199,22 @@ class AWSController extends Controller
 
 
 		if($transaction_type == 'credit'){
-			$pay_amount =  abs($details->winAmount);
+			$method = 2;
+			$pay_amount =  $details->winAmount;
+			$win_type = 1;
+			$income = $bet_amount-$pay_amount;
 			// $pay_amount =  abs($details->amount);
-			$income = $bet_amount - $pay_amount;
-			$win_type = $income > 0 ? 0 : 1;
+			// $win_type = $income > 0 ? 1 : 0;
+			// $win_type = $income > 0 ? 0 : 1;
 		}else{
-			$pay_amount = $details->winAmount;
-			$income = $bet_amount - $details->winAmount;
+			$method = 1;
+			$pay_amount = $details->winAmount; // payamount zero
+			$income =$bet_amount-$pay_amount;
 			$win_type = 0;
 		}
 
 
-		$method = $transaction_type == 'debit' ? 1 : 2;
+		
 		$win_or_lost = $win_type; // 0 lost,  5 processing
 		$payout_reason = $this->getOperationType($details->txnTypeId);
 		$provider_trans_id = $details->txnId;
