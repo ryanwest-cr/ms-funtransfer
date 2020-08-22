@@ -150,7 +150,7 @@ class EightProviderController extends Controller
 						"status" => 'error',
 						"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
 					);
-					Helper::saveLog('8Provider Bet PC', $this->provider_db_id, json_encode($player_details), $response);
+					Helper::saveLog('8Provider Bet PC', $this->provider_db_id, json_encode($player_details), $msg);
 					return $msg;
 			   	endif;
 
