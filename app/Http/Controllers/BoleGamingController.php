@@ -155,22 +155,45 @@ class BoleGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data->player_account);
 			
 			if($client_details == null){
-				$data = ["resp_msg" => ["code" => 43101,"message" => 'the user does not exist',"errors" => []]];
+				// $data = ["resp_msg" => ["code" => 43101,"message" => 'the user does not exist',"errors" => []]];
+				$data = [
+					"data" => [],
+					"status" => [
+						"code" => -1,
+						"msg" => "User does not exist"
+					]
+				];
 				return $data;
 			}
 
 			$client_currency_check = ProviderHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 			if($client_currency_check == 'false'){
-				$data = ["resp_msg" => ["code" => 43900,"message" => 'game service error',"errors" => []]];
+				// $data = ["resp_msg" => ["code" => 43900,"message" => 'game service error',"errors" => []]];
+				$data = [
+					"data" => [],
+					"status" => [
+						"code" => -1,
+						"msg" => "Failed Currency Dont Match"
+					]
+				];
 				return $data;
 			}
 			$this->changeConfig('player_id', $json_data->player_account);
 			$hashen = $this->chashen($json_data->operator_id, $json_data->player_account, $json_data->sha1);
 			if(!$hashen){
-	            $data = ["resp_msg" => ["code" => 43006,"message" => 'signature error',"errors" => []]];
+	            // $data = ["resp_msg" => ["code" => 43006,"message" => 'signature error',"errors" => []]];
+	            $data = [
+					"data" => [],
+					"status" => [
+						"code" => -1,
+						"msg" => "Signature Error"
+					]
+				];
 	            Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
 				return $data;
 			}
+
+			$player_details_resp = Providerhelper::playerDetailsCall($client_details->player_token);
 
 				if($json_data->type == 20){
 
@@ -182,6 +205,13 @@ class BoleGamingController extends Controller
 					    }
 					    if($game_details == null){
 				    		$data = ["resp_msg" => ["code" => 43201,"message" => 'the game does not exist',"errors" => []]];
+				    		$data = [
+								"data" => [],
+								"status" => [
+									"code" => -1,
+									"msg" => "Game Does Not Exist"
+								]
+							];
 							return $data;
 					    }
 					    $db_game_name = $game_details->game_name;
@@ -258,7 +288,17 @@ class BoleGamingController extends Controller
 							// END OLD
 							$check_game_ext = ProviderHelper::findGameExt($json_data->report_id, 1, 'transaction_id');
 							if($check_game_ext == 'false'){
-								$data = ["resp_msg" => ["code" => 2,"message" => "order does not exist","errors" => []]];
+								// $data = ["resp_msg" => ["code" => 2,"message" => "order does not exist","errors" => []]];
+								$data = [
+									"data" => [
+										"balance" => floatval(number_format((float)$player_details_resp->playerdetailsresponse->balance, 2, '.', '')),
+										"currency" => $client_details->default_currency
+									],
+									"status" => [
+										"code" => 2,
+										"msg" => "order does not exist"
+									]
+								];
 								// $data = ["resp_msg" => ["code" => 43303,"message" => "order does not exist","errors" => []]];
 								return $data;
 							}
@@ -283,7 +323,17 @@ class BoleGamingController extends Controller
 						}else{
 							$check_game_ext = ProviderHelper::findGameExt($json_data->report_id, 1, 'transaction_id');
 							if($check_game_ext == 'false'){
-								$data = ["resp_msg" => ["code" => 2,"message" => "order does not exist","errors" => []]];
+								// $data = ["resp_msg" => ["code" => 2,"message" => "order does not exist","errors" => []]];
+								$data = [
+									"data" => [
+										"balance" => floatval(number_format((float)$player_details_resp->playerdetailsresponse->balance, 2, '.', '')),
+										"currency" => $client_details->default_currency
+									],
+									"status" => [
+										"code" => 2,
+										"msg" => "order does not exist"
+									]
+								];
 								// $data = ["resp_msg" => ["code" => 43303,"message" => "order does not exist","errors" => []]];
 								Helper::saveLog('BOLE CREDIT CR ID '.$json_data->report_id, $this->provider_db_id,$request->getContent(), $data);
 								return $data;
@@ -364,7 +414,14 @@ class BoleGamingController extends Controller
 							Helper::saveLog('BOLE WALLET CALL RESPONSE', $this->provider_db_id, json_encode($request->getContent()), $data);
 							return $data;
 		               }catch (\Exception $e){
-			                $data = ["resp_msg" => ["code" => -1,"message" => 'Failed',"errors" => []]];
+			                // $data = ["resp_msg" => ["code" => -1,"message" => 'Failed connecting to client',"errors" => []]];
+			                $data = [
+								"data" => [],
+								"status" => [
+									"code" => -1,
+									"msg" => "Failed connecting to client"
+								]
+							];
 			                // $data = ["resp_msg" => ["code" => 43900,"message" => 'game service error',"errors" => []]];
 						    Helper::saveLog('BOLE WALLET CALL FAILED', $this->provider_db_id, $request->getContent(), $e->getMessage());
 							return $data;
@@ -402,8 +459,15 @@ class BoleGamingController extends Controller
 					    // TABLE GAME TEST
 					    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $json_data->game_code);
 				    	if($game_details == null){
-				    		$data = ["resp_msg" => ["code" => -1,"message" => 'Failed (the game does not exist)',"errors" => []]];
+				    		// $data = ["resp_msg" => ["code" => -1,"message" => 'Failed (the game does not exist)',"errors" => []]];
 				    		// $data = ["resp_msg" => ["code" => 43201,"message" => 'the game does not exist',"errors" => []]];
+				    		$data = [
+								"data" => [],
+								"status" => [
+									"code" => -1,
+									"msg" => "Failed (the game does not exist)"
+								]
+							];
 							return $data;
 					    }
 			    		$db_game_name = $game_details->game_name;
@@ -458,7 +522,10 @@ class BoleGamingController extends Controller
 								// $data = ["resp_msg" => ["code" => 43802,"message" => "there is not enough gold","errors" => []]];
 								// $data = ["resp_msg" => ["code" => 1,"message" => "Insufficient Balance" ,"errors" => []]];
 								$data = [
-									"data" => [],
+									"data" => [
+										"balance" => floatval(number_format((float)$player_details_resp->playerdetailsresponse->balance, 2, '.', '')),
+										"currency" => $client_details->default_currency,
+									],
 									"status" => [
 										"code" => 1,
 										"msg" => "Insufficient Balance"
@@ -470,7 +537,14 @@ class BoleGamingController extends Controller
 							return $data;
 
 					    } catch (\Exception $e) {
-					    	$data = ["resp_msg" => ["code" => -1,"message" => 'Failed',"errors" => []]];
+					    	// $data = ["resp_msg" => ["code" => -1,"message" => 'Failed',"errors" => []]];
+					    	$data = [
+								"data" => [],
+								"status" => [
+									"code" => -1,
+									"msg" => "Server Error"
+								]
+							];
 					    	// $data = ["resp_msg" => ["code" => 43900,"message" => 'game service error',"errors" => []]];
 						    Helper::saveLog('BOLE WALLET CALL FAILED', $this->provider_db_id, $request->getContent(), $e->getMessage());
 							return $data;
@@ -498,6 +572,7 @@ class BoleGamingController extends Controller
 		        Helper::saveLog('BOLE UNKNOWN CALL', $this->provider_db_id, $request->getContent(), 'UnknownboleReq');
 				return $data;
 			}
+
 			$client_details = Providerhelper::getClientDetails('player_id', $json_data->player_account);
 			if($client_details != null)
 			{
