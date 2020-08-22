@@ -456,7 +456,14 @@ class BoleGamingController extends Controller
 							}elseif(isset($client_response->fundtransferresponse->status->code) 
 					            && $client_response->fundtransferresponse->status->code == "402"){
 								// $data = ["resp_msg" => ["code" => 43802,"message" => "there is not enough gold","errors" => []]];
-								$data = ["resp_msg" => ["code" => 1,"message" => "Insufficient Balance" ,"errors" => []]];
+								// $data = ["resp_msg" => ["code" => 1,"message" => "Insufficient Balance" ,"errors" => []]];
+								$data = [
+									"data" => [],
+									"status" => [
+										"code" => 1,
+										"msg" => "Insufficient Balance"
+									]
+								];
 							}
 
 							Helper::saveLog('BOLE WALLET CALL GBI RESPONSE', $this->provider_db_id, $request->getContent(), $data);
