@@ -330,12 +330,10 @@ class BoleGamingController extends Controller
 
 			                $client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$check_game_ext->game_trans_id,$transaction_type);
 
-			                Helper::saveLog('BOLE CREDIT CR ID '.$json_data->report_id, $this->provider_db_id, json_encode($client_response), $request->getContent());
+			                Helper::saveLog('BOLE CREDIT CR ID '.$json_data->report_id, $this->provider_db_id, json_encode($request->getContent()), $client_response);
 
 			                if(isset($client_response->fundtransferresponse->status->code) 
 					            && $client_response->fundtransferresponse->status->code == "200"){
-
-		                		Helper::saveLog('BOLE WALLET CALL TRANSFER', $this->provider_db_id, $request->getContent(), $client_response);
 
 								$data = [
 									"data" => [
@@ -360,7 +358,7 @@ class BoleGamingController extends Controller
 							// }
 							// END OLD
 							
-
+							Helper::saveLog('BOLE WALLET CALL RESPONSE', $this->provider_db_id, json_encode($request->getContent()), $data);
 							return $data;
 		               }catch (\Exception $e){
 			                $data = ["resp_msg" => ["code" => 43900,"message" => 'game service error',"errors" => []]];
@@ -432,7 +430,7 @@ class BoleGamingController extends Controller
 							$game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
 
 							$client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$gamerecord,$transaction_type);
-							Helper::saveLog('BOLE DEBIT CR ID '.$json_data->report_id, $this->provider_db_id, json_encode($client_response), $request->getContent());
+							Helper::saveLog('BOLE DEBIT CR ID '.$json_data->report_id, $this->provider_db_id, json_encode($request->getContent()), $client_response);
 
 							if(isset($client_response->fundtransferresponse->status->code) 
 					            && $client_response->fundtransferresponse->status->code == "200"){
@@ -455,7 +453,7 @@ class BoleGamingController extends Controller
 								$data = ["resp_msg" => ["code" => 43802,"message" => "there is not enough gold","errors" => []]];
 							}
 
-							Helper::saveLog('BOLE WALLET CALL GBI', 2, $request->getContent(), json_encode($client_response));
+							Helper::saveLog('BOLE WALLET CALL GBI RESPONSE', $this->provider_db_id, json_encode($request->getContent()), $data);
 
 							return $data;
 
