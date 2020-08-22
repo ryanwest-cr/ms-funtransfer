@@ -275,23 +275,35 @@ class IAESportsController extends Controller
 
 	        }else{
 	        	$bet_details = $this->getOrderData($cha->projectId);
-	        	// dd($bet_details);
-		        if($bet_details->bet_amount){
-	 	  			if($bet_details->bet_amount > $cha->money){
-	 	  				$win = 0; // lost
-	 	  				$entry_id = 1; //lost
-	 	  				$income = $bet_details->bet_amount - $cha->money;
-	 	  			}else{
-	 	  				$win = 1; //win
-	 	  				$entry_id = 2; //win
-	 	  				$income = $bet_details->bet_amount - $cha->money;
-	 	  			}
 
-	 	  			$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
-	 	  			$gamerecord = $bet_details->game_trans_id;
-				    $this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
-	 	  		}
-			    $game_transextension = ProviderHelper::createGameTransExtV2($bet_details->game_trans_id,$cha->orderId, $cha->projectId, $cha->money, 2);
+	        	if($bet_details){
+	        		if($bet_details->bet_amount){
+		 	  			if($bet_details->bet_amount > $cha->money){
+		 	  				$win = 0; // lost
+		 	  				$entry_id = 1; //lost
+		 	  				$income = $bet_details->bet_amount - $cha->money;
+		 	  			}else{
+		 	  				$win = 1; //win
+		 	  				$entry_id = 2; //win
+		 	  				$income = $bet_details->bet_amount - $cha->money;
+		 	  			}
+
+		 	  			$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
+		 	  			$gamerecord = $bet_details->game_trans_id;
+					    $this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
+		 	  		}
+			   	 $game_transextension = ProviderHelper::createGameTransExtV2($bet_details->game_trans_id,$cha->orderId, $cha->projectId, $cha->money, 2);
+
+	        	}else{
+	        		$params = [
+			            "code" => 111006,
+			            "data" => [],
+						"message" => "Deposit Failed, Order number dont exist!",
+			        ];	
+					return $params;
+	        	}
+	        
+		        
 	        }
 
 	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension,$gamerecord,$transaction_type);
