@@ -126,6 +126,11 @@ class ProviderHelper{
 				 		["p.username", $value],
 				 	]);
 				}
+				if ($type == 'token_id') {
+					$query->where([
+				 		["pst.token_id", $value],
+				 	]);
+				}
 				$result= $query
 				 			->latest('token_id')
 				 			->first();
