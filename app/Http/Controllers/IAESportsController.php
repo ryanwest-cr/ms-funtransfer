@@ -186,7 +186,7 @@ class IAESportsController extends Controller
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
 		$transaction_code = $desc_json['code']; // 13,15 refund, 
-		$rollback = $transaction_code == 13 || $transaction_code == 15 ? 'true' : 'false';
+		$rollback = $transaction_code == 13 || $transaction_code == 15 ? true : false;
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
 		Helper::saveLog('IA Deposit DECODED', $this->provider_db_id,json_encode($cha), $data);
@@ -261,7 +261,7 @@ class IAESportsController extends Controller
 	    			$params = [
 			            "code" => $status_code,
 			            "data" => [
-			            	"available_balance" => $client_response2->fundtransferresponse->balance,
+			            	"available_balance" => ProviderHelper::amountToFloat($client_response2->fundtransferresponse->balance),
 			            	"status" => 1,
 			            ],
 						"message" => "Success",
@@ -289,10 +289,11 @@ class IAESportsController extends Controller
 		 	  			}
 
 		 	  			$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
+		 	  			$is_refunded = $transaction_code == 13 || $transaction_code == 15 ? 3 : 2; // 3 to refund!
 		 	  			$gamerecord = $bet_details->game_trans_id;
 					    $this->updateBetToWin($cha->projectId, $pay_amount, $income, $win, $entry_id);
 		 	  		}
-			   	 $game_transextension = ProviderHelper::createGameTransExtV2($bet_details->game_trans_id,$cha->orderId, $cha->projectId, $cha->money, 2);
+			   	 $game_transextension = ProviderHelper::createGameTransExtV2($bet_details->game_trans_id,$cha->orderId, $cha->projectId, $cha->money, $is_refunded);
 
 	        	}else{
 	        		$params = [
@@ -306,7 +307,7 @@ class IAESportsController extends Controller
 		        
 	        }
 
-	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension,$gamerecord,$transaction_type);
+	        $client_response = ClientRequestHelper::fundTransfer($client_details,$cha->money,$this->game_code,$this->game_name,$game_transextension,$gamerecord,$transaction_type, $rollback);
 
 
 	        if(isset($client_response->fundtransferresponse->status->code) 
@@ -315,7 +316,7 @@ class IAESportsController extends Controller
 	        	$params = [
 		            "code" => $status_code,
 		            "data" => [
-		            	"available_balance" => $client_response->fundtransferresponse->balance,
+		            	"available_balance" => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
 		            	"status" => 1,
 		            ],
 					"message" => "Success",
@@ -418,7 +419,7 @@ class IAESportsController extends Controller
               	 	$params = [
 			            "code" => $status_code,
 			            "data" => [
-			            	"available_balance" => $client_response->fundtransferresponse->balance,
+			            	"available_balance" => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
 			            	"status" => 1,
 			            ],
 						"message" => "Success",
@@ -451,7 +452,7 @@ class IAESportsController extends Controller
         		$params = [
 		            "code" => $status_code,
 		            "data" => [
-		            	"available_balance" => $client_response->fundtransferresponse->balance,
+		            	"available_balance" => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
 		            	"status" => 1,
 		            ],
 					"message" => "Success",
@@ -519,7 +520,7 @@ class IAESportsController extends Controller
 		$params = [
             "code" => '200',
             "data" => [
-            	"available_balance" => $client_response->playerdetailsresponse->balance,
+            	"available_balance" => ProviderHelper::amountToFloat($client_response->playerdetailsresponse->balance),
             ],
 			"message" => "Success",
         ];	
