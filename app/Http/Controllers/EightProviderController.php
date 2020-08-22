@@ -305,7 +305,26 @@ class EightProviderController extends Controller
 						 	    $bet_payout = 0; // Bet always 0 payout!
 						 	    $income = '-'.$data['data']['amount']; // NEgative
 
-						 	    $game_trans = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, 0, $data['data']['amount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+								$game_ext = ProviderHelper::findGameExt($data['round_id'], 1, 'round_id');
+								if($game_ext != 'false'){
+									$game_trans = $game_ext->game_trans_id;
+									$existing_bet = ProviderHelper::findGameTransaction($game_ext->game_trans_id, 'game_transaction');
+									$payout = $existing_bet->pay_amount+$data['data']['amount'];
+									$this->updateBetTransaction($round_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
+								}else{
+
+									$game_ext = ProviderHelper::findGameExt($data['round_id'], 2, 'round_id');
+									if($game_ext != 'false'){
+										$game_trans = $game_ext->game_trans_id;
+										$existing_bet = ProviderHelper::findGameTransaction($game_ext->game_trans_id, 'game_transaction');
+										$payout = $existing_bet->pay_amount+$data['data']['amount'];
+										$this->updateBetTransaction($round_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
+									}else{
+										$game_trans = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, 0, $data['data']['amount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+									}
+									
+								}
+						 	    
 								$game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $round_id, $data['data']['amount'], $method); // method 5 freespin?
 
 								$client_response = ClientRequestHelper::fundTransfer($client_details,$data['data']['amount'],$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'credit');
