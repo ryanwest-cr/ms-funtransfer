@@ -90,18 +90,18 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA Gaming Balance', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
+        // Helper::saveLog('SA Gaming Balance', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
 
-    	$user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $data['username']);
-    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
-    	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        $user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $data['username']);
+        $client_details = Providerhelper::getClientDetails('player_id', $user_id);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-    	$data_response = [
-    		"username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
-    		"currency" => $client_details->default_currency,
-    		"amount" => $player_details->playerdetailsresponse->balance,
-    		"error" => 0,
-    	];
+        $data_response = [
+            "username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
+            "currency" => $client_details->default_currency,
+            "amount" => $player_details->playerdetailsresponse->balance,
+            "error" => 0,
+        ];
 
         echo $this->makeArrayXML($data_response);
         return;
@@ -114,7 +114,7 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA Gaming Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
+        Helper::saveLog('SA PlaceBet EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
 
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
@@ -204,7 +204,17 @@ class SAGamingController extends Controller
                      $gamerecord = $game_trans_ext->game_trans_id;
                 }
 
-                $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,$transaction_type);
+
+                try {
+                    $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,$transaction_type);
+                    Helper::saveLog('SA PlaceBet CRID = '.$provider_trans_id, config('providerlinks.sagaming.pdbid'), $data, $client_response);
+                } catch (\Exception $e) {
+                     $data_response = ["username" => $username,"error" => 1005];
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                    Helper::saveLog('SA PlaceBet - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                    echo $this->makeArrayXML($data_response);
+                    return;
+                }
 
 
                 if(isset($client_response->fundtransferresponse->status->code) 
@@ -216,13 +226,11 @@ class SAGamingController extends Controller
                         "error" => 0
                     ];
                     ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
-
-                    Helper::saveLog('SA Gaming Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
                 }elseif(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "402"){
                      $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
                 }
-               
+                Helper::saveLog('SA PlaceBet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
                 echo $this->makeArrayXML($data_response);
                 return;
             } catch (\Exception $e) {
@@ -233,7 +241,7 @@ class SAGamingController extends Controller
                     // "amount" => $getPlayer->playerdetailsresponse->balance,
                     "error" => 1005 // 9999
                 ];
-                Helper::saveLog('SA Gaming PB $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                Helper::saveLog('SA PlaceBet - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
                 echo $this->makeArrayXML($data_response);
                 return;
             }
@@ -245,7 +253,7 @@ class SAGamingController extends Controller
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
         // Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
-        Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
+        Helper::saveLog('SA PlayerWin EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
 
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
@@ -324,7 +332,16 @@ class SAGamingController extends Controller
                 ProviderHelper::updateBetTransaction($round_id, $pay_amount, $income, 1, 2);
                 $game_transextension = ProviderHelper::createGameTransExtV2($game_trans->game_trans_id,$provider_trans_id, $round_id, $pay_amount, $game_transaction_type);
 
-                $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id,$transaction_type);
+                try {
+                    $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id,$transaction_type);
+                    Helper::saveLog('SA PlayerWin CRID = '.$provider_trans_id, config('providerlinks.sagaming.pdbid'), $data, $client_response);
+                } catch (\Exception $e) {
+                    $data_response = ["username" => $username,"error" => 1005];
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                    Helper::saveLog('SA PlayerWin - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                    echo $this->makeArrayXML($data_response);
+                    return;
+                }
 
                 if(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "200"){
@@ -341,7 +358,7 @@ class SAGamingController extends Controller
                      $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
                 }
 
-                Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                Helper::saveLog('SA PlayerWin', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
                 echo $this->makeArrayXML($data_response);
 
                 return;
@@ -353,7 +370,7 @@ class SAGamingController extends Controller
                     // "amount" => $getPlayer->playerdetailsresponse->balance,
                     "error" => 1005 // 9999
                 ];
-                Helper::saveLog('SA Gaming WIN $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                Helper::saveLog('SA PlayerWin - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
                 echo $this->makeArrayXML($data_response);
                 return;
             }
@@ -365,7 +382,7 @@ class SAGamingController extends Controller
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
         // Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
-        Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
+        Helper::saveLog('SA PlayerLost EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
         // parse_str($enc_body, $data);
@@ -423,7 +440,16 @@ class SAGamingController extends Controller
 
             $game_transextension = ProviderHelper::createGameTransExtV2($game_trans_ext->game_trans_id,$txnid, $round_id, 0, 2);
             // When Player Lost Auto Callback 0 winning
-            $client_response = ClientRequestHelper::fundTransfer($client_details,0,$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id, 'credit');
+            try {
+                $client_response = ClientRequestHelper::fundTransfer($client_details,0,$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id, 'credit');
+                Helper::saveLog('SA PlayerLost CRID', config('providerlinks.sagaming.pdbid'), json_encode($data), $client_response);
+            } catch (\Exception $e) {
+                $data_response = ["username" => $username,"error" => 1005];
+                ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                Helper::saveLog('SA PlayerLost - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
 
             if(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "200"){
@@ -433,7 +459,7 @@ class SAGamingController extends Controller
 
             }
 
-            Helper::saveLog('SA Gaming Success Bet Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            Helper::saveLog('SA PlayerLost SUCCESS', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
 
@@ -442,7 +468,7 @@ class SAGamingController extends Controller
                 "username" => $username,
                 "error" => 1005 // 9999
             ];
-            Helper::saveLog('SA Gaming LC $e', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), $e->getMessage());
+            Helper::saveLog('SA PlayerLost - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), $e->getMessage());
             echo $this->makeArrayXML($data_response);
             return;
         }
@@ -456,7 +482,7 @@ class SAGamingController extends Controller
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
         // Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
-        Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
+        Helper::saveLog('SA PlaceBetCancel EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
      
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
@@ -489,7 +515,7 @@ class SAGamingController extends Controller
         $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
         if($getPlayer == 'false'){
             $data_response = ["username" => $username, "error" => 1005]; 
-            Helper::saveLog('SA Gaming LC Player Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            Helper::saveLog('SA PlaceBetCancel LC Player Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
         }
@@ -521,8 +547,9 @@ class SAGamingController extends Controller
             }else{
                 $sum = 0;
                 foreach($all_bet as $key=>$value){
-                  if(isset($value->amount))
+                  if(isset($value->amount)){
                      $sum += $value->amount;
+                  }
                 }
                 $bet_amount = $sum - $amount;
                 $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, $game_transaction->win, $game_transaction->entry_id);
@@ -530,7 +557,17 @@ class SAGamingController extends Controller
         }
       
         $game_transextension = ProviderHelper::createGameTransExtV2($game_trans->game_trans_id,$txnid, $round_id, $amount, 3);
-        $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans->game_trans_id,$transaction_type, true);
+
+        try {
+            $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans->game_trans_id,$transaction_type, true);
+            Helper::saveLog('SA PlaceBetCancel CRID', config('providerlinks.sagaming.pdbid'), json_encode($data), $client_response);
+        } catch (\Exception $e) {
+            $data_response = ["username" => $username,"error" => 1005];
+            ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+            Helper::saveLog('SA PlaceBetCancel - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+            echo $this->makeArrayXML($data_response);
+            return;
+        }
 
 
         if(isset($client_response->fundtransferresponse->status->code) 
@@ -545,7 +582,7 @@ class SAGamingController extends Controller
             ProviderHelper::updatecreateGameTransExt($game_transextension, $data_response, $client_response->requestoclient, $client_response, $data_response);
         }
 
-        Helper::saveLog('SA Gaming Cancel Bet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+        Helper::saveLog('SA PlaceBetCancel SUCCESS', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
         echo $this->makeArrayXML($data_response);
         return;
 
@@ -556,7 +593,7 @@ class SAGamingController extends Controller
                 // "amount" => $client_response->fundtransferresponse->balance,
                 "error" => 1005
             ];
-            Helper::saveLog('SA Gaming CB $e', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+            Helper::saveLog('SA PlaceBetCancel - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
             echo $this->makeArrayXML($data_response);
             return;
         }

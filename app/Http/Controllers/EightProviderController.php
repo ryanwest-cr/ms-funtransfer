@@ -178,7 +178,7 @@ class EightProviderController extends Controller
 						$msg = array("status" => 'error',"message" => $e->getMessage());
 						ProviderHelper::updateGameTransactionStatus($game_trans, 99, 99);
 						ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-						Helper::saveLog('AWS gameBet - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+						Helper::saveLog('8Provider gameBet - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
 						return $msg;
 					}
 
@@ -281,7 +281,7 @@ class EightProviderController extends Controller
 						} catch (\Exception $e) {
 							$msg = array("status" => 'error',"message" => $e->getMessage());
 							ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-							Helper::saveLog('AWS gameWin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+							Helper::saveLog('8Provider gameWin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
 						    return $msg;
 						}
 
