@@ -175,7 +175,7 @@ class BoleGamingController extends Controller
 						"msg" => "Order Duplicate (This Transaction failed due to internal error, code 3 to stop the call)"
 					]
 				];
-				Helper::saveLog('BOLE playerWalletCost - FAILED ERROR '.$json_data->report_id, $this->provider_db_id, $request->getContent(), $data);
+				Helper::saveLog('BOLE playerWalletCost - FATAL ERROR '.$json_data->report_id, $this->provider_db_id, $request->getContent(), $data);
 				return $data;
 			}
 
@@ -453,7 +453,7 @@ class BoleGamingController extends Controller
 							// }
 							// END OLD
 							
-							Helper::saveLog('BOLE playerWalletCost  - SUCCESS', $this->provider_db_id, json_encode($request->getContent()), $data);
+							Helper::saveLog('BOLE playerWalletCost  - SUCCESS', $this->provider_db_id, $request->getContent(), $data);
 							return $data;
 		               }catch (\Exception $e){
 			                // $data = ["resp_msg" => ["code" => -1,"message" => 'Failed connecting to client',"errors" => []]];
