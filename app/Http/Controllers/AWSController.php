@@ -94,7 +94,7 @@ class AWSController extends Controller
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 
-		Helper::saveLog('AWS Balance', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
+		// Helper::saveLog('AWS Balance', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$verify = $this->signatureCheck($details, 1);
 		if(!$verify){
 			$response = [
@@ -151,23 +151,22 @@ class AWSController extends Controller
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
 		// # 01 COMMENT THIS OUT WHEN DEBUGGING IN LOCAL
-		// $explode1 = explode('"betAmount":', $data);
-		// $explode2 = explode('amount":', $explode1[0]);
-		// $amount_in_string = trim(str_replace(',', '', $explode2[1]));
-		// $amount_in_string = trim(str_replace('"', '', $amount_in_string));
+		$explode1 = explode('"betAmount":', $data);
+		$explode2 = explode('amount":', $explode1[0]);
+		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
+		$amount_in_string = trim(str_replace('"', '', $amount_in_string));
 
-		// $signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
+		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
 		
-		// if($signature != $details->sign){
-		// 	$response = [
-		// 		"msg"=> "Sign check encountered error, please verify sign is correct",
-		// 		"code"=> 9200
-		// 	];
-		// 	Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
-		// 	return $response;
-		// }
-		// # END 01
-
+		if($signature != $details->sign){
+			$response = [
+				"msg"=> "Sign check encountered error, please verify sign is correct",
+				"code"=> 9200
+			];
+			Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
+			return $response;
+		}
+		// # 01 END
 
 		$provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 		if($provider_reg_currency == 'false'){
@@ -527,7 +526,6 @@ class AWSController extends Controller
 	 *
 	 */
 	public function playerBalance(Request $request){
-		Helper::saveLog('AWS BO Player Balance', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$client_details = ProviderHelper::getClientDetails('token', $request->token);
 		$client = new Client([
 		    'headers' => [ 
