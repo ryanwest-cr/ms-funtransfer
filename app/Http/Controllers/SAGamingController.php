@@ -114,7 +114,7 @@ class SAGamingController extends Controller
         $url_decoded = urldecode($enc_body);
         $decrypt_data = SAHelper::decrypt($url_decoded);
         parse_str($decrypt_data, $data);
-        Helper::saveLog('SA PlaceBet EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
+        Helper::saveLog('SA PlaceBet EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
 
         // LOCAL TEST
         // $enc_body = file_get_contents("php://input");
@@ -488,7 +488,6 @@ class SAGamingController extends Controller
         // $enc_body = file_get_contents("php://input");
         // parse_str($enc_body, $data);
 
-        try {
             $username = $data['username'];
             $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
             $currency = $data['currency'];
@@ -573,7 +572,8 @@ class SAGamingController extends Controller
                 return;
             }
 
-            if(isset($client_response->fundtransferresponse->status->code) 
+            try {
+                if(isset($client_response->fundtransferresponse->status->code) 
                  && $client_response->fundtransferresponse->status->code == "200"){
                  $data_response = [
                     "username" => $username,
@@ -586,6 +586,9 @@ class SAGamingController extends Controller
                 Helper::saveLog('SA PlaceBetCancel SUCCESS', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
                 echo $this->makeArrayXML($data_response);
                 return;
+               }
+            } catch (\Exception $e) {
+                Helper::saveLog('SA PlaceBetCancel - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
             }
         
 
@@ -601,12 +604,7 @@ class SAGamingController extends Controller
             return;
           }
 
-        } catch (\Exception $e) {
-            Helper::saveLog('SA PlaceBetCancel - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
-            $data_response = ["username" => $username,"error" => 1005];
-            echo $this->makeArrayXML($data_response);
-            return;
-        }
+      
 
     }
 
