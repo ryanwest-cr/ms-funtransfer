@@ -251,6 +251,25 @@ class ProviderHelper{
 	}
 
 
+	public static function findAllFailedGameExt($provider_identifier, $type) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+        if ($type == 'transaction_id') {
+			$transaction_db->where([
+		 		["gte.provider_trans_id", "=", $provider_identifier],
+		 		["gte.transaction_detail", "=", '"FAILED"'] // Intentionally qouted for DB QUERY
+		 	]);
+		}
+		if ($type == 'round_id') {
+			$transaction_db->where([
+		 		["gte.round_id", "=", $provider_identifier],
+		 		["gte.transaction_detail", "=", '"FAILED"']
+		 	]);
+		}  
+		$result = $transaction_db->latest()->get();
+		return $result ? $result : 'false';
+	}
+
+
 	/**
 	 * GLOBAL
 	 * Find bet and update to win 
@@ -273,6 +292,25 @@ class ProviderHelper{
 		return ($update ? true : false);
 	}
 
+
+	/**
+	 * GLOBAL
+	 * Find game transaction and update the reason
+	 * @param game_trans_id = the game_transaction_id, $win type
+	 * 
+	 */
+	public  static function updateGameTransactionStatus($game_trans_id, $win, $reason) {
+   	    $update = DB::table('game_transactions')
+                ->where('game_trans_id', $game_trans_id)
+                ->update([
+        		  'win' => $win, 
+        		  'transaction_reason' => ProviderHelper::updateReason($win),
+        		  'payout_reason' => ProviderHelper::updateReason($reason),
+	    		]);
+		return ($update ? true : false);
+	}
+
+
 	/**
 	 * GLOBAL
 	 * Find bet and update to win 
@@ -286,6 +324,7 @@ class ProviderHelper{
 		 "3" => 'Transaction updated to Draw',
 		 "4" => 'Transaction updated to Refund',
 		 "5" => 'Transaction updated to Processing',
+		 "99" => 'Transaction FAILED - FATAL ERROR',
 		];
 		if(array_key_exists($win, $win_type)){
     		return $win_type[$win];
