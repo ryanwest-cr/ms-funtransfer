@@ -523,7 +523,8 @@ class SAGamingController extends Controller
             }
             $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
             if($transaction_check == 'false'){
-                $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1005]; // 152
+                $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; // 152 // 1005
+                // RETURN ERROR CODE 0 to stop the callbacks
                 Helper::saveLog('SA PlaceBetCancel - Transaction Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
                 echo $this->makeArrayXML($data_response);
                 return;
@@ -531,7 +532,9 @@ class SAGamingController extends Controller
 
             $existing_refund_call = $this->GameTransactionExt($txnid, $round_id, 3);
             if($existing_refund_call != null){
-                $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1005]; // 122
+                $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; // 122 // 1005
+                // RETURN ERROR CODE 0 to stop the callbacks
+                Helper::saveLog('SA PlaceBetCancel - Existing Refund', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
                 echo $this->makeArrayXML($data_response);
                 return;
             }
