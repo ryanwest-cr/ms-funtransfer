@@ -503,25 +503,28 @@ class SAGamingController extends Controller
         $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
         if($client_details == null){
             $data_response = ["username" => $username, "error" => 1005]; // 1000
+            Helper::saveLog('SA PlaceBetCancel LC Player Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
         }
         $game_details = Helper::findGameDetails('game_code', config('providerlinks.sagaming.pdbid'), $game_id);
         if($game_details == null){
             $data_response = ["username" => $username,"currency" => $currency, "error" => 1005];  // 134
+            Helper::saveLog('SA PlaceBetCancel LC Game Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
         }
         $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
         if($getPlayer == 'false'){
             $data_response = ["username" => $username, "error" => 1005]; 
-            Helper::saveLog('SA PlaceBetCancel LC Player Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            Helper::saveLog('SA PlaceBetCancel LC Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
         }
         $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
         if($transaction_check == 'false'){
             $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1005]; // 152
+            Helper::saveLog('SA PlaceBetCancel LC Player Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
             echo $this->makeArrayXML($data_response);
             return;
         }
