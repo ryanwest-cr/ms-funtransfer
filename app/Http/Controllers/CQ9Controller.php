@@ -1456,7 +1456,6 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playrEndround Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$provider_request = $request->all();
-    	$mtcode = $request->mtcode;
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
     		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
@@ -1468,6 +1467,7 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
     	}
+    	$mtcode = $request->mtcode;
 		$find_mtcode = $this->findTranPID($mtcode);
 		// dd($find_mtcode);
   		if($find_mtcode == 'false'){
