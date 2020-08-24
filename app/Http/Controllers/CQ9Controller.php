@@ -1491,6 +1491,13 @@ class CQ9Controller extends Controller
 	    	Helper::saveLog('CQ9 Duplicate Refund = '.$mtcode, $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
     	}
+    	$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+		if($player_details == 'false'){
+			$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]
+	    	];
+	    	Helper::saveLog('CQ9 Duplicate', $this->provider_db_id, json_encode($provider_request), $mw_response);
+			return $mw_response;
+		}
 
 		try {
 			$amount = $find_mtcode->amount;
@@ -1515,20 +1522,66 @@ class CQ9Controller extends Controller
 		    $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$find_mtcode->game_trans_id, $transaction_type, true);
 
 	   		if($client_response != 'false'){
-				$mw_response = [
-		    		"data" => [
-		    			"balance" => $this->amountToFloat4DG($client_response->fundtransferresponse->balance),
-		    			"currency" => $client_details->default_currency,
-		    		],
-		    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
-		    	];
 
-		    	ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, $mw_response);
-		    	// Update The General Details to refund transaction status
-    			$game_ext_details = $find_mtcode->general_details;
-		        $general_details_bag = json_decode($game_ext_details);
-				$general_details_bag->transaction_status = 'refund';
-				$this->updatecreateGameTransExtGD($find_mtcode->game_trans_ext_id, $general_details_bag);
+	   			if(isset($client_response->fundtransferresponse->status->code) 
+				             && $client_response->fundtransferresponse->status->code == "200"){
+	   				$mw_response = [
+			    		"data" => [
+			    			"balance" => $this->amountToFloat4DG($client_response->fundtransferresponse->balance),
+			    			"currency" => $client_details->default_currency,
+			    		],
+			    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
+			    	];
+
+			    	ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, $mw_response);
+			    	// Update The General Details to refund transaction status
+	    			$game_ext_details = $find_mtcode->general_details;
+			        $general_details_bag = json_decode($game_ext_details);
+					$general_details_bag->transaction_status = 'refund';
+		    	    $general_details = json_decode($game_ext_details);
+	  
+					// Actions along the way
+					$addition_action = ['bet', 'debit', 'rollout', 'takeall', 'amends', 'amend'];
+					$subtraction_action = ['endround', 'credit', 'rollin', 'bonus', 'payoff', 'wins'];
+
+					$general_details_bag->client->before_balance = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
+				    $general_details_bag->client->after_balance = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
+					$this->updatecreateGameTransExtGD($find_mtcode->game_trans_ext_id, $general_details_bag);
+
+				}elseif(isset($client_response->fundtransferresponse->status->code) 
+				            && $client_response->fundtransferresponse->status->code == "402"){
+					$mw_response = [
+			    		"data" => null,"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
+			    	];
+				}
+
+				// $gbefore_balance = $general_details_bag->client->before_balance;
+				// $gafter_balance = $general_details_bag->client->after_balance;
+				// if(in_array($general_details->provider->action, $addition_action)){
+				// 	if(isset($general_details->multi_event) && $general_details->multi_event == true){
+				// 		$amount = array();
+				// 		foreach ($general_details->multi_events->events as $key) {
+				//     		array_push($amount, $key->amount);
+				//     	}
+				//     	$amount = array_sum($amount);
+				//     }else{
+				// 		$amount = $gbefore_balance - $gafter_balance;
+				//     }
+				// 	$general_details_bag->client->before_balance = $gbefore_balance - $amount;
+				//     $general_details_bag->client->after_balance = $gafter_balance + $amount;
+				// }else{
+				// 	if(isset($general_details->multi_event) && $general_details->multi_event == true){
+				// 		$amount = array();
+				// 		foreach ($general_details->multi_events->events as $key) {
+				//     		array_push($amount, $key->amount);
+				//     	}
+				//     	$amount = array_sum($amount);
+				//     }else{
+				// 		$amount = $gbefore_balance - $gafter_balance;
+				//     }
+				// 	$general_details_bag->client->before_balance = $gbefore_balance + $amount;
+				//     $general_details_bag->client->after_balance = $gafter_balance - $amount;
+				// }
 
 			}else{
 				$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
