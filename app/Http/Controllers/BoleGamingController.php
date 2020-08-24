@@ -427,6 +427,7 @@ class BoleGamingController extends Controller
 					            && $client_response->fundtransferresponse->status->code == "200"){
 			                	// LOGGER
 							    $general_details['client']['after_balance'] = floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''));
+							    $general_details['client']['status_code'] = $client_response->fundtransferresponse->status->code;
 							    // END LOGGER
 
 								$data = [
@@ -446,6 +447,7 @@ class BoleGamingController extends Controller
 					            && $client_response->fundtransferresponse->status->code == "402"){
 								// LOGGER
 							    $general_details['client']['after_balance'] = floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''));
+							    $general_details['client']['status_code'] = $client_response->fundtransferresponse->status->code;
 							    // END LOGGER
 
 								$data = [
@@ -577,6 +579,7 @@ class BoleGamingController extends Controller
 					            && $client_response->fundtransferresponse->status->code == "200"){
 								// LOGGER
 							    $general_details['client']['after_balance'] = floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''));
+								$general_details['client']['status_code'] = $client_response->fundtransferresponse->status->code;
 							    // END LOGGER
 								$data = [
 									"data" => [
@@ -597,6 +600,7 @@ class BoleGamingController extends Controller
 								// $data = ["resp_msg" => ["code" => 1,"message" => "Insufficient Balance" ,"errors" => []]];
 								// LOGGER
 							    $general_details['client']['after_balance'] = floatval(number_format((float)$client_response->fundtransferresponse->balance, 2, '.', ''));
+							    $general_details['client']['status_code'] = $client_response->fundtransferresponse->status->code;
 							    // END LOGGER
 								$data = [
 									"data" => [
