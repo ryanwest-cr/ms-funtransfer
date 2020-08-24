@@ -210,8 +210,8 @@ class BoleGamingController extends Controller
 			}
 
 			// LOGGER
-			$general_details['client']['before_balance'] = floatval(number_format((float)$player_details_resp->playerdetailsresponse->balance, 2, '.', ''));
 			$general_details['client']['player_id'] = $player_details_resp->playerdetailsresponse->accountid;
+			$general_details['client']['before_balance'] = floatval(number_format((float)$player_details_resp->playerdetailsresponse->balance, 2, '.', ''));
 			// END LOGGER
 
 				if($json_data->type == 20){
@@ -402,8 +402,15 @@ class BoleGamingController extends Controller
 
 						try
 						{	
-							
+
 							$game_transextension = ProviderHelper::createGameTransExtV2($existing_bet->game_trans_id,$provider_trans_id, $json_data->report_id, $pay_amount, 2);
+
+							// LOGGER
+							$general_details['aggregator']['transaction_type'] = $transaction_type;
+							$general_details['aggregator']['game_trans_id'] = $existing_bet->game_trans_id;
+							$general_details['aggregator']['game_trans_ext_id'] = $game_transextension;
+							$general_details['provider']['amount '] = abs($pay_amount);
+							// END LOGGER
 
 							try {
 								$client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$existing_bet->game_trans_id,$transaction_type);
@@ -548,6 +555,13 @@ class BoleGamingController extends Controller
 
 							$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  0, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 							$game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
+
+							// LOGGER
+							$general_details['aggregator']['transaction_type'] = $transaction_type;
+							$general_details['aggregator']['game_trans_id'] = $gamerecord;
+							$general_details['aggregator']['game_trans_ext_id'] = $game_transextension;
+							$general_details['provider']['amount '] = abs($pay_amount);
+							// END LOGGER
 
 							try {
 								$client_response = ClientRequestHelper::fundTransfer($client_details,abs($pay_amount),$db_game_code,$db_game_name,$game_transextension,$gamerecord,$transaction_type);
