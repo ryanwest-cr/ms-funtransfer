@@ -254,11 +254,14 @@ class GameLobby{
               ]
         ]);
         // $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'';
-         $url = ''.config('providerlinks.skywind.api_url').'/players/'.config('providerlinks.skywind.seamless_username').'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+         // $url = ''.config('providerlinks.skywind.api_url').'/players/'.config('providerlinks.skywind.seamless_username').'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+
+        // TG8_98
+        $url = ''.config('providerlinks.skywind.api_url').'/players/TG'.$client_details->client_id.'_'.$client_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
         // try {
         $response = $client->get($url);
         $response = json_encode(json_decode($response->getBody()->getContents()));
-        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
+        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $url);
         $url = json_decode($response, true);
         return isset($url['url']) ? $url['url'] : 'false';
             
