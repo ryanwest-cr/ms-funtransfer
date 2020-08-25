@@ -306,8 +306,17 @@ class PGSoftController extends Controller
             Helper::saveLog('PGSoft error', $this->provider_db_id, json_encode($data, JSON_FORCE_OBJECT),  $errormessage);
         }
         if (array_key_exists('player_name', $data)) {
-            $player_id =  ProviderHelper::explodeUsername('_', $data["player_name"]);
-            $player_details = ProviderHelper::getClientDetails('player_id',$player_id);
+            if($data["player_name"] ==''){
+                $player_details = null;
+            }else {
+                $player_id = substr($data["player_name"],0,7);
+                if($player_id == $this->prefix){
+                    $id =  ProviderHelper::explodeUsername('_', $data["player_name"]);
+                    $player_details = ProviderHelper::getClientDetails('player_id',$id);
+                }else {
+                    $player_details = null;
+                }
+            }
             if($player_details == null):
                 $boolean = 'true';
                 $errormessage = array(
@@ -324,8 +333,13 @@ class PGSoftController extends Controller
             if($data["player_name"] ==''){
                 $player_details = null;
             }else {
-                $player_id =  ProviderHelper::explodeUsername('_', $data["player_name"]);
-                $player_details = ProviderHelper::getClientDetails('player_id',$player_id);
+                $player_id = substr($data["player_name"],0,7);
+                if($player_id == $this->prefix){
+                    $id =  ProviderHelper::explodeUsername('_', $data["player_name"]);
+                    $player_details = ProviderHelper::getClientDetails('player_id',$id);
+                }else {
+                    $player_details = null;
+                }
             }
             if($player_details != null ){
                 if($data["currency_code"] != $player_details->default_currency):
