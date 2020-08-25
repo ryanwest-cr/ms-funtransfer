@@ -413,7 +413,7 @@ class GameLobby{
                 'game_id' => $data["game_code"],
                 'balance' => $player_details->playerdetailsresponse->balance,
                 'locale' => 'en',
-                'variant' => 'desktop',
+                'variant' => 'mobile', // mobile, desktop
                 'currency' => $client_details->default_currency,
                 'player_id' => (string)$client_details->player_id,
                 'callback' =>  config('providerlinks.booming.call_back'),
