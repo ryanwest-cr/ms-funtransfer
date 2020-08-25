@@ -178,7 +178,9 @@ $app->post('skywind/api/getauth', 'SkyWindController@getAuth'); // TEST
 $app->post('skywind/api/getauth2', 'SkyWindController@getAuth2'); // TEST
 $app->post('skywind/api/getgames', 'SkyWindController@getGamelist'); // TEST
 $app->post('skywind/api/gamelaunch', 'SkyWindController@gameLaunch'); // TEST
+
 $app->post('skywind/api/validate_ticket', 'SkyWindController@validateTicket');
+$app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
 $app->post('skywind/api/get_balance', 'SkyWindController@getBalance');
 $app->post('skywind/api/debit', 'SkyWindController@gameDebit');
 $app->post('skywind/api/credit', 'SkyWindController@gameCredit');

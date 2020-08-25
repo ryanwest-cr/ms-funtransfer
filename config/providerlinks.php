@@ -126,6 +126,7 @@ return [
     ],
     'skywind' => [
         'provider_db_id' => 28, // Database ID nothing todo with the provider!
+        'prefix_user' => 'TG', // Developer Logic nothing todo with the provider!
         'api_url' => 'https://api.gcpstg.m27613.com/v1',
         'seamless_key' => '47138d18-6b46-4bd4-8ae1-482776ccb82d',
         'seamless_username' => 'TGAMESU_USER',
