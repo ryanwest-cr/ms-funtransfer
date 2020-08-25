@@ -211,6 +211,13 @@ return [
         'brandID' => '2416208c-f3cb-ea11-8b03-281878589203',
         'apiKey' => '3C3C5A48-4FE0-4E27-A727-07DE6610AAC8',
         'passKey' => 'Rja5ZK4kN1GA0R8C'
+    ],
+    'simpleplay' => [
+        'LOBBY_CODE' => 'S592',
+        'SECRET_KEY' => 'A872BAFDFA8349CC824A460E7AC02515',
+        'MD5_KEY' => 'GgaIMaiNNtg',
+        'ENCRYPT_KEY' => 'g9G16nTs',
+        'API_URL' => 'http://api.sp-portal.com/api/api.aspx'
     ]
 ];
 

@@ -4,6 +4,7 @@ namespace App\Helpers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use App\Helpers\Helper;
+use App\Helpers\DESHelper;
 use DB; 
 
 
@@ -503,5 +504,42 @@ class ProviderHelper{
 	    	->first();
 	    return $nonce_previous ? $nonce_previous : 'false';
 	}
+
+	public static function simplePlayAPICall ($queryString, $hashedString) {     
+        $result = ['error' => 1, 'message'=> 'An error occurred.', 'data' => []];
+
+        $encryptKey = config("providerlinks.simpleplay.ENCRYPT_KEY");
+        $apiURL = config("providerlinks.simpleplay.API_URL");
+        
+        $DES = new DESHelper($encryptKey);
+    
+        // Encrypt Query String (q)
+        $encryptedString = $DES->encrypt($queryString);
+
+        $requestBody = ['q' => $encryptedString, 's' => $hashedString];
+       
+        $options = array(
+            'http' => array(
+                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'content' => http_build_query($requestBody)
+            )
+        );
+
+        $context  = stream_context_create($options);
+        $result = file_get_contents($apiURL, false, $context);
+
+        if ($result === FALSE) {
+		    $result = ['error' => 1, 'message'=> 'Error in request.', 'data' => []];
+		}
+		else
+		{
+			$xml = simplexml_load_string($result) or die("Error: Cannot create object");
+
+			$result = ['error' => 0, 'message'=> 'Request Successful.', 'data' => $xml];
+		}
+
+		return $result;
+    }
 
 }
