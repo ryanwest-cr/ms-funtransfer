@@ -12,6 +12,8 @@ use App\Helpers\SAHelper;
 use App\Helpers\TidyHelper;
 use App\Helpers\FCHelper;
 use App\Helpers\ProviderHelper;
+
+
 use DB;             
 use Carbon\Carbon;
 class GameLobby{
@@ -693,6 +695,36 @@ class GameLobby{
         $url = 'https://play-prodcopy.oryxgaming.com/agg_plus_public/launch/wallets/WELLTREASURETECH/games/'.$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=REAL';
         return $url;
     }
+
+    public static function simplePlayLaunchUrl($game_code,$token,$exitUrl){
+        $url = $exitUrl;
+        $dateTime = date("YmdHis", strtotime(Helper::datesent()));
+        $secretKey = config("providerlinks.simpleplay.SECRET_KEY");
+        $md5Key = config("providerlinks.simpleplay.MD5_KEY");
+        
+        $client_details = Providerhelper::getClientDetails('token', $token);
+
+        /* [START] LoginRequest */
+        $queryString = "method=LoginRequest&Key=".$secretKey."&Time=".$dateTime."&Username=".$client_details->username."&CurrencyType=".$client_details->default_currency."&GameCode=".$game_code."&Mobile=0";
+        $hashedString = md5($queryString.$md5Key.$dateTime.$secretKey);
+        $response = ProviderHelper::simplePlayAPICall($queryString, $hashedString);
+        $url = (string) $response['data']->GameURL;
+        /* [END] LoginRequest */
+
+
+        /* [START] RegUserInfo */
+        /* $queryString = "method=RegUserInfo&Key=".$secretKey."&Time=".$dateTime."&Username=".$client_details->username."&CurrencyType=".$client_details->default_currency;
+
+        $hashedString = md5($queryString.$md5Key.$dateTime.$secretKey);
+
+        $response = ProviderHelper::simplePlayAPICall($queryString, $hashedString);
+        var_dump($response); die(); */
+        /* [END] RegUserInfo */
+
+        return $url;
+    }
+
+    
     
     public static function getLanguage($provider_name,$language){
         $provider_language = DB::table("providers")->where("provider_name",$provider_name)->get();

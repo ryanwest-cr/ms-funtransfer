@@ -107,7 +107,7 @@ class GameLobbyController extends Controller
             //     return $msg;
             // }
             //
-           
+    
            $solid_gamings = ['Solid Gaming', 'Booongo', 'Concept', 'Espresso', 'EvoPlay', 'GameArt', 'Habanero', 'MultiSlot', 'NetEnt', 'Omi Gaming', 'Push Gaming', 'Revolver Gaming', 'RTG Asia', 'TPG', '1X2 Network', 'BetSoft', 'Booming', 'Leander', 'Lotus Gaming', 'No Limit City', 'One Touch', 'Quick Fire', 'Relax', 'Wazdan', 'Yggdrasil', 'Evolution Gaming'];
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
@@ -444,6 +444,15 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider')=="SimplePlay"){
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::simplePlayLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                } 
 
             }
         }

@@ -113,7 +113,7 @@ class SimplePlayController extends Controller
 			}
 		}
 
-		Helper::saveLog('authentication', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('authentication', 35, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
@@ -135,8 +135,7 @@ class SimplePlayController extends Controller
 					];
 
 		// Find the player and client details
-		$client_details = $this->_getClientDetails($client_code);
-		$player_details = PlayerHelper::getPlayerDetails('username', $request_params['username']);
+		$client_details = $this->_getClientDetails('username', $request_params['username']);
 
 		if ($client_details) {
 
@@ -157,7 +156,7 @@ class SimplePlayController extends Controller
 							"gameid" => "",
 							"clientid" => $client_details->client_id,
 							"playerdetailsrequest" => [
-								"token" => $player_details->player_token,
+								"token" => $client_details->player_token,
 								"gamelaunch" => "false"
 							]]
 			    )]
@@ -169,14 +168,14 @@ class SimplePlayController extends Controller
 			&& $client_response->playerdetailsresponse->status->code == "200") {
 				header("Content-type: text/xml; charset=utf-8");
 		 		$response = '<?xml version="1.0" encoding="utf-8"?>';
-		 		$response .= '<RequestResponse><username>'.$player_details->username.'</username><currency>USD</currency><amount>'.$client_response->playerdetailsresponse->balance.'</amount><error>0</error></RequestResponse>';
+		 		$response .= '<RequestResponse><username>'.$client_details->username.'</username><currency>USD</currency><amount>'.$client_response->playerdetailsresponse->balance.'</amount><error>0</error></RequestResponse>';
 
 			}
 			
 		}
 		
 
-		Helper::saveLog('balance', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('balance', 35, file_get_contents("php://input"), $response);
  		echo $response;
 
 	}
@@ -196,15 +195,14 @@ class SimplePlayController extends Controller
 						"httpstatus" => "404"
 					];
 
-		$client_details = $this->_getClientDetails($client_code);
-		$player_details = PlayerHelper::getPlayerDetails($request_params['username'], 'username');
+		$client_details = $this->_getClientDetails('username', $request_params['username']);
 		
 		if ($client_details && $player_details != NULL) {
 			//GameRound::create($json_data['roundid'], $player_details->token_id);
 
 			// Check if the game is available for the client
 			$subscription = new GameSubscription();
-			$client_game_subscription = $subscription->check($client_details->client_id, 4, $request_params['gamecode']);
+			$client_game_subscription = $subscription->check($client_details->client_id, 35, $request_params['gamecode']);
 
 			if(!$client_game_subscription) {
 				$response = [
@@ -286,7 +284,7 @@ class SimplePlayController extends Controller
 			}
 		}
 		
-		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('debit', 35, file_get_contents("php://input"), $response);
 		echo $response;
 	}
 
@@ -313,7 +311,7 @@ class SimplePlayController extends Controller
 
 			// Check if the game is available for the client
 			$subscription = new GameSubscription();
-			$client_game_subscription = $subscription->check($client_details->client_id, 4, $request_params['gamecode']);
+			$client_game_subscription = $subscription->check($client_details->client_id, 35, $request_params['gamecode']);
 
 			if(!$client_game_subscription) {
 				$response = [
@@ -394,7 +392,7 @@ class SimplePlayController extends Controller
 			}
 		}
 		
-		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('debit', 35, file_get_contents("php://input"), $response);
 		echo $response;
 
 	}
@@ -422,7 +420,7 @@ class SimplePlayController extends Controller
 
 			// Check if the game is available for the client
 			$subscription = new GameSubscription();
-			$client_game_subscription = $subscription->check($client_details->client_id, 4, $request_params['gamecode']);
+			$client_game_subscription = $subscription->check($client_details->client_id, 35, $request_params['gamecode']);
 
 			if(!$client_game_subscription) {
 				$response = [
@@ -504,7 +502,7 @@ class SimplePlayController extends Controller
 			}
 		}
 		
-		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('debit', 35, file_get_contents("php://input"), $response);
 		echo $response;
 	}
 
@@ -600,22 +598,45 @@ class SimplePlayController extends Controller
 		}
 		
 
-		Helper::saveLog('rollback', 4, file_get_contents("php://input"), $response);
+		Helper::saveLog('rollback', 35, file_get_contents("php://input"), $response);
 		echo json_encode($response);
 
 	}
 
-	private function _getClientDetails($client_code) {
+	private function _getClientDetails($type = "", $value = "") {
 
 		$query = DB::table("clients AS c")
-				 ->select('c.client_id', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
+				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
-				 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id")
-				 ->where('client_code', $client_code);
+				 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id");
+				 
+				if ($type == 'token') {
+					$query->where([
+				 		["pst.player_token", "=", $value],
+				 		["pst.status_id", "=", 1]
+				 	]);
+				}
+
+				if ($type == 'player_id') {
+					$query->where([
+				 		["p.player_id", "=", $value],
+				 		["pst.status_id", "=", 1]
+				 	]);
+				}
+
+				if ($type == 'username') {
+					$query->where([
+				 		["p.username", "=", $value],
+				 		["pst.status_id", "=", 1]
+				 	]);
+				}
 
 				 $result= $query->first();
 
 		return $result;
+
 	}
 
 	private function encrypt($str) {
