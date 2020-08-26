@@ -22,7 +22,11 @@ class YGGController extends Controller
 
     public function playerinfo(Request $request)
     {
+        $content = file_get_contents("php://input");
 
+        Helper::saveLog("YGG playerinfo response", $this->provider_id, json_encode($request->all()), "");
+        Helper::saveLog("YGG playerinfo response", $this->provider_id, json_encode($content), "content");
+        
         $client_details = ProviderHelper::getClientDetails('token',$request->sessiontoken);
         if($client_details == null){ 
             $response = array(
