@@ -26,7 +26,7 @@ class YGGController extends Controller
 
         Helper::saveLog("YGG playerinfo req", $this->provider_id, json_encode($request->all()), "");
         Helper::saveLog("YGG playerinfo req", $this->provider_id, json_encode($content), "content");
-        Helper::saveLog("YGG playerinfo req", $this->provider_id, json_encode($request->getContents()), "content");
+        // Helper::saveLog("YGG playerinfo req", $this->provider_id, json_encode($request->getContents()), "content");
 
         $client_details = ProviderHelper::getClientDetails('token',$request->sessiontoken);
         if($client_details == null){ 
