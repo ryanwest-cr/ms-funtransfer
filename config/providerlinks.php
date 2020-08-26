@@ -220,7 +220,7 @@ return [
         'API_URL' => 'http://api.sp-portal.com/api/api.aspx'
     ],
     'ygg'=>[
-        'api_url' => 'https://staticstaging.yggdrasilgaming.com/init/launchClient.html?',
+        'api_url' => 'https://static-stage-tw.248ka.com/init/launchClient.html?',
         'Org' => 'TIGERGAMES',
         'topOrg' => 'TIGERGAMESGroup',
         'provider_id' => 38,
