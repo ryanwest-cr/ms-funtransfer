@@ -15,7 +15,7 @@ class AuthenticationController extends Controller
 	}
     public function checkTokenExist(Request $request){
         if($request->has("token")){
-            $token_data = DB::table('player_session_token')->where("player_token",$request->token)->first();
+            $token_data = DB::table('player_session_tokens')->where("player_token",$request->token)->first();
             if($token_data){
                 $response = array(
                     "status" => "ok",
