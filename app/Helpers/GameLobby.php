@@ -507,7 +507,7 @@ class GameLobby{
         $provider_id = config("providerlinks.ygg.provider_id");
         Helper::saveLog('YGG gamelaunch', $provider_id, json_encode($data), "Endpoing hit");
         $url = config("providerlinks.ygg.api_url");
-        $org = config("providerlinks.ygg.api_url");
+        $org = config("providerlinks.ygg.Org");
         $client_details = ProviderHelper::getClientDetails('token',$data['token']);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         try{

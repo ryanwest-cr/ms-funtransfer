@@ -11,8 +11,14 @@ use GuzzleHttp\Client;
 
 class YGGController extends Controller
 {
-    public $provider_id = 38;
-    public $org = "TigerGames";
+    public $provider_id;
+    public $org;
+
+    public function __construct(){
+        $this->provider_id = config("providerlinks.ygg.provider_id");
+        $this->org = config("providerlinks.ygg.Org");
+        $this->topOrg = config("providerlinks.ygg.topOrg");
+    }
 
     public function playerinfo(Request $request)
     {
