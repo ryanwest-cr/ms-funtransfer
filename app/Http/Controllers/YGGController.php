@@ -385,6 +385,7 @@ class YGGController extends Controller
             $provider_trans_id = $request->reference;
             $round_id = $request->subreference;
             $getTrans = DB::table('game_transactions')->where('provider_trans_id','=',$provider_trans_id)->get();
+            $income = $getTrans[0]->bet_amount - $bet_amount;
 
             $client_response = $this->fundTransferRequest(
                     $client_details->client_access_token,
@@ -414,7 +415,7 @@ class YGGController extends Controller
             
             $update = DB::table('game_transactions')
                         ->where('game_trans_id','=',$getTrans[0]->game_trans_id)
-                        ->update(["win" => 1, "entry_id" => 2]);
+                        ->update(["win" => 1, "pay_amount" => $bet_amount, "entry_id" => 2, "income" => $income]);
 
             $game_trans_ext = ProviderHelper::createGameTransExt( $getTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, 1, json_encode($request->all()), $response, $client_response['requesttosend'], $client_response['client_response'], "");  
             Helper::saveLog('Yggdrasil endwager', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);

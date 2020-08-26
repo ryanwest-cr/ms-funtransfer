@@ -365,7 +365,8 @@ class GameLobby{
           "settings" =>  [
             'user_id'=> $client_player_details->player_id,
             'language'=> $client_player_details->language ? $client_player_details->language : 'en',
-            'https' => 1
+            'https' => 1,
+            'platform' => 'mobile'
           ],
           "denomination" => '1', // game to be launched with values like 1.0, 1, default
           "currency" => $client_player_details->default_currency,
@@ -511,7 +512,7 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token',$data['token']);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         try{
-            $url = $url."gameid=".$data['game_code']."&lang=".$client_details->language."&currency=".$client_details->default_currency."&org=".$org."&channel=pc&key=".$data['token'];
+            $url = $url."gameid=".$data['game_code']."&lang=".$client_details->language."&currency=".$client_details->currency."&org=".$org."&channel=pc&key=".$data['token'];
             Helper::saveLog('YGG gamelaunch', $provider_id, json_encode($data), $url);
             return $url;
         }catch(\Exception $e){
