@@ -415,20 +415,13 @@ $app->post('api/booming/callback','BoomingGamingController@callBack');
 $app->post('api/booming/rollback','BoomingGamingController@rollBack');
 
 // Yggdrasil 
-// $app->post('api/ygg/playerinfo','YGGController@playerinfo');
-// $app->post('api/ygg/wager','YGGController@wager');
-// $app->post('api/ygg/cancelwager','YGGController@cancelwager');
-// $app->post('api/ygg/appendwagerrequest','YGGController@appendwagerrequest');
-// $app->post('api/ygg/endwager','YGGController@endwager');
-// $app->post('api/ygg/campaignpayout','YGGController@campaignpayout');
-// $app->post('api/ygg/getbalance','YGGController@getbalance');
-$app->post('api/ygg/playerinfo','YGGController@playerinfo');
-$app->post('api/ygg/wager','YGGController@wager');
-$app->post('api/ygg/cancelwager','YGGController@cancelwager');
-$app->post('api/ygg/appendwagerrequest','YGGController@appendwagerrequest');
-$app->post('api/ygg/endwager','YGGController@endwager');
-$app->post('api/ygg/campaignpayout','YGGController@campaignpayout');
-$app->post('api/ygg/getbalance','YGGController@getbalance');
+$app->get('api/ygg/playerinfo.json','YGGController@playerinfo');
+$app->get('api/ygg/wager.json','YGGController@wager');
+$app->get('api/ygg/cancelwager.json','YGGController@cancelwager');
+$app->get('api/ygg/appendwagerrequest.json','YGGController@appendwagerrequest');
+$app->get('api/ygg/endwager.json','YGGController@endwager');
+$app->get('api/ygg/campaignpayout.json','YGGController@campaignpayout');
+$app->get('api/ygg/getbalance.json','YGGController@getbalance');
 
 
 //IFRAME URL ENDPOINTS
