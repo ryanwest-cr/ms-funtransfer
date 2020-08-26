@@ -2112,16 +2112,19 @@ class CQ9Controller extends Controller
     	foreach ($existing_multi_event[0] as $key => $value) {
 			foreach ($mtcodes->mtcode as $mt) {
 				if($value->mtcode != $mt){
-					$multi_event_array = [
-			    		"mtcode" => $value->mtcode,
-		                "amount" => $value->amount,
-		                "eventtime" => $value->eventtime
-			    	];
-					array_push($multi_event_bag['events'], $multi_event_array);
-				}
-
-				if($value->mtcode == $mt){
-					isset($value->mtcode);
+					if(isset($value->status) && $value->status == 'refund'){
+						$multi_event_array = [
+				    		"mtcode" => $value->mtcode,
+			                "amount" => $value->amount,
+			                "eventtime" => $value->eventtime,
+			                'status' => $value->status
+				    	];
+						array_push($multi_event_bag['events'], $multi_event_array);
+						continue;
+					}
+					// if(){
+						
+					// }
 				}
 			}
 		}
