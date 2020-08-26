@@ -24,6 +24,7 @@ class CQ9Controller extends Controller
 {
 
 	public $api_url, $api_token, $provider_db_id;
+	public $game_static_code = 'BPUP2019';
 
 	// /gameboy/player/logout
 	// /gameboy/game/list/cq9
@@ -1475,7 +1476,7 @@ class CQ9Controller extends Controller
     	}
 
     	$account = $request->account;
-    	$gamecode = 'AB1'; // $request->gamecode;
+    	$gamecode = $this->game_static_code; // $request->gamecode;
     	// $gamehall = $request->gamehall;
     	$roundid = $request->mtcode; // $request->roundid;
     	$amount = $request->amount;
@@ -1727,6 +1728,9 @@ class CQ9Controller extends Controller
 
     public function playerRecord(Request $request, $mtcode){
     	$transaction_record = $this->findTranPID($mtcode);
+
+    	// dd($transaction_record);
+
     	if($transaction_record != 'false'){
     		$game_ext_details = $transaction_record->general_details;
 	    	$general_details = json_decode($game_ext_details);
@@ -2229,9 +2233,21 @@ class CQ9Controller extends Controller
 	    	return $response;
     	}
 
+
     	$mtcodes = $provider_request;
 
+    	// # MULTI EVENT
+		$multi_event_bag = ["events"=>[]];
+    	$multi_event = false;
+    	$gametrans_ext_bag_id = [];
+    	$multi_event_bag['me_createtime'] = $createtime;
+	   	$multi_event_bag['action'] = $action;
+		$multi_event = true;
+
+    	// # END MULTI EVENT
+
     	foreach($mtcodes->mtcode as $mt){
+    		$before_balance_set = false;
     		$game_ext_check = ProviderHelper::findGameExt($mt, 3, 'transaction_id');
 	  		if($game_ext_check == 'false'){
 	  			$mw_response = ["data" => null,"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]];
@@ -2239,6 +2255,7 @@ class CQ9Controller extends Controller
 				return $mw_response;
 	  		}
     		$find_mtcode = ProviderHelper::findGameExt($mt, 3, 'transaction_id');
+
     		$game_transaction = ProviderHelper::findGameTransaction($find_mtcode->game_trans_id, 'game_transaction');
 	  		$game_details = ProviderHelper::findGameID($game_transaction->game_id);
 	  		$user_id = Providerhelper::findTokenID($game_transaction->token_id)->player_id;
@@ -2255,6 +2272,12 @@ class CQ9Controller extends Controller
 		    	Helper::saveLog('CQ9 playerBets', $this->provider_db_id, json_encode($provider_request), $mw_response);
 				return $mw_response;
 			}
+
+			if($before_balance_set == false){
+				$multi_event_bag['before_balance'] = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
+				$before_balance_set = true;
+			}
+
 			$game_ext_details = $find_mtcode->general_details;
 	    	$general_details = json_decode($game_ext_details);
 	    	if($general_details->provider->refund_type == 'cancel_refund'){
@@ -2262,11 +2285,12 @@ class CQ9Controller extends Controller
 				Helper::saveLog('CQ9 playerCancel Refund = '.$mt, $this->provider_db_id, json_encode($provider_request), $mw_response);
 				return $mw_response;
 	    	}
-			if($general_details->client->transaction_type == 'credit'){ // BET SHOULD BE REFUNDED AS CREDIT
+			if($general_details->client->transaction_type == 'credit'){ // WIN SHOULD BE REFUNDED AS CREDIT
 				$transaction_type = 'debit';
-			}else if($general_details->game_transaction_type == 'debit'){ // WIN SHOULD BE REFUNDED AS DEBIT
+			}else if($general_details->client->transaction_type == 'debit'){ // BET SHOULD BE REFUNDED AS DEBIT
 				$transaction_type = 'credit';
 			}
+			
 			$amount = $general_details->client->amount;
 			$pay_amount = $general_details->old_transaction->pay_amount;
 			$income = $general_details->old_transaction->income;
@@ -2293,15 +2317,27 @@ class CQ9Controller extends Controller
 	  	    if(isset($client_response->fundtransferresponse->status->code) 
 			             && $client_response->fundtransferresponse->status->code == "200"){
 
-	  	    	$game_ext_details = $find_mtcode->general_details;
-		        $general_details_bag = json_decode($game_ext_details);
-				$general_details_bag->transaction_status = 'refund';
-	    	    $general_details = json_decode($game_ext_details);
-				$general_details_bag->client->before_balance = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
-			    $general_details_bag->client->after_balance = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
-				$this->updatecreateGameTransExtGD($find_mtcode->game_trans_ext_id, $general_details_bag);
+	  	    	    // # MULTI EVENT
+			    	$multi_event_array = [
+			    		"mtcode" => $key->mtcode,
+		                "amount" => $key->amount,
+		                "status" => 'cancel',
+		                "eventtime" => $key->eventtime
+			    	];
+			    	array_push($multi_event_bag['events'], $multi_event_array);
+			    	// # END MULTI EVENT
+			    	$game_ext_details = $find_mtcode->general_details;
+			        $general_details_bag = json_decode($game_ext_details);
+					// $general_details_bag->transaction_status = 'amend'; // refund
+		    	    $general_details = json_decode($game_ext_details);
+					$general_details_bag->client->before_balance = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
+				    $general_details_bag->client->after_balance = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
+					$this->updatecreateGameTransExtGD($find_mtcode->game_trans_ext_id, $general_details_bag);
+			    	// # END MULTI EVENT
 
 	  	    	$general_details = [
+	  	    		"transaction_status" => 'cancel',
+			    	"multi_event" => $multi_event, // MULTI EVENT
 					"provider" => [
 						"description" => 'Cancel Refund',
 						"refund_type" => 'cancel_refund'
@@ -2628,161 +2664,6 @@ class CQ9Controller extends Controller
  	}
 
     public function playerAmends(Request $request){
-    	Helper::saveLog('CQ9 playerAmends Player', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT 1');
-    	$header = $request->header('wtoken');
-    	// $provider_request = $request->all();
-    	// $data_details = $this->rawToObj($request->event, true);
-    	$provider_request = json_decode(file_get_contents("php://input"));
-    	$data_details = $provider_request->list;
-
-    	// dd($data_details);
-    	$check_wtoken = $this->checkAuth($header);
-    	if(!$check_wtoken){
-    		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
-			Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
-			return $mw_response;
-    	}
-
-    	try {
-			$response = ["data" => ["success" => [],"failed" => [],],"status" =>  ["code" =>  "0","message" =>  "Success","datetime" => ""]];
-	    	foreach($data_details as $key => $data){
-	    		$ucode = $data->ucode;
-	    		$account = $data->account;
-	    		$action = 'amends';
-	    		$eventtime = $data->eventtime;
-				$createtime = date(DATE_RFC3339);
-	    		$user_id = Providerhelper::explodeUsername('_', $data->account);
-		    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
-				if($client_details == null){
-					$failed = ["account" => $account,"code" =>"1006","message" =>"Player not found","ucode" => $ucode];
-		    		array_push($response['data']['failed'], $failed);
-		    		continue;
-				}
-				$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-				foreach ($data->event as $key => $value) {
-					$da_error = 0;
-					$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $value->gamecode);
-		    		if($value->amount < 0 AND $da_error == 0){
-		    			$failed = ["account" => $account,"code" =>"1003".$value->roundid,"message" =>"Amount cannot be negative","ucode" => $ucode];
-			    		array_push($response['data']['failed'], $failed);
-			    		$da_error = 1;
-			   		}
-			   		// $game_ext_check = ProviderHelper::findGameExt($value->mtcode, 2, 'transaction_id');
-			   		$game_ext_check = ProviderHelper::findGameExt($value->roundid, 2, 'round_id');
-					if($game_ext_check == 'false' AND $da_error == 0){
-						$failed = ["account" => $account,"code" =>"1014".$value->roundid,"message" =>"Transaction record not found","ucode" => $ucode];
-			    		Helper::saveLog('CQ9 T ALready Exist', $this->provider_db_id, json_encode($provider_request), $failed);
-			    		array_push($response['data']['failed'], $failed);
-			    		$da_error = 1;
-					}	
-					$game_ext_check_win = ProviderHelper::findGameExt($value->mtcode, 3, 'transaction_id');
-					if($game_ext_check_win != 'false' AND $da_error == 0){
-						$failed = ["account" => $account,"code" =>"2009".$value->roundid,"message" =>"Transaction duplicate","ucode" => $ucode];
-			    		Helper::saveLog('CQ9 T ALready Exist', $this->provider_db_id, json_encode($provider_request), $failed);
-			    		array_push($response['data']['failed'], $failed);
-			    		$da_error = 1;
-					}
-
-					if($da_error == 0){
-						$game_transaction = ProviderHelper::findGameTransaction($game_ext_check->game_trans_id, 'game_transaction');
-						$amount = $value->amount;
-						if($value->amount == 0){
-							$transactiontype = 'credit';
-						}else{
-							$transactiontype = $value->action;
-						}
-						$token_id = $client_details->token_id;
-						$pay_amount =  $game_transaction->pay_amount;
-						$payout_reason = 'Amends Win';
-						$income = $game_transaction->bet_amount - $pay_amount;
-						$provider_trans_id = $value->mtcode;
-						$roundid = $value->roundid;
-						$game_transaction_type = 3;
-						$entry_id = $game_transaction->entry_id;
-						$win_or_lost = 4;
-						
-						ProviderHelper::updateBetTransaction($game_transaction->round_id, $pay_amount, $income, $win_or_lost, $entry_id);
-				 	    $game_transextension = ProviderHelper::createGameTransExtV2($game_ext_check->game_trans_id,$provider_trans_id, $roundid, $amount, $game_transaction_type);
-
-					    try {
-							  $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$game_ext_check->game_trans_id, $transactiontype, true);
-							 Helper::saveLog('CQ9 playerAmends CRID = '.$game_ext_check->game_trans_id, $this->provider_db_id, json_encode($provider_request), $client_response);
-						} catch (\Exception $e) {
-						    $mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
-							ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $mw_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-							Helper::saveLog('CQ9 playerBet - FATAL ERROR', $this->provider_db_id, $mw_response, Helper::datesent());
-							return $mw_response;
-						}
-
-					     if(isset($client_response->fundtransferresponse->status->code) 
-						             && $client_response->fundtransferresponse->status->code == "200"){
-					     	$general_details = [
-								"provider" => [
-									"createtime" => $createtime,  // The Transaction Created!
-									"endtime" => date(DATE_RFC3339),
-									"eventtime" => $eventtime,
-									"action" => $action,
-									"refund_type" => 'amends_win'
-								],
-								"client" => [
-									"before_balance" => $this->amountToFloat4DG($player_details->playerdetailsresponse->balance),
-							    	"after_balance"=> $this->amountToFloat4DG($client_response->fundtransferresponse->balance),
-							    	"player_prefixed"=> $account,
-							    	"player_id"=> $user_id
-								],
-								"old_transaction" => [
-									"description" => 'OLD GAME TRANSACTION BEFORE THE WINS AMENDED!',
-							    	"player_id"=> $user_id,
-							    	"bet_amount" => $game_transaction->bet_amount,
-							    	"win" => $game_transaction->win,
-							    	"pay_amount" => $game_transaction->pay_amount,
-							    	"income" => $game_transaction->income,
-							    	"entry_id" => $game_transaction->entry_id,
-								]
-							];
-					    	$mw_response = [
-					    		"data" => [
-				    				"balance" => $this->amountToFloat4DG($client_response->fundtransferresponse->balance),
-					    			"currency" => $client_details->default_currency,
-					    		],
-					    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
-					    	];
-					 	    ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, $mw_response,$general_details);
-
-					 	    $success = ["account" => $account,"balance" =>$this->amountToFloat4DG($client_response->fundtransferresponse->balance),"currency" => $client_details->default_currency,"ucode" => $ucode];
-			    		    array_push($response['data']['success'], $success);
-
-						}elseif(isset($client_response->fundtransferresponse->status->code) 
-						            && $client_response->fundtransferresponse->status->code == "402"){
-							$mw_response = [
-							"data" => null,
-								"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
-							];
-							ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, 'FAILED',$general_details);
-							return $mw_response;
-
-						}else{ // Unknown Response Code
-							$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
-							ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, 'FAILED',$general_details);
-							return $mw_response;
-						}    
-
-					}
-				}
-	    	}	
-
-	    	$response['status']['datetime'] = date(DATE_RFC3339);
-	    	return $response;
-		} catch (\Exception $e) {
-			$mw_response = [
-	    		"data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			Helper::saveLog('CQ9 playerAmends Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
-			return $mw_response;
-		}
-    }
-
-    public function playerAmend(Request $request){
     	Helper::saveLog('CQ9 playerAmend - EH', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$check_wtoken = $this->checkAuth($header);
@@ -2814,7 +2695,7 @@ class CQ9Controller extends Controller
     	$data_details = $provider_request->data;
     	$account = $provider_request->account;
     	// $gamecode = $provider_request->gamecode;
-    	$gamecode = 'AB1'; // $request->gamecode;
+    	$gamecode = $this->game_static_code; // $request->gamecode;
     	$eventime = $provider_request->createTime; // created
 		$createtime = date(DATE_RFC3339);
 		$action = 'amend';
@@ -2838,7 +2719,7 @@ class CQ9Controller extends Controller
 			return $mw_response;
 		}
 
-    	// try {
+    	try {
     		// # MULTI EVENT
 			$multi_event_bag = ["events"=>[]];
 	    	$multi_event = false;
@@ -2956,16 +2837,16 @@ class CQ9Controller extends Controller
 				             && $client_response->fundtransferresponse->status->code == "200"){
 			    	// # MULTI EVENT
 			    	$multi_event_array = [
-			    		"mtcode" => $value->mtcode,
-		                "amount" => $value->amount,
-		                "action" => $value->action,
-		                "eventtime" => $value->eventtime
+			    		"mtcode" => $key->mtcode,
+		                "amount" => $key->amount,
+		                "action" => $key->action,
+		                "eventtime" => $key->eventtime
 			    	];
 			    	array_push($multi_event_bag['events'], $multi_event_array);
 			    	// # END MULTI EVENT
 			    	$game_ext_details = $find_mtcode->general_details;
 			        $general_details_bag = json_decode($game_ext_details);
-					$general_details_bag->transaction_status = 'amend'; // refund
+					// $general_details_bag->transaction_status = 'amend'; // refund
 		    	    $general_details = json_decode($game_ext_details);
 					$general_details_bag->client->before_balance = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
 				    $general_details_bag->client->after_balance = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
@@ -2973,14 +2854,17 @@ class CQ9Controller extends Controller
 			    	// # END MULTI EVENT
 
 			    	$general_details = [
+						"transaction_status" => 'amend',
 			    		"multi_event" => $multi_event, // MULTI EVENT
 						"provider" => [
 							"description" => 'Refunded Bets',
-							"refund_type" => 'amend_amends'
+							"refund_type" => 'amend_amends',
+							"action" => $action
 						],
 						"client" => [
 							"description" => 'SENDED DATA TO CLIENT!',
 							"transaction_type" => $transaction_type,
+							"player_prefixed" => $account,
 							"amount" => $amount,
 							"player_id"=> $user_id
 						],
@@ -3037,13 +2921,280 @@ class CQ9Controller extends Controller
 	    	// # END MULTI EVENT
 
 			return $mw_response;
-		// } catch (\Exception $e) {
-		// 	$mw_response = [
-	 //    		"data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]
-	 //    	];
-		// 	Helper::saveLog('CQ9 playerAmend Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
-		// 	return $mw_response;
-		// }
+		} catch (\Exception $e) {
+			$mw_response = [
+	    		"data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]
+	    	];
+			Helper::saveLog('CQ9 playerAmend Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
+			return $mw_response;
+		}
+    }
+
+    public function playerAmend(Request $request){
+    	Helper::saveLog('CQ9 playerAmend - EH', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT 1');
+    	$header = $request->header('wtoken');
+    	$check_wtoken = $this->checkAuth($header);
+    	if(!$check_wtoken){
+    		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
+			return $mw_response;
+    	}
+    	$provider_request = json_decode(file_get_contents("php://input"));
+    	if($provider_request == null){
+    		$response = [
+	    		"data"=>null,
+				"status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
+	    	];
+	    	return $response;
+    	}
+    	if(!isset($provider_request->account) || !isset($provider_request->action) || !isset($provider_request->amount) || !isset($provider_request->data) || !isset($provider_request->createTime)){
+    		$response = [
+	    		"data"=>null,
+				"status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
+	    	];
+	    	return $response;
+    	}
+    	if(!$this->validRFCDade($provider_request->createTime)){
+    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	    	];
+			return $mw_response;
+    	}
+
+    	$data_details = $provider_request->data;
+    	$account = $provider_request->account;
+    	// $gamecode = $provider_request->gamecode;
+    	$gamecode = $this->game_static_code; // $request->gamecode;
+    	$eventime = $provider_request->createTime; // created
+		$createtime = date(DATE_RFC3339);
+		$action = 'amend';
+    	
+    	$check_string_user = ProviderHelper::checkIfHasUnderscore($request->account);
+    	if(!$check_string_user){
+			$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
+		   return $mw_response;
+		}
+		$user_id = Providerhelper::explodeUsername('_', $account);
+    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
+    	if($client_details == null){
+    		$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]
+	    	];
+			return $mw_response;
+    	}
+		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+		if($player_details == 'false'){
+			$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]
+	    	];
+			return $mw_response;
+		}
+
+    	try {
+    		// # MULTI EVENT
+			$multi_event_bag = ["events"=>[]];
+	    	$multi_event = false;
+	    	$gametrans_ext_bag_id = [];
+	    	if(count($data_details) > 1){
+	    		$multi_event = true;
+	    		$multi_event_bag['before_balance'] = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
+	    		$multi_event_bag['me_createtime'] = $createtime;
+			   	$multi_event_bag['action'] = $action;
+	    	}
+	    	// # END MULTI EVENT
+			$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $gamecode);
+			// # FIRST LOOPER CHECKER
+			$total_amount = array();
+	    	foreach ($data_details as $value) {
+
+	    		if(!isset($value->mtcode) || !isset($value->amount) || !isset($value->validbet) || !isset($value->action) || !isset($value->roundid) || !isset($value->eventtime)){
+	    			$response = [
+			    		"data"=>null,
+						"status" => ["code" => "1003","message" => "Parameter error LOOP","datetime" => date(DATE_RFC3339)]
+			    	];
+			    	return $response;
+	    		}
+	    		if(!$this->validRFCDade($value->eventtime)){
+		    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+			    	];
+					return $mw_response;
+		    	}
+
+	    		$roundid = $value->roundid;
+		    	$amount = $value->amount;
+		    	$mtcode = $value->mtcode;
+	    		$game_ext_check = ProviderHelper::findGameExt($roundid, 1, 'round_id');
+				if($game_ext_check == 'false'){
+		    		$mw_response = [
+			    		"data" => null,
+			    		"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]
+			    	];
+					return $mw_response;
+				}	
+				$game_ext_check = ProviderHelper::findGameExt($roundid, 3, 'round_id');
+				if($game_ext_check != 'false'){
+		    		$mw_response = [
+			    		"data" =>null,
+			    		"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]
+			    	];
+					return $mw_response;
+				}
+				// if($general_details->provider->refund_type == 'amend_amends'){
+		        //   		$mw_response = [
+			    //    		"data" =>null,
+			    //    		"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]
+			    //    	];
+				// 	return $mw_response;
+				// }
+				if($value->amount < 0){
+		   			$mw_response = [
+			    		"data" => null,
+			    		"status" => ["code" => "1003","message" => 'Amount cannot be negative!',"datetime" => date(DATE_RFC3339)]
+			    	];
+					return $mw_response;
+		   		}
+		   		array_push($total_amount, $value->amount);
+	    	}
+
+
+	    	$total_amount = array_sum($total_amount);
+	    	if($player_details->playerdetailsresponse->balance < $total_amount){
+	   			$mw_response = [
+		    		"data" => null,"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
+		    	];
+		    	Helper::saveLog('CQ9 playerBets', $this->provider_db_id, json_encode($provider_request), $mw_response);
+				return $mw_response;
+	   		}
+	   		// # END FIRST LOOPER CHECKER
+	   	
+
+	    	foreach ($data_details as $key) {
+	    		$find_mtcode = $this->findTranPID($key->mtcode);
+	    		$roundid = $key->roundid;
+		    	$amount = $key->amount;
+		    	$mtcode = $key->mtcode;
+		    	// $game_ext_check = ProviderHelper::findGameExt($roundid, 3, 'round_id');
+		    	// $general_details_db = json_decode($game_ext_check->general_details);
+		    	$game_transaction = ProviderHelper::findGameTransaction($find_mtcode->game_trans_id, 'game_transaction');
+		    	if($amount == 0){
+		    		$transaction_type = 'credit';
+		    	}else{
+		    		$transaction_type = $key->action;
+		    	}
+		    	$pay_amount = $game_transaction->pay_amount - $amount;
+				$income = $game_transaction->bet_amount - $pay_amount;
+				$win_or_lost = 4;
+				$entry_id = $game_transaction->entry_id;
+		    	$token_id = $client_details->token_id;
+				$payout_reason = 'Amend Amends';
+				$provider_trans_id = $mtcode;
+				$game_transaction_type = 3;
+			
+				ProviderHelper::updateBetTransaction($game_transaction->round_id, $pay_amount, $income, $win_or_lost, $entry_id);
+		 	    $game_transextension = ProviderHelper::createGameTransExtV2($game_transaction->game_trans_id,$provider_trans_id, $roundid, $amount, $game_transaction_type);
+		 	    array_push($gametrans_ext_bag_id, $game_transextension); // # MULTI EVENT
+
+		 	    try {
+					$client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$game_transaction->game_trans_id, $transaction_type, true);
+					 Helper::saveLog('CQ9 playerAmend CRID = '.$game_transaction->game_trans_id, $this->provider_db_id, json_encode($provider_request), $client_response);
+				} catch (\Exception $e) {
+				    $mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+					ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $mw_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+					Helper::saveLog('CQ9 playerAmend - FATAL ERROR', $this->provider_db_id, $mw_response, Helper::datesent());
+					return $mw_response;
+				}
+		  	    
+			    if(isset($client_response->fundtransferresponse->status->code) 
+				             && $client_response->fundtransferresponse->status->code == "200"){
+			    	// # MULTI EVENT
+			    	$multi_event_array = [
+			    		"mtcode" => $key->mtcode,
+		                "amount" => $key->amount,
+		                "action" => $key->action,
+		                "eventtime" => $key->eventtime
+			    	];
+			    	array_push($multi_event_bag['events'], $multi_event_array);
+			    	// # END MULTI EVENT
+			    	$game_ext_details = $find_mtcode->general_details;
+			        $general_details_bag = json_decode($game_ext_details);
+					// $general_details_bag->transaction_status = 'amend'; // refund
+		    	    $general_details = json_decode($game_ext_details);
+					$general_details_bag->client->before_balance = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
+				    $general_details_bag->client->after_balance = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
+					$this->updatecreateGameTransExtGD($find_mtcode->game_trans_ext_id, $general_details_bag);
+			    	// # END MULTI EVENT
+
+			    	$general_details = [
+						"transaction_status" => 'amend',
+			    		"multi_event" => $multi_event, // MULTI EVENT
+						"provider" => [
+							"description" => 'Refunded Bets',
+							"refund_type" => 'amend_amends',
+							"action" => $action
+						],
+						"client" => [
+							"description" => 'SENDED DATA TO CLIENT!',
+							"transaction_type" => $transaction_type,
+							"player_prefixed" => $account,
+							"amount" => $amount,
+							"player_id"=> $user_id
+						],
+						"old_transaction" => [
+							"description" => 'OLD GAME TRANSACTION BEFORE AMEND THE AMENDS!',
+							"amount" => $amount,
+					    	"player_id"=> $user_id,
+					    	"bet_amount" => $game_transaction->bet_amount,
+					    	"win" => $game_transaction->win,
+					    	"pay_amount" => $game_transaction->pay_amount,
+					    	"income" => $game_transaction->income,
+					    	"entry_id" => $game_transaction->entry_id,
+							]
+					];
+					$mw_response = [
+			    		"data" => [
+			    			"balance" => $this->amountToFloat4DG($client_response->fundtransferresponse->balance),
+			    			"currency" => $client_details->default_currency,
+			    		],
+			    		"status" => ["code" => "0","message" => 'Success',"datetime" => date(DATE_RFC3339)]
+			    	];
+				
+			 	    ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, $mw_response,$general_details);
+
+				}elseif(isset($client_response->fundtransferresponse->status->code) 
+				            && $client_response->fundtransferresponse->status->code == "402"){
+					$mw_response = [
+					"data" => null,
+						"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
+					];
+				    ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, 'FAILED',$general_details);
+					return $mw_response;
+
+				}else{ // Unknown Response Code
+					$mw_response = ["data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]];
+				    ProviderHelper::updatecreateGameTransExt($game_transextension, $provider_request, $mw_response, $client_response->requestoclient, $client_response, 'FAILED',$general_details);
+					return $mw_response;
+				}    
+
+			}
+
+			// # MULTI EVENT
+	    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
+	    	$multi_event_bag['me_endtime'] = date(DATE_RFC3339);
+	    	if($multi_event == true){
+	    		foreach ($gametrans_ext_bag_id as $key) {
+	    			$transaction_record = $this->findGameExtByID($key);
+	    			$game_ext_details = $transaction_record->general_details;
+	    	        $general_details_bag = json_decode($game_ext_details);
+	    			$general_details_bag->multi_events = $multi_event_bag;
+	    			$this->updatecreateGameTransExtGD($key, $general_details_bag);
+	    		}
+	    	}
+	    	// # END MULTI EVENT
+
+			return $mw_response;
+		} catch (\Exception $e) {
+			$mw_response = [
+	    		"data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]
+	    	];
+			Helper::saveLog('CQ9 playerAmend Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
+			return $mw_response;
+		}
     }
   
     public function CheckBalance(Request $request, $account){
@@ -3163,8 +3314,8 @@ class CQ9Controller extends Controller
 		$transaction_db->where([
 	 		["gte.provider_trans_id", "=", $provider_identifier],
 	 	]);
-	 	$result= $transaction_db->first();
-	 	// $result= $transaction_db->latest()->first();
+	 	// $result= $transaction_db->first();
+	 	$result= $transaction_db->latest()->first();
 		return $result ? $result : 'false';
 	}
 
