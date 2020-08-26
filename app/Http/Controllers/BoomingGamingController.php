@@ -155,7 +155,7 @@ class BoomingGamingController extends Controller
                         $client_response_credit = json_decode($guzzle_response_credit->getBody()->getContents());
                         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
                         $response_credit =  [
-                            "balance" => (string)$player_details->playerdetailsresponse->balance
+                            "balance" => (string)$client_response_credit->fundtransferresponse->balance
                         ];
                        
                         $token_id = $client_details->token_id;

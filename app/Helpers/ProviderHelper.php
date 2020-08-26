@@ -4,6 +4,7 @@ namespace App\Helpers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use App\Helpers\Helper;
+use App\Helpers\DESHelper;
 use DB; 
 
 
@@ -126,6 +127,11 @@ class ProviderHelper{
 				 		["p.username", $value],
 				 	]);
 				}
+				if ($type == 'token_id') {
+					$query->where([
+				 		["pst.token_id", $value],
+				 	]);
+				}
 				$result= $query
 				 			->latest('token_id')
 				 			->first();
@@ -144,36 +150,38 @@ class ProviderHelper{
 	public static function playerDetailsCall($player_token, $refreshtoken=false){
 		$client_details = ProviderHelper::getClientDetails('token', $player_token);
 		if($client_details){
-			try{
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
-				$datatosend = ["access_token" => $client_details->client_access_token,
-					"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-					"type" => "playerdetailsrequest",
-					"datesent" => Helper::datesent(),
-                    "gameid" => "",
-					"clientid" => $client_details->client_id,
-					"playerdetailsrequest" => [
-						"client_player_id" => $client_details->client_player_id,
-						"token" => $player_token,
-						"gamelaunch" => true,
-						"refreshtoken" => $refreshtoken
-					]
-				];
-			
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			$datatosend = ["access_token" => $client_details->client_access_token,
+				"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				"type" => "playerdetailsrequest",
+				"datesent" => Helper::datesent(),
+                "gameid" => "",
+				"clientid" => $client_details->client_id,
+				"playerdetailsrequest" => [
+					"player_username"=>$client_details->username,
+					"client_player_id" => $client_details->client_player_id,
+					"token" => $player_token,
+					"gamelaunch" => true,
+					"refreshtoken" => $refreshtoken
+				]
+			];
+			try{	
 				$guzzle_response = $client->post($client_details->player_details_url,
 				    ['body' => json_encode($datatosend)]
 				);
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
 			 	return $client_response;
             }catch (\Exception $e){
+               Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
                return 'false';
             }
 		}else{
+			Helper::saveLog('ALDEBUG Token Not Found = '.$player_token,  99, json_encode($datatosend), 'TOKEN NOT FOUND');
 			return 'false';
 		}
 	}
@@ -233,6 +241,7 @@ class ProviderHelper{
 			$transaction_db->where([
 		 		["gte.provider_trans_id", "=", $provider_identifier],
 		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 		// ["gte.transaction_detail", "!=", '"FAILED"'],
 		 	]);
 		}
 		if ($type == 'round_id') {
@@ -242,6 +251,25 @@ class ProviderHelper{
 		 	]);
 		}  
 		$result = $transaction_db->latest()->first(); // Added Latest (CQ9) 08-12-20 - Al
+		return $result ? $result : 'false';
+	}
+
+
+	public static function findAllFailedGameExt($provider_identifier, $type) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+        if ($type == 'transaction_id') {
+			$transaction_db->where([
+		 		["gte.provider_trans_id", "=", $provider_identifier],
+		 		["gte.transaction_detail", "=", '"FAILED"'] // Intentionally qouted for DB QUERY
+		 	]);
+		}
+		if ($type == 'round_id') {
+			$transaction_db->where([
+		 		["gte.round_id", "=", $provider_identifier],
+		 		["gte.transaction_detail", "=", '"FAILED"']
+		 	]);
+		}  
+		$result = $transaction_db->latest()->get();
 		return $result ? $result : 'false';
 	}
 
@@ -268,6 +296,25 @@ class ProviderHelper{
 		return ($update ? true : false);
 	}
 
+
+	/**
+	 * GLOBAL
+	 * Find game transaction and update the reason
+	 * @param game_trans_id = the game_transaction_id, $win type
+	 * 
+	 */
+	public  static function updateGameTransactionStatus($game_trans_id, $win, $reason) {
+   	    $update = DB::table('game_transactions')
+                ->where('game_trans_id', $game_trans_id)
+                ->update([
+        		  'win' => $win, 
+        		  'transaction_reason' => ProviderHelper::updateReason($win),
+        		  'payout_reason' => ProviderHelper::updateReason($reason),
+	    		]);
+		return ($update ? true : false);
+	}
+
+
 	/**
 	 * GLOBAL
 	 * Find bet and update to win 
@@ -281,6 +328,7 @@ class ProviderHelper{
 		 "3" => 'Transaction updated to Draw',
 		 "4" => 'Transaction updated to Refund',
 		 "5" => 'Transaction updated to Processing',
+		 "99" => 'Transaction FAILED - FATAL ERROR',
 		];
 		if(array_key_exists($win, $win_type)){
     		return $win_type[$win];
@@ -342,7 +390,7 @@ class ProviderHelper{
 	 * @param  $[game_type] [<1=bet,2=win,3=refund>]
 	 * 
 	 */
-	public static function createGameTransExtV2($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request='NO DATA', $mw_response='NO DATA', $mw_request='NO DATA', $client_response='NO DATA', $transaction_detail='NO DATA', $general_details=null){
+	public static function createGameTransExtV2($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request='FAILED', $mw_response='FAILED', $mw_request='FAILED', $client_response='FAILED', $transaction_detail='FAILED', $general_details=null){
 		$gametransactionext = array(
 			"game_trans_id" => $game_trans_id,
 			"provider_trans_id" => $provider_trans_id,
@@ -456,5 +504,42 @@ class ProviderHelper{
 	    	->first();
 	    return $nonce_previous ? $nonce_previous : 'false';
 	}
+
+	public static function simplePlayAPICall ($queryString, $hashedString) {     
+        $result = ['error' => 1, 'message'=> 'An error occurred.', 'data' => []];
+
+        $encryptKey = config("providerlinks.simpleplay.ENCRYPT_KEY");
+        $apiURL = config("providerlinks.simpleplay.API_URL");
+        
+        $DES = new DESHelper($encryptKey);
+    
+        // Encrypt Query String (q)
+        $encryptedString = $DES->encrypt($queryString);
+
+        $requestBody = ['q' => $encryptedString, 's' => $hashedString];
+       
+        $options = array(
+            'http' => array(
+                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'content' => http_build_query($requestBody)
+            )
+        );
+
+        $context  = stream_context_create($options);
+        $result = file_get_contents($apiURL, false, $context);
+
+        if ($result === FALSE) {
+		    $result = ['error' => 1, 'message'=> 'Error in request.', 'data' => []];
+		}
+		else
+		{
+			$xml = simplexml_load_string($result) or die("Error: Cannot create object");
+
+			$result = ['error' => 0, 'message'=> 'Request Successful.', 'data' => $xml];
+		}
+
+		return $result;
+    }
 
 }

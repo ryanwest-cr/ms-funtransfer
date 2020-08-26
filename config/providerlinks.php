@@ -126,6 +126,7 @@ return [
     ],
     'skywind' => [
         'provider_db_id' => 28, // Database ID nothing todo with the provider!
+        'prefix_user' => 'TG', // Developer Logic nothing todo with the provider!
         'api_url' => 'https://api.gcpstg.m27613.com/v1',
         'seamless_key' => '47138d18-6b46-4bd4-8ae1-482776ccb82d',
         'seamless_username' => 'TGAMESU_USER',
@@ -210,6 +211,13 @@ return [
         'brandID' => '2416208c-f3cb-ea11-8b03-281878589203',
         'apiKey' => '3C3C5A48-4FE0-4E27-A727-07DE6610AAC8',
         'passKey' => 'Rja5ZK4kN1GA0R8C'
+    ],
+    'simpleplay' => [
+        'LOBBY_CODE' => 'S592',
+        'SECRET_KEY' => 'A872BAFDFA8349CC824A460E7AC02515',
+        'MD5_KEY' => 'GgaIMaiNNtg',
+        'ENCRYPT_KEY' => 'g9G16nTs',
+        'API_URL' => 'http://api.sp-portal.com/api/api.aspx'
     ]
 ];
 

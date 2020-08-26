@@ -12,6 +12,8 @@ use App\Helpers\SAHelper;
 use App\Helpers\TidyHelper;
 use App\Helpers\FCHelper;
 use App\Helpers\ProviderHelper;
+
+
 use DB;             
 use Carbon\Carbon;
 class GameLobby{
@@ -254,11 +256,14 @@ class GameLobby{
               ]
         ]);
         // $url = ''.config('providerlinks.skywind.api_url').'/fun/games/'.$game_code.'';
-         $url = ''.config('providerlinks.skywind.api_url').'/players/'.config('providerlinks.skywind.seamless_username').'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+         // $url = ''.config('providerlinks.skywind.api_url').'/players/'.config('providerlinks.skywind.seamless_username').'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+
+        // TG8_98
+        $url = ''.config('providerlinks.skywind.api_url').'/players/TG'.$client_details->client_id.'_'.$client_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
         // try {
         $response = $client->get($url);
         $response = json_encode(json_decode($response->getBody()->getContents()));
-        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $player_login->accessToken);
+        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $url);
         $url = json_decode($response, true);
         return isset($url['url']) ? $url['url'] : 'false';
             
@@ -410,7 +415,7 @@ class GameLobby{
                 'game_id' => $data["game_code"],
                 'balance' => $player_details->playerdetailsresponse->balance,
                 'locale' => 'en',
-                'variant' => 'desktop',
+                'variant' => 'mobile', // mobile, desktop
                 'currency' => $client_details->default_currency,
                 'player_id' => (string)$client_details->player_id,
                 'callback' =>  config('providerlinks.booming.call_back'),
@@ -690,6 +695,36 @@ class GameLobby{
         $url = 'https://play-prodcopy.oryxgaming.com/agg_plus_public/launch/wallets/WELLTREASURETECH/games/'.$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=REAL';
         return $url;
     }
+
+    public static function simplePlayLaunchUrl($game_code,$token,$exitUrl){
+        $url = $exitUrl;
+        $dateTime = date("YmdHis", strtotime(Helper::datesent()));
+        $secretKey = config("providerlinks.simpleplay.SECRET_KEY");
+        $md5Key = config("providerlinks.simpleplay.MD5_KEY");
+        
+        $client_details = Providerhelper::getClientDetails('token', $token);
+
+        /* [START] LoginRequest */
+        $queryString = "method=LoginRequest&Key=".$secretKey."&Time=".$dateTime."&Username=".$client_details->username."&CurrencyType=".$client_details->default_currency."&GameCode=".$game_code."&Mobile=0";
+        $hashedString = md5($queryString.$md5Key.$dateTime.$secretKey);
+        $response = ProviderHelper::simplePlayAPICall($queryString, $hashedString);
+        $url = (string) $response['data']->GameURL;
+        /* [END] LoginRequest */
+
+
+        /* [START] RegUserInfo */
+        /* $queryString = "method=RegUserInfo&Key=".$secretKey."&Time=".$dateTime."&Username=".$client_details->username."&CurrencyType=".$client_details->default_currency;
+
+        $hashedString = md5($queryString.$md5Key.$dateTime.$secretKey);
+
+        $response = ProviderHelper::simplePlayAPICall($queryString, $hashedString);
+        var_dump($response); die(); */
+        /* [END] RegUserInfo */
+
+        return $url;
+    }
+
+    
     
     public static function getLanguage($provider_name,$language){
         $provider_language = DB::table("providers")->where("provider_name",$provider_name)->get();
