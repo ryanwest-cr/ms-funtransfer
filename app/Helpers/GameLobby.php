@@ -511,7 +511,7 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token',$data['token']);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         try{
-            $url = $url."gameid=".$data['game_code']."&lang=".$client_details->language."&currency=".$client_details->currency."&org=".$org."&channel=pc&key=".$data['token'];
+            $url = $url."gameid=".$data['game_code']."&lang=".$client_details->language."&currency=".$client_details->default_currency."&org=".$org."&channel=pc&key=".$data['token'];
             Helper::saveLog('YGG gamelaunch', $provider_id, json_encode($data), $url);
             return $url;
         }catch(\Exception $e){
