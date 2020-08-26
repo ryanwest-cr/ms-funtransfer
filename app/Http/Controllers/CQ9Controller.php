@@ -23,7 +23,7 @@ use DB;
 class CQ9Controller extends Controller
 {
 
-	public $api_url, $api_token, $provider_db_id;
+	public $api_url, $api_token, $provider_db_id, $prefix;
 	public $game_static_code = 'BPUP2019';
 
 	// /gameboy/player/logout
@@ -35,6 +35,7 @@ class CQ9Controller extends Controller
     	$this->api_url = config('providerlinks.cqgames.api_url');
     	$this->api_token = config('providerlinks.cqgames.api_token');
     	$this->provider_db_id = config('providerlinks.cqgames.pdbid');
+    	$this->prefix = config('providerlinks.cqgames.prefix');
     }
 
     public function checkAuth($wtoken){
@@ -1734,7 +1735,10 @@ class CQ9Controller extends Controller
     	if($transaction_record != 'false'){
     		$game_ext_details = $transaction_record->general_details;
 	    	$general_details = json_decode($game_ext_details);
+
 	    	$client_details = Providerhelper::getClientDetails('player_id', $general_details->client->player_id);
+	    	dd($general_details);
+
 			if(isset($general_details->multi_event) && $general_details->multi_event == true){
 				$record = [
 			    		"data"=>[
@@ -2155,7 +2159,10 @@ class CQ9Controller extends Controller
 					"client" => [
 						"description" => 'SENDED DATA TO CLIENT!',
 						"transaction_type" => $transaction_type,
+						"before_balance" => $this->amountToFloat4DG($player_details->playerdetailsresponse->balance),
+		    	        "after_balance"=> $this->amountToFloat4DG($client_response->fundtransferresponse->balance),
 						"amount" => $amount,
+						"player_prefixed"=> $this->prefix.'_'.$user_id,
 						"player_id"=> $user_id
 					],
 					"old_transaction" => [
