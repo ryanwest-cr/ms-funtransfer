@@ -1735,10 +1735,7 @@ class CQ9Controller extends Controller
     	if($transaction_record != 'false'){
     		$game_ext_details = $transaction_record->general_details;
 	    	$general_details = json_decode($game_ext_details);
-
 	    	$client_details = Providerhelper::getClientDetails('player_id', $general_details->client->player_id);
-	    	dd($general_details);
-
 			if(isset($general_details->multi_event) && $general_details->multi_event == true){
 				$record = [
 			    		"data"=>[
@@ -2075,7 +2072,17 @@ class CQ9Controller extends Controller
 	    	return $response;
     	}
 
+    	// # MULTI EVENT
+		$multi_event_bag = ["events"=>[]];
+    	$multi_event = false;
+    	$gametrans_ext_bag_id = [];
+		$multi_event = true;
+		$multi_event_bag['me_createtime'] = $createtime;
+	   	$multi_event_bag['action'] = $action;
+    	// # END MULTI EVENT
     	$mtcodes = $provider_request;
+    	$mtcode_request_list = array();
+    	$game_trans_id_tobe_updated = array();
     	foreach($mtcodes->mtcode as $mt){
     		$find_mtcode = $this->findTranPID($mt);
 	  		if($find_mtcode == 'false'){
@@ -2090,12 +2097,22 @@ class CQ9Controller extends Controller
 		    	Helper::saveLog('CQ9 playerRefunds', $this->provider_db_id, json_encode($provider_request), $mw_response);
 				return $mw_response;
 			}
+			array_push($mtcode_request_list, $mt);
     	}
 
     	foreach($mtcodes->mtcode as $mt){
+    		$multi_event_before_balance_set = false;// Multi Event
     		$find_mtcode = $this->findTranPID($mt);
-    		$game_ext_check = ProviderHelper::findGameExt($mt, 3, 'transaction_id');
+    		// $game_ext_check = ProviderHelper::findGameExt($mt, 3, 'transaction_id');
     		$game_transaction = ProviderHelper::findGameTransaction($find_mtcode->game_trans_id, 'game_transaction');
+
+    		// multi event
+    		dd($find_mtcode);
+    		$general_details = json_decode($find_mtcode->general_details);
+    		dd($general_details->multi_events->events); // list of all mtcode in the current data
+    		// multi event
+    		
+    		return 1;
 	  		$game_details = ProviderHelper::findGameID($game_transaction->game_id);
 	  		$user_id = Providerhelper::findTokenID($game_transaction->token_id)->player_id;
 	    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
@@ -2106,6 +2123,12 @@ class CQ9Controller extends Controller
 		    	Helper::saveLog('CQ9 playerBets', $this->provider_db_id, json_encode($provider_request), $mw_response);
 				return $mw_response;
 			}
+
+			if ($multi_event_before_balance_set == false) {
+				$multi_event_bag['before_balance'] = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
+				$multi_event_before_balance_set = true;
+			}
+
 			$amount = $find_mtcode->amount;
 			if($find_mtcode->game_transaction_type == 1){ // BET SHOULD BE REFUNDED AS CREDIT
 				$pay_amount = 0;
@@ -2124,9 +2147,9 @@ class CQ9Controller extends Controller
 			$provider_trans_id = $mt;
 			$game_transaction_type = 3;
 
-
 			ProviderHelper::updateBetTransaction($game_transaction->round_id, $pay_amount, $income, $win_or_lost, $entry_id);
 	 	    $game_transextension = ProviderHelper::createGameTransExtV2($find_mtcode->game_trans_id,$provider_trans_id, $provider_trans_id, $amount, $game_transaction_type);
+	 	    array_push($gametrans_ext_bag_id, $game_transextension); // # MULTI EVENT
 
 	 	    try {
 				$client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$find_mtcode->game_trans_id, $transaction_type, true);
@@ -2142,6 +2165,16 @@ class CQ9Controller extends Controller
 	  	    if(isset($client_response->fundtransferresponse->status->code) 
 			             && $client_response->fundtransferresponse->status->code == "200"){
 
+	  	    	// # MULTI EVENT
+		    	// $multi_event_array = [
+		    	// 	"mtcode" => $key->mtcode,
+	      //           "amount" => $key->amount,
+	      //           "status" => 'refund',
+	      //           "eventtime" => $key->eventtime
+		    	// ];
+		    	array_push($multi_event_bag['events'], $multi_event_array);
+		    	// # END MULTI EVENT
+
   	    		$game_ext_details = $find_mtcode->general_details;
 		        $general_details_bag = json_decode($game_ext_details);
 				$general_details_bag->transaction_status = 'refund';
@@ -2151,10 +2184,14 @@ class CQ9Controller extends Controller
 				$this->updatecreateGameTransExtGD($find_mtcode->game_trans_ext_id, $general_details_bag);
 
 	  	    	$general_details = [
+	  	    		"multi_event" => true,
 	  	    		"transaction_status" =>  'refund',
 					"provider" => [
 						"description" => 'Refunded Bets',
-						"refund_type" => 'refund_bets'
+						"refund_type" => 'refund_bets',
+						"createtime" => $createtime,  // The Transaction Created!
+						"endtime" => date(DATE_RFC3339),
+						"action" => $action
 					],
 					"client" => [
 						"description" => 'SENDED DATA TO CLIENT!',
@@ -2199,6 +2236,20 @@ class CQ9Controller extends Controller
 				return $mw_response;
 			}    
 		}
+
+		// # MULTI EVENT
+    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
+    	$multi_event_bag['me_endtime'] = date(DATE_RFC3339);
+    	if($multi_event == true){
+    		foreach ($gametrans_ext_bag_id as $key) {
+    			$transaction_record = $this->findGameExtByID($key);
+    			$game_ext_details = $transaction_record->general_details;
+    	        $general_details_bag = json_decode($game_ext_details);
+    			$general_details_bag->multi_events = $multi_event_bag;
+    			$this->updatecreateGameTransExtGD($key, $general_details_bag);
+    		}
+    	}
+    	// # END MULTI EVENT
 
 		$mw_response = [ // LAST LOOP RESPONSE
     		"data" => [
