@@ -266,7 +266,7 @@ class GameLobbyController extends Controller
                     if($url){
                         $msg = array(
                             "game_code" => $request->input("game_code"),
-                            "url" => $url,
+                            "url" => "https://play.betrnk.games/loadgame?url=".urlencode($url)."&token=".$request->token,
                             "game_launch" => true
                         );
                     }else{
