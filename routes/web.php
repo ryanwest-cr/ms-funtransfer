@@ -416,6 +416,7 @@ $app->post('api/booming/rollback','BoomingGamingController@rollBack');
 
 // Yggdrasil 
 $app->post('api/ygg/playerinfo','YGGController@playerinfo');
+$app->post('api/ygg/playerinfo.json','YGGController@playerinfo');
 $app->post('api/ygg/wager','YGGController@wager');
 $app->post('api/ygg/cancelwager','YGGController@cancelwager');
 $app->post('api/ygg/appendwagerrequest','YGGController@appendwagerrequest');
