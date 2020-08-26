@@ -422,3 +422,7 @@ $app->post('api/ygg/appendwagerrequest','YGGController@appendwagerrequest');
 $app->post('api/ygg/endwager','YGGController@endwager');
 $app->post('api/ygg/campaignpayout','YGGController@campaignpayout');
 $app->post('api/ygg/getbalance','YGGController@getbalance');
+
+
+//IFRAME URL ENDPOINTS
+$app->post('/iframe/auth/token','Iframe\AuthenticationController@checkTokenExist');
