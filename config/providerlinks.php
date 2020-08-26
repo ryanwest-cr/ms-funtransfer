@@ -218,7 +218,13 @@ return [
         'MD5_KEY' => 'GgaIMaiNNtg',
         'ENCRYPT_KEY' => 'g9G16nTs',
         'API_URL' => 'http://api.sp-portal.com/api/api.aspx'
-    ]
+    ],
+    'ygg'=>[
+        'api_url' => 'https://staticstaging.yggdrasilgaming.com/init/launchClient.html?',
+        'Org' => 'TIGERGAMES',
+        'topOrg' => 'TIGERGAMESGroup',
+        'provider_id' => 38,
+    ],
 ];
 
 ?>

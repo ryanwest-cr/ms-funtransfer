@@ -503,6 +503,26 @@ class GameLobby{
         // return $url;
     }
 
+    public static function yggdrasillaunchUrl($data){
+        $provider_id = config("providerlinks.ygg.provider_id");
+        Helper::saveLog('YGG gamelaunch', $provider_id, json_encode($data), "Endpoing hit");
+        $url = config("providerlinks.ygg.api_url");
+        $org = config("providerlinks.ygg.api_url");
+        $client_details = ProviderHelper::getClientDetails('token',$data['token']);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        try{
+            $url = $url."gameid=".$data['game_code']."&lang=".$client_details->language."&currency=".$client_details->currency."&org=".$org."&channel=pc&key=".$data['token'];
+            return $url;
+        }catch(\Exception $e){
+            $error = [
+                'error' => $e->getMessage()
+            ];
+            Helper::saveLog('YGG gamelaunch', $provider_id, json_encode($data), $e->getMessage());
+            return $error;
+        }
+
+    }
+
     public static function iaLaunchUrl($game_code,$token,$exitUrl)
     {
         $player_details = Providerhelper::getClientDetails('token', $token);
