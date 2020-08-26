@@ -13,17 +13,13 @@ use DB;
 class SpadeController extends Controller
 {
 	
-	public $api_url, $merchant_id, $merchant_key = '';
-	public $provider_db_id = 37;
-	public $prefix = 'TIGERG';
-	public $merchantCode = 'TIGERG';
-	public $siteId = 'SITE_USD1';
-
-    // public function __construct(){
-    // 	$this->api_url = config('providerlinks.aws.api_url');
-    // 	$this->merchant_id = config('providerlinks.aws.merchant_id');
-    // 	$this->merchant_key = config('providerlinks.aws.merchant_key');
-	// }
+    public function __construct(){
+    	$this->prefix = config('providerlinks.spade.prefix');
+    	$this->merchantCode = config('providerlinks.spade.merchantCode');
+		$this->siteId = config('providerlinks.spade.siteId');
+		$this->api_url = config('providerlinks.spade.api_url');
+		$this->provider_id = config('providerlinks.spade.provider_id');
+	}
 
 	public function generateSerialNo(){
     	// $guid = vsprintf('%s%s-%s-4000-8%.3s-%s%s%s0',str_split(dechex( microtime(true) * 1000 ) . bin2hex( random_bytes(8) ),4));
@@ -32,7 +28,8 @@ class SpadeController extends Controller
 	}
 	
 	public function getGameList(Request $request){
-		$api = "https://api-egame-staging.sgplay.net/api";
+		$api = $this->api_url;
+		
 		$requesttosend = [
 			'serialNo' =>  $this->generateSerialNo(),
 			'merchantCode' => $this->merchantCode,
@@ -49,6 +46,7 @@ class SpadeController extends Controller
 		return json_encode($client_response);
 	
 	}
+	
 	public function index(Request $request){
 		if(!$request->header('API')){
 			$response = [

@@ -225,6 +225,13 @@ return [
         'topOrg' => 'TIGERGAMESGroup',
         'provider_id' => 38,
     ],
+    'spade'=>[
+        'prefix' => 'TIGERG', 
+        'api_url'=> 'https://api-egame-staging.sgplay.net/api',
+        'merchantCode' => 'TIGERG',
+        'siteId' => 'SITE_USD1',
+        'provider_id' => 37,
+    ]
 ];
 
 ?>
