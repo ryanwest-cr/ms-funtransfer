@@ -413,3 +413,12 @@ $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
 $app->post('api/booming/gamelist','BoomingGamingController@gameList');
 $app->post('api/booming/callback','BoomingGamingController@callBack');
 $app->post('api/booming/rollback','BoomingGamingController@rollBack');
+
+// Yggdrasil 
+$app->post('api/ygg/playerinfo','YGGController@playerinfo');
+$app->post('api/ygg/wager','YGGController@wager');
+$app->post('api/ygg/cancelwager','YGGController@cancelwager');
+$app->post('api/ygg/appendwagerrequest','YGGController@appendwagerrequest');
+$app->post('api/ygg/endwager','YGGController@endwager');
+$app->post('api/ygg/campaignpayout','YGGController@campaignpayout');
+$app->post('api/ygg/getbalance','YGGController@getbalance');
