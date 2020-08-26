@@ -52,7 +52,6 @@ class PNGController extends Controller
                     "userCurrency" => $client_details->default_currency,
                     "country" => "SE",
                     "birthdate"=> "1990-04-29",
-                    "registration"=> $client_details->created_at,
                     "language" => "EN",
                     "externalGameSessionId" => $xmlparser->username,
                     "real"=> number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
@@ -61,11 +60,18 @@ class PNGController extends Controller
             }
             else{
                 $array_data = array(
-                    "statusCode" => 1,
-                    "statusMessage" => "Session Expired",
+                    "statusCode" => 4,
+                    "statusMessage" => "Incorrect Token/Token Expired",
                 );
                 return PNGHelper::arrayToXml($array_data,"<authenticate/>");
             }
+        }
+        else{
+            $array_data = array(
+                "statusCode" => 4,
+                "statusMessage" => "Incorrect Token/Token Expired",
+            );
+            return PNGHelper::arrayToXml($array_data,"<authenticate/>");
         }
         
     }
@@ -175,6 +181,13 @@ class PNGController extends Controller
                 
 
             }
+            else{
+                $array_data = array(
+                    "statusCode" => 4,
+                    "statusMessage" => "Incorrect Token/Token Expired",
+                );
+                return PNGHelper::arrayToXml($array_data,"<authenticate/>");
+            }
         } 
     }
     public function release(Request $request){
@@ -273,6 +286,13 @@ class PNGController extends Controller
                 else{
                     return "something error with the client";
                 }
+            }
+            else{
+                $array_data = array(
+                    "statusCode" => 4,
+                    "statusMessage" => "Incorrect Token/Token Expired",
+                );
+                return PNGHelper::arrayToXml($array_data,"<authenticate/>");
             }
         } 
     }
