@@ -2951,14 +2951,21 @@ class CQ9Controller extends Controller
 					Helper::saveLog('CQ9 playerAmend - FATAL ERROR', $this->provider_db_id, $mw_response, Helper::datesent());
 					return $mw_response;
 				}
-			    
 		  	    
 			    if(isset($client_response->fundtransferresponse->status->code) 
 				             && $client_response->fundtransferresponse->status->code == "200"){
 			    	// # MULTI EVENT
+			    	$multi_event_array = [
+			    		"mtcode" => $value->mtcode,
+		                "amount" => $value->amount,
+		                "action" => $value->action,
+		                "eventtime" => $value->eventtime
+			    	];
+			    	array_push($multi_event_bag['events'], $multi_event_array);
+			    	// # END MULTI EVENT
 			    	$game_ext_details = $find_mtcode->general_details;
 			        $general_details_bag = json_decode($game_ext_details);
-					$general_details_bag->transaction_status = 'refund';
+					$general_details_bag->transaction_status = 'amend'; // refund
 		    	    $general_details = json_decode($game_ext_details);
 					$general_details_bag->client->before_balance = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
 				    $general_details_bag->client->after_balance = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
