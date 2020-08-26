@@ -2233,7 +2233,6 @@ class CQ9Controller extends Controller
 	    	return $response;
     	}
 
-
     	$mtcodes = $provider_request;
 
     	// # MULTI EVENT
