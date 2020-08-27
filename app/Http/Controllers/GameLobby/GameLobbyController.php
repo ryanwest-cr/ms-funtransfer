@@ -20,10 +20,10 @@ class GameLobbyController extends Controller
 
     public $image_url = 'https://bo-test.betrnk.games/';
     //
-    public function __construct(){
-		$this->middleware('oauth', ['except' => ['index']]);
-		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
-	}
+    // public function __construct(){
+	// 	$this->middleware('oauth', ['except' => ['index']]);
+	// 	/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
+	// }
     public function getGameList(Request $request){
         if($request->has("client_id")){
             
