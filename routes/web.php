@@ -173,19 +173,19 @@ $app->post('api/aws/single/wallet/fund/query', 'AWSController@singleFundQuery');
 $app->post('api/aws/single/wallet/altest', 'AWSController@changeAccount');
 // SILKSTONE ROUTES (SEAMLESS WALLET)
 // $app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
-$app->post('skywind/api/getgamelist', 'SkyWindController@getGamelist'); // TEST
-$app->post('skywind/api/getauth', 'SkyWindController@getAuth'); // TEST
-$app->post('skywind/api/getauth2', 'SkyWindController@getAuth2'); // TEST
-$app->post('skywind/api/getgames', 'SkyWindController@getGamelist'); // TEST
-$app->post('skywind/api/gamelaunch', 'SkyWindController@gameLaunch'); // TEST
+$app->post('api/skywind/api/getgamelist', 'SkyWindController@getGamelist'); // TEST
+$app->post('api/skywind/api/getauth', 'SkyWindController@getAuth'); // TEST
+$app->post('api/skywind/api/getauth2', 'SkyWindController@getAuth2'); // TEST
+$app->post('api/skywind/api/getgames', 'SkyWindController@getGamelist'); // TEST
+$app->post('api/skywind/api/gamelaunch', 'SkyWindController@gameLaunch'); // TEST
 
-$app->post('skywind/api/validate_ticket', 'SkyWindController@validateTicket');
-$app->post('skywind/api/get_ticket', 'SkyWindController@getTicket');
-$app->post('skywind/api/get_balance', 'SkyWindController@getBalance');
-$app->post('skywind/api/debit', 'SkyWindController@gameDebit');
-$app->post('skywind/api/credit', 'SkyWindController@gameCredit');
-$app->post('skywind/api/rollback', 'SkyWindController@gameRollback');
-$app->post('skywind/api/get_free_bet', 'SkyWindController@getFreeBet');
+$app->post('api/skywind/api/validate_ticket', 'SkyWindController@validateTicket');
+$app->post('api/skywind/api/get_ticket', 'SkyWindController@getTicket');
+$app->post('api/skywind/api/get_balance', 'SkyWindController@getBalance');
+$app->post('api/skywind/api/debit', 'SkyWindController@gameDebit');
+$app->post('api/skywind/api/credit', 'SkyWindController@gameCredit');
+$app->post('api/skywind/api/rollback', 'SkyWindController@gameRollback');
+$app->post('api/skywind/api/get_free_bet', 'SkyWindController@getFreeBet');
 //Player API
 //Operator API
 //Lobby API
@@ -415,20 +415,13 @@ $app->post('api/booming/callback','BoomingGamingController@callBack');
 $app->post('api/booming/rollback','BoomingGamingController@rollBack');
 
 // Yggdrasil 
-// $app->post('api/ygg/playerinfo','YGGController@playerinfo');
-// $app->post('api/ygg/wager','YGGController@wager');
-// $app->post('api/ygg/cancelwager','YGGController@cancelwager');
-// $app->post('api/ygg/appendwagerrequest','YGGController@appendwagerrequest');
-// $app->post('api/ygg/endwager','YGGController@endwager');
-// $app->post('api/ygg/campaignpayout','YGGController@campaignpayout');
-// $app->post('api/ygg/getbalance','YGGController@getbalance');
-$app->post('api/ygg/playerinfo','YGGController@playerinfo');
-$app->post('api/ygg/wager','YGGController@wager');
-$app->post('api/ygg/cancelwager','YGGController@cancelwager');
-$app->post('api/ygg/appendwagerrequest','YGGController@appendwagerrequest');
-$app->post('api/ygg/endwager','YGGController@endwager');
-$app->post('api/ygg/campaignpayout','YGGController@campaignpayout');
-$app->post('api/ygg/getbalance','YGGController@getbalance');
+$app->get('api/ygg/playerinfo.json','YGGController@playerinfo');
+$app->get('api/ygg/wager.json','YGGController@wager');
+$app->get('api/ygg/cancelwager.json','YGGController@cancelwager');
+$app->get('api/ygg/appendwagerrequest.json','YGGController@appendwagerrequest');
+$app->get('api/ygg/endwager.json','YGGController@endwager');
+$app->get('api/ygg/campaignpayout.json','YGGController@campaignpayout');
+$app->get('api/ygg/getbalance.json','YGGController@getbalance');
 
 
 //IFRAME URL ENDPOINTS
