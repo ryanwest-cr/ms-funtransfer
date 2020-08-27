@@ -52,7 +52,6 @@ class PNGController extends Controller
                     "userCurrency" => $client_details->default_currency,
                     "country" => "SE",
                     "birthdate"=> "1990-04-29",
-                    "language" => "EN",
                     "externalGameSessionId" => $xmlparser->username,
                     "real"=> number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
                 );
