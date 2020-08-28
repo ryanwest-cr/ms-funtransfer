@@ -20,10 +20,10 @@ class GameLobbyController extends Controller
 
     public $image_url = 'https://bo-test.betrnk.games/';
     //
-    // public function __construct(){
-	// 	$this->middleware('oauth', ['except' => ['index']]);
-	// 	/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
-	// }
+    public function __construct(){
+		$this->middleware('oauth', ['except' => ['index']]);
+		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
+	}
     public function getGameList(Request $request){
         if($request->has("client_id")){
             
@@ -113,9 +113,10 @@ class GameLobbyController extends Controller
             $lang = $request->has("lang")?$request->input("lang"):"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
                 if($request->input('game_provider')=="Iconic Gaming"){
+                    $url = GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$request->input('game_provider'),$lang);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$request->input('game_provider'),$lang),
+                        "url" => "https://play.betrnk.games/loadgame?url=".urlencode($url)."&token=".$request->token,
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -151,7 +152,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="PlayNGo Direct"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::pngLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
+                        "url" => GameLobby::pngLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl,$lang),
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -266,9 +267,10 @@ class GameLobbyController extends Controller
                     if($url){
                         $msg = array(
                             "game_code" => $request->input("game_code"),
-                            "url" => $url,//"https://play.betrnk.games/loadgame?url=".urlencode($url)."&token=".$request->token,
+                            "url" => "https://play.betrnk.games/loadgame?url=".urlencode($url)."&token=".$request->token,
                             "game_launch" => true
                         );
+                        Helper::saveLog('IA Launch Game URL', 15, json_encode("https://play.betrnk.games/loadgame?url=".urlencode($url)."&token=".$request->token), "TEST URL");
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),

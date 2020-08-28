@@ -1459,12 +1459,12 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playerPayoff Player', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$provider_request = $request->all();
-		// $check_wtoken = $this->checkAuth($header);
-  //   	if(!$check_wtoken){
-  //   		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
-		// 	Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
-		// 	return $mw_response;
-  //   	}
+		$check_wtoken = $this->checkAuth($header);
+    	if(!$check_wtoken){
+    		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
+			Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
+			return $mw_response;
+    	}
     	if(!$request->has('account') || !$request->has('eventTime') || !$request->has('amount') || !$request->has('mtcode')){
     		$mw_response = ["data" => null,"status" => ["code" => "1003","message" => 'Parameter error.',"datetime" => date(DATE_RFC3339)]
 	    	];
@@ -1817,13 +1817,13 @@ class CQ9Controller extends Controller
     	Helper::saveLog('CQ9 playerBets Player', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
     	$check_wtoken = $this->checkAuth($header);
+    	$provider_request = json_decode(file_get_contents("php://input"));
     	if(!$check_wtoken){
     		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
 			Helper::saveLog('CQ9 Error Token', $this->provider_db_id, json_encode($provider_request), $mw_response);
 			return $mw_response;
     	}
 
-    	$provider_request = json_decode(file_get_contents("php://input"));
     	if($provider_request == null){
     		$response = [
 	    		"data"=>null,
@@ -3146,12 +3146,12 @@ class CQ9Controller extends Controller
     public function playerAmend(Request $request){
     	Helper::saveLog('CQ9 playerAmend - EH', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT 1');
     	$header = $request->header('wtoken');
+    	$provider_request = json_decode(file_get_contents("php://input"));
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
     		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
 			return $mw_response;
     	}
-    	$provider_request = json_decode(file_get_contents("php://input"));
     	if($provider_request == null){
     		$response = [
 	    		"data"=>null,

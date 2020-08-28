@@ -60,10 +60,10 @@ class GameLobby{
                   '&game='.$game_code.'&mode=real&token='.$token.'&license='.config('providerlinks.wazdan.license').'&lang='.$lang.'&platform=desktop';
         return $gameurl;
     }
-    public static function pngLaunchUrl($game_code,$token,$provider,$exitUrl){
-        $lang = "en";
+    public static function pngLaunchUrl($game_code,$token,$provider,$exitUrl,$lang){
         $timestamp = Carbon::now()->timestamp;
         $exit_url = $exitUrl;
+        $lang = GameLobby::getLanguage("PlayNGo",$lang);
         Helper::savePLayerGameRound($game_code,$token,$provider);
         $gameurl = config('providerlinks.png.root_url').'/casino/ContainerLauncher?pid='.config('providerlinks.png.pid').'&gid='.$game_code.'&channel='.
                    config('providerlinks.png.channel').'&lang='.$lang.'&practice='.config('providerlinks.png.practice').'&ticket='.$token.'&origin='.$exit_url;
