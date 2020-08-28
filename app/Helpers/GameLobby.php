@@ -230,9 +230,10 @@ class GameLobby{
         return $game_url.'&player_token='.$token;
     }
 
-    public static function rsgLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
+    public static function rsgLaunchUrl($game_code,$token,$exitUrl,$lang='en', $provider_sub_name){
         $url = $exitUrl;
         $domain = parse_url($url, PHP_URL_HOST);
+        Helper::savePLayerGameRound($game["game_code"],$token,$provider_sub_name);
         $url = 'https://partnerapirgs.betadigitain.com/GamesLaunch/Launch?gameid='.$game_code.'&playMode=real&token='.$token.'&deviceType=1&lang='.$lang.'&operatorId=B9EC7C0A&mainDomain='.$domain.'';
         return $url;
     }
