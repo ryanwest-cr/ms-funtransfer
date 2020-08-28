@@ -12,6 +12,7 @@ use App\Helpers\Game;
 use App\Helpers\CallParameters;
 use App\Helpers\PlayerHelper;
 use App\Helpers\TokenHelper;
+use App\Helpers\ProviderHelper;
 
 use App\Support\RouteParam;
 
@@ -198,10 +199,26 @@ class OryxGamingController extends Controller
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$client_code = RouteParam::get($request, 'brand_code');
+		if (array_key_exists('bet', $json_data) || array_key_exists('win', $json_data)) {
+			$transaction_id = (array_key_exists('bet', $json_data) == true ? $json_data['bet']['transactionId'] : $json_data['win']['transactionId']);
 
-		/*if($this->_isIdempotent($json_data['transid'])) {
-			return $this->_isIdempotent($json_data['transid'])->mw_response;
-		}*/
+			if($this->_isCancelled($transaction_id)) {
+				$playerdetails_response = Providerhelper::playerDetailsCall($json_data['sessionToken']);
+				$http_status = 501;
+
+				$response = [
+					"responseCode" => "ERROR",
+					"balance" => $this->_toPennies($playerdetails_response->playerdetailsresponse->balance),
+				];
+
+				return response()->json($response, $http_status);
+			}
+
+			if($this->_isIdempotent($transaction_id)) {
+				return $this->_isIdempotent($transaction_id)->mw_response;
+			}
+		}
+		
 
 		if(!CallParameters::check_keys($json_data, 'playerId', 'roundId', 'gameCode', 'roundAction', 'sessionToken')) {
 				$http_status = 401;
@@ -533,7 +550,7 @@ class OryxGamingController extends Controller
 			}
 		}
 		
-		Helper::saveLog($transactiontype, 18, file_get_contents("php://input"), $response);
+		/*Helper::saveLog($transactiontype, 18, file_get_contents("php://input"), $response);*/
 		return response()->json($response, $http_status);
 
 	}
@@ -543,9 +560,15 @@ class OryxGamingController extends Controller
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$client_code = RouteParam::get($request, 'brand_code');
 
-		/*if($this->_isIdempotent($json_data['transid'])) {
-			return $this->_isIdempotent($json_data['transid'])->mw_response;
-		}*/
+		if($this->_isIdempotent($json_data['transactionId'], true)) {
+			$http_status = 409;
+				$response = [
+							"responseCode" =>  "ERROR",
+							"errorDescription" => "This transaction is already processed."
+						];
+
+			return response()->json($response, $http_status);
+		}
 
 		if(!CallParameters::check_keys($json_data, 'playerId', 'gameCode', 'action', 'sessionToken')) {
 				$http_status = 401;
@@ -633,13 +656,16 @@ class OryxGamingController extends Controller
 							$json_data['income'] = $game_transaction->bet_amount;
 							$json_data['roundid'] = '';
 
-							$game_transaction_id = GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
+							$game_transaction_id = GameTransaction::update_rollback('rollback', $json_data, $game_transaction, $client_details, $client_details);
 							
 							$http_status = 200;
 								$response = [
 									"responseCode" => "OK",
 									"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
 								];
+							$json_data['Amount'] = $game_transaction->pay_amount;	
+							/*var_dump($game_transaction); die();*/
+							Helper::createOryxGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 3);
 
 						}
 					}
@@ -694,6 +720,21 @@ class OryxGamingController extends Controller
 
 		if($transaction_exist) {
 			$result = $transaction_exist;
+		}
+
+		return $result;								
+	}
+
+	private function _isCancelled($transaction_id, $is_rollback = false) {
+		$result = false;
+		$query = DB::table('game_transactions')
+								->where('provider_trans_id', $transaction_id)
+								->where('entry_id', 3);
+
+		$transaction_cancelled = $query->first();
+
+		if($transaction_cancelled) {
+			$result = $transaction_cancelled;
 		}
 
 		return $result;								

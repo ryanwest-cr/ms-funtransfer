@@ -439,13 +439,13 @@ class Helper
 	public static function createOryxGameTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type){
 		$gametransactionext = array(
 			"game_trans_id" => $gametransaction_id,
-			"provider_trans_id" => $provider_request['TransactionID'],
+			"provider_trans_id" => $provider_request['transactionId'],
 			"round_id" =>$provider_request['roundId'],
 			"amount" =>$provider_request['Amount'],
 			"game_transaction_type"=>$game_transaction_type,
 			"provider_request" =>json_encode($provider_request),
 			"mw_request"=>json_encode($mw_request),
-			"mw_response" =>addslashes($mw_response),
+			"mw_response" =>json_encode($mw_response),
 			"client_response" =>json_encode($client_response),
 		);
 	
