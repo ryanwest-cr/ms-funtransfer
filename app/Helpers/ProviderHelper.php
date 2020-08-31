@@ -241,20 +241,21 @@ class ProviderHelper{
 			$transaction_db->where([
 		 		["gte.provider_trans_id", "=", $provider_identifier],
 		 		["gte.game_transaction_type", "=", $game_transaction_type],
-		 		// ["gte.transaction_detail", "!=", '"FAILED"'],
+		 		["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
 		 	]);
 		}
 		if ($type == 'round_id') {
 			$transaction_db->where([
 		 		["gte.round_id", "=", $provider_identifier],
 		 		["gte.game_transaction_type", "=", $game_transaction_type],
+		 		["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
 		 	]);
 		}  
 		$result = $transaction_db->latest()->first(); // Added Latest (CQ9) 08-12-20 - Al
 		return $result ? $result : 'false';
 	}
 
-
+	
 	public static function findAllFailedGameExt($provider_identifier, $type) {
 		$transaction_db = DB::table('game_transaction_ext as gte');
         if ($type == 'transaction_id') {
@@ -266,7 +267,7 @@ class ProviderHelper{
 		if ($type == 'round_id') {
 			$transaction_db->where([
 		 		["gte.round_id", "=", $provider_identifier],
-		 		["gte.transaction_detail", "=", '"FAILED"']
+		 		["gte.transaction_detail", "=", '"FAILED"'] // Intentionally qouted for DB QUERY
 		 	]);
 		}  
 		$result = $transaction_db->latest()->get();

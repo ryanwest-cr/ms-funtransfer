@@ -125,7 +125,7 @@ class SimplePlayController extends Controller
 		$decrypted_string = $this->decrypt(urldecode($string));
 		$query = parse_url('http://test.url?'.$decrypted_string, PHP_URL_QUERY);
 		parse_str($query, $request_params);
-
+		
 		$client_code = RouteParam::get($request, 'brand_code');
 
 		$response = [
@@ -197,7 +197,7 @@ class SimplePlayController extends Controller
 
 		$client_details = $this->_getClientDetails('username', $request_params['username']);
 		
-		if ($client_details && $player_details != NULL) {
+		if ($client_details) {
 			//GameRound::create($json_data['roundid'], $player_details->token_id);
 
 			// Check if the game is available for the client
@@ -233,15 +233,15 @@ class SimplePlayController extends Controller
 							  ],
 							  "fundtransferrequest" => [
 									"playerinfo" => [
-									"token" => $player_details->player_token
+									"token" => $client_details->player_token
 								],
 								"fundinfo" => [
 								      "gamesessionid" => "",
 								      "transactiontype" => "debit",
 								      "transferid" => "",
 								      "rollback" => "false",
-								      "currencycode" => $player_details->currency,
-								      "amount" => "-".$request_params["amount"]
+								      "currencycode" => $client_details->currency,
+								      "amount" => $request_params["amount"]
 								]
 							  ]
 							]
@@ -270,10 +270,12 @@ class SimplePlayController extends Controller
 						$json_data = [
 							'transid' => $request_params['txnid'],
 							'amount' => $request_params['amount'],
+							'income' => $request_params['amount'],
 							'reason' => '',
 							'roundid' => 0
 						];
-						GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
+
+						GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
 						header("Content-type: text/xml; charset=utf-8");
 				 		$response = '<?xml version="1.0" encoding="utf-8"?>';
@@ -303,10 +305,9 @@ class SimplePlayController extends Controller
 						"httpstatus" => "404"
 					];
 
-		$client_details = $this->_getClientDetails($client_code);
-		$player_details = PlayerHelper::getPlayerDetails($request_params['username'], 'username');
+		$client_details = $this->_getClientDetails('username', $request_params['username']);
 		
-		if ($client_details && $player_details != NULL) {
+		if ($client_details) {
 			//GameRound::create($json_data['roundid'], $player_details->token_id);
 
 			// Check if the game is available for the client
@@ -342,14 +343,14 @@ class SimplePlayController extends Controller
 							  ],
 							  "fundtransferrequest" => [
 									"playerinfo" => [
-									"token" => $player_details->player_token
+									"token" => $client_details->player_token
 								],
 								"fundinfo" => [
 								      "gamesessionid" => "",
 								      "transactiontype" => "credit",
 								      "transferid" => "",
 								      "rollback" => "false",
-								      "currencycode" => $player_details->currency,
+								      "currencycode" => $client_details->currency,
 								      "amount" => $request_params["amount"]
 								]
 							  ]
@@ -378,10 +379,11 @@ class SimplePlayController extends Controller
 						$json_data = [
 							'transid' => $request_params['txnid'],
 							'amount' => $request_params['amount'],
+							'income' => 0,
 							'reason' => '',
 							'roundid' => 0
 						];
-						GameTransaction::save('credit', $json_data, $game_details, $client_details, $player_details);
+						GameTransaction::save('credit', $json_data, $game_details, $client_details, $client_details);
 
 						header("Content-type: text/xml; charset=utf-8");
 				 		$response = '<?xml version="1.0" encoding="utf-8"?>';
@@ -412,10 +414,9 @@ class SimplePlayController extends Controller
 						"httpstatus" => "404"
 					];
 
-		$client_details = $this->_getClientDetails($client_code);
-		$player_details = PlayerHelper::getPlayerDetails($request_params['username'], 'username');
+		$client_details = $this->_getClientDetails('username', $request_params['username']);
 		
-		if ($client_details && $player_details != NULL) {
+		if ($client_details) {
 			//GameRound::create($json_data['roundid'], $player_details->token_id);
 
 			// Check if the game is available for the client
@@ -451,14 +452,14 @@ class SimplePlayController extends Controller
 							  ],
 							  "fundtransferrequest" => [
 									"playerinfo" => [
-									"token" => $player_details->player_token
+									"token" => $client_details->player_token
 								],
 								"fundinfo" => [
 								      "gamesessionid" => "",
 								      "transactiontype" => "debit",
 								      "transferid" => "",
 								      "rollback" => "false",
-								      "currencycode" => $player_details->currency,
+								      "currencycode" => $client_details->currency,
 								      "amount" => 0
 								]
 							  ]
@@ -488,10 +489,11 @@ class SimplePlayController extends Controller
 						$json_data = [
 							'transid' => $request_params['txnid'],
 							'amount' => 0,
+							'income' => 0,
 							'reason' => '',
 							'roundid' => 0
 						];
-						GameTransaction::save('debit', $json_data, $game_details, $client_details, $player_details);
+						GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
 						header("Content-type: text/xml; charset=utf-8");
 				 		$response = '<?xml version="1.0" encoding="utf-8"?>';

@@ -20,10 +20,10 @@ class GameLobbyController extends Controller
 
     public $image_url = 'https://bo-test.betrnk.games/';
     //
-    // public function __construct(){
-	// 	$this->middleware('oauth', ['except' => ['index']]);
-	// 	/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
-	// }
+    public function __construct(){
+		$this->middleware('oauth', ['except' => ['index']]);
+		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
+	}
     public function getGameList(Request $request){
         if($request->has("client_id")){
             
@@ -185,11 +185,11 @@ class GameLobbyController extends Controller
                     return $msg;
                 }
                 elseif($request->input('game_provider')=="Digitain"){ // request->token
-                    Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
+                    Helper::saveLog('DEMO CALL', 14, json_encode($request->all()), 'DEMO');
                     $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::rsgLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang), //TEST
+                        "url" => GameLobby::rsgLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang,$request->input('game_provider')), //TEST
                         "game_launch" => true
                     );
                     return response($msg,200)
