@@ -135,6 +135,7 @@ $app->post('rsg/win', 'DigitainController@win');
 $app->post('rsg/betwin', 'DigitainController@betwin');
 $app->post('rsg/refund', 'DigitainController@refund');
 $app->post('rsg/amend', 'DigitainController@amend');
+$app->post('rsg/checktxstatus', 'DigitainController@CheckTxStatus');
 // IA SPORTS
 $app->post('ia/hash', 'IAESportsController@hashen'); // DEPRECATED
 $app->post('ia/lunch', 'IAESportsController@userlunch');// DEPRECATED
