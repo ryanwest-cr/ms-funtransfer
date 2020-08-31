@@ -196,8 +196,8 @@ class GameInfoController extends Controller
 				"clientid" => $client_details->client_id,
 				"playerdetailsrequest" => [
 					"client_player_id" => $client_details->client_player_id,
+					"player_username" => $client_details->username ? $client_details->username : '',
 					"token" => $client_details->player_token ? $client_details->player_token : '',
-					"username" => $client_details->username ? $client_details->username : '',
 					"gamelaunch" => false,
 					"refreshtoken" => $request->has('refreshtoken') ? true : false,
 				]
