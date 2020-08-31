@@ -239,12 +239,7 @@ class GameLobby{
         return $url;
     }
 
-    public static function spadeLaunch($game_code,$token,$exitUrl,$lang='en_US'){
-        $client_details = ProviderHelper::getClientDetails('token', $token);
-        $domain =  $exitUrl;
-        $url = 'https://lobby-egame-staging.sgplay.net/TIGERG/auth/?acctId=TIGERG_'.$client_details->player_id.'&language='.$lang.'&token='.$token.'&game='.$game_code.'';
-        return $url;
-    }
+    
 
     public static function skyWindLaunch($game_code, $token){
         $player_login = SkyWind::userLogin();
@@ -448,6 +443,31 @@ class GameLobby{
 
     }
 
+    public static function spadeLaunch($game_code,$token,$exitUrl,$lang='en_US'){
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        $domain =  $exitUrl;
+        $url = 'https://lobby-egame-staging.sgplay.net/TIGERG/auth/?acctId=TIGERG_'.$client_details->player_id.'&language='.$lang.'&token='.$token.'&game='.$game_code.'';
+        return $url;
+    }
+    
+    public static function majagamesLaunch($game_code,$token){
+        $client_details = ProviderHelper::getClientDetails('token',$token);
+        $requesttosend = [
+            'player_unique_id' => config('providerlinks.majagames.prefix').$client_details->player_id,
+            'player_name' => $client_details->username,
+            'player_currency' => $client_details->default_currency,
+            'game_id' =>$game_code,
+            'is_demo' => false
+        ];
+        $client = new Client([
+            'headers' => [ 
+                'Authorization' => config('providerlinks.majagames.auth')
+            ]
+        ]);
+        $guzzle_response = $client->post(config('providerlinks.majagames.api_url').'/launch-game',  ['body' => json_encode($requesttosend)]);
+        $client_response = json_decode($guzzle_response->getBody()->getContents());
+        return $client_response->data->game_url;
+    }
     public static function habanerolaunchUrl( $game_code = null, $token = null){
         // $brandID = "2416208c-f3cb-ea11-8b03-281878589203";
         // $apiKey = "3C3C5A48-4FE0-4E27-A727-07DE6610AAC8";

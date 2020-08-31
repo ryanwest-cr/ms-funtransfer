@@ -221,12 +221,7 @@ $app->post('api/cq9/transaction/balance','CQ9Controller@noRouteParamPassed'); //
 $app->post('api/cq9/mw/getlist','CQ9Controller@getGameList');
 $app->post('api/cq9/mw/gamelaunch','CQ9Controller@gameLaunch');
 
-// Spade Gaming
-$app->post('api/spade','SpadeController@index');
-$app->post('api/spade/authorize','SpadeController@authorize');
-$app->post('api/spade/getBalance','SpadeController@getBalance');
-$app->post('api/spade/transfer','SpadeController@makeTransfer');
-$app->post('api/spade/getgame','SpadeController@getGameList');
+
 //SAGaming 
 $app->post('api/sa/debugme','SAGamingController@debugme');
 $app->post('api/sa/GetUserBalance','SAGamingController@GetUserBalance');
@@ -305,6 +300,25 @@ $app->post('/api/pgsoft/VerifySession', 'PGSoftController@verifySession');
 $app->post('/api/pgsoft/Cash/Get', 'PGSoftController@cashGet');
 $app->post('/api/pgsoft/Cash/TransferOut', 'PGSoftController@transferOut');
 $app->post('/api/pgsoft/Cash/TransferIn', 'PGSoftController@transferIn');
+
+//Booming Games
+$app->post('api/booming/gamelist','BoomingGamingController@gameList');
+$app->post('api/booming/callback','BoomingGamingController@callBack');
+$app->post('api/booming/rollback','BoomingGamingController@rollBack');
+
+// Spade Gaming
+$app->post('api/spade','SpadeController@index');//single route
+$app->post('api/spade/authorize','SpadeController@authorize');
+$app->post('api/spade/getBalance','SpadeController@getBalance');
+$app->post('api/spade/transfer','SpadeController@makeTransfer');
+$app->post('api/spade/getgame','SpadeController@getGameList');
+
+//MajaGames
+$app->post('api/mj/seamless/bet','MajaGamesController@bet');
+$app->post('api/mj/seamless/settlement','MajaGamesController@settlement');
+$app->post('api/mj/seamless/cancel','MajaGamesController@cancel');
+$app->get('api/mj/seamless/getBalance','MajaGamesController@getBalance');
+
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/
@@ -410,9 +424,7 @@ $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
 
 
 // $app->get('al-games','AlController@insertGamesTapulanMode');
-$app->post('api/booming/gamelist','BoomingGamingController@gameList');
-$app->post('api/booming/callback','BoomingGamingController@callBack');
-$app->post('api/booming/rollback','BoomingGamingController@rollBack');
+
 
 // Yggdrasil 
 $app->get('api/ygg/playerinfo.json','YGGController@playerinfo');

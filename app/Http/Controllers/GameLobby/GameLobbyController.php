@@ -195,21 +195,7 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($request->input('game_provider')=="SpadeGaming"){
-                    if($request->has('lang')){
-                        $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
-                    }else{
-                        $lang = GameLobby::getLanguage($request->game_provider, 'en');
-                    }
-                    $exitUrl = $request->has('exitUrl') ? $request->exitUrl : '';
-                    $msg = array(
-                        "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::spadeLaunch($request->game_code,$request->token,$exitUrl,$lang),
-                        "game_launch" => true
-                    );
-                    return response($msg,200)
-                    ->header('Content-Type', 'application/json');
-                }
+                
                 elseif($request->input('game_provider')=="SkyWind"){ // request->token
                     $url = GameLobby::skyWindLaunch($request->game_code,$token);
                     if($url!= 'false'){
@@ -431,6 +417,30 @@ class GameLobbyController extends Controller
                         'url' =>  $url->play_url
                     ];
                     Helper::saveLogCode('Booming GameCode', 36, json_encode($array), $url->session_id);
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="SpadeGaming"){
+                    if($request->has('lang')){
+                        $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
+                    }else{
+                        $lang = GameLobby::getLanguage($request->game_provider, 'en');
+                    }
+                    $exitUrl = $request->has('exitUrl') ? $request->exitUrl : '';
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::spadeLaunch($request->game_code,$request->token,$exitUrl,$lang),
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider') == "Maja Games"){
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::majagamesLaunch($request->game_code,$request->token),
+                        "game_launch" => true
+                    );
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }

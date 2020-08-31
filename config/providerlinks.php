@@ -232,6 +232,13 @@ return [
         'merchantCode' => 'TIGERG',
         'siteId' => 'SITE_USD1',
         'provider_id' => 37,
+    ],
+    'majagames'=>[
+        'api_url'=> 'http://api-integration.mj-02.com/api/MOG',
+        'auth' => 'wsLQrQM1OC1bVscK',
+        'api_file_server' => 'https://file-integration.mj-02.com',
+        'provider_id' => 39,
+        'prefix' => 'MAJA_', 
     ]
 ];
 
