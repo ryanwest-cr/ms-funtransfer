@@ -185,6 +185,11 @@ return [
         'channel'=> 'desktop',
         'practice'=>0
     ],
+    'microgaming'=>[
+        'grant_type'=> 'client_credentials',
+        'client_id' => 'Tiger_UPG_USD_MA_Test',
+        'client_secret'=> 'd4e59abcbf0b4fd88e3904f12c3dfb',
+    ],
     'booming' => [
         'api_url' => 'https://api.intgr.booming-games.com',
         'api_secret' => 'NQGRafUDbe/esU8r+zVWWW7cx6xZKE2gpqWXv4Fs17j88u0djV6NBi9Tgdtc0R6w',
