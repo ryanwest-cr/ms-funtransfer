@@ -234,7 +234,7 @@ return [
         'provider_id' => 37,
     ],
     'majagames'=>[
-        'api_url'=> 'http://api-integration.mj-02.com/api/MOG',
+        'api_url'=> 'http://api-integration.mj-02.com/api/MOGI',
         'auth' => 'wsLQrQM1OC1bVscK',
         'api_file_server' => 'https://file-integration.mj-02.com',
         'provider_id' => 39,

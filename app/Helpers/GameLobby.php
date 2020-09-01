@@ -458,14 +458,16 @@ class GameLobby{
             'player_name' => $client_details->username,
             'player_currency' => $client_details->default_currency,
             'game_id' =>$game_code,
-            'is_demo' => false
+            'is_demo' => false,
+            'agent_code' =>  config('providerlinks.majagames.prefix').$client_details->player_id,
+            'agent_name' =>  $client_details->username
         ];
         $client = new Client([
             'headers' => [ 
                 'Authorization' => config('providerlinks.majagames.auth')
             ]
         ]);
-        $guzzle_response = $client->post(config('providerlinks.majagames.api_url').'/launch-game',  ['body' => json_encode($requesttosend)]);
+        $guzzle_response = $client->post(config('providerlinks.majagames.api_url').'/launch-game',  ['form_params' => $requesttosend]);
         $client_response = json_decode($guzzle_response->getBody()->getContents());
         return $client_response->data->game_url;
     }
