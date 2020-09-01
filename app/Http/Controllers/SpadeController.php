@@ -18,7 +18,7 @@ class SpadeController extends Controller
     	$this->merchantCode = config('providerlinks.spade.merchantCode');
 		$this->siteId = config('providerlinks.spade.siteId');
 		$this->api_url = config('providerlinks.spade.api_url');
-		$this->provider_id = config('providerlinks.spade.provider_id');
+		$this->provider_db_id = config('providerlinks.spade.provider_id');
 	}
 
 	public function generateSerialNo(){
