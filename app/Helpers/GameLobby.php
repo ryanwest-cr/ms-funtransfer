@@ -741,6 +741,14 @@ class GameLobby{
         return $url;
     }
 
+    public static function vivoGamingLaunchUrl($game_code,$token,$exitUrl){
+        $client_code = config("providerlinks.solid.BRAND");
+        $launch_url = config("providerlinks.solid.LAUNCH_URL");
+
+        $url = 'https://games.vivogaming.com/?token='.$token.'&operatorid=75674&IsSwitchLobby=true&Application=lobby&language=EN';
+                return $url;
+    }
+
     public static function simplePlayLaunchUrl($game_code,$token,$exitUrl){
         $url = $exitUrl;
         $dateTime = date("YmdHis", strtotime(Helper::datesent()));
