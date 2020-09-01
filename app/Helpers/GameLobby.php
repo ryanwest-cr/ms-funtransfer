@@ -452,24 +452,33 @@ class GameLobby{
     }
     
     public static function majagamesLaunch($game_code,$token){
-        $client_details = ProviderHelper::getClientDetails('token',$token);
-        $requesttosend = [
-            'player_unique_id' => config('providerlinks.majagames.prefix').$client_details->player_id,
-            'player_name' => $client_details->username,
-            'player_currency' => $client_details->default_currency,
-            'game_id' =>$game_code,
-            'is_demo' => false,
-            'agent_code' =>  config('providerlinks.majagames.prefix').$client_details->player_id,
-            'agent_name' =>  $client_details->username
-        ];
-        $client = new Client([
-            'headers' => [ 
-                'Authorization' => config('providerlinks.majagames.auth')
-            ]
-        ]);
-        $guzzle_response = $client->post(config('providerlinks.majagames.api_url').'/launch-game',  ['form_params' => $requesttosend]);
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response->data->game_url;
+        try{
+            $client_details = ProviderHelper::getClientDetails('token',$token);
+            $requesttosend = [
+                'player_unique_id' => config('providerlinks.majagames.prefix').$client_details->player_id,
+                'player_name' => $client_details->username,
+                'player_currency' => $client_details->default_currency2,
+                'game_id' => $game_code,
+                'is_demo' => false,
+                'agent_code' =>  config('providerlinks.majagames.prefix').$client_details->player_id,
+                'agent_name' =>  $client_details->username
+            ];
+            $client = new Client([
+                'headers' => [ 
+                    'Authorization' => config('providerlinks.majagames.auth')
+                ]
+            ]);
+            $guzzle_response = $client->post(config('providerlinks.majagames.api_url').'/launch-game',  ['form_params' => $requesttosend]);
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            return $client_response->data->game_url;
+        }catch(\Exception $e){
+            $error_code = [
+                'error_code' => 500,
+                'error_msg' => $e->getMessage()
+            ];
+            Helper::saveLog('MajaGames gamelaunch error', config('providerlinks.majagames.provider_id'), json_encode($error_code), $e->getMessage());
+        }
+        
     }
     public static function habanerolaunchUrl( $game_code = null, $token = null){
         // $brandID = "2416208c-f3cb-ea11-8b03-281878589203";

@@ -316,10 +316,10 @@ $app->post('api/spade/transfer','SpadeController@makeTransfer');
 $app->post('api/spade/getgame','SpadeController@getGameList');
 
 //MajaGames
-$app->post('api/maja/bet','MajaGamesController@bet');
-$app->post('api/maja/settlement','MajaGamesController@settlement');
-$app->post('api/maja/cancel','MajaGamesController@cancel');
-$app->get('api/maja/getBalance','MajaGamesController@getBalance');
+$app->post('api/mj/seamless/bet','MajaGamesController@bet');
+$app->post('api/mj/seamless/settlement','MajaGamesController@settlement');
+$app->post('api/mj/seamless/cancel','MajaGamesController@cancel');
+$app->get('api/mj/seamless/getBalance','MajaGamesController@getBalance');
 
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
