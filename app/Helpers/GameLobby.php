@@ -745,7 +745,7 @@ class GameLobby{
         $client_code = config("providerlinks.solid.BRAND");
         $launch_url = config("providerlinks.solid.LAUNCH_URL");
 
-        $url = 'https://games.vivogaming.com/?token='.$token.'&operatorid=75674&IsSwitchLobby=true&Application=lobby&language=EN';
+        $url = 'https://games.vivogaming.com/?token='.$token.'&operatorid=75674&serverid=51681981&IsSwitchLobby=true&Application=lobby&language=EN';
                 return $url;
     }
 
