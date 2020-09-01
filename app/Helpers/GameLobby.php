@@ -457,7 +457,7 @@ class GameLobby{
             $requesttosend = [
                 'player_unique_id' => config('providerlinks.majagames.prefix').$client_details->player_id,
                 'player_name' => $client_details->username,
-                'player_currency' => $client_details->default_currency2,
+                'player_currency' => $client_details->default_currency,
                 'game_id' => $game_code,
                 'is_demo' => false,
                 'agent_code' =>  config('providerlinks.majagames.prefix').$client_details->player_id,
