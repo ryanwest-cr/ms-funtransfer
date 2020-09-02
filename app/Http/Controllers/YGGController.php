@@ -242,10 +242,10 @@ class YGGController extends Controller
         }
     }
 
-    public function appendwagerrequest(Request $request)
+    public function appendwagerresult(Request $request)
     {
-     
-        Helper::saveLog('Yggdrasil appendwagerrequest request', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), "" );
+        return $request->all();
+        Helper::saveLog('Yggdrasil appendwagerresult request', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), "" );
         $playerId = ProviderHelper::explodeUsername('_',$request->playerid);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
 
@@ -254,7 +254,7 @@ class YGGController extends Controller
                 "code" => 1000,
                 "msg" => "Session expired. Please log in again."
             );
-            Helper::saveLog("YGG appendwagerrequest login", $this->provider_id, $request->all(), $response);
+            Helper::saveLog("YGG appendwagerresult login", $this->provider_id, $request->all(), $response);
             return $response;
         }
 
@@ -283,7 +283,7 @@ class YGGController extends Controller
                         "bonus" => 0
                     ),
                 );
-                Helper::saveLog("YGG appendwagerrequest dubplicate", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
+                Helper::saveLog("YGG appendwagerresult dubplicate", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
                 return $response;
             }
             $gamecode = '';
@@ -324,7 +324,7 @@ class YGGController extends Controller
                     false
                 ); 
             $bonus = 'getbonusprize';
-            Helper::saveLog('Yggdrasil appendwagerrequest bonus', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $bonus );
+            Helper::saveLog('Yggdrasil appendwagerresult bonus', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $bonus );
 
 
             // $bonusBal = DB::select('select * from seamless_request_logs where provider_id = 38 and request_data like "%TGaming_188%"  and request_data like "%getbonusprize%" and response_data like "%bonusprize%" ');
@@ -350,7 +350,7 @@ class YGGController extends Controller
             
             $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details[0]->game_id, $bet_amount, 0.00, 1, 0, null, null, $bet_amount, $provider_trans_id, $round_id);
             $game_trans_ext = ProviderHelper::createGameTransExt( $gametrans, $provider_trans_id, $round_id, $bet_amount, 1, json_encode($request->all()), $response, $client_response['requesttosend'], $client_response['client_response'], "");  
-            Helper::saveLog('Yggdrasil appendwagerrequest', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
+            Helper::saveLog('Yggdrasil appendwagerresult', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
 
         }catch(\Exception $e){
@@ -358,7 +358,7 @@ class YGGController extends Controller
                 'error' => '1',
                 'message' => $e->getMessage(),
             );
-            Helper::saveLog('Yggdrasil appendwagerrequest error', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
+            Helper::saveLog('Yggdrasil appendwagerresult error', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $msg);
             return json_encode($msg, JSON_FORCE_OBJECT); 
         }
 
