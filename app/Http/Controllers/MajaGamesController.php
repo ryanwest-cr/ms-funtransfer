@@ -217,6 +217,7 @@ class MajaGamesController extends Controller
 	public function getBalance(Request $request){
 		try{
 			$header = $request->header('Authorization');
+			Helper::saveLog('MajaGames Authorization BET request all try', $this->provider_db_id, $request->all() , $header);
 			Helper::saveLog('MajaGames Authorization BET request all try', $this->provider_db_id, json_encode($request->all()) , $header);
 			if($header != $this->auth):
 				$errormessage = array(
@@ -258,9 +259,9 @@ class MajaGamesController extends Controller
 				'error_code' => '1000',
 				'error_msg' => 'Internal Error'
 			);
-			Helper::saveLog('MajaGames Balance body'.$e->getMessage(), $this->provider_db_id,  json_decode(json_encode(file_get_contents("php://input"))), $errormessage);
 			Helper::saveLog('MajaGames Authorization para', $this->provider_db_id, json_encode($request->all()) , $header);
 			Helper::saveLog('MajaGames Authorization xxxx', $this->provider_db_id, $request->all() , $header);
+			Helper::saveLog('MajaGames Balance body'.$e->getMessage(), $this->provider_db_id,  json_decode(json_encode(file_get_contents("php://input"))), $errormessage);
 			return $errormessage;
 		}
 	}

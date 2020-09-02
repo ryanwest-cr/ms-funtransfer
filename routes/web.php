@@ -319,7 +319,7 @@ $app->post('api/spade/getgame','SpadeController@getGameList');
 $app->post('api/mj/seamless/bet','MajaGamesController@bet');
 $app->post('api/mj/seamless/settlement','MajaGamesController@settlement');
 $app->post('api/mj/seamless/cancel','MajaGamesController@cancel');
-$app->get('api/maja/getBalance','MajaGamesController@getBalance');
+$app->post('api/mj/seamless/getBalance','MajaGamesController@getBalance');
 
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
