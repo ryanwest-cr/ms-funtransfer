@@ -1961,7 +1961,7 @@ class CQ9Controller extends Controller
 
 			    if(isset($client_response->fundtransferresponse->status->code) 
 				             && $client_response->fundtransferresponse->status->code == "200"){
-
+	    			$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 			    	// # MULTI EVENT
 			    	$multi_event_array = [
 			    		"mtcode" => $provider_trans_id,
@@ -1998,6 +1998,7 @@ class CQ9Controller extends Controller
 
 				}elseif(isset($client_response->fundtransferresponse->status->code) 
 				            && $client_response->fundtransferresponse->status->code == "402"){
+					$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 					$mw_response = [
 			    		"data" => null,"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
 			    	];
@@ -2013,7 +2014,6 @@ class CQ9Controller extends Controller
 	    	}	
 
 	    	// # MULTI EVENT
-	    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 	    	$multi_event_bag['me_endtime'] = date(DATE_RFC3339);
 	    	if($multi_event == true){
 	    		foreach ($gametrans_ext_bag_id as $key) {
@@ -2194,7 +2194,7 @@ class CQ9Controller extends Controller
 
 	  	    if(isset($client_response->fundtransferresponse->status->code) 
 			             && $client_response->fundtransferresponse->status->code == "200"){
-
+	  	    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 	  	    	# MULTI EVENT
 		    	foreach ($existing_multi_event[0] as $key => $value) {
 	    			if($value->mtcode == $mt){
@@ -2259,6 +2259,7 @@ class CQ9Controller extends Controller
 
 			}elseif(isset($client_response->fundtransferresponse->status->code) 
 			            && $client_response->fundtransferresponse->status->code == "402"){
+				$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 				$mw_response = [
 		    		"data" => null,"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
 		    	];
@@ -2272,7 +2273,7 @@ class CQ9Controller extends Controller
 		}
 
 		// # MULTI EVENT
-    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
+    	
     	$multi_event_bag['me_endtime'] = date(DATE_RFC3339);
     	if($multi_event == true){
     		foreach ($gametrans_ext_bag_id as $key) {
@@ -2352,7 +2353,7 @@ class CQ9Controller extends Controller
 				return $mw_response;
 	  		}
     		$general_details = json_decode($find_mtcode->general_details);
-	  		
+
 	  // 		$game_ext_check = ProviderHelper::findGameExt($mt, 3, 'transaction_id');
 			// if($game_ext_check != 'false'){
 			// 	$mw_response = ["data" => null,"status" => ["code" => "1015","message" => $find_mtcode->provider_trans_id.'is already refunded',"datetime" => date(DATE_RFC3339)]
@@ -2461,7 +2462,7 @@ class CQ9Controller extends Controller
 
 	  	    if(isset($client_response->fundtransferresponse->status->code) 
 			             && $client_response->fundtransferresponse->status->code == "200"){
-
+	  	    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 	  	    	# MULTI EVENT
 		    	foreach ($existing_multi_event[0] as $key => $value) {
 	    			if($value->mtcode == $mt){
@@ -2526,6 +2527,7 @@ class CQ9Controller extends Controller
 
 			}elseif(isset($client_response->fundtransferresponse->status->code) 
 			            && $client_response->fundtransferresponse->status->code == "402"){
+				$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 				$mw_response = [
 		    		"data" => null,"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
 		    	];
@@ -2539,7 +2541,7 @@ class CQ9Controller extends Controller
 		}
 
 		// # MULTI EVENT
-    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
+    	
     	$multi_event_bag['me_endtime'] = date(DATE_RFC3339);
     	if($multi_event == true){
     		foreach ($gametrans_ext_bag_id as $key) {
@@ -3065,6 +3067,7 @@ class CQ9Controller extends Controller
 
 					     if(isset($client_response->fundtransferresponse->status->code) 
 						             && $client_response->fundtransferresponse->status->code == "200"){
+	    					$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 
 					     	# MULTI EVENT
 					    	foreach ($existing_multi_event[0] as $key => $exist) {
@@ -3120,6 +3123,7 @@ class CQ9Controller extends Controller
 
 						}elseif(isset($client_response->fundtransferresponse->status->code) 
 						            && $client_response->fundtransferresponse->status->code == "402"){
+							$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 							$mw_response = [
 							"data" => null,
 								"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
@@ -3138,7 +3142,6 @@ class CQ9Controller extends Controller
 	    	}	
 
 	    	// # MULTI EVENT
-	    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 	    	$multi_event_bag['me_endtime'] = date(DATE_RFC3339);
 	    	if($multi_event == true){
 	    		foreach ($gametrans_ext_bag_id as $key) {
@@ -3338,6 +3341,8 @@ class CQ9Controller extends Controller
 		  	    
 			    if(isset($client_response->fundtransferresponse->status->code) 
 				             && $client_response->fundtransferresponse->status->code == "200"){
+	    			$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
+
 			    	// # MULTI EVENT
 			    	$multi_event_array = [
 			    		"mtcode" => $key->mtcode,
@@ -3394,6 +3399,7 @@ class CQ9Controller extends Controller
 
 				}elseif(isset($client_response->fundtransferresponse->status->code) 
 				            && $client_response->fundtransferresponse->status->code == "402"){
+	    			$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 					$mw_response = [
 					"data" => null,
 						"status" => ["code" => "1005","message" => 'Insufficient Balance',"datetime" => date(DATE_RFC3339)]
@@ -3410,7 +3416,6 @@ class CQ9Controller extends Controller
 			}
 
 			// # MULTI EVENT
-	    	$multi_event_bag['after_balance'] = $this->amountToFloat4DG($client_response->fundtransferresponse->balance);
 	    	$multi_event_bag['me_endtime'] = date(DATE_RFC3339);
 	    	if($multi_event == true){
 	    		foreach ($gametrans_ext_bag_id as $key) {
