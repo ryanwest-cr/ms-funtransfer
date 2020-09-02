@@ -432,7 +432,6 @@ $app->post('api/pp/session/expired','PragmaticPLayController@sessionExpired');
 $app->get('api/ygg/playerinfo.json','YGGController@playerinfo');
 $app->get('api/ygg/wager.json','YGGController@wager');
 $app->get('api/ygg/cancelwager.json','YGGController@cancelwager');
-$app->post('api/ygg/cancelwager','YGGController@cancelwager');
 $app->get('api/ygg/appendwagerrequest.json','YGGController@appendwagerrequest');
 $app->get('api/ygg/endwager.json','YGGController@endwager');
 $app->get('api/ygg/campaignpayout.json','YGGController@campaignpayout');
