@@ -12,6 +12,7 @@ use App\Helpers\SAHelper;
 use App\Helpers\TidyHelper;
 use App\Helpers\FCHelper;
 use App\Helpers\ProviderHelper;
+use App\Helpers\MGHelper;
 
 
 use DB;             
@@ -76,6 +77,12 @@ class GameLobby{
         Helper::savePLayerGameRound($game_code,$token,$provider);
         Helper::saveLog('GAMELAUNCH EDP', 11, json_encode(config("providerlinks.endorphina.url").'?exit='.$exitUrl.'&nodeId='.config("providerlinks.endorphina.nodeId").'&profile='.$profile.'&token='.$token.'&sign='.$sign), json_encode($sign));
         return config("providerlinks.endorphina.url").'?exit='.$exitUrl.'&nodeId='.config("providerlinks.endorphina.nodeId").'&profile='.$profile.'&token='.$token.'&sign='.$sign;
+    }
+    public static function microgamingLaunchUrl($game_code,$token,$provider,$exitUrl){
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        Helper::savePLayerGameRound($game_code,$token,$provider);
+        $url = MGHelper::launchGame($token,$client_details->player_id,$game_code);
+        return $url;
     }
     public static function boleLaunchUrl($game_code,$token,$exitUrl, $country_code='PH'){
 
