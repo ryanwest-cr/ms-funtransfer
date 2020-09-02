@@ -2087,12 +2087,12 @@ class CQ9Controller extends Controller
 		$existing_multi_event_set = false;  // Flag 1
     	foreach($mtcodes->mtcode as $mt){
     		$find_mtcode = $this->findTranPID($mt);
-    		$general_details = json_decode($find_mtcode->general_details);
 	  		if($find_mtcode == 'false'){
 	  			$mw_response = ["data" => null,"status" => ["code" => "1014","message" => 'Transaction record not found',"datetime" => date(DATE_RFC3339)]];
 				Helper::saveLog('CQ9 playerRefunds', $this->provider_db_id, json_encode($provider_request), $mw_response);
 				return $mw_response;
 	  		}
+    		$general_details = json_decode($find_mtcode->general_details);
 	  		$game_ext_check = ProviderHelper::findGameExt($mt, 3, 'transaction_id');
 			if($game_ext_check != 'false'){
 				$mw_response = ["data" => null,"status" => ["code" => "1015","message" => $find_mtcode->provider_trans_id.'is already refunded',"datetime" => date(DATE_RFC3339)]
@@ -2894,7 +2894,8 @@ class CQ9Controller extends Controller
 		    		array_push($response['data']['failed'], $failed);
 		    		continue;
 		    	}
-    			$find_mtcode = $this->findTranPID($value->mtcode);
+    			// $find_mtcode = $this->findTranPID($value->mtcode);
+    			$find_mtcode = ProviderHelper::findGameExt($value->roundid, 2, 'round_id'); // WIN
     			if($find_mtcode == 'false'){
     				$failed = ["account" => $data->account,"code" =>"1014","message" =>"Transaction record not found","ucode" => $data->ucode];
 		    		array_push($response['data']['failed'], $failed);
@@ -3166,11 +3167,12 @@ class CQ9Controller extends Controller
 	    	];
 	    	return $response;
     	}
-    	if(!$this->validRFCDade($provider_request->createTime)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
+   //  	if(!$this->validRFCDade($provider_request->createTime)){
+   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	  //   	];
+			// return $mw_response;
+   //  	}
+
 
     	$data_details = $provider_request->data;
     	$account = $provider_request->account;
@@ -3199,7 +3201,7 @@ class CQ9Controller extends Controller
 			return $mw_response;
 		}
 
-    	try {
+    	// try {
     		// # MULTI EVENT
 			$multi_event_bag = ["events"=>[]];
 	    	$multi_event = false;
@@ -3223,11 +3225,16 @@ class CQ9Controller extends Controller
 			    	];
 			    	return $response;
 	    		}
-	    		if(!$this->validRFCDade($value->eventtime)){
-		    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-			    	];
-					return $mw_response;
-		    	}
+	    // 		if(!$this->validRFCDade($value->eventtime)){
+		   //  		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+			  //   	];
+					// return $mw_response;
+		   //  	}
+
+
+
+    			dd($this->validRFCDade($value->eventtime));
+	    		return 1;
 
 	    		$roundid = $value->roundid;
 		    	$amount = $value->amount;
@@ -3278,7 +3285,9 @@ class CQ9Controller extends Controller
 	   	
 
 	    	foreach ($data_details as $key) {
-	    		$find_mtcode = $this->findTranPID($key->mtcode);
+	    		// $find_mtcode = $this->findTranPID($key->mtcode);
+	    		$find_mtcode = ProviderHelper::findGameExt($value->roundid, 2, 'round_id'); // WIN
+	    		// $find_mtcode = Providerhelper::findGameExt('');
 	    		$roundid = $key->roundid;
 		    	$amount = $key->amount;
 		    	$mtcode = $key->mtcode;
@@ -3401,13 +3410,13 @@ class CQ9Controller extends Controller
 	    	// # END MULTI EVENT
 
 			return $mw_response;
-		} catch (\Exception $e) {
-			$mw_response = [
-	    		"data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			Helper::saveLog('CQ9 playerAmend Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
-			return $mw_response;
-		}
+		// } catch (\Exception $e) {
+		// 	$mw_response = [
+	 //    		"data" => null,"status" => ["code" => "1100","message" => 'Server error.',"datetime" => date(DATE_RFC3339)]
+	 //    	];
+		// 	Helper::saveLog('CQ9 playerAmend Failed', $this->provider_db_id, json_encode($request->all()), $e->getMessage());
+		// 	return $mw_response;
+		// }
     }
   
     public function CheckBalance(Request $request, $account){
@@ -3467,13 +3476,19 @@ class CQ9Controller extends Controller
 	    // 2020-08-18T06:51:01-04:00
 	    // 2020-06-05T08:59:45-04
 
-    	$length = strlen($date);
+    	// $length = strlen($date);
 
-    	if($length < 23 || $length > 35){
-    		return false;
-    	}else{
-    		return true;
-    	}
+    	// if($length < 23 || $length > 35){
+    	// 	return false;
+    	// }else{
+    	// 	return true;
+    	// }
+    	
+		if (\DateTime::createFromFormat(\DateTime::RFC3339_EXTENDED, $date) === TRUE) {
+		    return true;
+	    } else {
+	        return false;
+	    }
     
     	// $d->format(DateTime::RFC3339_EXTENDED)
     
@@ -3499,11 +3514,6 @@ class CQ9Controller extends Controller
 		
 		// dd(\DateTime::createFromFormat(\DateTime::RFC3339_EXTENDED, '2020-08-20T02:20:15.000+00:00'));
 
-		// if (\DateTime::createFromFormat(\DateTime::RFC3339_EXTENDED, '2017-07-25T13:47:12.000+00:00') === TRUE) {
-		// 	    return 0;
-	 //    } else {
-	 //        return 1;
-	 //    }
 
 		// return \DateTime::createFromFormat(\DateTime::RFC3339_EXTENDED, date(\DateTime::RFC3339_EXTENDED));
 		// var_dump(\DateTime::RFC3339);
