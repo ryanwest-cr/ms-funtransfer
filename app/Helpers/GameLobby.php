@@ -726,6 +726,7 @@ class GameLobby{
                             "sessionId" => $token,
                             "language" => "en-US",
                             "gameId" => $game_code,
+                            "exitUrl" => $exitUrl
                         ]
                 )]
             );
