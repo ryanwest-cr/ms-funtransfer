@@ -127,7 +127,7 @@ class MicroGamingController extends Controller
                         'form_params' => [
                             'playerId' => $request->player_id,
                             'type' => "deposit",
-                            'amount' => 10,
+                            'amount' => $request->amount,
                             'externalTransactionId' => $transactionId,
                         ]
                         ,
