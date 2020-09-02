@@ -31,7 +31,7 @@ class YGGController extends Controller
                 "msg" => "Session expired. Please log in again."
             );
             return $response;
-            Helper::saveLog("YGG playerinfo response", $this->provider_id, $request->all(), $response);
+            Helper::saveLog("YGG playerinfo response", $this->provider_id,json_encode($request->all(),JSON_FORCE_OBJECT), $response);
         }
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);  
         $player_id = "TGaming_".$client_details->player_id;
@@ -244,7 +244,7 @@ class YGGController extends Controller
 
     public function appendwagerresult(Request $request)
     {
-        return $request->all();
+        
         Helper::saveLog('Yggdrasil appendwagerresult request', $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), "" );
         $playerId = ProviderHelper::explodeUsername('_',$request->playerid);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -254,7 +254,7 @@ class YGGController extends Controller
                 "code" => 1000,
                 "msg" => "Session expired. Please log in again."
             );
-            Helper::saveLog("YGG appendwagerresult login", $this->provider_id, $request->all(), $response);
+            Helper::saveLog("YGG appendwagerresult login", $this->provider_id,json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
         }
 
@@ -373,7 +373,7 @@ class YGGController extends Controller
                 "code" => 1000,
                 "msg" => "Session expired. Please log in again."
             );
-            Helper::saveLog("YGG endwager login", $this->provider_id, $request->all(), $response);
+            Helper::saveLog("YGG endwager login", $this->provider_id,json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
         }
         $checkTrans = DB::table('game_transaction_ext')->where('provider_trans_id','=',$request->reference)->where('round_id','=',$request->subreference)->get();
@@ -499,7 +499,7 @@ class YGGController extends Controller
                 "msg" => "Session expired. Please log in again."
             );
             return $response;
-            Helper::saveLog("YGG playerinfo response", $this->provider_id, $request->all(), $response);
+            Helper::saveLog("YGG playerinfo response", $this->provider_id,json_encode($request->all(),JSON_FORCE_OBJECT), $response);
         }
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);  
         $player_id = "TGaming_".$client_details->player_id;
