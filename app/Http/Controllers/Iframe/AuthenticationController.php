@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Iframe;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use DB;
+use App\Helpers\Helper;
 class AuthenticationController extends Controller
 {
     //
@@ -43,5 +44,9 @@ class AuthenticationController extends Controller
             );
             return response($response,200)
             ->header('Content-Type', 'application/json');        }
+    }
+    public function iframeClosed(Request $request){
+        Helper::saveLog('IFRAME CLOSE CALL', 0, json_encode($request->all()), 'IframeClose');
+        return "success";
     }
 }

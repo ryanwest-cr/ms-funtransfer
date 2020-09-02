@@ -440,3 +440,9 @@ $app->get('api/ygg/getbalance.json','YGGController@getbalance');
 
 //IFRAME URL ENDPOINTS
 $app->post('/iframe/auth/token','Iframe\AuthenticationController@checkTokenExist');
+$app->post('/iframe/close','Iframe\AuthenticationController@iframeClosed');
+//MicroGaming EndPoints
+$app->post('/api/microgaming/launch','MicroGamingController@launchGame');
+$app->post('/api/microgaming/makeDeposit','MicroGamingController@makeDeposit');
+$app->post('/api/microgaming/makeWithdraw','MicroGamingController@makeWithdraw');
+$app->post('/api/microgaming/getPlayerBalance','MicroGamingController@getPlayerBalance');
