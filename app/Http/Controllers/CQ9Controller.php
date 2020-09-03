@@ -2416,7 +2416,8 @@ class CQ9Controller extends Controller
 			$game_ext_details = $find_mtcode->general_details;
 	    	$general_details = json_decode($game_ext_details);
 	    	if($general_details->provider->refund_type == 'cancel_refund'){
-	    		$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]];
+	    		// $mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]];
+	    		$mw_response = ["data" => null,"status" => ["code" => "1015","message" => 'Transaction Already Cancelled',"datetime" => date(DATE_RFC3339)]];
 				Helper::saveLog('CQ9 playerCancel Refund = '.$mt, $this->provider_db_id, json_encode($provider_request), $mw_response);
 				return $mw_response;
 	    	}
@@ -2854,6 +2855,8 @@ class CQ9Controller extends Controller
     	$provider_request = json_decode(file_get_contents("php://input"));
     	$createtime = date(DATE_RFC3339);
 		$action = 'amends';
+    	$response = ["data" => ["success" => [],"failed" => [],],"status" =>  ["code" =>  "0","message" =>  "Success","datetime" => ""]];
+
 
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
@@ -2862,13 +2865,13 @@ class CQ9Controller extends Controller
 			return $mw_response;
     	}
     	if($provider_request == null){
-    		$response = [
-	    		"data"=>null,
-				"status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
-	    	];
+    // 		$response = [
+	   //  		"data"=>null,
+				// "status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
+	   //  	];
+	    	$failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1003","message" =>"Parameter error (Body Cannot Be Empty","ucode" => isset($data->ucode) ? $data->ucode : ''];
 	    	return $response;
     	}
-
     	$data_details = $provider_request->list;
 		$mtcodes = $provider_request;
 
@@ -2885,7 +2888,6 @@ class CQ9Controller extends Controller
 		$existing_multi_event = array();
 		$existing_multi_event_set = false;
 		$set_before_balance = false;
-    	$response = ["data" => ["success" => [],"failed" => [],],"status" =>  ["code" =>  "0","message" =>  "Success","datetime" => ""]];
 
     	// FIRST LOOP CHECKER/SETTER
     	foreach($data_details as $key => $data){
@@ -2950,7 +2952,7 @@ class CQ9Controller extends Controller
 		    	}
 		    	$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $value->gamecode);
 		    		if($value->amount < 0 AND $da_error == 0){
-	    			$failed = ["account" => $data->account,"code" =>"1003","message" =>"Amount cannot be negative","ucode" => $data->ucode];
+	    			$failed = ["account" => $data->account,"code" =>"1003","message" =>"Error Game Code","ucode" => $data->ucode];
 		    		array_push($response['data']['failed'], $failed);
 		    		continue;
 		   		}
@@ -3193,12 +3195,6 @@ class CQ9Controller extends Controller
 	    	];
 	    	return $response;
     	}
-    	if(!$this->validRFCDade($provider_request->createTime, 2)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
-
 
     	$data_details = $provider_request->data;
     	$account = $provider_request->account;
@@ -3226,6 +3222,12 @@ class CQ9Controller extends Controller
 	    	];
 			return $mw_response;
 		}
+
+		if(!$this->validRFCDade($provider_request->createTime, 2)){
+    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	    	];
+			return $mw_response;
+    	}
 
     	try {
     		// # MULTI EVENT
@@ -3294,7 +3296,6 @@ class CQ9Controller extends Controller
 		    	}
 
 	    	}
-
 
 	    	$total_amount = array_sum($total_amount);
 	    	if($player_details->playerdetailsresponse->balance < $total_amount){
