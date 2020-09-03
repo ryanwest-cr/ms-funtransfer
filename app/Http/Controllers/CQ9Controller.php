@@ -2416,7 +2416,8 @@ class CQ9Controller extends Controller
 			$game_ext_details = $find_mtcode->general_details;
 	    	$general_details = json_decode($game_ext_details);
 	    	if($general_details->provider->refund_type == 'cancel_refund'){
-	    		$mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]];
+	    		// $mw_response = ["data" => null,"status" => ["code" => "2009","message" => 'Transaction duplicate',"datetime" => date(DATE_RFC3339)]];
+	    		$mw_response = ["data" => null,"status" => ["code" => "1015","message" => 'Transaction Already Cancelled',"datetime" => date(DATE_RFC3339)]];
 				Helper::saveLog('CQ9 playerCancel Refund = '.$mt, $this->provider_db_id, json_encode($provider_request), $mw_response);
 				return $mw_response;
 	    	}
@@ -2827,7 +2828,15 @@ class CQ9Controller extends Controller
 	    		}
 	    	}
 	    	// # MULTI EVENT
-	    	// 
+	
+			$success_to_return = count($response['data']['success']);
+	    	if($success_to_return > 1){
+	    		$response['data']['success'] = $response['data']['success'][$success_to_return-1];
+	    	}
+	    	$failed_to_return = count($response['data']['failed']);
+	    	if($failed_to_return > 1){
+	    		$response['data']['failed'] = $response['data']['failed'][$failed_to_return-1];
+	    	}
 	    	$response['status']['datetime'] = date(DATE_RFC3339);
 	    	return $response;
 		} catch (\Exception $e) {
@@ -2846,6 +2855,8 @@ class CQ9Controller extends Controller
     	$provider_request = json_decode(file_get_contents("php://input"));
     	$createtime = date(DATE_RFC3339);
 		$action = 'amends';
+    	$response = ["data" => ["success" => [],"failed" => [],],"status" =>  ["code" =>  "0","message" =>  "Success","datetime" => ""]];
+
 
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
@@ -2854,13 +2865,13 @@ class CQ9Controller extends Controller
 			return $mw_response;
     	}
     	if($provider_request == null){
-    		$response = [
-	    		"data"=>null,
-				"status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
-	    	];
+    // 		$response = [
+	   //  		"data"=>null,
+				// "status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
+	   //  	];
+	    	$failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1003","message" =>"Parameter error (Body Cannot Be Empty","ucode" => isset($data->ucode) ? $data->ucode : ''];
 	    	return $response;
     	}
-
     	$data_details = $provider_request->list;
 		$mtcodes = $provider_request;
 
@@ -2877,32 +2888,52 @@ class CQ9Controller extends Controller
 		$existing_multi_event = array();
 		$existing_multi_event_set = false;
 		$set_before_balance = false;
-    	$response = ["data" => ["success" => [],"failed" => [],],"status" =>  ["code" =>  "0","message" =>  "Success","datetime" => ""]];
 
     	// FIRST LOOP CHECKER/SETTER
     	foreach($data_details as $key => $data){
 			if(!isset($data->account) || !isset($data->event) || !isset($data->eventtime) || !isset($data->amount) || !isset($data->action) || !isset($data->ucode)){
-		    	$response = [
-		    		"data"=>null,
-					"status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
-		    	];
-		    	return $response;
+		   //  	$response = [
+		   //  		"data"=>null,
+					// "status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
+		   //  	];
+		   //  	return $response;
+
+		    	$failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1003","message" =>"Parameter error","ucode" => isset($data->ucode) ? $data->ucode : ''];
+	    		array_push($response['data']['failed'], $failed);
+	    		continue;
+
 	    	}
 	    	$check_string_user = ProviderHelper::checkIfHasUnderscore($data->account);
 	    	if(!$check_string_user){
-				$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
-			   return $mw_response;
+				// $mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
+			 //   return $mw_response;
+			    $failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1006","message" =>"Player Not Found","ucode" => isset($data->ucode) ? $data->ucode : ''];
+	    	    array_push($response['data']['failed'], $failed);
+	    		continue;
 	    	}
 	    	$user_id = Providerhelper::explodeUsername('_', $data->account);
 	    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
 			if($client_details == null){
-				$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
-			   return $mw_response;
+				// $mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
+			 //   return $mw_response;
+			   $failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1006","message" =>"Player Not Found","ucode" => isset($data->ucode) ? $data->ucode : ''];
+	    	   array_push($response['data']['failed'], $failed);
+	    	   continue;
 			}
 			$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 			if($player_details == 'false'){
-				$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
-			   return $mw_response;
+				// $mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
+			 //   return $mw_response;
+			   $failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1006","message" =>"Player Not Found","ucode" => isset($data->ucode) ? $data->ucode : ''];
+	    	   array_push($response['data']['failed'], $failed);
+	    	   continue;
+			}
+			if($data->amount < 0){
+				// $mw_response = ["data" => null,"status" => ["code" => "1003","message" => 'Amount cannot be negative',"datetime" => date(DATE_RFC3339)]];
+			 //   return $mw_response;
+			   $failed = ["account" => $data->account,"code" =>"1003","message" =>"Amount cannot be negative","ucode" => $data->ucode];
+	    	    array_push($response['data']['failed'], $failed);
+	    		continue;
 			}
     		if($set_before_balance == false){
 				$multi_event_bag['before_balance'] = $this->amountToFloat4DG($player_details->playerdetailsresponse->balance);
@@ -2914,6 +2945,17 @@ class CQ9Controller extends Controller
 		    		array_push($response['data']['failed'], $failed);
 		    		continue;
 		    	}
+		    	if($value->amount < 0){
+		    		$failed = ["account" => $data->account,"code" =>"1003","message" =>"Amount Cannot be negative","ucode" => $data->ucode];
+		    		array_push($response['data']['failed'], $failed);
+		    		continue;
+		    	}
+		    	$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $value->gamecode);
+		    		if($value->amount < 0 AND $da_error == 0){
+	    			$failed = ["account" => $data->account,"code" =>"1003","message" =>"Error Game Code","ucode" => $data->ucode];
+		    		array_push($response['data']['failed'], $failed);
+		    		continue;
+		   		}
     			// $find_mtcode = $this->findTranPID($value->mtcode);
     			$find_mtcode = ProviderHelper::findGameExt($value->roundid, 2, 'round_id'); // WIN
     			if($find_mtcode == 'false'){
@@ -2933,25 +2975,27 @@ class CQ9Controller extends Controller
     	}// END FIRST LOOP CHECKER/SETTER
 
     	// AND AUTOMATIC ADD THE EVENT THAT NOT IN THE REFUNDLIST
-		foreach ($data_details[0]->event as $key => $evetlist) {
-			foreach ($existing_multi_event[0] as $key => $value) { 
-				$find_mtcode = $this->findTranPID($value->mtcode);
-				if($find_mtcode != 'false'){
-				   array_push($gametrans_ext_bag_id, $find_mtcode->game_trans_ext_id); // List of all mtcode tobe updated
-				}
-				if(!in_array($value->mtcode, $mtcode_request_list)){ // # 1 List of all mtcode request
-					$multi_event_array = [
-			    		"mtcode" => $value->mtcode,
-		                "amount" => $value->amount,
-		                "eventtime" => $value->eventtime,
-			    	];
-			    	if(isset($value->status)){
-			    		$multi_event_array['status'] = 'success';
-			    	}
-			    	if(isset($value->action)){
-			    		$multi_event_array['action'] = $value->action;
-			    	}
-					array_push($multi_event_bag['events'], $multi_event_array);
+		if($find_mtcode != 'false'){
+			foreach ($data_details[0]->event as $key => $evetlist) {
+				foreach ($existing_multi_event[0] as $key => $value) { 
+					$find_mtcode = $this->findTranPID($value->mtcode);
+					if($find_mtcode != 'false'){
+					   array_push($gametrans_ext_bag_id, $find_mtcode->game_trans_ext_id); // List of all mtcode tobe updated
+					}
+					if(!in_array($value->mtcode, $mtcode_request_list)){ // # 1 List of all mtcode request
+						$multi_event_array = [
+				    		"mtcode" => $value->mtcode,
+			                "amount" => $value->amount,
+			                "eventtime" => $value->eventtime,
+				    	];
+				    	if(isset($value->status)){
+				    		$multi_event_array['status'] = 'success';
+				    	}
+				    	if(isset($value->action)){
+				    		$multi_event_array['action'] = $value->action;
+				    	}
+						array_push($multi_event_bag['events'], $multi_event_array);
+					}
 				}
 			}
 		}
@@ -2959,25 +3003,6 @@ class CQ9Controller extends Controller
     	try {
 			
 	    	foreach($data_details as $key => $data){
-
-    			if(!isset($data->account) || !isset($data->event) || !isset($data->eventtime) || !isset($data->amount) || !isset($data->action) || !isset($data->ucode)){
-			    	$response = [
-			    		"data"=>null,
-						"status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
-			    	];
-			    	return $response;
-		    	}
-		    	if(!$this->validRFCDade($data->eventtime)){
-		    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-			    	];
-					return $mw_response;
-		    	}
-				$check_string_user = ProviderHelper::checkIfHasUnderscore($data->account);
-		    	if(!$check_string_user){
-					$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
-				   return $mw_response;
-				}
-
 	    		$ucode = $data->ucode;
 	    		$account = $data->account;
 	    		$action = 'amends';
@@ -2985,38 +3010,11 @@ class CQ9Controller extends Controller
 				$createtime = date(DATE_RFC3339);
 	    		$user_id = Providerhelper::explodeUsername('_', $data->account);
 		    	$client_details = Providerhelper::getClientDetails('player_id', $user_id);
-				if($client_details == null){
-					$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
-				   return $mw_response;
-				}
 				$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-				if($player_details == 'false'){
-					$mw_response = ["data" => null,"status" => ["code" => "1006","message" => 'Player Not Found',"datetime" => date(DATE_RFC3339)]];
-				   return $mw_response;
-				}
-
 				foreach ($data->event as $key => $value) {
 					$da_error = 0;
-					if(!isset($value->mtcode) || !isset($value->amount) || !isset($value->validbet) || !isset($value->action) || !isset($value->roundid) || !isset($value->eventtime) || !isset($value->gamecode)){
-				    	$failed = ["account" => $account,"code" =>"1003","message" =>"Parameter error","ucode" => $ucode];
-			    		array_push($response['data']['failed'], $failed);
-			    		$da_error = 1;
-			    		continue;
-			    	}
-			    	if(!$this->validRFCDade($value->eventtime, 2)){
-			    		$failed = ["account" => $account,"code" =>"1004","message" =>"Wrong Eventime Format","ucode" => $ucode];
-			    		array_push($response['data']['failed'], $failed);
-			    		$da_error = 1;
-			    		continue;
-			    	}
-					$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $value->gamecode);
-		    		if($value->amount < 0 AND $da_error == 0){
-		    			$failed = ["account" => $account,"code" =>"1003","message" =>"Amount cannot be negative","ucode" => $ucode];
-			    		array_push($response['data']['failed'], $failed);
-			    		$da_error = 1;
-			    		continue;
-			   		}
-			   		// $game_ext_check = ProviderHelper::findGameExt($value->mtcode, 2, 'transaction_id');
+				
+					// $game_ext_check = ProviderHelper::findGameExt($value->mtcode, 2, 'transaction_id');
 			   		$game_ext_check = ProviderHelper::findGameExt($value->roundid, 2, 'round_id');
 					if($game_ext_check == 'false' AND $da_error == 0){
 						$failed = ["account" => $account,"code" =>"1014","message" =>"Transaction record not found","ucode" => $ucode];
@@ -3024,6 +3022,7 @@ class CQ9Controller extends Controller
 			    		$da_error = 1;
 			    		continue;
 					}	
+
 					$game_ext_check_win = ProviderHelper::findGameExt($value->mtcode, 3, 'transaction_id');
 					if($game_ext_check_win != 'false' AND $da_error == 0){
 						$failed = ["account" => $account,"code" =>"2009","message" =>"Transaction duplicate","ucode" => $ucode];
@@ -3153,7 +3152,15 @@ class CQ9Controller extends Controller
 	    		}
 	    	}
     		// # END MULTI EVENT
-
+	    	// ONLY SHOW 1 ITEM
+	    	$success_to_return = count($response['data']['success']);
+	    	if($success_to_return > 1){
+	    		$response['data']['success'] = $response['data']['success'][$success_to_return-1];
+	    	}
+	    	$failed_to_return = count($response['data']['failed']);
+	    	if($failed_to_return > 1){
+	    		$response['data']['failed'] = $response['data']['failed'][$failed_to_return-1];
+	    	}
 	    	$response['status']['datetime'] = date(DATE_RFC3339);
 	    	return $response;
 		} catch (\Exception $e) {
@@ -3188,12 +3195,6 @@ class CQ9Controller extends Controller
 	    	];
 	    	return $response;
     	}
-    	if(!$this->validRFCDade($provider_request->createTime, 2)){
-    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-	    	];
-			return $mw_response;
-    	}
-
 
     	$data_details = $provider_request->data;
     	$account = $provider_request->account;
@@ -3222,6 +3223,12 @@ class CQ9Controller extends Controller
 			return $mw_response;
 		}
 
+		if(!$this->validRFCDade($provider_request->createTime, 2)){
+    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+	    	];
+			return $mw_response;
+    	}
+
     	try {
     		// # MULTI EVENT
 			$multi_event_bag = ["events"=>[]];
@@ -3246,13 +3253,7 @@ class CQ9Controller extends Controller
 			    	];
 			    	return $response;
 	    		}
-	    		if(!$this->validRFCDade($value->eventtime, 2)){
-		    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-			    	];
-					return $mw_response;
-		    	}
-
-
+	    
 	    		$roundid = $value->roundid;
 		    	$amount = $value->amount;
 		    	$mtcode = $value->mtcode;
@@ -3287,8 +3288,14 @@ class CQ9Controller extends Controller
 					return $mw_response;
 		   		}
 		   		array_push($total_amount, $value->amount);
-	    	}
 
+	   			if(!$this->validRFCDade($value->eventtime, 2)){
+		    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+			    	];
+					return $mw_response;
+		    	}
+
+	    	}
 
 	    	$total_amount = array_sum($total_amount);
 	    	if($player_details->playerdetailsresponse->balance < $total_amount){
