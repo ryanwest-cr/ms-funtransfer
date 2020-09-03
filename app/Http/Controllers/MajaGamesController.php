@@ -217,8 +217,9 @@ class MajaGamesController extends Controller
 	public function getBalance(Request $request){
 		try{
 			$header = $request->header('Authorization');
-			Helper::saveLog('MajaGames Authorization BET request all try', $this->provider_db_id, $request->all() , $header);
+			Helper::saveLog('MajaGames Authorization BET request all para', $this->provider_db_id, $request->all() , $header);
 			Helper::saveLog('MajaGames Authorization BET request all try', $this->provider_db_id, json_encode($request->all()) , $header);
+			Helper::saveLog('MajaGames Authorization Balance body', $this->provider_db_id, json_decode(json_encode(file_get_contents("php://input"))), $header);
 			if($header != $this->auth):
 				$errormessage = array(
 					'status' => '400',
