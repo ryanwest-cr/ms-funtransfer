@@ -1567,18 +1567,20 @@ class DigitainController extends Controller
 		 		if($key['holdEarlyRefund'] == false){ // if hold eary refund is false return this
 						$is_win_exist = false;
 				   		if($key['refundRound'] == false){ // refund win if exist
-				    		if($is_win_exist == false){
-					    		$check_win_exist_transaction = ProviderHelper::findGameExt($datatrans->round_id, 2,'round_id');
-					    		if($check_win_exist_transaction != 'false'){
-					    			$is_win_exist = true;
-					    		}
-					    	}
-					    	if($is_win_exist == false){
-					    	    $check_win_exist_transaction = ProviderHelper::findGameExt($transaction_identifier, 2,'round_id');
-					    		if($check_win_exist_transaction != 'false'){
-					    			$is_win_exist = true;
-					    		}
-					    	}
+				   			if($datatrans != false){
+				   				if($is_win_exist == false){
+						    		$check_win_exist_transaction = ProviderHelper::findGameExt($datatrans->round_id, 2,'round_id');
+						    		if($check_win_exist_transaction != 'false'){
+						    			$is_win_exist = true;
+						    		}
+						    	}
+						    	if($is_win_exist == false){
+						    	    $check_win_exist_transaction = ProviderHelper::findGameExt($transaction_identifier, 2,'round_id');
+						    		if($check_win_exist_transaction != 'false'){
+						    			$is_win_exist = true;
+						    		}
+						    	}
+				   			}
 				   		}
 				   		if($is_win_exist == true){
 				    		$items_array[] = [
@@ -1639,18 +1641,20 @@ class DigitainController extends Controller
 				    	if($is_bet_exist != false){ // if no bet its an advance refund make a logs
 			    			$is_win_exist = false;
 					   		if($key['refundRound'] == true){ // refund win if exist
-					    		if($is_win_exist == false){
-						    		$check_win_exist_transaction = ProviderHelper::findGameExt($datatrans->round_id, 2,'round_id'); // round identifier
-						    		if($check_win_exist_transaction != 'false'){
-						    			$is_win_exist = true;
-						    		}
-						    	}
-						    	if($is_win_exist == false){
-						    	    $check_win_exist_transaction = ProviderHelper::findGameExt($transaction_identifier, 2,'round_id'); // Transaction identifier
-						    		if($check_win_exist_transaction != 'false'){
-						    			$is_win_exist = true;
-						    		}
-						    	}
+					   			if($datatrans != false){
+						    		if($is_win_exist == false){
+							    		$check_win_exist_transaction = ProviderHelper::findGameExt($datatrans->round_id, 2,'round_id'); // round identifier
+							    		if($check_win_exist_transaction != 'false'){
+							    			$is_win_exist = true;
+							    		}
+							    	}
+							    	if($is_win_exist == false){
+							    	    $check_win_exist_transaction = ProviderHelper::findGameExt($transaction_identifier, 2,'round_id'); // Transaction identifier
+							    		if($check_win_exist_transaction != 'false'){
+							    			$is_win_exist = true;
+							    		}
+							    	}
+							    }
 					   		}
 					   		if($is_win_exist == true){
 					   			$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
@@ -1685,7 +1689,7 @@ class DigitainController extends Controller
 			return $response;
 		}
 
-	
+		
 		# ALL GOOD
 		$items_array = array();
 		foreach ($json_data['items'] as $key) { // FOREACH CHECK
@@ -1711,18 +1715,20 @@ class DigitainController extends Controller
 				if($key['holdEarlyRefund'] == false){ // if hold eary refund is false return this
 					$is_win_exist = false;
 			   		if($key['refundRound'] == false){ // refund win if exist
-			    		if($is_win_exist == false){
-				    		$check_win_exist_transaction = ProviderHelper::findGameExt($datatrans->round_id, 2,'round_id');
-				    		if($check_win_exist_transaction != 'false'){
-				    			$is_win_exist = true;
-				    		}
-				    	}
-				    	if($is_win_exist == false){
-				    	    $check_win_exist_transaction = ProviderHelper::findGameExt($transaction_identifier, 2,'round_id');
-				    		if($check_win_exist_transaction != 'false'){
-				    			$is_win_exist = true;
-				    		}
-				    	}
+			   			if($datatrans != false){
+				    		if($is_win_exist == false){
+					    		$check_win_exist_transaction = ProviderHelper::findGameExt($datatrans->round_id, 2,'round_id');
+					    		if($check_win_exist_transaction != 'false'){
+					    			$is_win_exist = true;
+					    		}
+					    	}
+					    	if($is_win_exist == false){
+					    	    $check_win_exist_transaction = ProviderHelper::findGameExt($transaction_identifier, 2,'round_id');
+					    		if($check_win_exist_transaction != 'false'){
+					    			$is_win_exist = true;
+					    		}
+					    	}
+					    }
 			   		}
 			   		if($is_win_exist == true){
 			    		$items_array[] = [
@@ -2458,8 +2464,10 @@ class DigitainController extends Controller
 		if(isset($json_data['externalTxId']) && $json_data['externalTxId'] != ''){
 			$transaction_general_details = $this->findTransactionRefund($json_data['externalTxId'], 'game_trans_ext_id');
 		}else{
+			return $json_data['providerTxId']
 			$transaction_general_details = $this->findTransactionRefund($json_data['providerTxId'], 'transaction_id');
 		}
+		dd($transaction_general_details);
 	    if($transaction_general_details != false){
 	    	$general_details = json_decode($transaction_general_details->general_details);
 			$txStatus = $general_details->aggregator->transaction_status == 'SUCCESS' ? true : false;
