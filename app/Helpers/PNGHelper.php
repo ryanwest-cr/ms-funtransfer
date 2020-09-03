@@ -45,7 +45,7 @@ class PNGHelper
 			"client_response" =>json_encode($client_response),
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
-		return $gametransactionext;
+		return $gamestransaction_ext_ID;
     }
     public static function updateGameTransaction($existingdata,$request_data,$type){
 		switch ($type) {
