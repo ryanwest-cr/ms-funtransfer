@@ -2831,11 +2831,11 @@ class CQ9Controller extends Controller
 	
 			$success_to_return = count($response['data']['success']);
 	    	if($success_to_return > 1){
-	    		$response['data']['success'] = $response['data']['success'][$success_to_return-1];
+	    		$response['data']['success'] = [$response['data']['success'][$success_to_return-1]];
 	    	}
 	    	$failed_to_return = count($response['data']['failed']);
 	    	if($failed_to_return > 1){
-	    		$response['data']['failed'] = $response['data']['failed'][$failed_to_return-1];
+	    		$response['data']['failed'] = [$response['data']['failed'][$failed_to_return-1]];
 	    	}
 	    	$response['status']['datetime'] = date(DATE_RFC3339);
 	    	return $response;
@@ -3155,11 +3155,11 @@ class CQ9Controller extends Controller
 	    	// ONLY SHOW 1 ITEM
 	    	$success_to_return = count($response['data']['success']);
 	    	if($success_to_return > 1){
-	    		$response['data']['success'] = $response['data']['success'][$success_to_return-1];
+	    		$response['data']['success'] = [$response['data']['success'][$success_to_return-1]];
 	    	}
 	    	$failed_to_return = count($response['data']['failed']);
 	    	if($failed_to_return > 1){
-	    		$response['data']['failed'] = $response['data']['failed'][$failed_to_return-1];
+	    		$response['data']['failed'] = [$response['data']['failed'][$failed_to_return-1]];
 	    	}
 	    	$response['status']['datetime'] = date(DATE_RFC3339);
 	    	return $response;
