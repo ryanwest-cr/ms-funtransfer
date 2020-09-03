@@ -438,11 +438,32 @@ class PGSoftController extends Controller
             [45,"tomb-of-treasure"],
             [48,"double-fortune"],
             [52,"wild-inferno"],
-            [53,"the-great-icescape"],                          
+            [53,"the-great-icescape"], 
+            [65,"mahjong-ways"],                              
             [10,"joker-wild"],//tablegame
             [11,"blackjack-us"],//tablegame
             [12,"blackjack-eu"],//tablegame
-            [31,"baccarat-deluxe"]//tablegame
+            [31,"baccarat-deluxe"],//tablegame
+            [50,"journey-to-the-wealth"],
+            [21,"tiki-go"],
+            [54,"captains-bounty"],
+            [60,"leprechaun-riches"],
+            [61,"flirting-scholar"],
+            [59,"ninja-vs-samurai"],
+            [64,"muay-thai-champion"],
+            [63,"dragon-tiger-luck"],
+            [57,"dragon-hatch"],
+            [68,"fortune-mouse"],
+            [20,"reel-love"],
+            [62,"gem-saviour-conquest"],
+            [67,"shaolin-soccer"],
+            [71,"cai-shen-wins"],
+            [70,"candy-burst"],
+            [69,"bikini-paradise"],
+            [74,"mahjong-ways2"],
+            [73,"egypts-book-mystery"],
+            [75,"ganesha-fortune"],
+            [82,"phoenix-rises"]
         ];
         $game_code = '';
         for ($row = 0; $row < count($array); $row++) {
