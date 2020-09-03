@@ -2827,7 +2827,15 @@ class CQ9Controller extends Controller
 	    		}
 	    	}
 	    	// # MULTI EVENT
-	    	// 
+	
+			$success_to_return = count($response['data']['success']);
+	    	if($success_to_return > 1){
+	    		$response['data']['success'] = $response['data']['success'][$success_to_return-1];
+	    	}
+	    	$failed_to_return = count($response['data']['failed']);
+	    	if($failed_to_return > 1){
+	    		$response['data']['failed'] = $response['data']['failed'][$failed_to_return-1];
+	    	}
 	    	$response['status']['datetime'] = date(DATE_RFC3339);
 	    	return $response;
 		} catch (\Exception $e) {
@@ -3142,11 +3150,15 @@ class CQ9Controller extends Controller
 	    		}
 	    	}
     		// # END MULTI EVENT
-
 	    	// ONLY SHOW 1 ITEM
+	    	$success_to_return = count($response['data']['success']);
+	    	if($success_to_return > 1){
+	    		$response['data']['success'] = $response['data']['success'][$success_to_return-1];
+	    	}
 	    	$failed_to_return = count($response['data']['failed']);
-	    	$response['data']['failed'] = $response['data']['failed'][$failed_to_return-1];
-
+	    	if($failed_to_return > 1){
+	    		$response['data']['failed'] = $response['data']['failed'][$failed_to_return-1];
+	    	}
 	    	$response['status']['datetime'] = date(DATE_RFC3339);
 	    	return $response;
 		} catch (\Exception $e) {
@@ -3239,13 +3251,7 @@ class CQ9Controller extends Controller
 			    	];
 			    	return $response;
 	    		}
-	    		if(!$this->validRFCDade($value->eventtime, 2)){
-		    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
-			    	];
-					return $mw_response;
-		    	}
-
-
+	    
 	    		$roundid = $value->roundid;
 		    	$amount = $value->amount;
 		    	$mtcode = $value->mtcode;
@@ -3280,6 +3286,13 @@ class CQ9Controller extends Controller
 					return $mw_response;
 		   		}
 		   		array_push($total_amount, $value->amount);
+
+	   			if(!$this->validRFCDade($value->eventtime, 2)){
+		    		$mw_response = ["data" => null,"status" => ["code" => "1004","message" => 'Time Format error.',"datetime" => date(DATE_RFC3339)]
+			    	];
+					return $mw_response;
+		    	}
+
 	    	}
 
 
