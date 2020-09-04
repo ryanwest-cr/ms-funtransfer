@@ -244,7 +244,15 @@ return [
         'api_file_server' => 'https://file-integration.mj-02.com',
         'provider_id' => 39,
         'prefix' => 'MAJA_', 
-    ]
+    ],
+    'spade_curacao'=>[
+        'prefix' => 'TIGERG', 
+        'api_url'=> 'https://api-egame-staging.spadecasino777.com/api',
+        'lobby_url'=> 'https://lobby-egame-staging.spadecasino777.com/TIGEREU/auth/?',
+        'merchantCode' => 'TIGEREU',
+        'siteId' => 'SITE_EU1',
+        'provider_id' => 37,
+    ],
 ];
 
 ?>

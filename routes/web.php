@@ -321,6 +321,12 @@ $app->post('api/mj/seamless/settlement','MajaGamesController@settlement');
 $app->post('api/mj/seamless/cancel','MajaGamesController@cancel');
 $app->get('api/mj/seamless/getBalance','MajaGamesController@getBalance');
 
+// Spade Curacao Gaming
+$app->post('api/spade_curacao','SpadeCuracaoController@index');//single route
+$app->post('api/spade_curacao/authorize','SpadeCuracaoController@authorize');
+$app->post('api/spade_curacao/getBalance','SpadeCuracaoController@getBalance');
+$app->post('api/spade_curacao/transfer','SpadeCuracaoController@makeTransfer');
+$app->post('api/spade_curacao/getgame','SpadeCuracaoController@getGameList');
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/

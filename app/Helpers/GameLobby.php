@@ -487,6 +487,12 @@ class GameLobby{
         }
         
     }
+
+    public static function spadeCuracaoLaunch($game_code,$token){
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        $url = config('providerlinks.spade_curacao.lobby_url').'acctId=TIGERG_'.$client_details->player_id.'&language=en_US&token='.$token.'&game='.$game_code.'';
+        return $url;
+    }
     public static function habanerolaunchUrl( $game_code = null, $token = null){
         // $brandID = "2416208c-f3cb-ea11-8b03-281878589203";
         // $apiKey = "3C3C5A48-4FE0-4E27-A727-07DE6610AAC8";
