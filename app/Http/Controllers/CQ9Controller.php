@@ -2935,7 +2935,7 @@ class CQ9Controller extends Controller
 	    	   return $response;
 			}
 			if(!$this->validRFCDade($data->eventtime, 3)){
-		    	$failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1","message" =>"Time Format error","ucode" => isset($data->ucode) ? $data->ucode : ''];
+		    	$failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1004","message" =>"Time Format error","ucode" => isset($data->ucode) ? $data->ucode : ''];
 		    	array_push($response['data']['failed'], $failed);
 				return $response;
 	    	}
