@@ -2864,7 +2864,6 @@ class CQ9Controller extends Controller
 		$action = 'amends';
     	$response = ["data" => ["success" => [],"failed" => [],],"status" =>  ["code" =>  "0","message" =>  "Success","datetime" => date(DATE_RFC3339)]];
 
-
     	$check_wtoken = $this->checkAuth($header);
     	if(!$check_wtoken){
     		$mw_response = ["status" => ["code" => "9999","message" => 'Error Token',"datetime" => date(DATE_RFC3339)]];
@@ -2877,8 +2876,10 @@ class CQ9Controller extends Controller
 				// "status" => ["code" => "1003","message" => "Parameter error","datetime" => date(DATE_RFC3339)]
 	   //  	];
 	    	$failed = ["account" => isset($data->account) ? $data->account : '',"code" =>"1003","message" =>"Parameter error (Body Cannot Be Empty","ucode" => isset($data->ucode) ? $data->ucode : ''];
+	    	array_push($response['data']['failed'], $failed);
 	    	return $response;
     	}
+
     	$data_details = $provider_request->list;
 		$mtcodes = $provider_request;
 

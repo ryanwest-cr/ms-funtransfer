@@ -1604,6 +1604,45 @@ class DigitainController extends Controller
 					$error_encounter = 1;
 					continue;
 	 		    } 
+	 		    if($key['holdEarlyRefund'] == false){ // if hold eary refund is false return this
+						$is_win_exist = false;
+				   		if($key['refundRound'] == false){ // refund win if exist
+				   			if($datatrans != false){
+				   				if($is_win_exist == false){
+						    		$check_win_exist_transaction = ProviderHelper::findGameExt($datatrans->round_id, 2,'round_id');
+						    		if($check_win_exist_transaction != 'false'){
+						    			$is_win_exist = true;
+						    		}
+						    	}
+						    	if($is_win_exist == false){
+						    	    $check_win_exist_transaction = ProviderHelper::findGameExt($transaction_identifier, 2,'round_id');
+						    		if($check_win_exist_transaction != 'false'){
+						    			$is_win_exist = true;
+						    		}
+						    	}
+				   			}
+				   		}
+				   		if($is_win_exist == true){
+				    		$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 20, // Betwin not found dont hold refundtransaction
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
+						    ]; 
+					    	$global_error = $global_error == 1 ? 20 : $global_error;
+							$error_encounter= 1;
+				    	}else{
+							$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 7, // Betwin not found dont hold refundtransaction
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
+						    ]; 
+						    $global_error = $global_error == 1 ? 7 : $global_error;
+							$error_encounter= 1;
+				    	}
+					    continue; 
+				}
+				dd($datatrans);
+	 		    return $items_array;
 				if($key['holdEarlyRefund'] == true){
 					if($transaction_identifier_type == 'provider_trans_id'){  // originalTxt
 						if($datatrans != false){
@@ -1994,7 +2033,7 @@ class DigitainController extends Controller
 							continue;
 			 		    } 
 		 		    }
-		 		    dd($transaction_to_refund);
+		 		    // dd($transaction_to_refund);
 		 		    // dd($transaction_identifier_type);
 		 		    // dd($datatrans);
 		 		    // Only in the ALL GOOD
@@ -2003,28 +2042,32 @@ class DigitainController extends Controller
 				   		$game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
 				 		
 		  				$is_win_exist = false; // is multiple
+		  				$r_bet_amount = array();
+		  				$r_win_amount = array();
 				   		if($key['refundRound'] == true){ // refund win if exist
 				   			$items_count = count($transaction_to_refund);
 				   			if($items_count > 1){
 				   				$is_win_exist = true; // have win/have multiple transaction
 				   				foreach ($transaction_to_refund as $r_items) {
-				   					// $r_items->
+				   					if($r_items['game_transaction_type'] == 1){
+				   						array_push($r_bet_amount, $r_items['amount']);
+				   					}elseif($r_items['game_transaction_type'] == 2){
+				   						array_push($r_win_amount, $r_items['amount']);
+				   					}
 				   				}
 				   			}
 				   		}
 
-				   		dd($is_win_exist);
 				   		if($is_win_exist == true){
 				   				$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
 								$exist_bet_amount = $datatrans->amount;
 								$exist_win_amount = $check_win_exist_transaction->amount;
-								$amount = $exist_bet_amount-$exist_win_amount;
+								$amount = array_sum($r_bet_amount)-array_sum($r_win_amount);
 					   			$round_id = $transaction_identifier;
 						 		$win = 4; //3 draw, 4 refund
 				  				$entry_id = $datatrans->entry_id;
 				  				$pay_amount = $datatrans->pay_amount;
 				  				$income = $datatrans->income;
-
 				  				if($amount < 0){
 				  					$transactiontype = 'debit'; // overwrite the transaction type
 				  					if(abs($client_player->playerdetailsresponse->balance) < abs($amount)){
@@ -2053,7 +2096,7 @@ class DigitainController extends Controller
 				   		}
 
 
-				   		return 123;
+				   		dd($transactiontype); 
 
 						$game_transextension = ProviderHelper::createGameTransExtV2($datatrans->game_trans_id, $key['txId'], $round_id, abs($amount), 3);
 								 	
