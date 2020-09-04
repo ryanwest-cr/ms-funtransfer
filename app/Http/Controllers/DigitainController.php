@@ -2464,10 +2464,10 @@ class DigitainController extends Controller
 		if(isset($json_data['externalTxId']) && $json_data['externalTxId'] != ''){
 			$transaction_general_details = $this->findTransactionRefund($json_data['externalTxId'], 'game_trans_ext_id');
 		}else{
-			return $json_data['providerTxId']
+			// return $json_data['providerTxId'];
 			$transaction_general_details = $this->findTransactionRefund($json_data['providerTxId'], 'transaction_id');
 		}
-		dd($transaction_general_details);
+		// dd($transaction_general_details);
 	    if($transaction_general_details != false){
 	    	$general_details = json_decode($transaction_general_details->general_details);
 			$txStatus = $general_details->aggregator->transaction_status == 'SUCCESS' ? true : false;
