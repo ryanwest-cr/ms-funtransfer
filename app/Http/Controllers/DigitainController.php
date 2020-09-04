@@ -1641,8 +1641,6 @@ class DigitainController extends Controller
 				    	}
 					    continue; 
 				}
-				dd($datatrans);
-	 		    return $items_array;
 				if($key['holdEarlyRefund'] == true){
 					if($transaction_identifier_type == 'provider_trans_id'){  // originalTxt
 						if($datatrans != false){
@@ -1877,6 +1875,43 @@ class DigitainController extends Controller
 					$error_encounter = 1;
 					continue;
 	 		    } 
+	 		     if($key['holdEarlyRefund'] == false){ // if hold eary refund is false return this
+						$is_win_exist = false;
+				   		if($key['refundRound'] == false){ // refund win if exist
+				   			if($datatrans != false){
+				   				if($is_win_exist == false){
+						    		$check_win_exist_transaction = ProviderHelper::findGameExt($datatrans->round_id, 2,'round_id');
+						    		if($check_win_exist_transaction != 'false'){
+						    			$is_win_exist = true;
+						    		}
+						    	}
+						    	if($is_win_exist == false){
+						    	    $check_win_exist_transaction = ProviderHelper::findGameExt($transaction_identifier, 2,'round_id');
+						    		if($check_win_exist_transaction != 'false'){
+						    			$is_win_exist = true;
+						    		}
+						    	}
+				   			}
+				   		}
+				   		if($is_win_exist == true){
+				    		$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 20, // Betwin not found dont hold refundtransaction
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
+						    ]; 
+					    	$global_error = $global_error == 1 ? 20 : $global_error;
+							$error_encounter= 1;
+				    	}else{
+							$items_array[] = [
+								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+								 "errorCode" => 7, // Betwin not found dont hold refundtransaction
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
+						    ]; 
+						    $global_error = $global_error == 1 ? 7 : $global_error;
+							$error_encounter= 1;
+				    	}
+					    continue; 
+				}
 				if($key['holdEarlyRefund'] == true){
 					if($transaction_identifier_type == 'provider_trans_id'){  // originalTxt
 						if($datatrans != false){
@@ -2096,7 +2131,7 @@ class DigitainController extends Controller
 				   		}
 
 
-				   		dd($transactiontype); 
+				   		// dd($transactiontype); 
 
 						$game_transextension = ProviderHelper::createGameTransExtV2($datatrans->game_trans_id, $key['txId'], $round_id, abs($amount), 3);
 								 	
