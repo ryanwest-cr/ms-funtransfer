@@ -764,12 +764,47 @@ class GameLobby{
         return $url;
     }
 
-    public static function vivoGamingLaunchUrl($game_code,$token,$exitUrl){
-        $client_code = config("providerlinks.solid.BRAND");
-        $launch_url = config("providerlinks.solid.LAUNCH_URL");
+    public static function vivoGamingLaunchUrl($game_code,$token,$exitUrl,$provider){
+        $operator_id = config("providerlinks.vivo.OPERATOR_ID");
+        $server_id = config("providerlinks.vivo.SERVER_ID");
 
-        $url = 'https://games.vivogaming.com/?token='.$token.'&operatorid=75674&serverid=51681981&IsSwitchLobby=true&Application=lobby&language=EN&IsInternalPop=True';
-                return $url;
+        switch ($provider) {
+            case 'Vivo Gaming':
+                $url = config("providerlinks.vivo.VIVO_URL").'?token='.$token.'&operatorid='.$operator_id.'&serverid='.$server_id.'&IsSwitchLobby=true&Application=lobby&language=EN&IsInternalPop=True';
+                break;
+
+            case 'Betsoft':
+                $url = config("providerlinks.vivo.BETSOFT_URL").'?Token='.$token.'&GameID='.$game_code.'&OperatorId='.$operator_id.'&lang=EN&cashierUrl=&homeUrl=';
+                break;
+
+            case 'Spinomenal':
+                $url = config("providerlinks.vivo.SPINOMENAL_URL").'?token='.$token.'&operatorID='.$operator_id.'&GameID='.$game_code.'&PlatformId=1';
+                break;
+
+            case 'Tom Horn':
+                $url = config("providerlinks.vivo.TOMHORN_URL").'?GameID='.$game_code.'&Token='.$token.'&lang=EN&OperatorID='.$operator_id.'';
+                break;
+
+            case 'Nucleus':
+                $url = config("providerlinks.vivo.NUCLEUS_URL").'?token='.$token.'&operatorid='.$operator_id.'&GameID='.$game_code.'';
+                break;
+
+             case 'Platipus':
+                $launch_id = substr($game_code, strpos($game_code, "-") + 1);
+
+                $url = config("providerlinks.vivo.PLATIPUS_URL").'?token='.$token.'&operatorID='.$operator_id.'&room=154&gameconfig='.$launch_id.'';
+                break;
+
+            case 'Leap':
+                $url = config("providerlinks.vivo.LEAP_URL").'?tableguid=JHN3978RJH39UR93USDF34&token='.$token.'&OperatorId='.$operator_id.'&language=en&cashierUrl=&homeUrl=&GameID='.$game_code.'&mode=real&skinid=37&siteid=1&currency=USD';
+                break;
+            
+            default:
+                # code...
+                break;
+        }
+        
+        return $url;
     }
 
     public static function simplePlayLaunchUrl($game_code,$token,$exitUrl){

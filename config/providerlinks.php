@@ -234,7 +234,7 @@ return [
     'spade'=>[
         'prefix' => 'TIGERG', 
         'api_url'=> 'https://api-egame-staging.sgplay.net/api',
-        'merchantCode' => 'TIGERG',
+        'merchantCode' => 'TIGERG',  
         'siteId' => 'SITE_USD1',
         'provider_id' => 37,
     ],
@@ -253,6 +253,18 @@ return [
         'siteId' => 'SITE_EU1',
         'provider_id' => 37,
     ],
+    'vivo' => [
+        'OPERATOR_ID' => '75674',
+        'SERVER_ID' => '51681981',
+        'PASS_KEY' => '7f1c5d',
+        'VIVO_URL' => 'https://games.vivogaming.com/',
+        'BETSOFT_URL' => 'https://1vivo.com/FlashRunGame/RunRngGame.aspx',
+        'SPINOMENAL_URL' => 'https://www.1vivo.com/flashRunGame/RunSPNRngGame.aspx',
+        'TOMHORN_URL' => 'https:///www.1vivo.com/FlashRunGame/Prod/RunTomHornGame.aspx',
+        'NUCLEUS_URL' => 'https://2vivo.com/FlashRunGame/set2/RunNucGame.aspx',
+        'PLATIPUS_URL' => 'https://www.1vivo.com/flashrungame/set2/RunPlatipusGame.aspx',
+        'LEAP_URL' => 'https://www.2vivo.com/flashrungame/RunGenericGame.aspx'
+    ]
 ];
 
 ?>
