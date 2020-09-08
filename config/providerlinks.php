@@ -239,11 +239,11 @@ return [
         'provider_id' => 37,
     ],
     'majagames'=>[
-        'api_url'=> 'http://api-integration.mj-02.com/api/MOGI',
         'auth' => 'wsLQrQM1OC1bVscK',
-        'api_file_server' => 'https://file-integration.mj-02.com',
         'provider_id' => 39,
         'prefix' => 'MAJA_', 
+        'api_url'=> 'http://api-integration.mj-02.com/api/MOGI', //slot api
+        'tapbet_api_url'=> 'https://tbb-integration.mj-02.com/api', //tapbet api
     ],
     'spade_curacao'=>[
         'prefix' => 'TIGERG', 

@@ -15,10 +15,7 @@ class MajaGamesController extends Controller
 
     public function __construct(){
     	$this->auth = config('providerlinks.majagames.auth');
-		$this->api_file_server = config('providerlinks.majagames.api_file_server');
-		$this->api_url = config('providerlinks.majagames.api_url');
 		$this->provider_db_id = config('providerlinks.majagames.provider_id');
-		$this->prefix = config('providerlinks.majagames.prefix');
 	}
 
 	public function bet(Request $request){
