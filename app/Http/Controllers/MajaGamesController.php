@@ -213,27 +213,22 @@ class MajaGamesController extends Controller
 	public function getBalance(Request $request){
 		try{
 			$data =  json_decode(json_encode($request->all()));
-			if (array_key_exists('player_unique_id', $data)) {
-				$header = $request->header('Authorization');
-				if($header != $this->auth):
-					$errormessage = array(
-						'status' => '400',
-						'error_code' => '1000',
-						'error_msg' => 'Invalid request parameters'
-					);
-					Helper::saveLog('MajaGames Authorization Balance error '.$header, $this->provider_db_id, json_encode($request->all()), $errormessage);
-					return $errormessage;
-				endif;
-				Helper::saveLog('MajaGames Authorization Balance', $this->provider_db_id, json_encode($request->all()), $header);
-				$player_id = $data->player_unique_id;
-				$player_id =  ProviderHelper::explodeUsername('_', $player_id);
-				$client_details = ProviderHelper::getClientDetails('player_id',$player_id);
-			}else {
-				$player_id = $data->player_unique_token;
-				$client_details = ProviderHelper::getClientDetails('token',$player_id);
-				Helper::saveLog('MajaGames Authorization Balance Tapbet', $this->provider_db_id, json_encode($request->all()), null);
-			}
-			
+			// $header = $request->header('Authorization');
+			// if($header != $this->auth):
+			// 	$errormessage = array(
+			// 		'status' => '400',
+			// 		'error_code' => '1000',
+			// 		'error_msg' => 'Invalid request parameters'
+			// 	);
+			// 	Helper::saveLog('MajaGames Authorization Balance error '.$header, $this->provider_db_id, json_encode($request->all()), $errormessage);
+			// 	return $errormessage;
+			// endif;
+			Helper::saveLog('MajaGames Authorization Balance', $this->provider_db_id, json_encode($request->all()), "Balance Endpoint");
+			$player_id = $data->player_unique_id;
+			$player_id =  ProviderHelper::explodeUsername('_', $player_id);
+			$client_details = ProviderHelper::getClientDetails('player_id',$player_id);
+		
+
 			if($client_details != null){
 				$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 				$data =  [
@@ -259,7 +254,7 @@ class MajaGamesController extends Controller
 				'error_code' => '1000',
 				'error_msg' => $e->getMessage()
 			);
-			Helper::saveLog('MajaGames Balance error', $this->provider_db_id, json_encode($request->all()) , $header);
+			Helper::saveLog('MajaGames Balance error', $this->provider_db_id, json_encode($request->all()) , $errormessage);
 			return $errormessage;
 		}
 	}

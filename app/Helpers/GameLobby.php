@@ -464,7 +464,7 @@ class GameLobby{
                 //arcade game
                 $client_details = ProviderHelper::getClientDetails('token',$token);
                 $requesttosend = [
-                    'player_unique_token' => $token,
+                    'player_unique_token' => $token.'_'.$client_details->player_id,
                     'player_name' => $client_details->username,
                     'currency' => $client_details->default_currency,
                     'is_demo' => false,
