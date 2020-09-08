@@ -1164,7 +1164,9 @@ class DigitainController extends Controller
 		$items_allOrNone = array(); // ITEMS TO ROLLBACK IF ONE OF THE ITEMS FAILED!
 		$items_revert_update = array(); // If failed revert changes
 		$items_array = array();
-
+		$duplicate_txid_request = array();
+		$all_bets_amount = array();
+		$isset_allbets_amount = 0;
 		# Missing Parameters
 		if(!isset($json_data['providerId']) || !isset($json_data['allOrNone']) || !isset($json_data['signature']) || !isset($json_data['timestamp']) || !isset($json_data['operatorId']) || !isset($json_data['items'])){
 			$response = array(
@@ -1203,6 +1205,13 @@ class DigitainController extends Controller
 						$global_error = $global_error == 1 ? 11 : $global_error;
 						$error_encounter= 1;
 						continue;
+					}
+					if($isset_allbets_amount == 0){ # Calculate all total bets
+						foreach ($json_data['items'] as $key) {
+							array_push($all_bets_amount, $key['betAmount']);
+							array_push($duplicate_txid_request, $key['txId']);  // Checking for same txId in the call
+						}
+						$isset_allbets_amount = 1;
 					}
 					$client_details = ProviderHelper::getClientDetails('token', $key["token"]);	
 					if ($client_details == null){ // SessionNotFound
@@ -1290,6 +1299,17 @@ class DigitainController extends Controller
 						$error_encounter = 1;
 		        	    continue;
 		 			}
+		 			if($this->array_has_dupes($duplicate_txid_request)){
+						$items_array[] = [
+							 "betInfo" => isset($key['betInfo']) ? $key['betInfo'] : '', 
+							 "winInfo" => isset($key['winInfo']) ? $key['winInfo'] : '',
+							 "errorCode" => 8, 
+							 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+		        	    ];
+		 				$global_error = $global_error == 1 ? 8 : $global_error;
+						$error_encounter = 1;
+		        	    continue;
+					}
 				} // END ALL OR NON
 		} // END FOREACH CHECK
 		if($error_encounter != 0){ // ELSE PROCEED TO CLIENT TRANSFERING
@@ -1304,6 +1324,9 @@ class DigitainController extends Controller
 
 		// ALL GOOD
 		$items_array = array(); // ITEMS INFO
+		$duplicate_txid_request = array();
+		$all_bets_amount = array();
+		$isset_allbets_amount = 0;
 		foreach ($json_data['items'] as $key){
 				$general_details = ["aggregator" => [],"provider" => [],"client" => []];
 				$general_details2 = ["aggregator" => [],"provider" => [],"client" => []];
@@ -1326,6 +1349,13 @@ class DigitainController extends Controller
 						 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
 	        	    ];  
 	        	    continue;
+				}
+				if($isset_allbets_amount == 0){ # Calculate all total bets
+					foreach ($json_data['items'] as $key) {
+						array_push($all_bets_amount, $key['betAmount']);
+						array_push($duplicate_txid_request, $key['txId']);  // Checking for same txId in the call
+					}
+					$isset_allbets_amount = 1;
 				}
 				$client_details = ProviderHelper::getClientDetails('token', $key["token"]);	
 				if($client_details == null){
@@ -1397,6 +1427,15 @@ class DigitainController extends Controller
 	        	    ]; 
 	        	    continue;
 				}
+				// if($this->array_has_dupes($duplicate_txid_request)){
+				// 	$items_array[] = [
+				// 		 "betInfo" => isset($key['betInfo']) ? $key['betInfo'] : '', 
+				// 		 "winInfo" => isset($key['winInfo']) ? $key['winInfo'] : '',
+				// 		 "errorCode" => 8, 
+				// 		 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+	   			//   ];
+	   			//   continue;
+				// }
 
 				# Provider Transaction Logger
 				$general_details['client']['beforebalance'] = $this->formatBalance($client_player->playerdetailsresponse->balance);
@@ -1751,16 +1790,6 @@ class DigitainController extends Controller
 					$error_encounter = 1;
 					continue;
 	 		    }
-	 		    if($client_details->default_currency != $key['currencyId']){
-	 		    	$items_array[] = [
-						 "info" => $key['info'],
-						 "errorCode" => 16, 
-						 "metadata" => isset($key['metadata']) ? $key['metadata'] : ''
-				    ];  
-					$global_error = $global_error == 1 ? 16 : $global_error;
-					$error_encounter = 1;
-					continue;
-	 		    }
 	 		    if($key['operationType'] != 3){
 	 		    	$items_array[] = [
 						 "info" => $key['info'],
@@ -1949,14 +1978,6 @@ class DigitainController extends Controller
  		    	$items_array[] = [
 					 "info" => $key['info'],
 					 "errorCode" => 4, 
-					 "metadata" => isset($key['metadata']) ? $key['metadata'] : ''
-			    ];  
-				continue;
- 		    }
- 		    if($client_details->default_currency != $key['currencyId']){
- 		    	$items_array[] = [
-					 "info" => $key['info'],
-					 "errorCode" => 16, 
 					 "metadata" => isset($key['metadata']) ? $key['metadata'] : ''
 			    ];  
 				continue;
