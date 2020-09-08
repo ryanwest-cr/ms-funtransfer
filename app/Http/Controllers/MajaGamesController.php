@@ -19,18 +19,18 @@ class MajaGamesController extends Controller
 	}
 
 	public function bet(Request $request){
-		$header = $request->header('Authorization');
-		if($header != $this->auth):
-			$errormessage = array(
-				'status' => '400',
-				'error_code' => '1000',
-				'error_msg' => 'Invalid request parameters'
-			);
-			Helper::saveLog('MajaGames Authorization Bet error '.$header, $this->provider_db_id, json_encode($request->all()), $errormessage);
-			return $errormessage;
-		endif;
-	    Helper::saveLog('MajaGames Authorization BET', $this->provider_db_id, json_encode($request->all()), $header);
-
+		// $header = $request->header('Authorization');
+		// if($header != $this->auth):
+		// 	$errormessage = array(
+		// 		'status' => '400',
+		// 		'error_code' => '1000',
+		// 		'error_msg' => 'Invalid request parameters'
+		// 	);
+		// 	Helper::saveLog('MajaGames Authorization Bet error '.$header, $this->provider_db_id, json_encode($request->all()), $errormessage);
+		// 	return $errormessage;
+		// endif;
+	    // Helper::saveLog('MajaGames Authorization BET', $this->provider_db_id, json_encode($request->all()), $header);
+		Helper::saveLog('MajaGames Authorization BET', $this->provider_db_id, json_encode($request->all()), "BET Endpoint");
 		$data =  json_decode(json_encode($request->all()));
 		$player_id = $data->player_unique_id;
 		$game_id = $data->game;
@@ -103,17 +103,17 @@ class MajaGamesController extends Controller
 	}
 
 	public function settlement(Request $request){
-		$header = $request->header('Authorization');
-		if($header != $this->auth):
-			$errormessage = array(
-				'status' => '400',
-				'error_code' => '1000',
-				'error_msg' => 'Invalid request parameters'
-			);
-			Helper::saveLog('MajaGames Authorization Settlement error'.$header, $this->provider_db_id,  json_decode(json_encode(file_get_contents("php://input"))), $errormessage);
-			return $errormessage;
-		endif;
-	    Helper::saveLog('MajaGames Authorization Win', $this->provider_db_id, json_decode(json_encode(file_get_contents("php://input"))), $header);
+		// $header = $request->header('Authorization');
+		// if($header != $this->auth):
+		// 	$errormessage = array(
+		// 		'status' => '400',
+		// 		'error_code' => '1000',
+		// 		'error_msg' => 'Invalid request parameters'
+		// 	);
+		// 	Helper::saveLog('MajaGames Authorization Settlement error'.$header, $this->provider_db_id,  json_decode(json_encode(file_get_contents("php://input"))), $errormessage);
+		// 	return $errormessage;
+		// endif;
+	    Helper::saveLog('MajaGames Authorization Win', $this->provider_db_id, json_decode(json_encode(file_get_contents("php://input"))), "Win Endpoint");
 		
 		//JSON_FORMAT CONVERT
 		$data = file_get_contents("php://input");
