@@ -12,6 +12,8 @@ use App\Helpers\Game;
 use App\Helpers\CallParameters;
 use App\Helpers\PlayerHelper;
 use App\Helpers\TokenHelper;
+use App\Helpers\ProviderHelper;
+use App\Helpers\ClientRequestHelper;
 
 use App\Support\RouteParam;
 
@@ -140,14 +142,14 @@ class VivoController extends Controller
 
 		
 
-		Helper::saveLog('vivo_authentication', 34, file_get_contents("php://input"), $response);
+		Helper::saveLog('vivo_authentication', 34, json_encode($request->all()), $response);
 		echo $response;
 
 	}
 
 	public function gameTransaction(Request $request) 
 	{
-		$json_data = json_decode(file_get_contents("php://input"), true);
+		$json_data = $request->all();
 		$client_code = RouteParam::get($request, 'brand_code');
 		
 		if($this->_isIdempotent($request->TransactionID)) {
@@ -163,7 +165,6 @@ class VivoController extends Controller
 		$hash = md5($request->userId.$request->Amount.$request->TrnType.$request->TrnDescription.$request->roundId.$request->gameId.$request->History.env('VIVO_PASS_KEY'));
 
 		if($hash != $request->hash) {
-
 			$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID >'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>FAILED</RESULT><CODE>500</CODE></RESPONSE></VGSSYSTEM>';
 		}
 		else
@@ -176,90 +177,25 @@ class VivoController extends Controller
 			}
 			else
 			{
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
-
-					if($request->TrnType == 'CANCELED_BET') {
-						
-						// Check if the transaction exist
-						/*$game_transaction = GameTransaction::find($request->TransactionID);
-						
-						// If transaction is not found
-						if(!$game_transaction) {
-							$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID >'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>FAILED</RESULT><CODE>300</CODE></RESPONSE></VGSSYSTEM>';
-						}
-						else
-						{*/
-							// If transaction is found, send request to the client
-							$client = new Client([
-							    'headers' => [ 
-							    	'Content-Type' => 'application/json',
-							    	'Authorization' => 'Bearer '.$client_details->client_access_token
-							    ]
-							]);
-							
-							$body = json_encode(
-							        	[
-										  "access_token" => $client_details->client_access_token,
-										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-										  "type" => "fundtransferrequest",
-										  "datesent" => Helper::datesent(),
-										  "gamedetails" => [
-										    "gameid" => "",
-										    "gamename" => ""
-										  ],
-										  "fundtransferrequest" => [
-												"playerinfo" => [
-													"client_player_id" => $client_details->client_player_id,
-													"token" => $client_details->player_token
-											],
-											"fundinfo" => [
-											      "gamesessionid" => "",
-											      "transactiontype" => "credit",
-											      "transferid" => "",
-											      "rollback" => "true",
-											      "currencycode" => $client_details->currency,
-											      "amount" => $request->Amount
-											]
-										  ]
-										]
-							    );
-
-							$guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => $body]
-							);
-
-							$client_response = json_decode($guzzle_response->getBody()->getContents());
-
-							// If client returned a success response
-							if($client_response->fundtransferresponse->status->code == "200") {
-								$new_request = $request->all();
-								$new_request['roundid'] = $request->roundId;
-								$new_request['transid'] = $request->TransactionID;
-								$new_request['amount'] = $request->Amount;
-								$new_request['reason'] = NULL;
-								$new_request['income'] = 0;
-
-								$game_trans_array = ['pay_amount' => $request->Amount, 'game_trans_id' => 'N/A', 'game_id' => $request->gameId];
-								$game_transaction = (object) $game_trans_array;								
-
-								$transaction_id = GameTransaction::save('rollback', $new_request, $game_transaction, $client_details, $client_details);
-
-								$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID>'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>OK</RESULT><ECSYSTEMTRANSACTIONID>'.$transaction_id.'</ECSYSTEMTRANSACTIONID><BALANCE>'.$client_response->fundtransferresponse->balance.'</BALANCE></RESPONSE></VGSSYSTEM>';	
-								
-						 		Helper::createVivoGameTransactionExt($transaction_id, $new_request, $body, $response, $client_response, 3);
-							}
-						/*}*/
+				if($request->TrnType == 'CANCELED_BET') {
+					
+					// Check if the transaction exist
+					/*$game_transaction = GameTransaction::find($request->TransactionID);
+					
+					// If transaction is not found
+					if(!$game_transaction) {
+						$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID >'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>FAILED</RESULT><CODE>300</CODE></RESPONSE></VGSSYSTEM>';
 					}
 					else
-					{
-						$transactiontype = $request->TrnType;
-						$key = ($transactiontype == 'BET' ? "bet" : "win");
-
+					{*/
+						// If transaction is found, send request to the client
+						$client = new Client([
+						    'headers' => [ 
+						    	'Content-Type' => 'application/json',
+						    	'Authorization' => 'Bearer '.$client_details->client_access_token
+						    ]
+						]);
+						
 						$body = json_encode(
 						        	[
 									  "access_token" => $client_details->client_access_token,
@@ -277,9 +213,9 @@ class VivoController extends Controller
 										],
 										"fundinfo" => [
 										      "gamesessionid" => "",
-										      "transactiontype" => ($transactiontype == 'BET' ? "debit" : "credit"),
+										      "transactiontype" => "credit",
 										      "transferid" => "",
-										      "rollback" => "false",
+										      "rollback" => "true",
 										      "currencycode" => $client_details->currency,
 										      "amount" => $request->Amount
 										]
@@ -293,30 +229,83 @@ class VivoController extends Controller
 
 						$client_response = json_decode($guzzle_response->getBody()->getContents());
 
-						if(isset($client_response->fundtransferresponse->status->code) 
-					&& $client_response->fundtransferresponse->status->code == "402") {
+						// If client returned a success response
+						if($client_response->fundtransferresponse->status->code == "200") {
+							$new_request = $request->all();
+							$new_request['roundid'] = $request->roundId;
+							$new_request['transid'] = $request->TransactionID;
+							$new_request['amount'] = $request->Amount;
+							$new_request['reason'] = NULL;
+							$new_request['income'] = 0;
 
-							$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID >'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>FAILED</RESULT><CODE>300</CODE></RESPONSE></VGSSYSTEM>';
+							$game_trans_array = ['pay_amount' => $request->Amount, 'game_trans_id' => 'N/A', 'game_id' => $request->gameId];
+							$game_transaction = (object) $game_trans_array;								
+
+							$transaction_id = GameTransaction::save('rollback', $new_request, $game_transaction, $client_details, $client_details);
+
+							$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID>'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>OK</RESULT><ECSYSTEMTRANSACTIONID>'.$transaction_id.'</ECSYSTEMTRANSACTIONID><BALANCE>'.$client_response->fundtransferresponse->balance.'</BALANCE></RESPONSE></VGSSYSTEM>';	
+							
+					 		Helper::createVivoGameTransactionExt($transaction_id, $new_request, $body, $response, $client_response, 3);
 						}
-						else
-						{
+						/*}*/
+					}
+					else
+					{
+						if($request->TrnType == 'BET') {
+							$json_data = $request->all();
+							$json_data['amount'] = $request->Amount;
+							$json_data['income'] = $request->Amount;
+							$json_data['roundid'] = $request->roundId;
+							$json_data['transid'] = $request->TransactionID;
+							
+							$game_details = Game::find($request->gameId, 34);
+
+							$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
+							
+							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
+
+				            $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['roundid'], 'debit');
+					
+
 							if(isset($client_response->fundtransferresponse->status->code) 
-						&& $client_response->fundtransferresponse->status->code == "200") {
+						&& $client_response->fundtransferresponse->status->code == "402") {
 
-								$json_data['roundid'] = $request->roundId;
-								$json_data['transid'] = $request->TransactionID;
-								$json_data['amount'] = $request->Amount;
-								$json_data['income'] = $request->Amount;
-								$json_data['reason'] = NULL;
+								$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID >'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>FAILED</RESULT><CODE>300</CODE></RESPONSE></VGSSYSTEM>';
+							}
+							else
+							{
+								if(isset($client_response->fundtransferresponse->status->code) 
+							&& $client_response->fundtransferresponse->status->code == "200") {
 
-								$game_details = Game::findbyid($request->gameId);
-
-								$transaction_id = GameTransaction::save(($transactiontype == 'BET' ? "debit" : "credit"), $json_data, $game_details, $client_details, $client_details);
-
-						 		$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID>'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>OK</RESULT><ECSYSTEMTRANSACTIONID>'.$transaction_id.'</ECSYSTEMTRANSACTIONID><BALANCE>'.$client_response->fundtransferresponse->balance.'</BALANCE></RESPONSE></VGSSYSTEM>';
+							 		$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID>'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>OK</RESULT><ECSYSTEMTRANSACTIONID>'.$game_transaction_id.'</ECSYSTEMTRANSACTIONID><BALANCE>'.$client_response->fundtransferresponse->balance.'</BALANCE></RESPONSE></VGSSYSTEM>';
+								}
 							}
 
-							Helper::createVivoGameTransactionExt($transaction_id, $request->all(), $body, $response, $client_response, ($transactiontype == 'BET' ? 1 : 2));
+							ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+						}
+
+						elseif($request->TrnType == 'WIN') {
+
+							$game_details = Game::find($request->gameId, 34);
+
+							$json_data['amount'] = $request->Amount;
+							$json_data['income'] = $request->Amount;
+							$json_data['roundid'] = $request->roundId;
+							$json_data['transid'] = $request->TransactionID;
+
+							$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+
+							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
+
+	               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['roundid'], 'credit');
+
+							if(isset($client_response->fundtransferresponse->status->code) 
+						&& $client_response->fundtransferresponse->status->code == "200") {
+								
+								$response = '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID>'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>OK</RESULT><ECSYSTEMTRANSACTIONID>'.$game_transaction_id.'</ECSYSTEMTRANSACTIONID><BALANCE>'.$client_response->fundtransferresponse->balance.'</BALANCE></RESPONSE></VGSSYSTEM>';
+							}
+
+							ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 						}
 					}
 				}
@@ -324,7 +313,7 @@ class VivoController extends Controller
 		}
 
 		$transactiontype = ($request->TrnType == 'BET' ? "debit" : "credit");
-		Helper::saveLog($transactiontype, 34, file_get_contents("php://input"), $response);
+		Helper::saveLog('vivo_'.$transactiontype, 34, json_encode($request->all()), $response);
 
 		header("Content-type: text/xml; charset=utf-8");
 		$final_response =  '<?xml version="1.0" encoding="utf-8"?>'. $response;
@@ -395,8 +384,7 @@ class VivoController extends Controller
 
 		}
 
-
-		Helper::saveLog('status', 34, file_get_contents("php://input"), $response);
+		Helper::saveLog('status', 34, json_encode($request->all()), $response);
 		echo $response;
 
 	}
@@ -487,14 +475,14 @@ class VivoController extends Controller
 			}
 		}
 
-		Helper::saveLog('balance', 34, file_get_contents("php://input"), $response);
+		Helper::saveLog('balance', 34, json_encode($request->all()), $response);
 		echo $response;
 
 	}
 
 	private function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency AS currency','c.default_currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
