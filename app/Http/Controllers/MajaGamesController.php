@@ -219,7 +219,7 @@ class MajaGamesController extends Controller
 					'error_code' => '1000',
 					'error_msg' => 'Invalid request parameters'
 				);
-				Helper::saveLog('MajaGames Authorization Balance error', $this->provider_db_id, json_encode($request->all()), $errormessage);
+				Helper::saveLog('MajaGames Authorization Balance error '.$header, $this->provider_db_id, json_encode($request->all()), $errormessage);
 				return $errormessage;
 			endif;
 			Helper::saveLog('MajaGames Authorization Balance', $this->provider_db_id, json_encode($request->all()), $header);
