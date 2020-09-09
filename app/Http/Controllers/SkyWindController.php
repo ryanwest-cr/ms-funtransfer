@@ -473,7 +473,6 @@ class SkyWindController extends Controller
         Helper::saveLog('Skywind Rolback', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $raw_request = file_get_contents("php://input");
         parse_str($raw_request, $data);
-        return $data;
   
         $merch_id = $data['merch_id'];
         $cust_id = $data['cust_id'];
@@ -482,6 +481,15 @@ class SkyWindController extends Controller
         $game_code = $data['game_code'];
         $coin_multiplier = $data['coin_multiplier'];
         $coin_multiplier = $data['stake_all'];
+
+       $response = [
+         "error_code" => 0,
+         "free_bet_count" => 10,
+         "free_bet_coin" => 0.1
+       ];
+
+       return $response;
+
     }
 
     // /**
