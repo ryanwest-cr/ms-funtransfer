@@ -52,7 +52,7 @@ class EVGHelper
                             ),
                         ),
             );
-            Helper::saveLog('requestLaunchUrl(EVG)', 50, $data, $gamecode);
+            Helper::saveLog('requestLaunchUrl(EVG)', 50, json_encode($data), $gamecode);
             $client = new Client();
             $provider_response = $client->post(config('providerlinks.evolution.ua2AuthenticationUrl'),
                 ['body' => json_encode($data),
