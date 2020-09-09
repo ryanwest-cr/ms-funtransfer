@@ -215,6 +215,7 @@ return [
         'CLIENT_API_KEY' => '4dtXHSekHaFkAqbGcsWV2es4BTRLADQP'
     ],
     'solid'=>[
+        'PROVIDER_ID' => 1,
         'LAUNCH_URL'=> 'https://instage.solidgaming.net/api/launch/',
         'API_ENDPOINT' => 'https://instage.solidgaming.net/api/wallet/',
         'BRAND' => 'BETRNKMW',

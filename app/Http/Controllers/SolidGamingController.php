@@ -391,7 +391,7 @@ class SolidGamingController extends Controller
 
 								$json_data['income'] = $json_data['amount'];
 
-								$game_details = Game::find($json_data["gamecode"]);
+								$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 								$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
 								$http_status = 200;
@@ -518,7 +518,7 @@ class SolidGamingController extends Controller
 								}
 							}
 							
-							$game_details = Game::find($json_data["gamecode"]);
+							$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 
 							$json_data['income'] = $json_data['amount'] - $json_data["amount"];
 
@@ -703,7 +703,7 @@ class SolidGamingController extends Controller
 										}
 									}
 
-									$game_details = Game::find($json_data["gamecode"]);
+									$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 									$json_data["amount"] = $json_data["betamount"];
 									$json_data['income'] = $json_data['betamount'];
 
