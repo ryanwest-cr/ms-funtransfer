@@ -3,6 +3,7 @@ namespace App\Helpers;
 use DB;
 use GuzzleHttp\Client;
 use App\Services\AES;
+use App\Helpers\Helper;
 class EVGHelper
 {
     public static function createEVGGameTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type){
@@ -51,6 +52,7 @@ class EVGHelper
                             ),
                         ),
             );
+            Helper::saveLog('requestLaunchUrl(EVG)', 50, $data, $gamecode);
             $client = new Client();
             $provider_response = $client->post(config('providerlinks.evolution.ua2AuthenticationUrl'),
                 ['body' => json_encode($data),
