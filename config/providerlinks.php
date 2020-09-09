@@ -179,6 +179,15 @@ return [
         'partnercode'=> 'gd1wiurg',
         'gamelaunchurl' => 'https://gl-staging.wazdanep.com/'
     ],
+    'evolution'=>[
+        'host' => 'babylontgg.uat1.evo-test.com',
+        'ua2Token' => 'test123',
+        'gameHistoryApiToken' => 'test123',
+        'externalLobbyApiToken'=> 'test123',
+        'owAuthToken' => 'TigerGames@2020',
+        'ua2AuthenticationUrl' => 'https://babylontgg.uat1.evo-test.com/ua/v1/babylontgg000001/test123',
+
+    ],
     'png'=>[
         'root_url'=> 'https://agastage.playngonetwork.com',
         'pid' => 8888,

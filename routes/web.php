@@ -452,3 +452,11 @@ $app->post('/api/microgaming/launch','MicroGamingController@launchGame');
 $app->post('/api/microgaming/makeDeposit','MicroGamingController@makeDeposit');
 $app->post('/api/microgaming/makeWithdraw','MicroGamingController@makeWithdraw');
 $app->post('/api/microgaming/getPlayerBalance','MicroGamingController@getPlayerBalance');
+
+//Evolution Gaming Endpoints
+
+$app->post('/api/evogaming/check','EvolutionController@authentication');
+$app->post('/api/evogaming/balance','EvolutionController@balance');
+$app->post('/api/evogaming/debit','EvolutionController@debit');
+$app->post('/api/evogaming/credit','EvolutionController@credit');
+$app->post('/api/evogaming/cancel','EvolutionController@cancel');
