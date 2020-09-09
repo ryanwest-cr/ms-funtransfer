@@ -208,6 +208,7 @@ return [
         'provider_db_id' => 36,
     ],
     'manna'=>[
+        'PROVIDER_ID' => 16,
         'AUTH_URL'=> 'https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
         'GAME_LINK_URL' => 'https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
         'API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
