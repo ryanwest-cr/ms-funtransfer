@@ -41,6 +41,36 @@ class EvolutionController extends Controller
             return response($msg,200)->header('Content-Type', 'application/json');
         }
     }
+    public function sid(Request $request){
+        if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
+            $data = json_decode($request->getContent(),TRUE);
+            $client_details = $this->_getClientDetails("player_id",$data["userId"]);
+            if($client_details){
+                $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
+                $msg = array(
+                    "status"=>"OK",
+                    "sid" => $data["sid"],
+                    "uuid"=>$data["uuid"],
+                );
+                return response($msg,200)->header('Content-Type', 'application/json');
+            }
+            else{
+                $msg = array(
+                    "status"=>"INVALID_PARAMETER",
+                    "uuid"=>$data["uuid"],
+                );
+                return response($msg,200)->header('Content-Type', 'application/json');
+            }
+        }
+        else{
+            $data = json_decode($request->getContent(),TRUE);
+            $msg = array(
+                "status"=>"INVALID_TOKEN_ID",
+                "uuid"=>$data["uuid"],
+            );
+            return response($msg,200)->header('Content-Type', 'application/json');
+        }
+    }
     public function balance(Request $request){
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
@@ -276,6 +306,9 @@ class EvolutionController extends Controller
             );
             return response($msg,200)->header('Content-Type', 'application/json');
         }
+    }
+    public function gameLaunch(Request $request){
+        return EVGHelper::gameLaunch($request->token,"139.180.159.34");
     }
     private function _getClientDetails($type = "", $value = "") {
 
