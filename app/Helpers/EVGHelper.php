@@ -58,7 +58,7 @@ class EVGHelper
                 ['body' => json_encode($data),
                 ]
             );
-            return config("providerlinks.evolution.ua2AuthenticationUrl").json_decode($provider_response->getBody(),TRUE)["entry"];
+            return config("providerlinks.evolution.host").json_decode($provider_response->getBody(),TRUE)["entry"];
         }
     }
     public static function _getClientDetails($type = "", $value = "") {
