@@ -263,17 +263,18 @@ class GameLobby{
 
         // TG8_98
         $url = ''.config('providerlinks.skywind.api_url').'/players/TG'.$client_details->client_id.'_'.$client_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
-        // try {
-        $response = $client->get($url);
-        $response = json_encode(json_decode($response->getBody()->getContents()));
-        Helper::saveLog('Skywind Game Launch', config('providerlinks.skywind.provider_db_id'), $response, $url);
-        $url = json_decode($response, true);
-        return isset($url['url']) ? $url['url'] : 'false';
+        try {
+
+            $response = $client->get($url);
+            $response = json_encode(json_decode($response->getBody()->getContents()));
+            Helper::saveLog('Skywind Game Launch = '.$url, config('providerlinks.skywind.provider_db_id'), $response, $url);
+            $url = json_decode($response, true);
+            return isset($url['url']) ? $url['url'] : 'false';
             
-        // } catch (\Exception $e) {
-        //     Helper::saveLog('Skywind Game Launch Failed', config('providerlinks.skywind.provider_db_id'), json_encode($player_login), $e->getMessage());
-        //     return 'false';
-        // }
+        } catch (\Exception $e) {
+            Helper::saveLog('Skywind Game Launch Failed = '.$url, config('providerlinks.skywind.provider_db_id'), json_encode($player_login), $e->getMessage());
+            return 'false';
+        }
     }
 
     public static function cq9LaunchUrl($game_code, $token){
