@@ -262,7 +262,9 @@ class GameLobby{
          // $url = ''.config('providerlinks.skywind.api_url').'/players/'.config('providerlinks.skywind.seamless_username').'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
 
         // TG8_98
-        $url = ''.config('providerlinks.skywind.api_url').'/players/TG'.$client_details->client_id.'_'.$client_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+        // $url = ''.config('providerlinks.skywind.api_url').'/players/TG'.$client_details->client_id.'_'.$client_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
+        
+        $url = 'https://api.gcpstg.m27613.com/v1/players/TG'.$client_details->client_id.'_'.$client_details->player_id.'/games/'.$game_code.'?playmode=real&ticket='.$token.'';
         try {
 
             $response = $client->get($url);
