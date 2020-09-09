@@ -180,7 +180,7 @@ return [
         'gamelaunchurl' => 'https://gl-staging.wazdanep.com/'
     ],
     'evolution'=>[
-        'host' => 'babylontgg.uat1.evo-test.com',
+        'host' => 'https://babylontgg.uat1.evo-test.com',
         'ua2Token' => 'test123',
         'gameHistoryApiToken' => 'test123',
         'externalLobbyApiToken'=> 'test123',

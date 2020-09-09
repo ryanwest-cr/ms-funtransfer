@@ -22,6 +22,7 @@ class EVGHelper
     }
     public static function gameLaunch($token,$players_ip,$gamecode=null,$lang=null){
         $client_details = EVGHelper::_getClientDetails("token",$token);
+        $game_details = explode("_",$gamecode);
         if($client_details){
             $data = array(
                 "uuid" => $token,
@@ -39,9 +40,9 @@ class EVGHelper
                         ),
                 "config"=> array(
                             "game" => array(
-                                        "category"=>"rng-topcard",
+                                        "category"=>$game_details[1],
                                         "table"=>array(
-                                                "id"=>"rng-topcard00001"
+                                                "id"=>$game_details[0]
                                         )
                             ),
                             "channel"=> array(
@@ -55,10 +56,10 @@ class EVGHelper
                 ['body' => json_encode($data),
                 ]
             );
-            return json_decode($provider_response->getBody(),TRUE);
+            return config("providerlinks.evolution.ua2AuthenticationUrl").json_decode($provider_response->getBody(),TRUE)["entry"];
         }
     }
-    private static function _getClientDetails($type = "", $value = "") {
+    public static function _getClientDetails($type = "", $value = "") {
 
 		$query = DB::table("clients AS c")
 				 ->select('p.client_id', 'p.player_id', 'p.client_player_id','p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name','c.default_currency', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')

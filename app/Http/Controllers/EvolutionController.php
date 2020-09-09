@@ -308,7 +308,7 @@ class EvolutionController extends Controller
         }
     }
     public function gameLaunch(Request $request){
-        return EVGHelper::gameLaunch($request->token,"139.180.159.34");
+        return EVGHelper::gameLaunch($request->token,"139.180.159.34",$request->game_code);
     }
     private function _getClientDetails($type = "", $value = "") {
 

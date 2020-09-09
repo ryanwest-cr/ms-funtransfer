@@ -13,6 +13,7 @@ use App\Helpers\TidyHelper;
 use App\Helpers\FCHelper;
 use App\Helpers\ProviderHelper;
 use App\Helpers\MGHelper;
+use App\Helpers\EVGHelper;
 
 
 use DB;             
@@ -82,6 +83,12 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token', $token);
         Helper::savePLayerGameRound($game_code,$token,$provider);
         $url = MGHelper::launchGame($token,$client_details->player_id,$game_code);
+        return $url;
+    }
+    public static function evolutionLaunchUrl($game_code,$token,$provider,$exitUrl,$player_ip){
+        $client_details = ProviderHelper::getClientDetails('token', $token);
+        Helper::savePLayerGameRound($game_code,$token,$provider);
+        $url = EVGHelper::gameLaunch($token,$player_ip,$game_code);
         return $url;
     }
     public static function boleLaunchUrl($game_code,$token,$exitUrl, $country_code='PH'){
