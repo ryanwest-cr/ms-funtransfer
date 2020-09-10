@@ -181,6 +181,7 @@ $app->post('api/skywind/api/getauth2', 'SkyWindController@getAuth2'); // TEST
 $app->post('api/skywind/api/getgames', 'SkyWindController@getGamelist'); // TEST
 $app->post('api/skywind/api/gamelaunch', 'SkyWindController@gameLaunch'); // TEST
 
+// Version  Sky Wind 1
 $app->post('api/skywind/api/validate_ticket', 'SkyWindController@validateTicket');
 $app->post('api/skywind/api/get_ticket', 'SkyWindController@getTicket');
 $app->post('api/skywind/api/get_balance', 'SkyWindController@getBalance');
@@ -188,6 +189,15 @@ $app->post('api/skywind/api/debit', 'SkyWindController@gameDebit');
 $app->post('api/skywind/api/credit', 'SkyWindController@gameCredit');
 $app->post('api/skywind/api/rollback', 'SkyWindController@gameRollback');
 $app->post('api/skywind/api/get_free_bet', 'SkyWindController@getFreeBet');
+
+// Version two  Skywind
+$app->post('api/skywind/api/api/validate_ticket', 'SkyWindController@validateTicket');
+$app->post('api/skywind/api/api/get_ticket', 'SkyWindController@getTicket');
+$app->post('api/skywind/api/api/get_balance', 'SkyWindController@getBalance');
+$app->post('api/skywind/api/api/debit', 'SkyWindController@gameDebit');
+$app->post('api/skywind/api/api/credit', 'SkyWindController@gameCredit');
+$app->post('api/skywind/api/api/rollback', 'SkyWindController@gameRollback');
+$app->post('api/skywind/api/api/get_free_bet', 'SkyWindController@getFreeBet');
 //Player API
 //Operator API
 //Lobby API
