@@ -119,7 +119,6 @@ class EvolutionController extends Controller
                         "status"=>"INSUFFICIENT_FUNDS",
                         "uuid"=>$data["uuid"],
                     );
-                    Helper::saveLog('betGameInsuficient(EVG)', 50, $data, $msg);
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
@@ -133,7 +132,7 @@ class EvolutionController extends Controller
                 );
                 $game = Helper::getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
                 if(!$game){
-                    $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
+                    $gametransactionid=EVGHelper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
                 }
                 else{
                     $gametransactionid= $game->game_trans_id;

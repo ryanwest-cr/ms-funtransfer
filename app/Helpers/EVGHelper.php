@@ -21,6 +21,43 @@ class EVGHelper
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
 		return $gamestransaction_ext_ID;
     }
+    public static function createGameTransaction($method, $request_data, $game_data, $client_data){
+		$trans_data = [
+			"token_id" => $client_data->token_id,
+			"game_id" => $game_data->game_id,
+			"round_id" => $request_data["roundid"]
+		];
+
+		switch ($method) {
+			case "debit":
+					$trans_data["provider_trans_id"] = $request_data["transid"];
+					$trans_data["bet_amount"] = abs($request_data["amount"]);
+					$trans_data["win"] = 4;
+					$trans_data["pay_amount"] = 0;
+					$trans_data["entry_id"] = 1;
+				break;
+			case "credit":
+					$trans_data["provider_trans_id"] = $request_data["transid"];
+					$trans_data["bet_amount"] = 0;
+					$trans_data["win"] = $request_data["win"];
+					$trans_data["pay_amount"] = abs($request_data["amount"]);
+					$trans_data["entry_id"] = 2;
+					$trans_data["payout_reason"] = $request_data["payout_reason"];
+				break;
+			case "refund":
+					$trans_data["provider_trans_id"] = $request_data["transid"];
+					$trans_data["bet_amount"] = 0;
+					$trans_data["win"] = 0;
+					$trans_data["pay_amount"] = $request_data["amount"];
+					$trans_data["entry_id"] = 2;
+					$trans_data["payout_reason"] = "Refund of this transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"];
+				break;
+
+			default:
+		}
+		/*var_dump($trans_data); die();*/
+		return DB::table('game_transactions')->insertGetId($trans_data);			
+	}
     public static function gameLaunch($token,$players_ip,$gamecode=null,$lang=null){
         $client_details = EVGHelper::_getClientDetails("token",$token);
         $game_details = explode("_",$gamecode);
