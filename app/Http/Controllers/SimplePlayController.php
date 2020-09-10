@@ -40,87 +40,6 @@ class SimplePlayController extends Controller
         }
 	}
 
-	public function show(Request $request) { }
-
-	public function authPlayer(Request $request)
-	{
-		$json_data = json_decode(file_get_contents("php://input"), true);
-		$client_code = RouteParam::get($request, 'brand_code');
-		$token = RouteParam::get($request, 'token');
-
-		if(!CallParameters::check_keys($json_data, 'gameCode')) {
-				$response = [
-						"errorcode" =>  "BAD_REQUEST",
-						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
-					];
-		}
-		else
-		{
-			$response = [
-							"responseCode" =>  "TOKEN_NOT_FOUND",
-							"errorDescription" => "Token provided in request not found in Wallet."
-						];
-			
-			$client_details = $this->_getClientDetails($client_code);
-
-			if ($client_details) {
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
-				
-				$guzzle_response = $client->post($client_details->player_details_url,
-				    ['body' => json_encode(
-				        	["access_token" => $client_details->client_access_token,
-								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-								"type" => "playerdetailsrequest",
-								"datesent" => "",
-								"gameid" => "",
-								"clientid" => $client_details->client_id,
-								"playerdetailsrequest" => [
-									"token" => $token,
-									"gamelaunch" => true
-								]]
-				    )]
-				);
-
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
-
-			
-				if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
-
-					// save player details if not exist
-					$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
-
-					// save token to system if not exist
-					TokenHelper::saveIfNotExist($player_id, $token);
-
-					$response = [
-						"playerid" => "$player_id",
-						"currencyCode" => "USD",
-						"languageCode" => "ENG",
-						"balance" => $client_response->playerdetailsresponse->balance,
-						"sessionToken" => $token
-					];
-				}
-				else
-				{
-					// change token status to expired
-					// TokenHelper::changeStatus($player_id, 'expired');
-				}
-			}
-		}
-
-		Helper::saveLog('authentication', 35, json_encode($request_params), $response);
-		echo json_encode($response);
-
-	}
-
-	
 	public function getBalance(Request $request) 
 	{
 		$string = file_get_contents("php://input");
@@ -131,49 +50,24 @@ class SimplePlayController extends Controller
 		$client_code = RouteParam::get($request, 'brand_code');
 
 		$response = '<?xml version="1.0" encoding="utf-8"?>';
-				 		$response .= '<RequestResponse><username>'.$request_params['username'].'</username><currency>USD</currency><amount>'.$client_response->fundtransferresponse->balance.'</amount><error>1007</error></RequestResponse>';
+				 		$response .= '<RequestResponse><error>1007</error></RequestResponse>';
 
 		// Find the player and client details
 		$client_details = $this->_getClientDetails('username', $request_params['username']);
 
 		if ($client_details) {
+			$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
 
-			$client = new Client([
-			    'headers' => [ 
-			    	'Content-Type' => 'application/json',
-			    	'Authorization' => 'Bearer '.$client_details->client_access_token
-			    ]
-			]);
-			
-			$guzzle_response = $client->post($client_details->player_details_url,
-			    ['body' => json_encode(
-			        	[
-			        		"access_token" => $client_details->client_access_token,
-							"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-							"type" => "playerdetailsrequest",
-							"datesent" => "",
-							"gameid" => "",
-							"clientid" => $client_details->client_id,
-							"playerdetailsrequest" => [
-								"token" => $client_details->player_token,
-								"gamelaunch" => "false"
-							]]
-			    )]
-			);
-
-			$client_response = json_decode($guzzle_response->getBody()->getContents());
-			
 			if(isset($client_response->playerdetailsresponse->status->code) 
 			&& $client_response->playerdetailsresponse->status->code == "200") {
 				header("Content-type: text/xml; charset=utf-8");
 		 		$response = '<?xml version="1.0" encoding="utf-8"?>';
-		 		$response .= '<RequestResponse><username>'.$client_details->username.'</username><currency>USD</currency><amount>'.$client_response->playerdetailsresponse->balance.'</amount><error>1000</error></RequestResponse>';
+		 		$response .= '<RequestResponse><username>'.$client_details->username.'</username><currency>USD</currency><amount>'.$client_response->playerdetailsresponse->balance.'</amount><error>0</error></RequestResponse>';
 
 			}
 			
 		}
 		
-
 		Helper::saveLog('simpleplay_balance', 35, json_encode($request_params), $response);
  		echo $response;
 
