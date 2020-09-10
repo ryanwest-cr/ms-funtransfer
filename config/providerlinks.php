@@ -230,6 +230,7 @@ return [
         'passKey' => 'Rja5ZK4kN1GA0R8C'
     ],
     'simpleplay' => [
+        'PROVIDER_ID' => 35,
         'LOBBY_CODE' => 'S592',
         'SECRET_KEY' => 'A872BAFDFA8349CC824A460E7AC02515',
         'MD5_KEY' => 'GgaIMaiNNtg',
