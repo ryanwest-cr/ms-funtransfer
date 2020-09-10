@@ -49,7 +49,7 @@ class EvolutionController extends Controller
                 $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
                 $msg = array(
                     "status"=>"OK",
-                    "sid" => $data["sid"],
+                    "sid" => substr("abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 25), 1).substr(md5(time()), 1),
                     "uuid"=>$data["uuid"],
                 );
                 return response($msg,200)->header('Content-Type', 'application/json');
