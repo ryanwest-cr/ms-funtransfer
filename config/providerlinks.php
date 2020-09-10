@@ -208,6 +208,7 @@ return [
         'provider_db_id' => 36,
     ],
     'manna'=>[
+        'PROVIDER_ID' => 16,
         'AUTH_URL'=> 'https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
         'GAME_LINK_URL' => 'https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
         'API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
@@ -215,6 +216,7 @@ return [
         'CLIENT_API_KEY' => '4dtXHSekHaFkAqbGcsWV2es4BTRLADQP'
     ],
     'solid'=>[
+        'PROVIDER_ID' => 1,
         'LAUNCH_URL'=> 'https://instage.solidgaming.net/api/launch/',
         'API_ENDPOINT' => 'https://instage.solidgaming.net/api/wallet/',
         'BRAND' => 'BETRNKMW',
