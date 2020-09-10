@@ -79,7 +79,6 @@ class EvolutionController extends Controller
                 $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
                 $msg = array(
                     "status"=>"OK",
-                    "sid" => $data["sid"],
                     "balance" => (float)number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
                     "uuid"=>$data["uuid"],
                 );
