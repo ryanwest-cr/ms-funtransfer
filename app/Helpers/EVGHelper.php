@@ -32,7 +32,7 @@ class EVGHelper
 			case "debit":
 					$trans_data["provider_trans_id"] = $request_data["transid"];
 					$trans_data["bet_amount"] = abs($request_data["amount"]);
-					$trans_data["win"] = 4;
+					$trans_data["win"] = 5;
 					$trans_data["pay_amount"] = 0;
 					$trans_data["entry_id"] = 1;
 				break;
