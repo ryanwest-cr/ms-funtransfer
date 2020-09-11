@@ -286,7 +286,8 @@ class GameLobby{
         }
     }
 
-    public static function cq9LaunchUrl($game_code, $token){
+    public static function cq9LaunchUrl($game_code, $token, $provider_sub_name){
+        Helper::savePLayerGameRound($game_code,$token,$provider_sub_name);
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $api_tokens = config('providerlinks.cqgames.api_tokens');
