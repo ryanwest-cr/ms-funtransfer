@@ -232,7 +232,8 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider')=="CQGames"){ // request->token
-                    $url = GameLobby::cq9LaunchUrl($request->game_code,$token);
+                    // $url = GameLobby::cq9LaunchUrl($request->game_code,$token);
+                    $url = GameLobby::cq9LaunchUrl($request->game_code,$token,$request->input('game_provider'));
                     if($url!= 'false'){
                         $msg = array(
                             "game_code" => $request->input("game_code"),
