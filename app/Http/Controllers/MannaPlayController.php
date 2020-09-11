@@ -183,7 +183,7 @@ class MannaPlayController extends Controller
 							$json_data['income'] = $json_data['amount'];
 							$json_data['roundid'] = $json_data['round_id'];
 							$json_data['transid'] = $json_data['transaction_id'];
-							$game_details = Game::find($json_data["game_id"]);
+							$game_details = Game::find($json_data["game_id"], config("providerlinks.manna.PROVIDER_ID"));
 
 							$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
@@ -311,7 +311,7 @@ class MannaPlayController extends Controller
 								}
 								else
 								{
-									$game_details = Game::find($json_data["game_id"]);
+									$game_details = Game::find($json_data["game_id"], config("providerlinks.manna.PROVIDER_ID"));
 
 									$json_data['income'] = $json_data['amount'] - $json_data["amount"];
 									$json_data['roundid'] = $json_data['round_id'];
@@ -410,7 +410,7 @@ class MannaPlayController extends Controller
 							$json_data['roundid'] = $json_data['round_id'];
 							$json_data['transid'] = $json_data['transaction_id'];
 							$json_data['income'] = 0;
-							$game_details = Game::find($json_data["game_id"]);
+							$game_details = Game::find($json_data["game_id"], config("providerlinks.manna.PROVIDER_ID"));
 
 							$game_transaction_id = GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 

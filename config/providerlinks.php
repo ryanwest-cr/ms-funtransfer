@@ -179,6 +179,15 @@ return [
         'partnercode'=> 'gd1wiurg',
         'gamelaunchurl' => 'https://gl-staging.wazdanep.com/'
     ],
+    'evolution'=>[
+        'host' => 'https://babylontgg.uat1.evo-test.com',
+        'ua2Token' => 'test123',
+        'gameHistoryApiToken' => 'test123',
+        'externalLobbyApiToken'=> 'test123',
+        'owAuthToken' => 'TigerGames@2020',
+        'ua2AuthenticationUrl' => 'https://babylontgg.uat1.evo-test.com/ua/v1/babylontgg000001/test123',
+
+    ],
     'png'=>[
         'root_url'=> 'https://agastage.playngonetwork.com',
         'pid' => 8888,
@@ -199,6 +208,7 @@ return [
         'provider_db_id' => 36,
     ],
     'manna'=>[
+        'PROVIDER_ID' => 16,
         'AUTH_URL'=> 'https://api.mannagaming.com/agent/specify/betrnk/authenticate/auth_token',
         'GAME_LINK_URL' => 'https://api.mannagaming.com/agent/specify/betrnk/gameLink/link',
         'API_KEY'=> 'GkyPIN1mD*yzjxzQumq@cZZC!Vw%b!kIVy&&hk!a',
@@ -206,6 +216,7 @@ return [
         'CLIENT_API_KEY' => '4dtXHSekHaFkAqbGcsWV2es4BTRLADQP'
     ],
     'solid'=>[
+        'PROVIDER_ID' => 1,
         'LAUNCH_URL'=> 'https://instage.solidgaming.net/api/launch/',
         'API_ENDPOINT' => 'https://instage.solidgaming.net/api/wallet/',
         'BRAND' => 'BETRNKMW',
@@ -219,6 +230,7 @@ return [
         'passKey' => 'Rja5ZK4kN1GA0R8C'
     ],
     'simpleplay' => [
+        'PROVIDER_ID' => 35,
         'LOBBY_CODE' => 'S592',
         'SECRET_KEY' => 'A872BAFDFA8349CC824A460E7AC02515',
         'MD5_KEY' => 'GgaIMaiNNtg',

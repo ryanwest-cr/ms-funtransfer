@@ -12,6 +12,8 @@ use App\Helpers\Game;
 use App\Helpers\CallParameters;
 use App\Helpers\PlayerHelper;
 use App\Helpers\TokenHelper;
+use App\Helpers\ProviderHelper;
+use App\Helpers\ClientRequestHelper;
 
 use App\Support\RouteParam;
 
@@ -38,87 +40,6 @@ class SimplePlayController extends Controller
         }
 	}
 
-	public function show(Request $request) { }
-
-	public function authPlayer(Request $request)
-	{
-		$json_data = json_decode(file_get_contents("php://input"), true);
-		$client_code = RouteParam::get($request, 'brand_code');
-		$token = RouteParam::get($request, 'token');
-
-		if(!CallParameters::check_keys($json_data, 'gameCode')) {
-				$response = [
-						"errorcode" =>  "BAD_REQUEST",
-						"errormessage" => "The request was invalid.",
-						"httpstatus" => "400"
-					];
-		}
-		else
-		{
-			$response = [
-							"responseCode" =>  "TOKEN_NOT_FOUND",
-							"errorDescription" => "Token provided in request not found in Wallet."
-						];
-			
-			$client_details = $this->_getClientDetails($client_code);
-
-			if ($client_details) {
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
-				
-				$guzzle_response = $client->post($client_details->player_details_url,
-				    ['body' => json_encode(
-				        	["access_token" => $client_details->client_access_token,
-								"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-								"type" => "playerdetailsrequest",
-								"datesent" => "",
-								"gameid" => "",
-								"clientid" => $client_details->client_id,
-								"playerdetailsrequest" => [
-									"token" => $token,
-									"gamelaunch" => true
-								]]
-				    )]
-				);
-
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
-
-			
-				if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
-
-					// save player details if not exist
-					$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
-
-					// save token to system if not exist
-					TokenHelper::saveIfNotExist($player_id, $token);
-
-					$response = [
-						"playerid" => "$player_id",
-						"currencyCode" => "USD",
-						"languageCode" => "ENG",
-						"balance" => $client_response->playerdetailsresponse->balance,
-						"sessionToken" => $token
-					];
-				}
-				else
-				{
-					// change token status to expired
-					// TokenHelper::changeStatus($player_id, 'expired');
-				}
-			}
-		}
-
-		Helper::saveLog('authentication', 35, file_get_contents("php://input"), $response);
-		echo json_encode($response);
-
-	}
-
-	
 	public function getBalance(Request $request) 
 	{
 		$string = file_get_contents("php://input");
@@ -128,42 +49,15 @@ class SimplePlayController extends Controller
 		
 		$client_code = RouteParam::get($request, 'brand_code');
 
-		$response = [
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "Player not found",
-						"httpstatus" => "404"
-					];
+		$response = '<?xml version="1.0" encoding="utf-8"?>';
+				 		$response .= '<RequestResponse><error>1007</error></RequestResponse>';
 
 		// Find the player and client details
 		$client_details = $this->_getClientDetails('username', $request_params['username']);
 
 		if ($client_details) {
+			$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
 
-			$client = new Client([
-			    'headers' => [ 
-			    	'Content-Type' => 'application/json',
-			    	'Authorization' => 'Bearer '.$client_details->client_access_token
-			    ]
-			]);
-			
-			$guzzle_response = $client->post($client_details->player_details_url,
-			    ['body' => json_encode(
-			        	[
-			        		"access_token" => $client_details->client_access_token,
-							"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-							"type" => "playerdetailsrequest",
-							"datesent" => "",
-							"gameid" => "",
-							"clientid" => $client_details->client_id,
-							"playerdetailsrequest" => [
-								"token" => $client_details->player_token,
-								"gamelaunch" => "false"
-							]]
-			    )]
-			);
-
-			$client_response = json_decode($guzzle_response->getBody()->getContents());
-			
 			if(isset($client_response->playerdetailsresponse->status->code) 
 			&& $client_response->playerdetailsresponse->status->code == "200") {
 				header("Content-type: text/xml; charset=utf-8");
@@ -174,8 +68,7 @@ class SimplePlayController extends Controller
 			
 		}
 		
-
-		Helper::saveLog('balance', 35, file_get_contents("php://input"), $response);
+		Helper::saveLog('simpleplay_balance', 35, json_encode($request_params), $response);
  		echo $response;
 
 	}
@@ -187,13 +80,9 @@ class SimplePlayController extends Controller
 		$query = parse_url('http://test.url?'.$decrypted_string, PHP_URL_QUERY);
 		parse_str($query, $request_params);
 
-		$client_code = RouteParam::get($request, 'brand_code');
-
-		$response = [
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "Player not found",
-						"httpstatus" => "404"
-					];
+		header("Content-type: text/xml; charset=utf-8");
+		$response = '<?xml version="1.0" encoding="utf-8"?>';
+		$response .= '<RequestResponse><error>1007</error></RequestResponse>';
 
 		$client_details = $this->_getClientDetails('username', $request_params['username']);
 		
@@ -201,81 +90,37 @@ class SimplePlayController extends Controller
 			//GameRound::create($json_data['roundid'], $player_details->token_id);
 
 			// Check if the game is available for the client
-			$subscription = new GameSubscription();
+			/*$subscription = new GameSubscription();
 			$client_game_subscription = $subscription->check($client_details->client_id, 35, $request_params['gamecode']);
 
 			if(!$client_game_subscription) {
-				$response = [
-						"errorcode" =>  "GAME_NOT_FOUND",
-						"errormessage" => "Game not found",
-						"httpstatus" => "404"
-					];
+				$response = '<?xml version="1.0" encoding="utf-8"?>';
+				 		$response .= '<RequestResponse><username>'.$request_params['username'].'</username><currency>USD</currency><amount>0</amount><error>135</error></RequestResponse>';
 			}
 			else
-			{
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
-				
-				$guzzle_response = $client->post($client_details->fund_transfer_url,
-				    ['body' => json_encode(
-				        	[
-							  "access_token" => $client_details->client_access_token,
-							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-							  "type" => "fundtransferrequest",
-							  "datetsent" => "",
-							  "gamedetails" => [
-							    "gameid" => "",
-							    "gamename" => ""
-							  ],
-							  "fundtransferrequest" => [
-									"playerinfo" => [
-									"token" => $client_details->player_token
-								],
-								"fundinfo" => [
-								      "gamesessionid" => "",
-								      "transactiontype" => "debit",
-								      "transferid" => "",
-								      "rollback" => "false",
-								      "currencycode" => $client_details->currency,
-								      "amount" => $request_params["amount"]
-								]
-							  ]
-							]
-				    )]
-				);
+			{*/
+				$json_data['amount'] = $request_params['amount'];
+				$json_data['income'] = $request_params['amount'];
+				$json_data['roundid'] = 'N/A';
+				$json_data['transid'] = $request_params['txnid'];
+				$game_details = Game::find($request_params["gamecode"], config("providerlinks.simpleplay.PROVIDER_ID"));
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
-				/*var_dump($client_response); die();*/
+				$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $request_params['txnid'], 'N/A', $request_params['amount'], 1);
+
+                $client_response = ClientRequestHelper::fundTransfer($client_details, $request_params['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, 'N/A', 'debit');
 
 				if(isset($client_response->fundtransferresponse->status->code) 
 			&& $client_response->fundtransferresponse->status->code == "402") {
-					$response = [
-						"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
-						"errormessage" => "Not sufficient funds",
-						"httpstatus" => "402"
-					];
+					header("Content-type: text/xml; charset=utf-8");
+					$response = '<?xml version="1.0" encoding="utf-8"?>';
+				 	$response .= '<RequestResponse><error>1004</error></RequestResponse>';
 				}
 				else
 				{
 					if(isset($client_response->fundtransferresponse->status->code) 
 				&& $client_response->fundtransferresponse->status->code == "200") {
-
-						$game_details = Game::find($request_params["gamecode"]);
-						
-						$json_data = [
-							'transid' => $request_params['txnid'],
-							'amount' => $request_params['amount'],
-							'income' => $request_params['amount'],
-							'reason' => '',
-							'roundid' => 0
-						];
-
-						GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
 						header("Content-type: text/xml; charset=utf-8");
 				 		$response = '<?xml version="1.0" encoding="utf-8"?>';
@@ -283,10 +128,10 @@ class SimplePlayController extends Controller
 					}
 				}
 				
-			}
+			/*}*/
 		}
 		
-		Helper::saveLog('debit', 35, file_get_contents("php://input"), $response);
+		Helper::saveLog('simpleplay_debit', 35, json_encode($request_params), $response);
 		echo $response;
 	}
 
@@ -297,13 +142,9 @@ class SimplePlayController extends Controller
 		$query = parse_url('http://test.url?'.$decrypted_string, PHP_URL_QUERY);
 		parse_str($query, $request_params);
 
-		$client_code = RouteParam::get($request, 'brand_code');
-
-		$response = [
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "Player not found",
-						"httpstatus" => "404"
-					];
+		header("Content-type: text/xml; charset=utf-8");
+		$response = '<?xml version="1.0" encoding="utf-8"?>';
+		$response .= '<RequestResponse><error>1007</error></RequestResponse>';
 
 		$client_details = $this->_getClientDetails('username', $request_params['username']);
 		
@@ -315,75 +156,37 @@ class SimplePlayController extends Controller
 			$client_game_subscription = $subscription->check($client_details->client_id, 35, $request_params['gamecode']);
 
 			if(!$client_game_subscription) {
-				$response = [
-						"errorcode" =>  "GAME_NOT_FOUND",
-						"errormessage" => "Game not found",
-						"httpstatus" => "404"
-					];
+				header("Content-type: text/xml; charset=utf-8");
+				$response = '<?xml version="1.0" encoding="utf-8"?>';
+				$response .= '<RequestResponse><error>135</error></RequestResponse>';
 			}
 			else
 			{
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
 				
-				$guzzle_response = $client->post($client_details->fund_transfer_url,
-				    ['body' => json_encode(
-				        	[
-							  "access_token" => $client_details->client_access_token,
-							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-							  "type" => "fundtransferrequest",
-							  "datetsent" => "",
-							  "gamedetails" => [
-							    "gameid" => "",
-							    "gamename" => ""
-							  ],
-							  "fundtransferrequest" => [
-									"playerinfo" => [
-									"token" => $client_details->player_token
-								],
-								"fundinfo" => [
-								      "gamesessionid" => "",
-								      "transactiontype" => "credit",
-								      "transferid" => "",
-								      "rollback" => "false",
-								      "currencycode" => $client_details->currency,
-								      "amount" => $request_params["amount"]
-								]
-							  ]
-							]
-				    )]
-				);
+				$game_details = Game::find($request_params["gamecode"], config("providerlinks.simpleplay.PROVIDER_ID"));
+	
+				$json_data['income'] = $request_params['amount'];
+				$json_data['amount'] = $request_params['amount'];
+				$json_data['roundid'] = 'N/A';
+				$json_data['transid'] = $request_params['txnid'];
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+				
+				$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $request_params['txnid'], 'N/A', $request_params['amount'], 1);
+
+       			$client_response = ClientRequestHelper::fundTransfer($client_details, $request_params['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, 'N/A', 'credit');
 
 
 				if(isset($client_response->fundtransferresponse->status->code) 
 			&& $client_response->fundtransferresponse->status->code == "402") {
-					$response = [
-						"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
-						"errormessage" => "Not sufficient funds",
-						"httpstatus" => "402"
-					];
+					header("Content-type: text/xml; charset=utf-8");
+					$response = '<?xml version="1.0" encoding="utf-8"?>';
+				 	$response .= '<RequestResponse><error>1004</error></RequestResponse>';
 				}
 				else
 				{
 					if(isset($client_response->fundtransferresponse->status->code) 
 				&& $client_response->fundtransferresponse->status->code == "200") {
-
-						$game_details = Game::find($request_params["gamecode"]);
-						
-						$json_data = [
-							'transid' => $request_params['txnid'],
-							'amount' => $request_params['amount'],
-							'income' => 0,
-							'reason' => '',
-							'roundid' => 0
-						];
-						GameTransaction::save('credit', $json_data, $game_details, $client_details, $client_details);
 
 						header("Content-type: text/xml; charset=utf-8");
 				 		$response = '<?xml version="1.0" encoding="utf-8"?>';
@@ -394,7 +197,7 @@ class SimplePlayController extends Controller
 			}
 		}
 		
-		Helper::saveLog('debit', 35, file_get_contents("php://input"), $response);
+		Helper::saveLog('simpleplay_credit', 35, json_encode($request_params), $response);
 		echo $response;
 
 	}
@@ -408,14 +211,12 @@ class SimplePlayController extends Controller
 
 		$client_code = RouteParam::get($request, 'brand_code');
 
-		$response = [
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "Player not found",
-						"httpstatus" => "404"
-					];
+		header("Content-type: text/xml; charset=utf-8");
+		$response = '<?xml version="1.0" encoding="utf-8"?>';
+		$response .= '<RequestResponse><error>1007</error></RequestResponse>';
 
 		$client_details = $this->_getClientDetails('username', $request_params['username']);
-		
+
 		if ($client_details) {
 			//GameRound::create($json_data['roundid'], $player_details->token_id);
 
@@ -424,87 +225,33 @@ class SimplePlayController extends Controller
 			$client_game_subscription = $subscription->check($client_details->client_id, 35, $request_params['gamecode']);
 
 			if(!$client_game_subscription) {
-				$response = [
-						"errorcode" =>  "GAME_NOT_FOUND",
-						"errormessage" => "Game not found",
-						"httpstatus" => "404"
-					];
+				header("Content-type: text/xml; charset=utf-8");
+				$response = '<?xml version="1.0" encoding="utf-8"?>';
+				 $response .= '<RequestResponse><error>135</error></RequestResponse>';
 			}
 			else
 			{
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
-				
-				$guzzle_response = $client->post($client_details->fund_transfer_url,
-				    ['body' => json_encode(
-				        	[
-							  "access_token" => $client_details->client_access_token,
-							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-							  "type" => "fundtransferrequest",
-							  "datetsent" => "",
-							  "gamedetails" => [
-							    "gameid" => "",
-							    "gamename" => ""
-							  ],
-							  "fundtransferrequest" => [
-									"playerinfo" => [
-									"token" => $client_details->player_token
-								],
-								"fundinfo" => [
-								      "gamesessionid" => "",
-								      "transactiontype" => "debit",
-								      "transferid" => "",
-								      "rollback" => "false",
-								      "currencycode" => $client_details->currency,
-								      "amount" => 0
-								]
-							  ]
-							]
-				    )]
-				);
+				$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
-
-				/*var_dump($client_response); die();*/
-
-				if(isset($client_response->fundtransferresponse->status->code) 
-			&& $client_response->fundtransferresponse->status->code == "402") {
-					$response = [
-						"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
-						"errormessage" => "Not sufficient funds",
-						"httpstatus" => "402"
-					];
+				if(isset($client_response->playerdetailsresponse->status->code) 
+			&& $client_response->playerdetailsresponse->status->code == "402") {
+					$response = '<?xml version="1.0" encoding="utf-8"?>';
+				 		$response .= '<RequestResponse><error>1004</error></RequestResponse>';
 				}
 				else
 				{
-					if(isset($client_response->fundtransferresponse->status->code) 
-				&& $client_response->fundtransferresponse->status->code == "200") {
-
-						$game_details = Game::find($request_params["gamecode"]);
-						
-						$json_data = [
-							'transid' => $request_params['txnid'],
-							'amount' => 0,
-							'income' => 0,
-							'reason' => '',
-							'roundid' => 0
-						];
-						GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
-
+					if(isset($client_response->playerdetailsresponse->status->code) 
+				&& $client_response->playerdetailsresponse->status->code == "200") {
 						header("Content-type: text/xml; charset=utf-8");
 				 		$response = '<?xml version="1.0" encoding="utf-8"?>';
-				 		$response .= '<RequestResponse><username>'.$request_params['username'].'</username><currency>USD</currency><amount>'.$client_response->fundtransferresponse->balance.'</amount><error>0</error></RequestResponse>';
+				 		$response .= '<RequestResponse><username>'.$request_params['username'].'</username><currency>USD</currency><amount>'.$client_response->playerdetailsresponse->balance.'</amount><error>0</error></RequestResponse>';
 					}
 				}
 				
 			}
 		}
 		
-		Helper::saveLog('debit', 35, file_get_contents("php://input"), $response);
+		Helper::saveLog('simpleplay_lost', 35, json_encode($request_params), $response);
 		echo $response;
 	}
 
@@ -517,98 +264,57 @@ class SimplePlayController extends Controller
 
 		$client_code = RouteParam::get($request, 'brand_code');
 
-		$response = [
-					"errorcode" =>  "PLAYER_NOT_FOUND",
-					"errormessage" => "The provided playerid don’t exist.",
-					"httpstatus" => "404"
-				];
+		header("Content-type: text/xml; charset=utf-8");
+ 		$response = '<?xml version="1.0" encoding="utf-8"?>';
+ 		$response .= '<RequestResponse><error>1007</error></RequestResponse>';
 
-		$client_details = $this->_getClientDetails($client_code);
-		$player_details = PlayerHelper::getPlayerDetails($request_params['username'], 'username');
+		$client_details = $this->_getClientDetails('username', $request_params['username']);
 
-		if ($client_details && $player_details != NULL) {
+
+		if ($client_details) {
 			// Check if the transaction exist
 			$game_transaction = GameTransaction::find($request_params['txn_reverse_id']);
 
 			// If transaction is not found
 			if(!$game_transaction) {
-				$response = [
-					"errorcode" =>  "TRANS_NOT_FOUND",
-					"errormessage" => "Transaction not found",
-					"httpstatus" => "404"
-				];
+				header("Content-type: text/xml; charset=utf-8");
+		 		$response = '<?xml version="1.0" encoding="utf-8"?>';
+		 		$response .= '<RequestResponse><error>1007</error></RequestResponse>';
 			}
 			else
 			{
 				// If transaction is found, send request to the client
-				$client = new Client([
-				    'headers' => [ 
-				    	'Content-Type' => 'application/json',
-				    	'Authorization' => 'Bearer '.$client_details->client_access_token
-				    ]
-				]);
+				$json_data['roundid'] = 'N/A';
+				$json_data['transid'] = $request_params['txnid'];
+				$json_data['income'] = 0;
 				
-				$guzzle_response = $client->post($client_details->fund_transfer_url,
-				    ['body' => json_encode(
-				        	[
-							  "access_token" => $client_details->client_access_token,
-							  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-							  "type" => "fundtransferrequest",
-							  "datetsent" => "",
-							  "gamedetails" => [
-							    "gameid" => "",
-							    "gamename" => ""
-							  ],
-							  "fundtransferrequest" => [
-									"playerinfo" => [
-									"token" => $player_details->player_token
-								],
-								"fundinfo" => [
-								      "gamesessionid" => "",
-								      "transactiontype" => "credit",
-								      "transferid" => "",
-								      "rollback" => "true",
-								      "currencycode" => $player_details->currency,
-								      "amount" => $game_transaction->bet_amount
-								]
-							  ]
-							]
-				    )]
-				);
+				$game_details = Game::find($request_params["gamecode"], config("providerlinks.simpleplay.PROVIDER_ID"));
+				
+				$game_transaction_id = GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $request_params['txnid'], 'N/A', $request_params['amount'], 3);
+
+       			$client_response = ClientRequestHelper::fundTransfer($client_details, $request_params['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, 'N/A', 'credit', true);
 
 				// If client returned a success response
 				if($client_response->fundtransferresponse->status->code == "200") {
-					
-					$json_data = [
-							'transid' => $request_params['txnid'],
-							'amount' => 0,
-							'reason' => '',
-							'roundid' => 0
-						];
-					GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $player_details);
-					
-					$response = [
-						"status" => "OK",
-						"currency" => $client_response->fundtransferresponse->currencycode,
-						"balance" => $client_response->fundtransferresponse->balance,
-					];
+					header("Content-type: text/xml; charset=utf-8");
+				 		$response = '<?xml version="1.0" encoding="utf-8"?>';
+				 		$response .= '<RequestResponse><username>'.$request_params['username'].'</username><currency>USD</currency><amount>'.$client_response->fundtransferresponse->balance.'</amount><error>0</error></RequestResponse>';
 				}
 			}
 			
 		}
 		
 
-		Helper::saveLog('rollback', 35, file_get_contents("php://input"), $response);
-		echo json_encode($response);
+		Helper::saveLog('simpleplay_rollback', 35, json_encode($request_params), $response);
+		echo $response;
 
 	}
 
 	private function _getClientDetails($type = "", $value = "") {
-
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
