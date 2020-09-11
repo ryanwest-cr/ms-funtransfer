@@ -12,6 +12,8 @@ use App\Helpers\Game;
 use App\Helpers\CallParameters;
 use App\Helpers\PlayerHelper;
 use App\Helpers\TokenHelper;
+use App\Helpers\ProviderHelper;
+use App\Helpers\ClientRequestHelper;
 
 use App\Support\RouteParam;
 
@@ -328,47 +330,15 @@ class SolidGamingController extends Controller
 					}
 					else
 					{
-						$client = new Client([
-						    'headers' => [ 
-						    	'Content-Type' => 'application/json',
-						    	'Authorization' => 'Bearer '.$client_details->client_access_token
-						    ]
-						]);
-						
-						$body = json_encode(
-						        	[
-									  "access_token" => $client_details->client_access_token,
-									  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-									  "type" => "fundtransferrequest",
-									  "datesent" => Helper::datesent(),
-									  "gamedetails" => [
-									    "gameid" => "",
-									    "gamename" => ""
-									  ],
-									  "fundtransferrequest" => [
-											"playerinfo" => [
-												"client_player_id" => $client_details->client_player_id,
-												"token" => $client_details->player_token
-										],
-										"fundinfo" => [
-										      "gamesessionid" => "",
-										      "transactiontype" => "debit",
-										      "transferid" => "",
-										      "rollback" => "false",
-										      "currencycode" => $client_details->currency,
-										      "amount" => $json_data["amount"]
-										]
-									  ]
-									]
-						    );
+						$json_data['income'] = $json_data['amount'];
 
-						$guzzle_response = $client->post($client_details->fund_transfer_url,
-						    ['body' => $body]
-						);
+						$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 
-						$client_response = json_decode($guzzle_response->getBody()->getContents());
+						$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
-						/*var_dump($client_response); die();*/
+						$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
+
+		                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['roundid'], 'debit');
 
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "402") {
@@ -389,28 +359,23 @@ class SolidGamingController extends Controller
 									}
 								}
 
-								$json_data['income'] = $json_data['amount'];
-
-								$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
-								$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
-
 								$http_status = 200;
 								$response = [
 									"status" => "OK",
 									"currency" => $client_details->currency,
 									"balance" => $client_response->fundtransferresponse->balance,
 								];
-
-								Helper::createSolidGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 1);
 							}
 						}
+
+						ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 					}
 				}
 			}
 		}
 		
 		
-		Helper::saveLog('debit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('solid_debit', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
@@ -468,46 +433,15 @@ class SolidGamingController extends Controller
 					}
 					else
 					{
-						$client = new Client([
-						    'headers' => [ 
-						    	'Content-Type' => 'application/json',
-						    	'Authorization' => 'Bearer '.$client_details->client_access_token
-						    ]
-						]);
-						
-						$body = json_encode(
-						        	[
-									  "access_token" => $client_details->client_access_token,
-									  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-									  "type" => "fundtransferrequest",
-									  "datesent" => Helper::datesent(),
-									  "gamedetails" => [
-									    "gameid" => "",
-									    "gamename" => ""
-									  ],
-									  "fundtransferrequest" => [
-											"playerinfo" => [
-												"client_player_id" => $client_details->client_player_id,
-												"token" => $client_details->player_token
-										],
-										"fundinfo" => [
-										      "gamesessionid" => "",
-										      // "transactiontype" => "debit", // Barry
-										      "transactiontype" => "credit", // RiAN TEST!
-										      "transferid" => "",
-										      "rollback" => "false",
-										      "currencycode" => $client_details->currency,
-										      "amount" => $json_data["amount"]
-										]
-									  ]
-									]
-						    );
+						$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 
-						$guzzle_response = $client->post($client_details->fund_transfer_url,
-						    ['body' => $body]
-						);
+						$json_data['income'] = $json_data["amount"];
 
-						$client_response = json_decode($guzzle_response->getBody()->getContents());
+						$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+
+						$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
+
+               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['roundid'], 'credit');
 
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "200") {
@@ -518,21 +452,15 @@ class SolidGamingController extends Controller
 								}
 							}
 							
-							$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
-
-							$json_data['income'] = $json_data['amount'] - $json_data["amount"];
-
-							$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
-
 							$http_status = 200;
 							$response = [
 								"status" => "OK",
 								"currency" => $client_details->currency,
 								"balance" => $client_response->fundtransferresponse->balance,
 							];
-
-							Helper::createSolidGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 2);
 						}
+
+						ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 					}
 				}
 			}
@@ -580,7 +508,7 @@ class SolidGamingController extends Controller
 				$subscription = new GameSubscription();
 				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
 
-				if(!$client_game_subscription) {
+				/*if(!$client_game_subscription) {
 					$http_status = 404;
 					$response = [
 							"errorcode" =>  "GAME_NOT_FOUND",
@@ -588,7 +516,7 @@ class SolidGamingController extends Controller
 						];
 				}
 				else
-				{
+				{*/
 					if(!GameRound::find($json_data['roundid'])) {
 					
 						// If round is not found
@@ -609,7 +537,7 @@ class SolidGamingController extends Controller
 						}
 						else
 						{
-							$client = new Client([
+							/*$client = new Client([
 							    'headers' => [ 
 							    	'Content-Type' => 'application/json',
 							    	'Authorization' => 'Bearer '.$client_details->client_access_token
@@ -645,43 +573,20 @@ class SolidGamingController extends Controller
 
 							$debit_guzzle_response = $client->post($client_details->fund_transfer_url,
 							    ['body' => $debit_body]
-							);
+							);*/
 
-							$debit_client_response = json_decode($debit_guzzle_response->getBody()->getContents());
+							/*DEBIT*/
 
+							$json_data['income'] = $json_data['betamount'];
+							$json_data['amount'] = $json_data['betamount'];
 
-							$credit_body = json_encode(
-							        	[
-										  "access_token" => $client_details->client_access_token,
-										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-										  "type" => "fundtransferrequest",
-										  "datesent" => Helper::datesent(),
-										  "gamedetails" => [
-										    "gameid" => "",
-										    "gamename" => ""
-										  ],
-										  "fundtransferrequest" => [
-												"playerinfo" => [
-													"client_player_id" => $client_details->client_player_id,
-													"token" => $client_details->player_token
-											],
-											"fundinfo" => [
-											      "gamesessionid" => "",
-											      "transactiontype" => "credit",
-											      "transferid" => "",
-											      "rollback" => "false",
-											      "currencycode" => $client_details->currency,
-											      "amount" => $json_data["winamount"]
-											]
-										  ]
-										]
-							    );
+							$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 
-							$credit_guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => $credit_body]
-							);
+							$debit_game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
-							$credit_client_response = json_decode($credit_guzzle_response->getBody()->getContents());
+							$debit_game_trans_ext_id = ProviderHelper::createGameTransExtV2($debit_game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['betamount'], 1);
+
+			                $debit_client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['betamount'], $game_details->game_code, $game_details->game_name, $debit_game_trans_ext_id, $json_data['roundid'], 'debit');
 
 							if(isset($debit_client_response->fundtransferresponse->status->code) 
 						&& $debit_client_response->fundtransferresponse->status->code == "402") {
@@ -691,9 +596,31 @@ class SolidGamingController extends Controller
 									"errormessage" => "Not sufficient funds",
 									"httpstatus" => "402"
 								];
+
 							}
 							else
 							{
+								$response = [
+										"status" => "OK",
+										"currency" => $client_details->currency,
+										"balance" => $debit_client_response->fundtransferresponse->balance,
+									];
+
+								ProviderHelper::updatecreateGameTransExt($debit_game_trans_ext_id, $json_data, $response, $debit_client_response->requestoclient, $debit_client_response, $json_data);
+
+								/*CREDIT*/
+
+								$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
+
+								$json_data['income'] = $json_data["winamount"];
+								$json_data['amount'] = $json_data["winamount"];
+
+								$credit_game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+
+								$credit_game_trans_ext_id = ProviderHelper::createGameTransExtV2($credit_game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['winamount'], 2);
+
+		               			$credit_client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['winamount'], $game_details->game_code, $game_details->game_name, $credit_game_trans_ext_id, $json_data['roundid'], 'credit');
+
 								if(isset($credit_client_response->fundtransferresponse->status->code) 
 							&& $credit_client_response->fundtransferresponse->status->code == "200") {
 
@@ -702,17 +629,6 @@ class SolidGamingController extends Controller
 											GameRound::end($json_data['roundid']);
 										}
 									}
-
-									$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
-									$json_data["amount"] = $json_data["betamount"];
-									$json_data['income'] = $json_data['betamount'];
-
-									$debit_game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
-									
-									$json_data["amount"] = $json_data["winamount"];
-									$json_data["reason"] = "";
-									
-									$credit_game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
 									
 									$response = [
 										"status" => "OK",
@@ -720,18 +636,17 @@ class SolidGamingController extends Controller
 										"balance" => $credit_client_response->fundtransferresponse->balance,
 									];
 
-									Helper::createSolidGameTransactionExt($debit_game_transaction_id, $json_data, $debit_body, $response, $debit_client_response, 1);
-
-									Helper::createSolidGameTransactionExt($credit_game_transaction_id, $json_data, $credit_body, $response, $credit_client_response, 2);
 								}
 							}
+				
+							ProviderHelper::updatecreateGameTransExt($credit_game_trans_ext_id, $json_data, $response, $credit_client_response->requestoclient, $credit_client_response, $json_data);
 						}
 					}
-				}
+				/*}*/
 			}
 		}
 		
-		Helper::saveLog('debitandcredit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('solid_debitandcredit', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 	}
 
@@ -742,10 +657,12 @@ class SolidGamingController extends Controller
 		$response = [];
 		$client_response = [];
 
-		if($this->_isIdempotent($json_data['originaltransid'], true)) {
-			return $this->_isIdempotent($json_data['originaltransid'], true)->mw_response;
+		if(array_key_exists('originaltransid', $json_data)) {
+			if($this->_isIdempotent($json_data['originaltransid'], true)) {
+				return $this->_isIdempotent($json_data['originaltransid'], true)->mw_response;
+			}
 		}
-
+		
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid')) {
 				$http_status = 400;
 				$response = [
@@ -762,9 +679,8 @@ class SolidGamingController extends Controller
 					];
 
 			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
-			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
-			if ($client_details/* && $player_details != NULL*/) {
+			if ($client_details) {
 				// Check if round exist
 				if(!GameRound::find($json_data['roundid'])) {
 					
@@ -780,7 +696,6 @@ class SolidGamingController extends Controller
 					// If round is found
 					// Check if "originaltransid" is present in the Solid Gaming request
 					if(array_key_exists('originaltransid', $json_data)) {
-						
 						// Check if the transaction exist
 						$game_transaction = GameTransaction::find($json_data['originaltransid']);
 
@@ -795,61 +710,36 @@ class SolidGamingController extends Controller
 						else
 						{
 							// If transaction is found, send request to the client
-							$client = new Client([
-							    'headers' => [ 
-							    	'Content-Type' => 'application/json',
-							    	'Authorization' => 'Bearer '.$client_details->client_access_token
-							    ]
-							]);
-							
-							$body = json_encode(
-							        	[
-										  "access_token" => $client_details->client_access_token,
-										  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-										  "type" => "fundtransferrequest",
-										  "datesent" => Helper::datesent(),
-										  "gamedetails" => [
-										    "gameid" => "",
-										    "gamename" => ""
-										  ],
-										  "fundtransferrequest" => [
-												"playerinfo" => [
-													"client_player_id" => $client_details->client_player_id,
-													"token" => $client_details->player_token
-											],
-											"fundinfo" => [
-											      "gamesessionid" => "",
-											      "transactiontype" => "credit",
-											      "transferid" => "",
-											      "rollback" => "true",
-											      "currencycode" => $client_details->currency,
-											      "amount" => $game_transaction->bet_amount
-											]
-										  ]
-										]
-							    );
 
-							$guzzle_response = $client->post($client_details->fund_transfer_url,
-							    ['body' => $body]
-							);
+							$json_data['transid'] = $json_data['originaltransid'];
+							$json_data['income'] = 0;
 
-							$client_response = json_decode($guzzle_response->getBody()->getContents());
+							// Find game details by transaction id
+							$game_details = Game::findby('trans_id', $json_data["originaltransid"], config("providerlinks.solid.PROVIDER_ID"));
+
+							$game_transaction_id = GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
+
+							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $game_transaction->bet_amount, 3);
+
+	               			$client_response = ClientRequestHelper::fundTransfer($client_details, $game_transaction->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['roundid'], 'credit', true);
 
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
-								$json_data['income'] = $game_transaction->bet_amount;
-								$game_transaction_id = GameTransaction::save('rollback', $json_data, $game_transaction, $client_details, $client_details);
-								
 								$http_status = 200;
 								$response = [
 									"status" => "OK",
 									"currency" => $client_details->currency,
 									"balance" => $client_response->fundtransferresponse->balance,
 								];
+							}
 
-								$json_data['transid'] = $json_data['originaltransid'];
-								$json_data['amount'] = $game_transaction->bet_amount;
-								Helper::createSolidGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 3);
+							ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+						
+							// Check if round should be ended
+							if(array_key_exists("roundended", $json_data)) {
+								if ($json_data["roundended"] == "true") {
+									GameRound::end($json_data['roundid']);
+								}
 							}
 						}
 					}
@@ -875,67 +765,41 @@ class SolidGamingController extends Controller
 
 							// If round is still active
 							$bulk_rollback_result = GameTransaction::bulk_rollback($json_data['roundid']);
-
+							
 							if($bulk_rollback_result) {
 								foreach ($bulk_rollback_result as $key => $value) {
-									/*var_dump($value); die();*/
-									$client = new Client([
-									    'headers' => [ 
-									    	'Content-Type' => 'application/json',
-									    	'Authorization' => 'Bearer '.$client_details->client_access_token
-									    ]
-									]);
+
+									$json_data['transid'] = $value->game_trans_id;
+									$json_data['income'] = 0;
+
+									// Find game details by transaction id
+									$game_details = Game::findby('round_id', $json_data["roundid"], config("providerlinks.solid.PROVIDER_ID"));
 									
-									$body = json_encode(
-									        	[
-												  "access_token" => $client_details->client_access_token,
-												  "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-												  "type" => "fundtransferrequest",
-												  "datesent" => Helper::datesent(),
-												  "gamedetails" => [
-												    "gameid" => "",
-												    "gamename" => ""
-												  ],
-												  "fundtransferrequest" => [
-														"playerinfo" => [
-															"client_player_id" => $client_details->client_player_id,
-															"token" => $client_details->player_token
-													],
-													"fundinfo" => [
-													      "gamesessionid" => $value->round_id,
-													      "transactiontype" => "credit",
-													      "transferid" => $value->game_trans_id,
-													      "rollback" => "true",
-													      "currencycode" => $client_details->currency,
-													      "amount" => $value->bet_amount
-													]
-												  ]
-												]
-									    );
+									$game_transaction_id = GameTransaction::save('rollback', $json_data, $value, $client_details, $client_details);
 
-									$guzzle_response = $client->post($client_details->fund_transfer_url,
-									    ['body' => $body]
-									);
+									$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $value->game_trans_id, $value->round_id, $value->bet_amount, 3);
 
-									$client_response = json_decode($guzzle_response->getBody()->getContents());
+			               			$client_response = ClientRequestHelper::fundTransfer($client_details, $value->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $value->round_id, 'credit', true);
 
 									// If client returned a success response
 									if($client_response->fundtransferresponse->status->code == "200") {
-										$json_data['income'] = $value->bet_amount;
-										$game_transaction_id = GameTransaction::save('rollback', $json_data, $value, $client_details, $client_details);
-
 										$http_status = 200;
 										$response = [
-												"status" => "OK",
-												"currency" => $client_details->currency,
-												"balance" => $client_response->fundtransferresponse->balance,
-											];
-
-										$json_data['transid'] = $json_data['originaltransid'];
-										$json_data['amount'] = $value->bet_amount;
-										Helper::createSolidGameTransactionExt($game_transaction_id, $json_data, $body, $response, $client_response, 3);
-
+											"status" => "OK",
+											"currency" => $client_details->currency,
+											"balance" => $client_response->fundtransferresponse->balance,
+										];
 									}
+
+									ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+								
+									// Check if round should be ended
+									if(array_key_exists("roundended", $json_data)) {
+										if ($json_data["roundended"] == "true") {
+											GameRound::end($json_data['roundid']);
+										}
+									}
+
 								}
 							}
 						}
@@ -944,7 +808,7 @@ class SolidGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('rollback', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('solid_rollback', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
@@ -1036,7 +900,7 @@ class SolidGamingController extends Controller
 
 	private function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
