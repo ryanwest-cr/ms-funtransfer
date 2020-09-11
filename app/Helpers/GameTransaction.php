@@ -37,6 +37,14 @@ class GameTransaction
 					$trans_data["entry_id"] = 3;
 					$trans_data["payout_reason"] = "Rollback of transaction ID: ".$game_data->game_trans_id;
 		        break;
+		    case "cancelled":
+		    		$trans_data["provider_trans_id"] = $request_data["transid"];
+			        $trans_data["bet_amount"] = 0;
+			        $trans_data["win"] = 0;
+			        $trans_data["pay_amount"] = abs($request_data["amount"]);
+			        $trans_data["entry_id"] = 3;
+			        $trans_data["payout_reason"] = $request_data["reason"];
+		        break;
 
 		    default:
 		}
