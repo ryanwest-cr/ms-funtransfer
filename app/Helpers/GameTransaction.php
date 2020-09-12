@@ -92,7 +92,7 @@ class GameTransaction
                 ->where('game_trans_id', $game_details->game_trans_id)
                 ->update(['pay_amount' => $pay_amount, 'income' => $income, 'win' => $win, 'entry_id' => $entry_id]);
                 
-		return ($update ? $game_details->game_trans_id : false);
+		return ($game_details ? $game_details->game_trans_id : false);
 	}
 
 	public static function find($original_trans_id) {
