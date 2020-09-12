@@ -311,6 +311,7 @@ class SkyWindController extends Controller
         $cust_id = $data['cust_id'];
         $amount = $data['amount'];
         $trx_id = $data['trx_id'];
+        $roundid = $data['round_id'];
         $game_code = $data['game_code'];
 
         $cust_id = $data['cust_id'];
@@ -337,7 +338,7 @@ class SkyWindController extends Controller
         }
 
         $provider_trans_id = $trx_id;
-        $roundid = $trx_id;
+        $roundid = $roundid;
         $existing_bet = ProviderHelper::findGameTransaction($game_ext_check->game_trans_id, 'game_transaction'); // Find if win has bet record
 
         if($amount > 0){
