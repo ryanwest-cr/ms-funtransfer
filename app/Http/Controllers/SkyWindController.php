@@ -264,7 +264,7 @@ class SkyWindController extends Controller
                 "balance" => $client_response->fundtransferresponse->balance,
                 "trx_id" => $provider_trans_id,
             ];
-         ProviderHelper::updatecreateGameTransExt($game_transextension, json_encode($request->all()), $response, $client_response->requestoclient, $client_response, $response,$general_details);
+         ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response,$general_details);
 
         }elseif(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "402"){
@@ -331,10 +331,12 @@ class SkyWindController extends Controller
 
         if($amount > 0){
           $win = 1;
+          $entry_id = 2;
         }else{
           $win = 0;
+          $entry_id = 1;
         }
-        $entry_id = 2;
+        
         $pay_amount = $amount;
         $income = $existing_bet->bet_amount - $pay_amount;
         $game_transaction_type = 2;
