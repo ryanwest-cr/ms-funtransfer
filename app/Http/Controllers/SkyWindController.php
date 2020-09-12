@@ -170,7 +170,7 @@ class SkyWindController extends Controller
     }
 
     public  function getBalance(Request $request){
-      Helper::saveLog('Skywind getBalance EH', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
+      // Helper::saveLog('Skywind getBalance EH', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
       $raw_request = file_get_contents("php://input");
       parse_str($raw_request, $data);
       // dd($data);
@@ -192,7 +192,7 @@ class SkyWindController extends Controller
       }else{
         $response = ["error_code" => -1];
       }
-      Helper::saveLog('Skywind getBalance - SUCCESS', $this->provider_db_id, json_encode(file_get_contents("php://input")), $response);
+      // Helper::saveLog('Skywind getBalance - SUCCESS', $this->provider_db_id, json_encode(file_get_contents("php://input")), $response);
       return $response;
     }
 
