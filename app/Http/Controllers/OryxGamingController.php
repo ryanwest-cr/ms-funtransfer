@@ -278,7 +278,8 @@ class OryxGamingController extends Controller
 
 								$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['bet']['transactionId'], $json_data['roundId'], $this->_toDollars($json_data['bet']["amount"]), 1);
 								
-				                $client_response = ClientRequestHelper::fundTransfer($client_details, $this->_toDollars($json_data['bet']["amount"]), $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['roundId'], 'debit');
+								// change $json_data['roundId'] to $game_transaction_id
+				                $client_response = ClientRequestHelper::fundTransfer($client_details, $this->_toDollars($json_data['bet']["amount"]), $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
 				                
 								if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
 									$http_status = 200;
@@ -324,7 +325,8 @@ class OryxGamingController extends Controller
 
 								$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['win']['transactionId'], $json_data['roundId'], $this->_toDollars($json_data['win']["amount"]) + $jackpot_amount, 1);
 
-		               			$client_response = ClientRequestHelper::fundTransfer($client_details, $this->_toDollars($json_data['win']["amount"]) + $jackpot_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['roundId'], 'credit');
+								// change $json_data['roundId'] to $game_transaction_id
+		               			$client_response = ClientRequestHelper::fundTransfer($client_details, $this->_toDollars($json_data['win']["amount"]) + $jackpot_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
 
 								if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
 									$http_status = 200;
@@ -401,7 +403,8 @@ class OryxGamingController extends Controller
 
 												$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $value->game_trans_id, $value->round_id, $value->bet_amount, 3);
 
-						               			$client_response = ClientRequestHelper::fundTransfer($client_details, $value->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $value->round_id, 'credit', true);
+												// change $json_data['roundId'] to $game_transaction_id
+						               			$client_response = ClientRequestHelper::fundTransfer($client_details, $value->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit', true);
 												
 
 												if(isset($client_response->fundtransferresponse->status->code) 
