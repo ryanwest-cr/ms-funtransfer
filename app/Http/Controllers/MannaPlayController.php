@@ -70,31 +70,8 @@ class MannaPlayController extends Controller
 				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
 				
 				if ($client_details) {
-
-					$client = new Client([
-					    'headers' => [ 
-					    	'Content-Type' => 'application/json',
-					    	'Authorization' => 'Bearer '.$client_details->client_access_token
-					    ]
-					]);
-				        
-
-					$guzzle_response = $client->post($client_details->player_details_url,
-					    ['body' => json_encode(
-					        	[
-					        		"access_token" => $client_details->client_access_token,
-									"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-									"type" => "playerdetailsrequest",
-									"datesent" => "",
-									"gamecode" => "",
-									"clientid" => $client_details->client_id,
-									"playerdetailsrequest" => [
-										"token" => $client_details->player_token,
-										"gamelaunch" => "false"
-									]]
-					    )]
-					);
-
+					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+					
 					$client_response = json_decode($guzzle_response->getBody()->getContents());
 					if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
