@@ -424,7 +424,6 @@ class OryxGamingController extends Controller
 												}
 
 												ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
-											die();
 											}
 										}
 									}
@@ -502,7 +501,6 @@ class OryxGamingController extends Controller
 
 						$game_details = Game::find($json_data["gameCode"], config("providerlinks.oryx.PROVIDER_ID"));
 						$game_transaction_id = GameTransaction::save('cancelled', $json_data, $game_details, $client_details, $client_details);
-						die();
 					}
 					else
 					{
