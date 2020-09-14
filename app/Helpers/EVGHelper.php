@@ -99,7 +99,7 @@ class EVGHelper
         }
 	}
 	public static function getGameDetails($game_code,$game_type){
-		$game = DB::table("game")
+		$game = DB::table("games")
 				->where("game_code",$game_code."_".$game_type)
 				->first();
 		return $game ? $game : false;
