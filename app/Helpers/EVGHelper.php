@@ -97,7 +97,13 @@ class EVGHelper
             );
             return config("providerlinks.evolution.host").json_decode($provider_response->getBody(),TRUE)["entry"];
         }
-    }
+	}
+	public static function getGameDetails($game_code,$game_type){
+		$game = DB::table("game")
+				->where("game_code",$game_code."_".$game_type)
+				->first();
+		return $game ? $game : false;
+	}
     public static function _getClientDetails($type = "", $value = "") {
 
 		$query = DB::table("clients AS c")

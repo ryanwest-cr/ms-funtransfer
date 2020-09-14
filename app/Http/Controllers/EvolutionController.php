@@ -124,7 +124,7 @@ class EvolutionController extends Controller
                 }
                 $bet_amount = $game_transaction ? 0 : round($data["transaction"]["amount"],2);
                 $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
-                $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
+                $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"]);
                 $json_data = array(
                     "transid" => $data["transaction"]["id"],
                     "amount" => round($data["transaction"]["amount"],2),
@@ -185,7 +185,7 @@ class EvolutionController extends Controller
                     return response($msg,200)->header('Content-Type', 'application/json');
                 }
                 $win = $data["transaction"]["amount"] == 0 ? 0 : 1;
-                $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
+                $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"]);
                 $json_data = array(
                     "transid" => $data["transaction"]["id"],
                     "amount" => round($data["transaction"]["amount"],2),
