@@ -259,7 +259,7 @@ class EvolutionController extends Controller
                     return response($msg,200)->header('Content-Type', 'application/json');
                 }
                 $win = 0;
-                $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
+                $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"]);
                 $json_data = array(
                     "transid" => $data["transaction"]["id"],
                     "amount" => round($data["transaction"]["amount"],2),
