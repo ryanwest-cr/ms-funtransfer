@@ -116,7 +116,7 @@ class GameLobbyController extends Controller
                     $url = GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$request->input('game_provider'),$lang);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => "https://play.betrnk.games/loadgame?url=".urlencode($url)."&token=".$request->token,
+                        "url" => $url,
                         "game_launch" => true
                     );
                     return response($msg,200)
