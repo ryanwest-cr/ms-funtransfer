@@ -57,7 +57,7 @@ class OryxGamingController extends Controller
 			$client_details = $this->_getClientDetails('token', $token);
 			
 			if ($client_details) {
-				$client = new Client([
+				/*$client = new Client([
 				    'headers' => [ 
 				    	'Content-Type' => 'application/json',
 				    	'Authorization' => 'Bearer '.$client_details->client_access_token
@@ -80,8 +80,9 @@ class OryxGamingController extends Controller
 				    )]
 				);
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$client_response = json_decode($guzzle_response->getBody()->getContents());*/
 
+				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 			
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
@@ -142,7 +143,7 @@ class OryxGamingController extends Controller
 			if ($client_details) {
 
 				// Check if the game is available for the client
-				$subscription = new GameSubscription();
+				/*$subscription = new GameSubscription();
 				$client_game_subscription = $subscription->check($client_details->client_id, 18, $json_data['gameCode']);
 
 				if(!$client_game_subscription) {
@@ -153,8 +154,8 @@ class OryxGamingController extends Controller
 						];
 				}
 				else
-				{
-					$client = new Client([
+				{*/
+					/*$client = new Client([
 					    'headers' => [ 
 					    	'Content-Type' => 'application/json',
 					    	'Authorization' => 'Bearer '.$client_details->client_access_token
@@ -178,7 +179,9 @@ class OryxGamingController extends Controller
 					    )]
 					);
 
-					$client_response = json_decode($guzzle_response->getBody()->getContents());
+					$client_response = json_decode($guzzle_response->getBody()->getContents());*/
+
+					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 					
 					if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
@@ -187,7 +190,7 @@ class OryxGamingController extends Controller
 							"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
 						];
 					}
-				}
+				/*}*/
 			}
 		}
 

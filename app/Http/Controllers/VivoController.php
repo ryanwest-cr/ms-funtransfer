@@ -72,7 +72,7 @@ class VivoController extends Controller
 		else
 		{
 			if ($client_details) {
-				$client = new Client([
+				/*$client = new Client([
 				    'headers' => [ 
 				    	'Content-Type' => 'application/json',
 				    	'Authorization' => 'Bearer '.$client_details->client_access_token
@@ -97,7 +97,9 @@ class VivoController extends Controller
 				);
 
 				
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$client_response = json_decode($guzzle_response->getBody()->getContents());*/
+
+				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
@@ -432,7 +434,7 @@ class VivoController extends Controller
 		else
 		{
 			if ($client_details) {
-				$client = new Client([
+				/*$client = new Client([
 				    'headers' => [ 
 				    	'Content-Type' => 'application/json',
 				    	'Authorization' => 'Bearer '.$client_details->client_access_token
@@ -455,7 +457,9 @@ class VivoController extends Controller
 				    )]
 				);
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$client_response = json_decode($guzzle_response->getBody()->getContents());*/
+
+				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 				
 				if(isset($client_response->playerdetailsresponse->status->code) 
 				&& $client_response->playerdetailsresponse->status->code == "200") {

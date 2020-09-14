@@ -56,7 +56,7 @@ class SolidGamingController extends Controller
 			$client_details = $this->_getClientDetails('token', $json_data['token']);
 			
 			if ($client_details) {
-				$client = new Client([
+				/*$client = new Client([
 				    'headers' => [ 
 				    	'Content-Type' => 'application/json',
 				    	'Authorization' => 'Bearer '.$client_details->client_access_token
@@ -79,7 +79,9 @@ class SolidGamingController extends Controller
 				    )]
 				);
 				
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				$client_response = json_decode($guzzle_response->getBody()->getContents());*/
+
+				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 				
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
@@ -142,7 +144,7 @@ class SolidGamingController extends Controller
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
-				$client = new Client([
+				/*$client = new Client([
 				    'headers' => [ 
 				    	'Content-Type' => 'application/json',
 				    	'Authorization' => 'Bearer '.$client_details->client_access_token
@@ -166,7 +168,9 @@ class SolidGamingController extends Controller
 				    )]
 				);
 
-				$client_response = json_decode($guzzle_response->getBody()->getContents());		
+				$client_response = json_decode($guzzle_response->getBody()->getContents());*/
+
+				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);		
 				
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
@@ -229,7 +233,7 @@ class SolidGamingController extends Controller
 				}
 				else
 				{*/
-					$client = new Client([
+					/*$client = new Client([
 					    'headers' => [ 
 					    	'Content-Type' => 'application/json',
 					    	'Authorization' => 'Bearer '.$client_details->client_access_token
@@ -253,7 +257,9 @@ class SolidGamingController extends Controller
 					    )]
 					);
 
-					$client_response = json_decode($guzzle_response->getBody()->getContents());
+					$client_response = json_decode($guzzle_response->getBody()->getContents());*/
+
+					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 					
 					if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {

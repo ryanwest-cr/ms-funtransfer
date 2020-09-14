@@ -71,8 +71,7 @@ class MannaPlayController extends Controller
 				
 				if ($client_details) {
 					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
-					
-					$client_response = json_decode($guzzle_response->getBody()->getContents());
+
 					if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
 
