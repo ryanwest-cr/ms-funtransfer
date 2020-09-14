@@ -288,7 +288,8 @@ class OryxGamingController extends Controller
 									$http_status = 200;
 									$response = [
 										"responseCode" =>  "OUT_OF_MONEY",
-										"errorDescription" => "Player ran out of money."
+										"errorDescription" => "Player ran out of money.",
+										"balance" => $this->_toPennies($client_response->fundtransferresponse->balance)
 									];
 								}
 								else
@@ -335,7 +336,8 @@ class OryxGamingController extends Controller
 									$http_status = 200;
 									$response = [
 										"responseCode" =>  "OUT_OF_MONEY",
-										"errorDescription" => "Player ran out of money."
+										"errorDescription" => "Player ran out of money.",
+										"balance" => $this->_toPennies($client_response->fundtransferresponse->balance)
 									];
 								}
 								else
