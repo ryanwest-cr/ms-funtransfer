@@ -189,7 +189,8 @@ class MannaPlayController extends Controller
 
 							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transaction_id'], $json_data['round_id'], $json_data['amount'], 1);
 
-			                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['round_id'], 'debit');
+							// change $json_data['round_id'] to $game_transaction_id
+			                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
 							
 
 							if(isset($client_response->fundtransferresponse->status->code) 
@@ -321,7 +322,8 @@ class MannaPlayController extends Controller
 
 									$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transaction_id'], $json_data['round_id'], $json_data['amount'], 1);
 
-			               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['round_id'], 'credit');
+									// change $json_data['round_id'] to $game_transaction_id
+			               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
 
 									if(isset($client_response->fundtransferresponse->status->code) 
 								&& $client_response->fundtransferresponse->status->code == "200") {
@@ -416,7 +418,8 @@ class MannaPlayController extends Controller
 
 							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transaction_id'], $json_data['round_id'], $json_data['amount'], 3);
 
-	               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $json_data['round_id'], 'credit', true);
+							// change $json_data['round_id'] to $game_transaction_id
+	               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit', true);
 
 							
 							// If client returned a success response

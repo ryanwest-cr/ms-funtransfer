@@ -108,7 +108,7 @@ class GameLobbyController extends Controller
             // }
             //
     
-           $solid_gamings = ['Solid Gaming', 'Booongo', 'Concept', 'Espresso', 'EvoPlay', 'GameArt', 'Habanero', 'MultiSlot', 'NetEnt', 'Omi Gaming', 'Push Gaming', 'Revolver Gaming', 'RTG Asia', 'TPG', '1X2 Network', 'BetSoft', 'Booming', 'Leander', 'Lotus Gaming', 'No Limit City', 'One Touch', 'Quick Fire', 'Relax', 'Wazdan', 'Yggdrasil', 'Evolution Gaming'];
+           $solid_gamings = ['Solid Gaming', 'Booongo', 'Concept', 'Espresso', 'EvoPlay', 'GameArt', 'Habanero', 'MultiSlot', 'NetEnt', 'Oryx Gaming', 'Omi Gaming', 'Push Gaming', 'Revolver Gaming', 'RTG Asia', 'TPG', '1X2 Network', 'BetSoft', 'Booming', 'Leander', 'Lotus Gaming', 'No Limit City', 'One Touch', 'Quick Fire', 'Relax', 'Wazdan', 'Yggdrasil', 'Evolution Gaming', 'Golden Hero'];
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
@@ -232,7 +232,8 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider')=="CQGames"){ // request->token
-                    $url = GameLobby::cq9LaunchUrl($request->game_code,$token);
+                    // $url = GameLobby::cq9LaunchUrl($request->game_code,$token);
+                    $url = GameLobby::cq9LaunchUrl($request->game_code,$token,$request->input('game_provider'));
                     if($url!= 'false'){
                         $msg = array(
                             "game_code" => $request->input("game_code"),
@@ -357,7 +358,7 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($request->input('game_provider')=="Oryx Gaming"){
+                elseif($request->input('game_provider')=="Oryx Gaming Direct"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
