@@ -97,7 +97,7 @@ class SolidGamingController extends Controller
 						"playerid" => "$player_id",
 						"currency" => $client_details->currency,
 						"balance" => $client_response->playerdetailsresponse->balance,
-						"testaccount" => false,
+						"testaccount" => ($client_details->test_player ? true : false),
 						"wallettoken" => "",
 						"country" => "",
 						"affiliatecode" => "",
@@ -176,7 +176,7 @@ class SolidGamingController extends Controller
 						"status" => "OK",
 						"brand" => 'BETRNKMW',
 						"currency" => $client_details->currency,
-						"testaccount" => false,
+						"testaccount" => ($client_details->test_player ? true : false),
 						"country" => "",
 						"affiliatecode" => "",
 						"displayname" => $client_response->playerdetailsresponse->accountname,
@@ -868,7 +868,7 @@ class SolidGamingController extends Controller
 
 	private function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'p.test_player', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
