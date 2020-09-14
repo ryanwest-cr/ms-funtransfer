@@ -636,7 +636,7 @@ class OryxGamingController extends Controller
 
 	private function _toPennies($value)
 	{
-	    return (int) str_replace(' ', '', intval(
+	    return (float) str_replace(' ', '', intval(
 	        strval(floatval(
 	            preg_replace("/[^0-9.]/", "", $value)
 	        ) * 100)
@@ -645,7 +645,7 @@ class OryxGamingController extends Controller
 
 	private function _toDollars($value)
 	{
-		return (int) str_replace(' ', '', number_format(($value / 100), 2, '.', ' '));
+		return (float) str_replace(' ', '', number_format(($value / 100), 2, '.', ' '));
 	}
 
 }
