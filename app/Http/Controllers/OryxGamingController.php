@@ -312,6 +312,11 @@ class OryxGamingController extends Controller
 								}
 
 								ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+
+								if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
+									// return if bet is not successful
+									return response()->json($response, $http_status);
+								}
 							}
 
 							if(array_key_exists('win', $json_data)) {
