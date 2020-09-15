@@ -384,7 +384,7 @@ class TidyController extends Controller
 				"currency" => TidyHelper::currencyCode($client_details->default_currency),
 				"balance" => ProviderHelper::amountToFloat($num)
 			];
-
+ 
 			$type = "refund";
 			$request_data = [
 				'amount' => 0,
