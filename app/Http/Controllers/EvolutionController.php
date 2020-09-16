@@ -104,6 +104,7 @@ class EvolutionController extends Controller
     public function debit(Request $request){
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
+            Helper::saveLog('debitrequest(EVG)', 50, json_encode($data), "debit");
             $client_details = $this->_getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"]);
@@ -174,6 +175,7 @@ class EvolutionController extends Controller
     public function credit(Request $request){
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
+            Helper::saveLog('creditrequest(EVG)', 50, json_encode($data), "credit");
             $client_details = $this->_getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"]);
@@ -240,6 +242,7 @@ class EvolutionController extends Controller
     public function cancel(Request $request){
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
+            Helper::saveLog('cancelrequest(EVG)', 50, json_encode($data), "cancel");
             $client_details = $this->_getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"],$data["transaction"]["refId"],3);

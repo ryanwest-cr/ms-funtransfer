@@ -240,12 +240,11 @@ class TGGController extends Controller
 				
 				//get Round_id, Transaction_id
 				$transaction_id = ProviderHelper::findGameExt($provider_trans_id, 1,'transaction_id');
-				$round_id = ProviderHelper::findGameTransaction($provider_trans_id, 'transaction_id',1) ;
 				
 				//requesttosend, and responsetoclient client side
 				$type = "debit";
 				$rollback = false;
-				$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details->game_name,$transaction_id,$round_id,$type,$rollback);
+				$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 				//response to provider				
 				$response = array(
 					'status' => 'ok',
@@ -324,11 +323,10 @@ class TGGController extends Controller
 					//get game_trans_id and game_trans_ext
 					$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
 					//requesttosend, and responsetoclient client side
-					$round_id = $bet_transaction->game_trans_id;
 
 					$type = "credit";
 					$rollback = false;
-					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$round_id,$type,$rollback);
+					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 					//reponse to provider
 					$response = array(
@@ -383,11 +381,10 @@ class TGGController extends Controller
 						$game_transextension = $this->createGameTransExt($gamerecord,$transaction_uuid, $reference_transaction_uuid, $pay_amount, $game_transaction_type, $request, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
 
 						$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
-						$round_id = ProviderHelper::findGameTransaction($transaction_uuid, 'transaction_id',2);
 						
 						$type = "credit";
 						$rollback = false;
-						$client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_code,$game_details->game_name,$transaction_id,$round_id,$type,$rollback);
+						$client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 						$response = array(
 							'status' => 'ok',

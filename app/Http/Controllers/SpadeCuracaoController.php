@@ -222,16 +222,15 @@ class SpadeCuracaoController extends Controller
 			
 			//get Round_id, Transaction_id
 			$transaction_id = ProviderHelper::findGameExt($details->transferId, 1,'transaction_id');
-			$round_id = ProviderHelper::findGameTransaction($details->transferId, 'transaction_id',1) ;
 			
 			//requesttosend, and responsetoclient client side
 			$type = "debit";
 			$rollback = "false";
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details->game_name,$transaction_id,$round_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 			//response to provider				
 			$response = [
-				"transferId" => (string)$round_id->game_trans_id,
+				"transferId" => (string)$transaction_id->game_trans_id,
 				"merchantCode" => $this->merchantCode,
 				"merchantTxId" => (string)$transaction_id->game_trans_ext_id,
 				"acctId" => $details->acctId,

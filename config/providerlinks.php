@@ -266,6 +266,7 @@ return [
         'provider_id' => 37,
     ],
     'vivo' => [
+        'PROVIDER_ID' => 34,
         'OPERATOR_ID' => '75674',
         'SERVER_ID' => '51681981',
         'PASS_KEY' => '7f1c5d',

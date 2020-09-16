@@ -144,7 +144,7 @@ class VivoController extends Controller
 
 		
 
-		Helper::saveLog('vivo_authentication', 34, json_encode($request->all()), $response);
+		Helper::saveLog('vivo_authentication', config("providerlinks.vivo.PROVIDER_ID"), json_encode($request->all()), $response);
 		echo $response;
 
 	}
@@ -260,7 +260,7 @@ class VivoController extends Controller
 							$json_data['roundid'] = $request->roundId;
 							$json_data['transid'] = $request->TransactionID;
 							
-							$game_details = Game::find($request->gameId, 34);
+							$game_details = Game::find($request->gameId, config("providerlinks.vivo.PROVIDER_ID"));
 
 							$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 							
@@ -289,7 +289,7 @@ class VivoController extends Controller
 
 						elseif($request->TrnType == 'WIN') {
 
-							$game_details = Game::find($request->gameId, 34);
+							$game_details = Game::find($request->gameId, config("providerlinks.vivo.PROVIDER_ID"));
 
 							$json_data['amount'] = $request->Amount;
 							$json_data['income'] = $request->Amount;
@@ -298,7 +298,7 @@ class VivoController extends Controller
 
 							$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
 
-							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
+							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
 
 							// change $json_data['roundid'] to $game_transaction_id
 	               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
@@ -317,7 +317,7 @@ class VivoController extends Controller
 		}
 
 		$transactiontype = ($request->TrnType == 'BET' ? "debit" : "credit");
-		Helper::saveLog('vivo_'.$transactiontype, 34, json_encode($request->all()), $response);
+		Helper::saveLog('vivo_'.$transactiontype, config("providerlinks.vivo.PROVIDER_ID"), json_encode($request->all()), $response);
 
 		header("Content-type: text/xml; charset=utf-8");
 		$final_response =  '<?xml version="1.0" encoding="utf-8"?>'. $response;
@@ -388,7 +388,7 @@ class VivoController extends Controller
 
 		}
 
-		Helper::saveLog('status', 34, json_encode($request->all()), $response);
+		Helper::saveLog('vivo_status', config("providerlinks.vivo.PROVIDER_ID"), json_encode($request->all()), $response);
 		echo $response;
 
 	}
@@ -481,7 +481,7 @@ class VivoController extends Controller
 			}
 		}
 
-		Helper::saveLog('balance', 34, json_encode($request->all()), $response);
+		Helper::saveLog('vivo_balance', config("providerlinks.vivo.PROVIDER_ID"), json_encode($request->all()), $response);
 		echo $response;
 
 	}
