@@ -71,12 +71,11 @@ class MajaGamesController extends Controller
 			
 			//get Round_id, Transaction_id
 			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id');
-			$round_id = ProviderHelper::findGameTransaction($transaction_uuid, 'transaction_id',1) ;
 			
 			//requesttosend, and responsetoclient client side
 			$type = "debit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$transaction_id,$round_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 			//response to provider				
 			$data_response = [
@@ -173,10 +172,9 @@ class MajaGamesController extends Controller
 			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
 
 			//requesttosend, and responsetoclient client side
-			$round_id = $bet_transaction->game_trans_id;
 			$type = "credit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$round_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 			//reponse to provider
 		    $data_response = [
