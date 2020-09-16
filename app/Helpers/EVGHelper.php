@@ -68,6 +68,7 @@ class EVGHelper
 			$game_details[0] = $game->game_code;
 			$game_details[1] = $game->info;
 		}
+		Helper::saveLog('gamedetails(EVG)', 50, json_encode($game_details), $env);
         if($client_details){
             $data = array(
                 "uuid" => $token,
