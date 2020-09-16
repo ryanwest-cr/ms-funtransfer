@@ -89,7 +89,7 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token', $token);
         $lang="en";
         Helper::savePLayerGameRound($game_code,$token,$provider);
-        $url = EVGHelper::gameLaunch($token,$player_ip,$game_code,$lang,$exitUrl);
+        $url = EVGHelper::gameLaunch($token,$player_ip,$game_code,$lang,$exitUrl,config('providerlinks.evolution.env'));
         return $url;
     }
     public static function boleLaunchUrl($game_code,$token,$exitUrl, $country_code='PH'){

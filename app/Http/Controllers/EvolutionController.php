@@ -126,7 +126,12 @@ class EvolutionController extends Controller
                 }
                 $bet_amount = $game_transaction ? 0 : round($data["transaction"]["amount"],2);
                 $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
-                $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"]);
+                if(config("providerlinks.evolution.env") == 'test'){
+                    $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"],config("providerlinks.evolution.env"));
+                }
+                if(config("providerlinks.evolution.env") == 'production'){
+                    $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],null,config("providerlinks.evolution.env"));
+                }
                 $json_data = array(
                     "transid" => $data["transaction"]["id"],
                     "amount" => round($data["transaction"]["amount"],2),
@@ -188,7 +193,12 @@ class EvolutionController extends Controller
                     return response($msg,200)->header('Content-Type', 'application/json');
                 }
                 $win = $data["transaction"]["amount"] == 0 ? 0 : 1;
-                $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"]);
+                if(config("providerlinks.evolution.env") == 'test'){
+                    $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"],config("providerlinks.evolution.env"));
+                }
+                if(config("providerlinks.evolution.env") == 'production'){
+                    $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],null,config("providerlinks.evolution.env"));
+                }
                 $json_data = array(
                     "transid" => $data["transaction"]["id"],
                     "amount" => round($data["transaction"]["amount"],2),
@@ -263,7 +273,12 @@ class EvolutionController extends Controller
                     return response($msg,200)->header('Content-Type', 'application/json');
                 }
                 $win = 0;
-                $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"]);
+                if(config("providerlinks.evolution.env") == 'test'){
+                    $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"],config("providerlinks.evolution.env"));
+                }
+                if(config("providerlinks.evolution.env") == 'production'){
+                    $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],null,config("providerlinks.evolution.env"));
+                }
                 $json_data = array(
                     "transid" => $data["transaction"]["id"],
                     "amount" => round($data["transaction"]["amount"],2),
