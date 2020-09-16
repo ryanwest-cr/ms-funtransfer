@@ -184,13 +184,12 @@ class TidyController extends Controller
 			$game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $bet_id, $bet_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
 			
 			//get Round_id, Transaction_id
-			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id');
-			$round_id = ProviderHelper::findGameTransaction($transaction_uuid, 'transaction_id',1) ;
-			
+			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id'); //extension
+		
 			//requesttosend, and responsetoclient client side
 			$type = "debit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$transaction_id,$round_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 			//response to provider				
 			$num = $client_response->fundtransferresponse->balance;
@@ -276,10 +275,9 @@ class TidyController extends Controller
 			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
 
 			//requesttosend, and responsetoclient client side
-			$round_id = $bet_transaction->game_trans_id;
 			$type = "credit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$round_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 			//reponse to provider
 		    $num = $client_response->fundtransferresponse->balance;
@@ -372,10 +370,9 @@ class TidyController extends Controller
 			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 3,'transaction_id');
 
 			//requesttosend, and responsetoclient client side
-			$round_id = $bet_transaction->game_trans_id;
 			$type = "credit";
 			$rollback = "true";
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_transaction->bet_amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$round_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_transaction->bet_amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 			$num = $client_response->fundtransferresponse->balance;
 			$data_response = [
@@ -384,7 +381,7 @@ class TidyController extends Controller
 				"currency" => TidyHelper::currencyCode($client_details->default_currency),
 				"balance" => ProviderHelper::amountToFloat($num)
 			];
-
+ 
 			$type = "refund";
 			$request_data = [
 				'amount' => 0,
