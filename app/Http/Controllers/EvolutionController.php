@@ -15,6 +15,7 @@ class EvolutionController extends Controller
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
             $client_details = $this->_getClientDetails("player_id",$data["userId"]);
+            Helper::saveLog('Authentication(EVG)', 50, json_encode($data), $client_details);
             if($client_details){
                 $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
                 $msg = array(
