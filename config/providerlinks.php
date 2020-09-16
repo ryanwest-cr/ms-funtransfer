@@ -186,6 +186,7 @@ return [
         'externalLobbyApiToken'=> 'test123',
         'owAuthToken' => 'TigerGames@2020',
         'ua2AuthenticationUrl' => 'https://babylontgg.uat1.evo-test.com/ua/v1/babylontgg000001/test123',
+        'env'=>'test'
 
     ],
     'png'=>[
