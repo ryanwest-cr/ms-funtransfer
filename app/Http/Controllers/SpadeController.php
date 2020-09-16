@@ -228,7 +228,7 @@ class SpadeController extends Controller
 			//requesttosend, and responsetoclient client side
 			$type = "debit";
 			$rollback = "false";
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details->game_name,$transaction_id,$round_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
 
 			//response to provider				
 			$response = [
