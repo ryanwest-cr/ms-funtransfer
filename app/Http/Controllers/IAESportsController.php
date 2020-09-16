@@ -61,7 +61,7 @@ class IAESportsController extends Controller
 
 
 	public function __construct(){
-		$this->middleware('oauth', ['except' => ['index','seamlessDeposit','seamlessWithdrawal','seamlessBalance','seamlessSearchOrder','userlaunch']]);
+		// $this->middleware('oauth', ['except' => ['index','seamlessDeposit','seamlessWithdrawal','seamlessBalance','seamlessSearchOrder','userlaunch']]);
 		// $this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);
 	}
 
@@ -677,13 +677,16 @@ class IAESportsController extends Controller
 	 */
 	public function userWager(Request $request)
 	{
+		Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'IA API WAGER');
 		$data_body = json_decode(file_get_contents("php://input"));
 		$roundIds = array();
 		$orderIds = '';
 		if(!isset($data_body->roundId)){
+			Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'No Round ID');
 			return ["Tiger Games API" => $this->api_version, "code" => 400, "msg" => "missing parameter"];
 		}
 		if(count($data_body->roundId) == 0){
+			Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'No Round ID');
 			return ["Tiger Games API" => $this->api_version, "code" => 400, "msg" => "round id could not be empty"];
 		}
 		foreach ($data_body->roundId as $round) {
@@ -693,6 +696,7 @@ class IAESportsController extends Controller
 			}
 		}
 		if(count($roundIds) == 0){
+			Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'No Round ID II');
 			return ["Tiger Games API" => $this->api_version, "code" => 404, "msg" => "round's not found"];
 		}
 		// if($data_body->filter === 'settled'){
@@ -718,17 +722,19 @@ class IAESportsController extends Controller
         $uhayuu = $this->hashen($params);
 		$timeout = 5;
 
-		try {
 			try {
 				$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
 				if(!isset($client_response[1])){
-					return ["Tiger Games API" => $this->api_version, "code" => 500, "msg" => "Server is busy"];
+					Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'ClI 1');
+					return ["Tiger Games API" => $this->api_version, "code" => 500, "msg" => "Server is bussy"];
 				}
 				$data = json_decode($this->rehashen($client_response[1], true));
 				if(!isset($data->data->list)){
+					Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'No List');
 					return ["Tiger Games API" => $this->api_version, "code" => 408, "msg" => "Records is no longer exist"];
 				}
 				if(count($data->data->list) == 0){
+					Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), '0 List');
 					return ["Tiger Games API" => $this->api_version, "code" => 408, "msg" => "Records is no longer exist"];
 				}
 				$game_wager = array();
@@ -769,13 +775,14 @@ class IAESportsController extends Controller
 				];
 				return $response_data;
 			} catch (\Exception $e) {
+				Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), $e->getMessage());
 				return ["Tiger Games API" => $this->api_version, "code" => 500, "msg" => "Server is busy"];
 			}
 
 			
 			
 			
-
+		// try {
 
 			// BELOW NO USE FOR NOW @RiANDRAFT
 
@@ -831,9 +838,9 @@ class IAESportsController extends Controller
 				endif;
 	 		endif;
 	 		Helper::saveLog('IA Search Order SUCCESS', $this->provider_db_id, json_encode($data), 'SUCCESS');
-		} catch (\Exception $e) {
-			Helper::saveLog('IA Search Order Failed', $this->provider_db_id, json_encode($params), $e->getMessage());
-		}
+		// } catch (\Exception $e) {
+		// 	Helper::saveLog('IA Search Order Failed', $this->provider_db_id, json_encode($params), $e->getMessage());
+		// }
 	}
 
 	// public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
