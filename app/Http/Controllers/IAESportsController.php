@@ -57,6 +57,13 @@ class IAESportsController extends Controller
 	public $game_name = 'IA Gaming';
 	public $provider_db_id = 15;
 	public $prefix = 'TGAMES';
+	public $api_version = 'version 1.0';
+
+
+	public function __construct(){
+		$this->middleware('oauth', ['except' => ['index','seamlessDeposit','seamlessWithdrawal','seamlessBalance','seamlessSearchOrder','userlaunch']]);
+		// $this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);
+	}
 
 	/**
 	 * Create Hash Key
@@ -668,54 +675,112 @@ class IAESportsController extends Controller
 	 * IA Store matches for maximum of 3 Days Only
 	 * 
 	 */
-	public function userWager()
+	public function userWager(Request $request)
 	{
+		$data_body = json_decode(file_get_contents("php://input"));
+		$roundIds = array();
+		$orderIds = '';
+		if(!isset($data_body->roundId)){
+			return ["Tiger Games API" => $this->api_version, "code" => 400, "msg" => "missing parameter"];
+		}
+		if(count($data_body->roundId) == 0){
+			return ["Tiger Games API" => $this->api_version, "code" => 400, "msg" => "round id could not be empty"];
+		}
+		foreach ($data_body->roundId as $round) {
+			$round_details = ProviderHelper::findGameExt($round, 1, 'game_transaction_ext_id');
+			if($round_details != 'false'){
+				array_push($roundIds, $round_details->round_id);
+			}
+		}
+		if(count($roundIds) == 0){
+			return ["Tiger Games API" => $this->api_version, "code" => 404, "msg" => "round's not found"];
+		}
+		// if($data_body->filter === 'settled'){
+		// 	$filter = 1; // settled
+		// }elseif($data_body->filter === 'unsettled'){
+		// 	$filter = 0; // settled
+		// }else{
+			$filter = -1; // All
+		// }
+		$order_id = implode(",", $roundIds);
+
 		$start_time = strtotime('-3 day'); 
 		$end_time = strtotime('+3 day'); 
 		$header = ['pch:'. $this->pch];
         $params = array(
-			"start_time" => $start_time, // 1523600346
+			"start_time" => $start_time, 
 			"end_time" => $end_time, // 2023604346
 			"page" => 1,
-			"limit" =>10000,
-			"is_settle" => 1, // Default:1, 1 is settled,0 is not ,-1 is all.
-			// "is_cancel" => 1, // Optional
-			// "receive_status" => 0 // Optional
+			"limit" => 10000,
+			"is_settle" => $filter, // Default:1, 1 is settled,0 is not ,-1 is all.
+			"order_id" => $order_id, //'GAMEVBDDCFBEJK,GAMEVBDDCFBFAK',
         );
-		try {
-			// ONLINE SETUP
-	        $uhayuu = $this->hashen($params);
-			$timeout = 5;
-			$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
-			$data = json_decode($this->rehashen($client_response[1], true));
-			// END ONLINE SETUP
-			// LOCAL SETUP
-			// $data = [
-			// 	"status" => 1,
-			// 	"message" => "",
-			// 	"hide_error" => 0,
-			// 	"data" => [
-			// 		"list" => [
-			// 			[
-			// 				"prize_status"=> 2,
-			// 				"order_id" => "GAMEVBDDCDFEDK2" // Dummy ID
-			// 			],
-			// 			[
-			// 				"prize_status"=> 2,
-			// 				"order_id" => "GAMEVBDDCDFEDK" // Dummy ID
-			// 			]
-			// 		],
-			// 		"total" => 0,
-			// 		"per_page" => 10000,
-			// 		"current_page" => 1,
-			// 		"ext" => []
-			// 	]
-			// ];
+        $uhayuu = $this->hashen($params);
+		$timeout = 5;
 
-			// $data = json_encode($data);
-			// $data = json_decode($data);
-			// END LOCAL SETUP
-			// dd($data);
+		try {
+			try {
+				$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
+				if(!isset($client_response[1])){
+					return ["Tiger Games API" => $this->api_version, "code" => 500, "msg" => "Server is busy"];
+				}
+				$data = json_decode($this->rehashen($client_response[1], true));
+				if(!isset($data->data->list)){
+					return ["Tiger Games API" => $this->api_version, "code" => 408, "msg" => "Records is no longer exist"];
+				}
+				if(count($data->data->list) == 0){
+					return ["Tiger Games API" => $this->api_version, "code" => 408, "msg" => "Records is no longer exist"];
+				}
+				$game_wager = array();
+				if(isset($data)):
+					foreach ($data->data->list as $matches):
+						$prefixed_username = explode("_", $matches->username);
+						$client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
+						$round_details = ProviderHelper::findGameExt($matches->order_id, 1, 'round_id');
+						if($client_details != 'false' && $round_details != 'false'):
+							$user_round = [
+								"user_info" => [
+									"player_username" => $client_details->username,
+				                    "client_player_id" => $client_details->client_player_id,
+				                    "token" => $client_details->player_token
+								],
+								"round_info" => [
+									"roundId" => $round_details->game_trans_id,
+									"event_name" => $matches->event_name,
+									"game_name" => $matches->game_name,
+									"team_name_1" => $matches->team_name_1,
+									"team_name_2" => $matches->team_name_2,
+									"my_team" => $matches->team_name,
+									"team_info_desc" => $matches->team_info_desc, // Optional
+									"settled" => $matches->is_getprize == 1 ? true : false,
+									"status"  => $matches->prize_status == 1 ? 'win' : 'lost'
+								]
+							];
+							array_push($game_wager, $user_round);
+						endif;
+					endforeach;
+				endif;
+				$response_data = [
+					"Tiger Games API" => $this->api_version,
+					"metadata" => $game_wager,
+					"date" => Helper::datesent(),
+					"code" => 200,
+					"msg" => "Success"
+				];
+				return $response_data;
+			} catch (\Exception $e) {
+				return ["Tiger Games API" => $this->api_version, "code" => 500, "msg" => "Server is busy"];
+			}
+
+			
+			
+			
+
+
+			// BELOW NO USE FOR NOW @RiANDRAFT
+
+			////////////////////////////////////////////////////////////////////////////////////////////
+	
 			$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
 			if(isset($data)):
 				foreach ($data->data->list as $matches):
