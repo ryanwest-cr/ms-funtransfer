@@ -177,7 +177,7 @@ class HabaneroController extends Controller
                 endif;
 
                 $refund_amount = abs($details->fundtransferrequest->funds->refund->amount);
-                $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $checkTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, '2');
+                $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $checkTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, '3');
 
                 $client_response = ClientRequestHelper::fundTransfer($client_details, $refund_amount, $game_code, $game_name, $game_trans_ext_v2 , $checkTrans[0]->game_trans_id, 'credit', true);
                 try{
@@ -192,7 +192,7 @@ class HabaneroController extends Controller
                         ]
                     ];     
                     $refund_update = DB::table('game_transactions')->where('game_trans_id','=',$checkTrans[0]->game_trans_id)->update(['win' => '4', 'transaction_reason' => 'refund']);
-                    $refund_update = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $refund_amount,"game_transaction_type" => 2,"provider_request" => json_encode($details),"mw_response" => json_encode($response),"mw_request" =>$client_response->requestoclient,"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
+                    $refund_update = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $refund_amount,"game_transaction_type" => 3,"provider_request" => json_encode($details),"mw_response" => json_encode($response),"mw_request" =>$client_response->requestoclient,"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
                     Helper::saveLog('HBN trans refund', 24, json_encode($details), $response);
                     return $response;
                 }catch(\Exception $e){
