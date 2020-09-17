@@ -175,14 +175,14 @@ class TidyController extends Controller
 			$income = 0;
 			$win_type = 0;
 			$method = 1;
-			$win_or_lost = 0; // 0 lost,  5 processing
+			$win_or_lost = 5; // 0 lost,  5 processing
 			$payout_reason = 'Bet';
 			$provider_trans_id = $transaction_uuid;
 
 			//Create GameTransaction, GameExtension
 			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
 			$game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $bet_id, $bet_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-			
+		
 			//get Round_id, Transaction_id
 			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id'); //extension
 		
