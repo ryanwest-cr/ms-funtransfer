@@ -58,9 +58,17 @@ class EVGHelper
 		/*var_dump($trans_data); die();*/
 		return DB::table('game_transactions')->insertGetId($trans_data);			
 	}
-    public static function gameLaunch($token,$players_ip,$gamecode=null,$lang="en",$exit_url){
-        $client_details = EVGHelper::_getClientDetails("token",$token);
-        $game_details = explode("_",$gamecode);
+    public static function gameLaunch($token,$players_ip,$gamecode=null,$lang="en",$exit_url,$env){
+		$client_details = EVGHelper::_getClientDetails("token",$token);
+		if($env == 'test'){
+			$game_details = explode("_",$gamecode);
+		}
+        if($env == 'production'){
+			$game = EVGHelper::getGameDetails($gamecode,null,$env);
+			$game_details[0] = $game->game_code;
+			$game_details[1] = $game->info;
+		}
+		Helper::saveLog('gamedetails(EVG)', 50, json_encode($game_details), $env);
         if($client_details){
             $data = array(
                 "uuid" => $token,
@@ -101,10 +109,17 @@ class EVGHelper
             return config("providerlinks.evolution.host").json_decode($provider_response->getBody(),TRUE)["entry"];
         }
 	}
-	public static function getGameDetails($game_code,$game_type){
-		$game = DB::table("games")
+	public static function getGameDetails($game_code,$game_type=null,$env){
+		if($env=='test'){
+			$game = DB::table("games")
 				->where("game_code",$game_code."_".$game_type)
 				->first();
+		}
+		if($env=='production'){
+			$game = DB::table("games")
+				->where("game_code",$game_code)
+				->first();
+		}
 		return $game ? $game : false;
 	}
     public static function _getClientDetails($type = "", $value = "") {
