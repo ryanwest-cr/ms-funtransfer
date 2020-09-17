@@ -107,18 +107,18 @@ class HabaneroController extends Controller
             Helper::saveLog('HBN trans passkey', 24, json_encode($details), $response);
             return $response;
         }
-        // if($checktoken == false): //session check
-        //     $response = [
-        //         "fundtransferresponse" => [
-        //             "status" => [
-        //                 "success" => false,
-        //                 "autherror" => true,
-        //             ]
-        //         ]
-        //     ];
-        //     Helper::saveLog('HBN trans session', 24, json_encode($details), $response);
-        //     return $response;
-        // endif;
+        if($checktoken == false): //session check
+            $response = [
+                "fundtransferresponse" => [
+                    "status" => [
+                        "success" => false,
+                        "autherror" => true,
+                    ]
+                ]
+            ];
+            Helper::saveLog('HBN trans session', 24, json_encode($details), $response);
+            return $response;
+        endif;
 
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $game_details = Helper::findGameDetails('game_code', $this->provider_id, $details->basegame->keyname);
