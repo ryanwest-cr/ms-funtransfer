@@ -242,6 +242,15 @@ $app->post('api/sa/PlayerWin','SAGamingController@PlayerWin');
 $app->post('api/sa/PlayerLost','SAGamingController@PlayerLost');
 $app->post('api/sa/PlaceBetCancel','SAGamingController@PlaceBetCancel');
 
+// Kagaming
+$app->post('api/ka/start','KAGamingController@index');
+$app->post('api/ka/end','KAGamingController@index');
+$app->post('api/ka/start','KAGamingController@index');
+$app->post('api/ka/play','KAGamingController@index');
+$app->post('api/ka/credit','KAGamingController@index');
+$app->post('api/ka/balance','KAGamingController@index');
+$app->post('api/ka/revoke','KAGamingController@index');
+
 
 
 // 8PROVIDERS
