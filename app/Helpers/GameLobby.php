@@ -85,9 +85,9 @@ class GameLobby{
         $url = MGHelper::launchGame($token,$client_details->player_id,$game_code);
         return $url;
     }
-    public static function evolutionLaunchUrl($game_code,$token,$provider,$exitUrl,$player_ip){
+    public static function evolutionLaunchUrl($game_code,$token,$provider,$exitUrl,$player_ip,$lang){
         $client_details = ProviderHelper::getClientDetails('token', $token);
-        $lang="en";
+        $lang = GameLobby::getLanguage("EvolutionGaming Direct",$lang);;
         Helper::savePLayerGameRound($game_code,$token,$provider);
         $url = EVGHelper::gameLaunch($token,$player_ip,$game_code,$lang,$exitUrl,config('providerlinks.evolution.env'));
         return $url;
