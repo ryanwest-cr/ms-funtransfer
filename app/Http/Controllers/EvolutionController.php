@@ -12,11 +12,11 @@ class EvolutionController extends Controller
     //
 
     public function authentication(Request $request){
-        Helper::saveLog('Authentication(EVG)', 74, json_encode($request), "test");
+        Helper::saveLog('Authentication(EVG)', 74, json_encode($request->getContent()), "test");
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
             $client_details = $this->_getClientDetails("player_id",$data["userId"]);
-            Helper::saveLog('Authentication(EVG)', 50, json_encode($data), $client_details);
+            Helper::saveLog('Authentication(EVG)', 74, json_encode($data), $client_details);
             if($client_details){
                 $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
                 $msg = array(
@@ -24,6 +24,7 @@ class EvolutionController extends Controller
                     "sid" => $data["sid"],
                     "uuid"=>$data["uuid"],
                 );
+                Helper::saveLog('Authentication(EVGOK)', 74, json_encode($data), $msg);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
             else{
@@ -31,6 +32,7 @@ class EvolutionController extends Controller
                     "status"=>"INVALID_PARAMETER",
                     "uuid"=>$data["uuid"],
                 );
+                Helper::saveLog('Authentication(EVGINVALID_PARAMETER)', 74, json_encode($data), $msg);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
         }
@@ -40,6 +42,7 @@ class EvolutionController extends Controller
                 "status"=>"INVALID_TOKEN_ID",
                 "uuid"=>$data["uuid"],
             );
+            Helper::saveLog('Authentication(EVGINVALID_TOKEN_ID)', 74, json_encode($data), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
         }
     }
