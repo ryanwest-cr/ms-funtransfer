@@ -306,7 +306,7 @@ class ProviderHelper{
 	/**
 	 * GLOBAL
 	 * Test Only -RiAN
-	 * @param [int] $[win] [<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
+	 * @param [int] $[win] [<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>] (SUGGESTION 2 NOT ENOUGH BALANCE)
 	 * @param [int] $[entry_id] [<1 bet, 2 win>]
 	 * 
 	 */
