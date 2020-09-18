@@ -242,14 +242,13 @@ $app->post('api/sa/PlayerWin','SAGamingController@PlayerWin');
 $app->post('api/sa/PlayerLost','SAGamingController@PlayerLost');
 $app->post('api/sa/PlaceBetCancel','SAGamingController@PlaceBetCancel');
 
-// Kagaming
-$app->post('api/ka/start','KAGamingController@index');
-$app->post('api/ka/end','KAGamingController@index');
-$app->post('api/ka/start','KAGamingController@index');
-$app->post('api/ka/play','KAGamingController@index');
-$app->post('api/ka/credit','KAGamingController@index');
-$app->post('api/ka/balance','KAGamingController@index');
-$app->post('api/ka/revoke','KAGamingController@index');
+// KAGaming
+$app->post('api/ka/start','KAGamingController@gameStart');
+$app->post('api/ka/end','KAGamingController@gameEnd');
+$app->post('api/ka/play','KAGamingController@checkPlay');
+$app->post('api/ka/credit','KAGamingController@gameCredit');
+$app->post('api/ka/balance','KAGamingController@playerBalance');
+$app->post('api/ka/revoke','KAGamingController@gameRevoke');
 
 
 

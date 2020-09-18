@@ -322,9 +322,16 @@ class GameLobby{
             return $url;
         }
     }
+    
+    public static function kaGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
+        $url = $exitUrl;
+        $domain = parse_url($url, PHP_URL_HOST);
+        $client_details = Providerhelper::getClientDetails('token', $token);
+        $url = ''.config('providerlinks.kagaming.gamelaunch').'/?g='.$game_code.'&p='.config('providerlinks.kagaming.partner_name').'&u='.$client_details->player_id.'&t='.$token.'&cr='.$client_details->default_currency.'&loc='.$lang.'&t='.$token.'&l='.$domain.'&da='.$client_details->username.'&tl=TIGERGAMES'.'&ak='.config('providerlinks.kagaming.access_key').'';
+        return $url;
+    }
 
-
-     public static function saGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
+    public static function saGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
         $url = $exitUrl;
         $lang = SAHelper::lang($lang);
         $domain = parse_url($url, PHP_URL_HOST);
