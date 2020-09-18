@@ -46,12 +46,16 @@ class KAGamingController extends Controller
     }
 
     public function formatBalance($amount){
-        return $amount*100;
+        return round($amount*100,2);
     }
 
 
+    public function formatAmounts($amount){
+         return round($amount/100,2);
+    }
+
     public function gameStart(Request $request){
-        Helper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        // Helper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $request_body = file_get_contents("php://input");
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
@@ -85,7 +89,7 @@ class KAGamingController extends Controller
 
 
     public function playerBalance(Request $request){
-        Helper::saveLog('KAGaming playerBalance - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        // Helper::saveLog('KAGaming playerBalance - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $request_body = file_get_contents("php://input");
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
@@ -134,19 +138,18 @@ class KAGamingController extends Controller
         if($freeGames == true){
             $bet_amount = 0;
         }else{
-            $bet_amount = abs($data->betAmount);
+            $bet_amount = $this->formatAmounts($data->betAmount);
         }
 
-        $amount = abs($data->betAmount);
-        $win_amount = abs($data->winAmount);
+        $amount = $this->formatAmounts($data->betAmount);
+        $win_amount = $this->formatAmounts($data->winAmount);
         $pay_amount =  0; //abs($data['amount']);
         $method = 1;
         $income = $bet_amount - $pay_amount;
         $entry_id = 1;
         $win_or_lost = 5; // 0 lost,  5 processing
         $payout_reason = 'Game Bets and Win';
-     
-
+        
         // $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
         // if($session_check == 'false'){
         //     return  $response = ["status" => "failed", "statusCode" =>  100];
@@ -251,8 +254,8 @@ class KAGamingController extends Controller
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
 
         $bet_amount = 0;
-        $amount = abs($data->amount);
-        $win_amount = abs($data->amount);
+        $amount = $this->formatAmounts($data->amount);
+        $win_amount = $this->formatAmounts($data->amount);
         $pay_amount =  $win_amoun; //abs($data['amount']);
         $income = $bet_amount - $pay_amount;
         $win_type = 0;
