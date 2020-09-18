@@ -9,6 +9,7 @@ use App\Models\GameType;
 use App\Models\GameProvider;
 use App\Models\GameSubProvider;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use App\Helpers\GameLobby;
 use App\Models\ClientGameSubscribe;
 use Stripe\Balance;
@@ -251,6 +252,26 @@ class GameLobbyController extends Controller
                 }
                 elseif($request->input('game_provider')=="SA Gaming"){ // request->token
                     $url = GameLobby::saGamingLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang);
+                    if($url){
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $url,
+                            "game_launch" => true
+                        );
+                    }else{
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "game_launch" => false
+                        );
+                    }
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+                elseif($request->input('game_provider')=="KAGaming"){ // request->token
+                    if($request->has('lang')){
+                        $lang = ProviderHelper::getLanguage($request->game_provider,$request->lang,$type='name');
+                    }
+                    $url = GameLobby::kaGamingLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang);
                     if($url){
                         $msg = array(
                             "game_code" => $request->input("game_code"),

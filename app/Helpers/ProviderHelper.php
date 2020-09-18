@@ -303,6 +303,43 @@ class ProviderHelper{
 		return ($update ? true : false);
 	}
 
+	/**
+	 * GLOBAL
+	 * Test Only -RiAN
+	 * @param [int] $[win] [<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
+	 * @param [int] $[entry_id] [<1 bet, 2 win>]
+	 * 
+	 */
+	public static function updateGameTransaction($identifier, $pay_amount, $income, $win, $entry_id,$type='game_trans_id',$bet_amount=0,$multi_bet=false) {
+        $update = DB::table('game_transactions');
+        if ($type == 'game_trans_id') {
+            $update->where([
+                ["game_trans_id", "=", $identifier],
+            ]);
+        }
+        if ($type == 'round_id') {
+            $update->where([
+                ["round_id", "=", $identifier],
+            ]);
+        }
+        if ($type == 'provider_trans_id') {
+            $update->where([
+                ["provider_trans_id", "=", $identifier],
+            ]);
+        }
+        $update->update([
+          'pay_amount' => $pay_amount, 
+          'income' => $income, 
+          'win' => $win, 
+          'entry_id' => $entry_id,
+          'transaction_reason' => ProviderHelper::updateReason($win),
+        ]);
+        if($multi_bet == true){
+            $update->update(['bet_amount' => $bet_amount]);
+        }
+        return ($update ? true : false);
+    }
+
 
 	/**
 	 * GLOBAL
@@ -454,8 +491,19 @@ class ProviderHelper{
 	 * Check Provider languages
 	 * 
 	 */
-    public static function getLanguage($provider_id,$language){
-        $provider_language = DB::table("providers")->where("provider_id",$provider_id)->get();
+    public static function getLanguage($identifier, $language,$type='id'){
+        $provider_language = DB::table("providers");
+        if ($type == 'name') {
+            $provider_language->where([
+                ["provider_name", "=", $identifier],
+            ]);
+        }
+        if ($type == 'id') {
+            $provider_language->where([
+                ["provider_id", "=", $identifier],
+            ]);
+        }
+        $provider_language = $provider_language->get();
         $languages = json_decode($provider_language[0]->languages,TRUE);
         if(array_key_exists($language,$languages)){
             return $languages[$language];

@@ -106,6 +106,14 @@ return [
         "SAAPPEncryptKey" =>"M06!1OgI",
         "SecretKey" => "87B41ED0FB20437E85DE569B16EAA1DB",
     ],
+    'kagaming' => [
+        "pdbid"=> 32, // Database ID nothing todo with the provider!
+        "gamelaunch" => "https://gamesstage.kaga88.com",
+        "ka_api" => "https://rmpstage.kaga88.com/kaga/",
+        "access_key" => "A95383137CE37E4E19EAD36DF59D589A",
+        "secret_key" => "40C6AB9E806C4940E4C9D2B9E3A0AA25",
+        "partner_name" => "TIGER",
+    ],
     'iagaming' => [
         'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
         'pch' => 'BRNK', 
