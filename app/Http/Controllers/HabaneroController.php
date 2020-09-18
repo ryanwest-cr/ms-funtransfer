@@ -127,11 +127,17 @@ class HabaneroController extends Controller
         $game_id = $game_details->game_id;
         $game_name = $game_details->game_name;
         $game_code = $details->basegame->keyname;
-        $bet_amount = abs($details->fundtransferrequest->funds->fundinfo[0]->amount);
+
+        try{
+            $amt = (array)$details->fundtransferrequest->funds->fundinfo;
+            $bet_amount = abs($amt[0]->amount). "first";
+        }catch(\Exception $e){
+            $bet_amount = abs($details->fundtransferrequest->funds->fundinfo[0]->amount). "second";
+        }
         $payout = 0;
         $entry_id = 1;
         $income = 0;
-        
+        return $bet_amount;
         $refund = $details->fundtransferrequest->isrefund;
         $gamestatemode = $details->fundtransferrequest->funds->fundinfo[0]->gamestatemode;
 
