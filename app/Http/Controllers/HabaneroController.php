@@ -284,10 +284,10 @@ class HabaneroController extends Controller
                 
                 try{
                   
-                    $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $checkTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, '2');
+                    $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $checkTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, '1');
                     
                     $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, $checkTrans[0]->game_trans_id, 'debit');
-                    $amount = $getTrans[0]->bet_amount + abs($amount);
+                    $amount = abs($amount);
                     
                     $response = [
                         "fundtransferresponse" => [
@@ -299,7 +299,7 @@ class HabaneroController extends Controller
                             ]
                         ];
                         $update = DB::table('game_transactions')->where("game_trans_id","=",$checkTrans[0]->game_trans_id)->update(["round_id" => $round_id, "bet_amount" => $amount, "pay_amount" => 0.00, "income" => $amount, "win" => 0 ]);
-                        $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $amount,"game_transaction_type" => 2,"provider_request" => json_encode($details),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
+                        $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $amount,"game_transaction_type" => 1,"provider_request" => json_encode($details),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
                         Helper::saveLog('HBN trans double', 24, json_encode($details), $response);
                         return $response;
                 }catch(\Exception $e){
