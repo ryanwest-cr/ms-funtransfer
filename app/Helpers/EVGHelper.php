@@ -68,7 +68,7 @@ class EVGHelper
 			$game_details[0] = $game->game_code;
 			$game_details[1] = $game->info;
 		}
-		Helper::saveLog('gamedetails(EVG)', 50, json_encode($game_details), $env);
+		Helper::saveLog('gamedetails(EVG)', 74, json_encode($game_details), $env);
         if($client_details){
             $data = array(
                 "uuid" => $token,
@@ -100,12 +100,13 @@ class EVGHelper
 							)
                         ),
             );
-            Helper::saveLog('requestLaunchUrl(EVG)', 50, json_encode($data), $gamecode);
+            Helper::saveLog('requestLaunchUrl(EVG)', 74, json_encode($data), $gamecode);
             $client = new Client();
             $provider_response = $client->post(config('providerlinks.evolution.ua2AuthenticationUrl'),
                 ['body' => json_encode($data),
                 ]
-            );
+			);
+			Helper::saveLog('responseLaunchUrl(EVG)', 74, json_encode($data), $provider_response);
             return config("providerlinks.evolution.host").json_decode($provider_response->getBody(),TRUE)["entry"];
         }
 	}
