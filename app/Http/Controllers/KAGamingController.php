@@ -176,16 +176,16 @@ class KAGamingController extends Controller
         $token_id = $client_details->token_id;
 
 
-        $check_bet_round = ProviderHelper::findGameExt($round_id, 1, 'round_id');
-        if($check_bet_round != 'false'){
-          $existing_bet_details = Providerhelper::findGameTransaction($check_bet_round->game_trans_id, 'game_transaction');
-          $gamerecord = $existing_bet_details->game_trans_id;
-          $game_transextension = ProviderHelper::createGameTransExtV2($existing_bet_details->game_trans_id,$provider_trans_id, $round_id, $amount, $game_transaction_type);
-        }else{
+        // $check_bet_round = ProviderHelper::findGameExt($round_id, 1, 'round_id');
+        // if($check_bet_round != 'false'){
+        //   $existing_bet_details = Providerhelper::findGameTransaction($check_bet_round->game_trans_id, 'game_transaction');
+        //   $gamerecord = $existing_bet_details->game_trans_id;
+        //   $game_transextension = ProviderHelper::createGameTransExtV2($existing_bet_details->game_trans_id,$provider_trans_id, $round_id, $amount, $game_transaction_type);
+        // }else{
            #1 DEBIT OPERATION
            $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
            $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
-        }
+        // }
 
         try {
           $client_response = ClientRequestHelper::fundTransfer($client_details,abs($bet_amount),$game_information->game_code,$game_information->game_name,$game_transextension,$gamerecord, 'debit');
@@ -208,20 +208,20 @@ class KAGamingController extends Controller
                 "statusCode" =>  0
             ];
          
-            if($check_bet_round != 'false'){
-                $pay_amount = $existing_bet_details->pay_amount + $win_amount;
-                $bet_amount = $existing_bet_details->bet_amount + $bet_amount;
-                $income = $bet_amount - $pay_amount; //$existing_bet_details->income;
-                $win_or_lost = $existing_bet_details->win;
-                $entry_id = $existing_bet_details->entry_id;
-                ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id,'game_trans_id',$bet_amount,$multi_bet=true);
-            }else{
+            // if($check_bet_round != 'false'){
+            //     $pay_amount = $existing_bet_details->pay_amount + $win_amount;
+            //     $bet_amount = $existing_bet_details->bet_amount + $bet_amount;
+            //     $income = $bet_amount - $pay_amount; //$existing_bet_details->income;
+            //     $win_or_lost = $existing_bet_details->win;
+            //     $entry_id = $existing_bet_details->entry_id;
+            //     ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id,'game_trans_id',$bet_amount,$multi_bet=true);
+            // }else{
                 $pay_amount = $win_amount;
                 $income = $bet_amount - $pay_amount;
                 $win_or_lost = 1;
                 $entry_id = 2;
                 ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id);
-            }
+            // }
             ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response,$general_details);
             ProviderHelper::updatecreateGameTransExt($game_transextension_credit, $data, $response, $client_response_credit->requestoclient, $client_response_credit, $response,$general_details);
         }elseif(isset($client_response->fundtransferresponse->status->code) 
