@@ -106,7 +106,7 @@ class EVGHelper
                 ['body' => json_encode($data),
                 ]
 			);
-			Helper::saveLog('responseLaunchUrl(EVG)', 74, json_encode($data), $provider_response);
+			Helper::saveLog('responseLaunchUrl(EVG)', 74, json_encode($data), json_decode($provider_response->getBody(),TRUE));
             return config("providerlinks.evolution.host").json_decode($provider_response->getBody(),TRUE)["entry"];
         }
 	}
