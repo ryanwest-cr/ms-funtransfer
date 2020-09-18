@@ -242,7 +242,7 @@ class SkyWindController extends Controller
 
         }else{
           $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-          $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $pay_amount, $game_transaction_type);
+          $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, abs($amount), $game_transaction_type);
         }
 
         try {
