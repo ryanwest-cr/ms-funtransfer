@@ -243,6 +243,7 @@ $app->post('api/sa/PlayerLost','SAGamingController@PlayerLost');
 $app->post('api/sa/PlaceBetCancel','SAGamingController@PlaceBetCancel');
 
 // KAGaming
+$app->post('api/ka/gamelist','KAGamingController@index');
 $app->post('api/ka/start','KAGamingController@gameStart');
 $app->post('api/ka/end','KAGamingController@gameEnd');
 $app->post('api/ka/play','KAGamingController@checkPlay');
