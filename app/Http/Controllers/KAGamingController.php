@@ -73,14 +73,16 @@ class KAGamingController extends Controller
     }
 
     public function gameStart(Request $request){
-        Helper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
+        // Helper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = file_get_contents("php://input");
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        if($this->generateHash($request_body) != $request->input("hash")){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+
+        // return $this->generateHash($request_body);
+        // if($this->generateHash($request_body) != $request->input("hash")){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         $session_check = Providerhelper::getClientDetails('token',$data->token);
         if($session_check == 'false'){
@@ -112,9 +114,9 @@ class KAGamingController extends Controller
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        if($this->generateHash($request_body) != $request->input("hash")){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if($this->generateHash($request_body) != $request->input("hash")){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         // $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
         // if($session_check == 'false'){
@@ -143,9 +145,9 @@ class KAGamingController extends Controller
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        if($this->generateHash($request_body) != $request->input("hash")){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if($this->generateHash($request_body) != $request->input("hash")){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
         $freeGames = $data->freeGames; 
@@ -265,9 +267,9 @@ class KAGamingController extends Controller
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        if($this->generateHash($request_body) != $request->input("hash")){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if($this->generateHash($request_body) != $request->input("hash")){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
 
@@ -360,9 +362,9 @@ class KAGamingController extends Controller
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        if($this->generateHash($request_body) != $request->input("hash")){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if($this->generateHash($request_body) != $request->input("hash")){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
         $game_code = $data->gameId;
@@ -473,9 +475,9 @@ class KAGamingController extends Controller
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        if($this->generateHash($request_body) != $request->input("hash")){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if($this->generateHash($request_body) != $request->input("hash")){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         // $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
         // if($session_check == 'false'){
