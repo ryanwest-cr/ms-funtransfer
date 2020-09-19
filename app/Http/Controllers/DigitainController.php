@@ -2077,7 +2077,7 @@ class DigitainController extends Controller
 				 		    # Provider Transaction Logger
 				 		    $general_details['client']['beforebalance'] = $this->formatBalance($client_player->playerdetailsresponse->balance);
 							$general_details['provider']['operationType'] = $key['operationType'];
-							$general_details['provider']['currencyId'] = $key['currencyId'];
+							$general_details['provider']['currencyId'] = $client_details->default_currency;
 							$general_details['provider']['txCreationDate'] = $json_data['timestamp'];
 							$general_details['provider']['txId'] = $key['txId'];
 							# Provider Transaction Logger
@@ -2129,7 +2129,7 @@ class DigitainController extends Controller
 			   		$game_transextension = ProviderHelper::createGameTransExtV2(999999999, $key['txId'], $transaction_identifier, 0, 3);
 			   		$general_details['client']['beforebalance'] = $this->formatBalance($client_player->playerdetailsresponse->balance);
 					$general_details['provider']['operationType'] = $key['operationType'];
-					$general_details['provider']['currencyId'] = $key['currencyId'];
+					$general_details['provider']['currencyId'] = $client_details->default_currency;
 					$general_details['provider']['amount'] = 0;
 					$general_details['provider']['txCreationDate'] = $json_data['timestamp'];
 					$general_details['provider']['txId'] = $key['txId'];
