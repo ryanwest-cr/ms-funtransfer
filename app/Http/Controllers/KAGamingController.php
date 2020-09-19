@@ -118,10 +118,10 @@ class KAGamingController extends Controller
         //     return  $response = ["status" => "failed", "statusCode" =>  3];
         // }
         $data = json_decode($request_body);
-        // $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
-        // if($session_check == 'false'){
-        //     return  $response = ["status" => "failed", "statusCode" =>  100];
-        // }
+        $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
+        if($session_check == 'false'){
+            return  $response = ["status" => "failed", "statusCode" =>  100];
+        }
         $client_details = Providerhelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
@@ -170,10 +170,10 @@ class KAGamingController extends Controller
         $win_or_lost = 5; // 0 lost,  5 processing
         $payout_reason = 'Game Bets and Win';
         
-        // $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
-        // if($session_check == 'false'){
-        //     return  $response = ["status" => "failed", "statusCode" =>  100];
-        // }
+        $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
+        if($session_check == 'false'){
+            return  $response = ["status" => "failed", "statusCode" =>  100];
+        }
         $client_details = Providerhelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
@@ -190,7 +190,8 @@ class KAGamingController extends Controller
         if($game_ext_check != 'false'){ // Duplicate transaction
             return  $response = ["status" => "Duplicate transaction", "statusCode" =>  1];
         }
-
+        $general_details['client']['before_balance'] = ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance);
+        $general_details['client']['action'] = 'play';
         $game_transaction_type = 1; // 1 Bet, 2 Win
         $game_code = $game_information->game_id;
         $token_id = $client_details->token_id;
@@ -222,12 +223,12 @@ class KAGamingController extends Controller
             #2 CREDIT OPERATION   
             $game_transextension_credit = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $win_amount, 2);
             $client_response_credit = ClientRequestHelper::fundTransfer($client_details,abs($win_amount),$game_information->game_code,$game_information->game_name,$game_transextension_credit,$gamerecord, 'credit');
+            $general_details['client']['after_balance'] = ProviderHelper::amountToFloat($client_response_credit->fundtransferresponse->balance);
             $response = [
                 "balance" => $this->formatBalance($client_response_credit->fundtransferresponse->balance),
                 "status" => "success",
                 "statusCode" =>  0
             ];
-         
             // if($check_bet_round != 'false'){
             //     $pay_amount = $existing_bet_details->pay_amount + $win_amount;
             //     $bet_amount = $existing_bet_details->bet_amount + $bet_amount;
@@ -279,10 +280,10 @@ class KAGamingController extends Controller
         $payout_reason = 'Credited Side Bets';
         $provider_trans_id = $data->transactionId;
         $game_code = $data->gameId;
-        // $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
-        // if($session_check == 'false'){
-        //     return  $response = ["status" => "failed", "statusCode" =>  100];
-        // }
+        $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
+        if($session_check == 'false'){
+            return  $response = ["status" => "failed", "statusCode" =>  100];
+        }
         $client_details = Providerhelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
@@ -299,6 +300,16 @@ class KAGamingController extends Controller
         if($game_ext_check == 'false'){ // Duplicate transaction
             return  $response = ["status" => "Licensee or operator denied crediting to player (cashable or bonus) / Transaction Not Found", "statusCode" =>  301];
         }
+        $general_details['client']['before_balance'] = ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance);
+        $general_details['client']['action'] = 'credit';
+
+        $game_ext_check_win = ProviderHelper::findGameExt($provider_trans_id, 2, 'transaction_id');
+        if($game_ext_check_win != 'false'){
+            $transaction_general_details = json_decode($game_ext_check_win->general_details);
+            if(isset($transaction_general_details->client->action) && $transaction_general_details->client->action == 'credit'){
+                return  $response = ["status" => "Double transactionId with an action credit", "statusCode" =>  301];
+            }
+        }
 
         $gamerecord = $game_ext_check->game_trans_id;
         $existing_bet = ProviderHelper::findGameTransaction($gamerecord,'game_transaction');
@@ -314,7 +325,6 @@ class KAGamingController extends Controller
         $game_code = $game_information->game_id;
         $token_id = $client_details->token_id;
 
-
         $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
 
         try {
@@ -329,6 +339,7 @@ class KAGamingController extends Controller
         }
         if(isset($client_response->fundtransferresponse->status->code) 
              && $client_response->fundtransferresponse->status->code == "200"){
+            $general_details['client']['after_balance'] = ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance);
             $response = [
                 "balance" => $this->formatBalance($client_response->fundtransferresponse->balance),
                 "status" => "success",
@@ -365,10 +376,10 @@ class KAGamingController extends Controller
         $provider_trans_id = $data->transactionId;
         $round_id = $data->round;
 
-        // $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
-        // if($session_check == 'false'){
-        //     return  $response = ["status" => "failed", "statusCode" =>  100];
-        // }
+        $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
+        if($session_check == 'false'){
+            return  $response = ["status" => "failed", "statusCode" =>  100];
+        }
         $client_details = Providerhelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
@@ -389,7 +400,7 @@ class KAGamingController extends Controller
         if($check_revoked != 'false'){ // Duplicate transaction
             return  $response = ["status" => "Transaction no longer revocable", "statusCode" =>  401];
         }
-
+        $general_details['client']['before_balance'] = ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance);
 
         $all_round = $this->findAllGameExt($provider_trans_id, 'all', $round_id);
         $bet_amounts = array();
@@ -443,6 +454,7 @@ class KAGamingController extends Controller
         if(isset($client_response->fundtransferresponse->status->code) 
              && $client_response->fundtransferresponse->status->code == "200"){
             #2 CREDIT OPERATION   
+            $general_details['client']['after_balance'] = ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance);
             $response = [
                 "balance" => $this->formatBalance($client_response->fundtransferresponse->balance),
                 "status" => "success",
@@ -473,10 +485,10 @@ class KAGamingController extends Controller
         //     return  $response = ["status" => "failed", "statusCode" =>  3];
         // }
         $data = json_decode($request_body);
-        // $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
-        // if($session_check == 'false'){
-        //     return  $response = ["status" => "failed", "statusCode" =>  100];
-        // }
+        $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
+        if($session_check == 'false'){
+            return  $response = ["status" => "failed", "statusCode" =>  100];
+        }
         $client_details = Providerhelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
