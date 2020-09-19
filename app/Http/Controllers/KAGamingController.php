@@ -32,6 +32,20 @@ class KAGamingController extends Controller
 		return hash_hmac('sha256', json_encode($msg), $this->secret_key);
 	}
 
+    public function verifyHash($request_body, $hashen){
+        $data = json_decode($request_body);
+        if(isset($data->hash)){
+           unset($data->hash); 
+        }
+        $body = json_encode($data);
+        $hash = hash_hmac('sha256', $body, $this->secret_key);
+        if($hash == $hashen){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public function index(){
     	$client = new Client([
             'headers' => [ 
@@ -74,15 +88,13 @@ class KAGamingController extends Controller
 
     public function gameStart(Request $request){
         // Helper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
-        $request_body = file_get_contents("php://input");
+        $request_body = $request->getContent();
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-
-        // return $this->generateHash($request_body);
-        // if($this->generateHash($request_body) != $request->input("hash")){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
         $data = json_decode($request_body);
         $session_check = Providerhelper::getClientDetails('token',$data->token);
         if($session_check == 'false'){
@@ -110,13 +122,14 @@ class KAGamingController extends Controller
 
     public function playerBalance(Request $request){
         // Helper::saveLog('KAGaming playerBalance - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
-        $request_body = file_get_contents("php://input");
+        $request_body = $request->getContent();
+
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        // if($this->generateHash($request_body) != $request->input("hash")){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
         $data = json_decode($request_body);
         $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
         if($session_check == 'false'){
@@ -141,18 +154,21 @@ class KAGamingController extends Controller
 
     public function checkPlay(Request $request){
         Helper::saveLog('KAGaming checkPlay - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
-        $request_body = file_get_contents("php://input");
+        // $request_body = file_get_contents("php://input");
+        $request_body = $request->getContent();
+
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        // if($this->generateHash($request_body) != $request->input("hash")){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
+
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
         $freeGames = $data->freeGames; 
         $provider_trans_id = $data->transactionId;
-        $round_id = isset($data->round) ? $data->round : $provider_trans_id;
+        $round_id = $provider_trans_id.'_'.$data->round;
         $game_code = $data->gameId;
 
         if($freeGames == true){
@@ -161,6 +177,21 @@ class KAGamingController extends Controller
             $bet_amount = $this->formatAmounts($data->betAmount);
         }
 
+        #1DEBUGGING
+        // $client_details = Providerhelper::getClientDetails('player_id',$data->partnerPlayerId);
+        // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        // $balance = ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance);
+        // if(!$freeGames) {
+        //    if(($balance - $this->formatAmounts($data->betAmount)) > 0) {
+        //       $balance -= $this->formatAmounts($data->betAmount);
+        //       $balance += $this->formatAmounts($data->winAmount);
+        //    }
+        // } else { // is free games
+        //     $balance += $this->formatAmounts($data->winAmount);
+        // }
+        // return $balance;
+        #1DEBUGGING
+        
         $amount = $this->formatAmounts($data->betAmount);
         $win_amount = $this->formatAmounts($data->winAmount);
         $pay_amount =  0; //abs($data['amount']);
@@ -186,7 +217,7 @@ class KAGamingController extends Controller
         if($game_information == null){ 
             return  $response = ["status" => "Game Not Found", "statusCode" =>  1];
         }
-        $game_ext_check = ProviderHelper::findGameExt($provider_trans_id, 1, 'transaction_id');
+        $game_ext_check = ProviderHelper::findGameExt($round_id, 1, 'round_id');
         if($game_ext_check != 'false'){ // Duplicate transaction
             return  $response = ["status" => "Duplicate transaction", "statusCode" =>  1];
         }
@@ -200,16 +231,17 @@ class KAGamingController extends Controller
         $game_code = $game_information->game_id;
         $token_id = $client_details->token_id;
 
-        // $check_bet_round = ProviderHelper::findGameExt($round_id, 1, 'round_id');
-        // if($check_bet_round != 'false'){
-        //   $existing_bet_details = Providerhelper::findGameTransaction($check_bet_round->game_trans_id, 'game_transaction');
-        //   $gamerecord = $existing_bet_details->game_trans_id;
-        //   $game_transextension = ProviderHelper::createGameTransExtV2($existing_bet_details->game_trans_id,$provider_trans_id, $round_id, $amount, $game_transaction_type);
-        // }else{
+
+        $check_bet_round = ProviderHelper::findGameExt($provider_trans_id, 1, 'transaction_id');
+        if($check_bet_round != 'false'){
+          $existing_bet_details = Providerhelper::findGameTransaction($check_bet_round->game_trans_id, 'game_transaction');
+          $gamerecord = $existing_bet_details->game_trans_id;
+          $game_transextension = ProviderHelper::createGameTransExtV2($existing_bet_details->game_trans_id,$provider_trans_id, $round_id, $amount, $game_transaction_type);
+        }else{
            #1 DEBIT OPERATION
            $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
            $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
-        // }
+        }
 
         try {
           $client_response = ClientRequestHelper::fundTransfer($client_details,abs($bet_amount),$game_information->game_code,$game_information->game_name,$game_transextension,$gamerecord, 'debit');
@@ -232,14 +264,14 @@ class KAGamingController extends Controller
                 "status" => "success",
                 "statusCode" =>  0
             ];
-            // if($check_bet_round != 'false'){
-            //     $pay_amount = $existing_bet_details->pay_amount + $win_amount;
-            //     $bet_amount = $existing_bet_details->bet_amount + $bet_amount;
-            //     $income = $bet_amount - $pay_amount; //$existing_bet_details->income;
-            //     $win_or_lost = $existing_bet_details->win;
-            //     $entry_id = $existing_bet_details->entry_id;
-            //     ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id,'game_trans_id',$bet_amount,$multi_bet=true);
-            // }else{
+            if($check_bet_round != 'false'){
+                $pay_amount = $existing_bet_details->pay_amount + $win_amount;
+                $bet_amount = $existing_bet_details->bet_amount + $bet_amount;
+                $income = $bet_amount - $pay_amount; //$existing_bet_details->income;
+                $win_or_lost = $existing_bet_details->win;
+                $entry_id = $existing_bet_details->entry_id;
+                ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id,'game_trans_id',$bet_amount,$multi_bet=true);
+            }else{
                 $pay_amount = $win_amount;
                 $income = $bet_amount - $pay_amount;
                 if($win_amount > 0){
@@ -250,7 +282,7 @@ class KAGamingController extends Controller
                    $entry_id = 1;
                 }
                 ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id);
-            // }
+            }
             ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response,$general_details);
             ProviderHelper::updatecreateGameTransExt($game_transextension_credit, $data, $response, $client_response_credit->requestoclient, $client_response_credit, $response,$general_details);
         }elseif(isset($client_response->fundtransferresponse->status->code) 
@@ -269,13 +301,14 @@ class KAGamingController extends Controller
     public function gameCredit(Request $request){
         Helper::saveLog('KAGaming gameCredit - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
 
-        $request_body = file_get_contents("php://input");
+        $request_body = $request->getContent();
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        // if($this->generateHash($request_body) != $request->input("hash")){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
+
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
         $amount = $this->formatAmounts($data->amount);
@@ -366,18 +399,18 @@ class KAGamingController extends Controller
 
     public function gameRevoke(Request $request){
         Helper::saveLog('KAGaming gameRevoke - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
-        $request_body = file_get_contents("php://input");
+        $request_body = $request->getContent();
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        // if($this->generateHash($request_body) != $request->input("hash")){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
         $game_code = $data->gameId;
         $provider_trans_id = $data->transactionId;
-        $round_id = $data->round;
+         $round_id = $provider_trans_id.'_'.$data->round;
 
         $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
         if($session_check == 'false'){
@@ -483,13 +516,14 @@ class KAGamingController extends Controller
 
     public function gameEnd(Request $request){
         Helper::saveLog('KAGaming gameEnd - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
-        $request_body = file_get_contents("php://input");
+        $request_body = $request->getContent();
+
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
-        // if($this->generateHash($request_body) != $request->input("hash")){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
         $data = json_decode($request_body);
         $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
         if($session_check == 'false'){
