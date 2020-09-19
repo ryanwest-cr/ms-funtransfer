@@ -73,7 +73,7 @@ class KAGamingController extends Controller
     }
 
     public function gameStart(Request $request){
-        Helper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = file_get_contents("php://input");
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
