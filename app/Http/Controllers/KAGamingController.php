@@ -140,7 +140,7 @@ class KAGamingController extends Controller
 
 
     public function checkPlay(Request $request){
-        Helper::saveLog('KAGaming checkPlay - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('KAGaming checkPlay - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = file_get_contents("php://input");
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
@@ -258,7 +258,7 @@ class KAGamingController extends Controller
 
 
     public function gameCredit(Request $request){
-        Helper::saveLog('KAGaming gameCredit - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('KAGaming gameCredit - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
 
         return  $response = ["status" => "Licensee or operator denied crediting to player (cashable or bonus)
         balance", "statusCode" =>  301];
@@ -357,7 +357,7 @@ class KAGamingController extends Controller
 
 
     public function gameRevoke(Request $request){
-        Helper::saveLog('KAGaming gameRevoke - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        Helper::saveLog('KAGaming gameRevoke - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = file_get_contents("php://input");
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
