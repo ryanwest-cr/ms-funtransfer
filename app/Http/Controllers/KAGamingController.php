@@ -79,7 +79,7 @@ class KAGamingController extends Controller
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
 
-        return $this->generateHash($request_body);
+        // return $this->generateHash($request_body);
         // if($this->generateHash($request_body) != $request->input("hash")){
         //     return  $response = ["status" => "failed", "statusCode" =>  3];
         // }
