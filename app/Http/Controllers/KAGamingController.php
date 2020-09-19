@@ -239,11 +239,11 @@ class KAGamingController extends Controller
                 $pay_amount = $win_amount;
                 $income = $bet_amount - $pay_amount;
                 if($win_amount > 0){
-                  $win_or_lost = 0;
-                   $entry_id = 1;
-                }else{
                    $win_or_lost = 1;
                    $entry_id = 2;
+                }else{
+                   $win_or_lost = 0;
+                   $entry_id = 1;
                 }
                 ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id);
             // }
@@ -266,9 +266,9 @@ class KAGamingController extends Controller
         Helper::saveLog('KAGaming gameCredit - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
 
         $request_body = file_get_contents("php://input");
-        if(!$request->input("hash") != ''){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if(!$request->input("hash") != ''){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         // if($this->generateHash($request_body) != $request->input("hash")){
         //     return  $response = ["status" => "failed", "statusCode" =>  3];
         // }
