@@ -257,6 +257,12 @@ class ProviderHelper{
 		 		["gte.game_trans_ext_id", "=", $provider_identifier],
 		 	]);
 		} 
+		if ($type == 'game_trans_id') {
+			$transaction_db->where([
+				["gte.game_transaction_type", "=", $game_transaction_type],
+		 		["gte.game_trans_id", "=", $provider_identifier],
+		 	]);
+		} 
 		$result = $transaction_db->latest()->first(); // Added Latest (CQ9) 08-12-20 - Al
 		return $result ? $result : 'false';
 	}
