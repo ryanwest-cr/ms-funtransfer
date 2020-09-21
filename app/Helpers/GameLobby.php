@@ -424,16 +424,16 @@ class GameLobby{
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $get_previous = ProviderHelper::getNonceprevious(config('providerlinks.booming.provider_db_id'));
         try{
-           
             $nonce = date('mdYHisu');
-            for ($i = 1 ;$i < 20; $i++){
-                if($nonce > $get_previous->request_data){
-                    $nonce = $nonce;
-                break;
-                }else {
+
+            if(!$get_previous == "false"){
+                $i = 1;
+                while($get_previous->request_data > $nonce){
                     $nonce = date('mdYHisu', strtotime('+'.$i.' hours'));
+                    $i++;
                 }
-            }
+            }    
+
             $requesttosend = array (
                 'game_id' => $data["game_code"],
                 'balance' => $player_details->playerdetailsresponse->balance,
@@ -444,6 +444,7 @@ class GameLobby{
                 'callback' =>  config('providerlinks.booming.call_back'),
                 'rollback_callback' =>  config('providerlinks.booming.roll_back')
             );
+
             $sha256 =  hash('sha256', json_encode($requesttosend, JSON_FORCE_OBJECT));
             $concat = '/v2/session'.$nonce.$sha256;
             $secrete = hash_hmac('sha512', $concat, config('providerlinks.booming.api_secret'));
