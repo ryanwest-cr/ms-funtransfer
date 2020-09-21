@@ -711,11 +711,11 @@ class IAESportsController extends Controller
 		$roundIds = array();
 		$orderIds = '';
 		if(!isset($data_body->roundId)){
-			Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'No Round ID');
+			Helper::saveLog('IA API WAGER', $this->provider_db_id, file_get_contents("php://input"), 'No Round ID');
 			return ["Tiger Games API" => $this->api_version, "date" => Helper::datesent(), "code" => 400, "msg" => "missing parameter"];
 		}
 		if(count($data_body->roundId) == 0){
-			Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'No Round ID');
+			Helper::saveLog('IA API WAGER', $this->provider_db_id, file_get_contents("php://input"), 'No Round ID');
 			return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(),  "code" => 400, "msg" => "round id could not be empty"];
 		}
 		foreach ($data_body->roundId as $round) {
@@ -725,7 +725,7 @@ class IAESportsController extends Controller
 			}
 		}
 		if(count($roundIds) == 0){
-			Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), 'No Round ID II');
+			Helper::saveLog('IA API WAGER', $this->provider_db_id, file_get_contents("php://input"), 'No Round ID II');
 			return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(),  "code" => 404, "msg" => "round's not found"];
 		}
 		if(isset($data_body->filter) && $data_body->filter === 'settled'){
@@ -758,16 +758,16 @@ class IAESportsController extends Controller
 			try {
 				$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
 				if(!isset($client_response[1])){
-					Helper::saveLog('IA API WAGER - NO RESPONSE', 2, file_get_contents("php://input"), $data);
+					Helper::saveLog('IA API WAGER - NO RESPONSE', $this->provider_db_id, file_get_contents("php://input"), $data);
 					return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(), "code" => 408, "msg" => "Server is busy."];
 				}
 				$data = json_decode($this->rehashen($client_response[1], true));
 				if(!isset($data->data->list)){
-					Helper::saveLog('IA API WAGER - NO LIST', 2, file_get_contents("php://input"), $data);
+					Helper::saveLog('IA API WAGER - NO LIST', $this->provider_db_id, file_get_contents("php://input"), $data);
 					return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(), "code" => 408, "msg" => "Server is busy.."];
 				}
 				if(count($data->data->list) == 0){
-					Helper::saveLog('IA API WAGER - 0 list', 2, file_get_contents("php://input"), $data);
+					Helper::saveLog('IA API WAGER - 0 list', $this->provider_db_id, file_get_contents("php://input"), $data);
 					return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(), "code" => 404, "msg" => $msg];
 				}
 				$game_wager = array();
@@ -817,7 +817,7 @@ class IAESportsController extends Controller
 						"msg" => $msg
 					];
 				endif;
-				
+				Helper::saveLog('IA API WAGER - 0 list', $this->provider_db_id, file_get_contents("php://input"), $response_data);
 				return $response_data;
 			} catch (\Exception $e) {
 				Helper::saveLog('IA API WAGER', 2, file_get_contents("php://input"), $e->getMessage());
