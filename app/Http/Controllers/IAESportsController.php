@@ -780,6 +780,16 @@ class IAESportsController extends Controller
 						// $client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
 						$round_details = ProviderHelper::findGameExt($matches->order_id, 1, 'round_id');
 						if($client_details != 'false' && $round_details != 'false'):
+
+							if($matches->team_name == "[team1]"){
+								$team = $matches->team_name_1;
+							}elseif($matches->team_name == "[team2]"){
+								$team = $matches->team_name_2;
+							}else{
+								$team = $matches->team_name;
+							}
+
+							$my_team  = $team;
 							$user_round = [
 								"user_info" => [
 									"player_username" => $client_details->username,
@@ -792,7 +802,7 @@ class IAESportsController extends Controller
 									"game_name" => $matches->game_name,
 									"team_name_1" => $matches->team_name_1,
 									"team_name_2" => $matches->team_name_2,
-									"my_team" => $matches->team_name,
+									"my_team" => $my_team,
 									"team_info_desc" => $matches->team_info_desc, // Optional
 									"settled" => $matches->is_getprize == 1 ? true : false,
 									"status"  => $matches->prize_status == 1 ? 'win' : 'lost'
