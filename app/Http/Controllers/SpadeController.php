@@ -105,7 +105,7 @@ class SpadeController extends Controller
 				"acctId" => $this->prefix.'_'.$acctId,
 				"balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
 				"userName" => $this->prefix.$acctId,
-				"currency" => $client_details->default_currency,
+				"currency" => "JPY",
 				"siteId" => $this->siteId
 			],
 			"merchantCode" => $this->merchantCode,"msg" => "success","code" => 0,"serialNo" => $details->serialNo
@@ -140,7 +140,7 @@ class SpadeController extends Controller
 				"acctId" => $this->prefix.'_'.$acctId,
 				"balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
 				"userName" => $this->prefix.$acctId,
-				"currency" => $client_details->default_currency
+				"currency" => "JPY"
 			],
 			"merchantCode" => $this->merchantCode,"msg" => "success","code" => 0,"serialNo" => $details->serialNo
 		];
