@@ -410,7 +410,7 @@ class KAGamingController extends Controller
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
         $game_code = $data->gameId;
         $provider_trans_id = $data->transactionId;
-         $round_id = $provider_trans_id.'_'.$data->round;
+        $round_id = $provider_trans_id.'_'.$data->round;
 
         $session_check = Providerhelper::getClientDetails('token',$data->sessionId);
         if($session_check == 'false'){
@@ -432,7 +432,8 @@ class KAGamingController extends Controller
         if($transaction_details == 'false'){ // Duplicate transaction
             return  $response = ["status" => "revoke Transaction does not exist", "statusCode" =>  400];
         }
-        $check_revoked = ProviderHelper::findGameExt($provider_trans_id, 3, 'transaction_id');
+        // $check_revoked = ProviderHelper::findGameExt($provider_trans_id, 3, 'transaction_id');
+        $check_revoked = ProviderHelper::findGameExt($round_id, 3, 'round_id');
         if($check_revoked != 'false'){ // Duplicate transaction
             return  $response = ["status" => "Transaction no longer revocable", "statusCode" =>  401];
         }
