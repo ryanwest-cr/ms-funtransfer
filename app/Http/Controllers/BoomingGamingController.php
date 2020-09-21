@@ -110,8 +110,8 @@ class BoomingGamingController extends Controller
                     $client_response = ClientRequestHelper::fundTransfer($client_details,$data["win"],$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_id->game_trans_id,$type,$rollback);
 
                     $bet_transaction = ProviderHelper::findGameTransaction($gamerecord, 'game_transaction');
-                    $win = $data["win"] == '0.0' ? 0 : 1;  /// 1win 0lost
-                    $type = $data["win"] == '0.0' ? "debit" : "credit";
+                    $win = $data["win"] == 0.0 ? 0 : 1;  /// 1win 0lost
+                    $type = $data["win"] == 0.0 ? "debit" : "credit";
                     $request_data = [
                         'win' => $win,
                         'amount' => $data["win"],
@@ -124,7 +124,7 @@ class BoomingGamingController extends Controller
                     //update transaction
                     Helper::updateGameTransaction($bet_transaction,$request_data,$type);
                     $this->updateGameTransactionExt($game_transextension,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
-                    ProviderHelper::updateGameTransactionStatus($gamerecord, 1, 1);
+                    ProviderHelper::updateGameTransactionStatus($gamerecord, $win, 1);
                     Helper::saveLog('Booming Callback Process ', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $data_response);
                     return json_encode($data_response, JSON_FORCE_OBJECT); 
                    
