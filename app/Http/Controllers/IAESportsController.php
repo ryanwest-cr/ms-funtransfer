@@ -770,8 +770,10 @@ class IAESportsController extends Controller
 					Helper::saveLog('IA API WAGER - 0 list', $this->provider_db_id, file_get_contents("php://input"), $data);
 					return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(), "code" => 404, "msg" => $msg];
 				}
+
 				$game_wager = array();
 				if(isset($data)):
+					Helper::saveLog('IA API WAGER - SUCCESS', $this->provider_db_id, file_get_contents("php://input"), $data);
 					foreach ($data->data->list as $matches):
 						$prefixed_username = explode("_", $matches->username);
 						$client_details = ProviderHelper::getClientDetails('player_id', 98);
