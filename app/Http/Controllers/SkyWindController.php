@@ -93,7 +93,7 @@ class SkyWindController extends Controller
           Helper::saveLog('Skywind validateTicket - NO PLAYER FOUND', $this->provider_db_id, json_encode(file_get_contents("php://input")), $response);
           return $response;
       }
-      $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+      $player_details = Providerhelper::playerDetailsCall($client_details->player_token,false,2);
       if($player_details != 'false'){
           $response = [
           "error_code" => 0,
@@ -139,7 +139,7 @@ class SkyWindController extends Controller
             return $response;
           }
         }
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token, true);
+        $player_details = Providerhelper::playerDetailsCall($client_details->player_token, true, 2);
         if($player_details != 'false'){
            $response = [
               "ticket" => $player_details->playerdetailsresponse->refreshtoken,
@@ -167,7 +167,7 @@ class SkyWindController extends Controller
           Helper::saveLog('Skywind getBalance - NO PLAYER FOUND', $this->provider_db_id, json_encode(file_get_contents("php://input")), $response);
           return $response;
       }
-      $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+      $player_details = Providerhelper::playerDetailsCall($client_details->player_token,false,2);
       if($player_details != 'false'){
         $response = [
             "error_code" => 0,
