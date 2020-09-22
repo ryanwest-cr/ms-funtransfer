@@ -211,9 +211,12 @@ class OryxGamingController extends Controller
 									$amount = 0;
 									$json_data['amount'] = 0;
 									$json_data['income'] = 0;
-									$json_data['free_round_data'] = ['free_round_id' => $json_data['freeRoundId'],
-																	'free_round_external_id' => $json_data['freeRoundExternalId']
-																	];
+
+									$json_data['free_round_data'] = ['free_round_id' => $json_data['freeRoundId']];
+									if(array_key_exists('freeRoundExternalId', $json_data)) {
+										$json_data['free_round_data']['free_round_external_id'] =  $json_data['freeRoundExternalId'];
+									}
+
 								}
 								else
 								{
