@@ -439,8 +439,8 @@ class IAESportsController extends Controller
 		$bet_amount = $cha->money;
 		$pay_amount = 0; // Zero Payout
 		$method = $transaction_type == 'debit' ? 1 : 2;
-		// $win_or_lost = 5; // 0 lost,  5 processing // NO MORE WAITING MARK IT AS LOSE XD
-		$win_or_lost = 0; // 0 lost, 
+		$win_or_lost = 5; // 0 lost,  5 processing // NO MORE WAITING MARK IT AS LOSE XD
+		// $win_or_lost = 0; // 0 lost, 
 		$payout_reason = $this->getCodeType($desc_json['code']) .' : '.$desc_json['message'];
 		$income = $cha->money;	
 		$provider_trans_id = $cha->orderId;
@@ -696,6 +696,93 @@ class IAESportsController extends Controller
 			return $response_data;
 		endif;
 		
+	}
+
+	public function GG(){
+		$params = ["code" => 999,"data" => [],"message" => "CRON JOB"];
+		Helper::saveLog('GG', 1223, json_encode($params), Helper::datesent());
+	}
+
+
+	public function SettleRounds(){
+		$start_time = strtotime('-3 day'); 
+		$end_time = strtotime('+3 day'); 
+		$header = ['pch:'. $this->pch];
+        $params = array(
+			"start_time" => $start_time, 
+			"end_time" => $end_time, // 2023604346
+			"page" => 1,
+			"limit" => 10000,
+			"is_settle" => -1, // Default:1, 1 is settled,0 is not ,-1 is all.
+			// "order_id" => $order_id, //'GAMEVBDDCFBEJK,GAMEVBDDCFBFAK',
+        );
+        // return $params;
+		try {
+	        $uhayuu = $this->hashen($params);
+			$timeout = 5;
+			$client_response = $this->curlData($this->url_wager, $uhayuu, $header, $timeout);
+			if(!isset($client_response[1])){
+				Helper::saveLog('IA SETTLE ROUND - NO RESPONSE', $this->provider_db_id, json_encode($client_response), 'SETTLE ROUNDS FAILED');
+					return;
+			}
+			$data = json_decode($this->rehashen($client_response[1], true));
+			if(!isset($data->data->list)){
+					Helper::saveLog('IA SETTLE ROUND - NO LIST', $this->provider_db_id, json_encode($data), 'SETTLE ROUNDS FAILED II');
+					return;
+			}
+			$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
+			if(isset($data)):
+				foreach ($data->data->list as $matches):
+					if($matches->prize_status == 2):
+						array_push($order_ids, $matches->order_id);
+					endif;
+				endforeach;
+			endif;
+			if(count($order_ids) > 0):
+				$update = $this->getAllGameTransaction($order_ids, 5);
+				if($update != 'false'):
+				    foreach($update as $up):
+
+				    	$client_details = ProviderHelper::getClientDetails('token_id', $up->token_id);
+
+				    	$existing_game_ext = ProviderHelper::findGameExt($up->round_id, 2, 'round_id');
+				    	if($existing_game_ext != 'false'){
+				    		$game_transextension = $existing_game_ext->game_trans_ext_id;
+				    	}else{
+				    		$game_transextension = ProviderHelper::createGameTransExtV2($up->game_trans_id,$up->round_id, $up->round_id, 0, 2);
+				    	}
+				    	
+            			try {
+            				$client_response = ClientRequestHelper::fundTransfer($client_details,0,$this->game_code,$this->game_name,$game_transextension,$up->game_trans_id,'credit');
+	            			$response = [
+	            				"message" => 'This was successfully Updated to lost',
+	            				"orderid" => $up->round_id
+	            			];
+							ProviderHelper::updatecreateGameTransExt($game_transextension, $response, $response, $client_response->requestoclient, $client_response,$response);
+
+					    	DB::table('game_transactions')
+				                ->where('round_id', $up->round_id)
+				                ->update([
+				        		  'win' => 0, 
+				        		  'transaction_reason' => 'Bet updated'
+			    			]);
+            			} catch (\Exception $e) {
+            				$existing_game_ext = ProviderHelper::findGameExt($up->round_id, 2, 'round_id');
+            				$response = [
+	            				"message" => 'Failed to Updated to lost '.$e->getMessage(),
+	            				"orderid" => $up->round_id
+	            			];
+							ProviderHelper::updatecreateGameTransExt($existing_game_ext->game_trans_ext_id, $response, $response, $response, $response,$response);
+            				continue;
+            			}
+
+				    endforeach;
+				endif;
+	 		endif;
+	 		Helper::saveLog('IA Search Order SUCCESS', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'SUCCESS');
+		} catch (\Exception $e) {
+			Helper::saveLog('IA Search Order Failed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $e->getMessage());
+		}
 	}
 
 	/**
