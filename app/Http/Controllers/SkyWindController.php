@@ -81,6 +81,8 @@ class SkyWindController extends Controller
      * 
      */
     public function validateTicket(Request $request){
+      // $client_details = Providerhelper::getClientDetails('player_id', 586, 2); // ticket
+      // dd($client_details);
       Helper::saveLog('Skywind validateTicket - EH', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'ENDPOINT HIT!');
       $raw_request = file_get_contents("php://input");
       parse_str($raw_request, $data);
