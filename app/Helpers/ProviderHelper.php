@@ -158,8 +158,12 @@ class ProviderHelper{
 	 * @param $[refreshtoken] [<Default False, True token will be requested>]
 	 * 
 	 */
-	public static function playerDetailsCall($player_token, $refreshtoken=false){
-		$client_details = ProviderHelper::getClientDetails('token', $player_token);
+	public static function playerDetailsCall($player_token, $refreshtoken=false, $type=1){
+		if($type == 1){
+            $client_details = ProviderHelper::getClientDetails('token', $player_token);
+        }elseif($type == 2){
+            $client_details = ProviderHelper::getClientDetails('token', $player_token, 2);
+        }
 		if($client_details){
 			$client = new Client([
 			    'headers' => [ 
@@ -186,6 +190,7 @@ class ProviderHelper{
 				    ['body' => json_encode($datatosend)]
 				);
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
+				Helper::saveLog('ALDEBUG REQUEST SEND = '.$player_token,  99, json_encode($client_response), $datatosend);
 			 	return $client_response;
             }catch (\Exception $e){
                Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
