@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         //
+        'App\Console\Commands\AlCron',        
     ];
 
     /**
@@ -24,6 +25,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        //
+        // $schedule->call('UserController@deleteInactiveUsers')->everyMinute();
+        // $schedule->command('al:cron')->everyMinute();
+        // $schedule->call('App\Http\Controllers\IAESportsController@GG')->everyMinute();
+        // $schedule->call('App\Http\Controllers\IAESportsController@SettleRounds')->everyThirtyMinutes();
+        $schedule->call('App\Http\Controllers\IAESportsController@SettleRounds');
     }
 }
