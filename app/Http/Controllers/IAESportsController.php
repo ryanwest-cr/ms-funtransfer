@@ -776,8 +776,8 @@ class IAESportsController extends Controller
 					Helper::saveLog('IA API WAGER - SUCCESS', $this->provider_db_id, file_get_contents("php://input"), $data);
 					foreach ($data->data->list as $matches):
 						$prefixed_username = explode("_", $matches->username);
-						$client_details = ProviderHelper::getClientDetails('player_id', 98);
-						// $client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
+						// $client_details = ProviderHelper::getClientDetails('player_id', 98);
+						$client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
 						$round_details = ProviderHelper::findGameExt($matches->order_id, 1, 'round_id');
 						if($client_details != 'false' && $round_details != 'false'):
 
