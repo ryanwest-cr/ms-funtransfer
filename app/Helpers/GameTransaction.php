@@ -20,6 +20,10 @@ class GameTransaction
 					$trans_data["win"] = 0;
 					$trans_data["pay_amount"] = 0;
 					$trans_data["entry_id"] = 1;
+					// check if this is a free round
+					if(array_key_exists('free_round_data', $request_data)) {
+						$trans_data["payout_reason"] = json_encode($request_data["free_round_data"]);
+					}
 		        break;
 		    case "credit":
 			        $trans_data["provider_trans_id"] = $request_data["transid"];

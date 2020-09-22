@@ -205,9 +205,23 @@ class OryxGamingController extends Controller
 							GameRound::create($json_data['roundId'], $client_details->token_id);
 
 							if(array_key_exists('bet', $json_data)) {
-								
-								$json_data['amount'] = $this->_toDollars($json_data['bet']["amount"]);
-								$json_data['income'] = $this->_toDollars($json_data['bet']["amount"]);
+
+								// check if this is a free round
+								if(array_key_exists('freeRoundId', $json_data)) {
+									$amount = 0;
+									$json_data['amount'] = 0;
+									$json_data['income'] = 0;
+									$json_data['free_round_data'] = ['free_round_id' => $json_data['freeRoundId'],
+																	'free_round_external_id' => $json_data['freeRoundExternalId']
+																	];
+								}
+								else
+								{
+									$amount = $this->_toDollars($json_data['bet']["amount"]);
+									$json_data['amount'] = $this->_toDollars($json_data['bet']["amount"]);
+									$json_data['income'] = $this->_toDollars($json_data['bet']["amount"]);
+								}
+
 								$json_data['roundid'] = $json_data['roundId'];
 								$json_data['transid'] = $json_data['bet']['transactionId'];
 
@@ -215,10 +229,10 @@ class OryxGamingController extends Controller
 								
 								$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
-								$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['bet']['transactionId'], $json_data['roundId'], $this->_toDollars($json_data['bet']["amount"]), 1);
+								$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['bet']['transactionId'], $json_data['roundId'], $amount, 1);
 								
 								// change $json_data['roundId'] to $game_transaction_id
-				                $client_response = ClientRequestHelper::fundTransfer($client_details, $this->_toDollars($json_data['bet']["amount"]), $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
+				                $client_response = ClientRequestHelper::fundTransfer($client_details, $amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
 				                
 								if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
 									$http_status = 200;
