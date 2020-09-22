@@ -234,6 +234,7 @@ class Helper
 					$trans_data["win"] = 0;
 					$trans_data["pay_amount"] = 0;
 					$trans_data["entry_id"] = 1;
+					$trans_data["income"] = 0;
 				break;
 			case "credit":
 					$trans_data["provider_trans_id"] = $request_data["transid"];
