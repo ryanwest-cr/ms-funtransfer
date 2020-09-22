@@ -259,8 +259,7 @@ class GameLobby{
 
     public static function skyWindLaunch($game_code, $token){
         $player_login = SkyWind::userLogin();
-        $client_details = ProviderHelper::getClientDetails('token', $token, 2);
-         Helper::saveLog('Skywind Client DETAILS', config('providerlinks.skywind.provider_db_id'), $client_details, $client_details);
+        $client_details = ProviderHelper::getClientDetails('token', $token);
         $client = new Client([
               'headers' => [ 
                   'Content-Type' => 'application/json',
