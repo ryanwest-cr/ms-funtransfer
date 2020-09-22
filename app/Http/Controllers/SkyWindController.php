@@ -85,7 +85,7 @@ class SkyWindController extends Controller
       $raw_request = file_get_contents("php://input");
       parse_str($raw_request, $data);
       $token = $data['ticket'];
-      $client_details = Providerhelper::getClientDetails('token',$token); // ticket
+      $client_details = Providerhelper::getClientDetails('token',$token, 2); // ticket
       if($client_details == null){
          $response = ["error_code" => -2];
           Helper::saveLog('Skywind validateTicket - NO PLAYER FOUND', $this->provider_db_id, json_encode(file_get_contents("php://input")), $response);
@@ -124,7 +124,7 @@ class SkyWindController extends Controller
 
         $cust_id = $data['cust_id'];
         $player_id_qry = Providerhelper::explodeUsername('_', $cust_id);
-        $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry); // ticket
+        $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry, 2); // ticket
         if($client_details == null){
              $response = ["error_code" => -2];
             Helper::saveLog('Skywind getTicket - NO PLAYER FOUND', $this->provider_db_id, json_encode(file_get_contents("php://input")), $response);
@@ -159,7 +159,7 @@ class SkyWindController extends Controller
       // dd($data);
       $cust_id = $data['cust_id'];
       $player_id_qry = Providerhelper::explodeUsername('_', $cust_id);
-      $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry);
+      $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry, 2);
       if($client_details == null){
            $response = ["error_code" => -2];
           Helper::saveLog('Skywind getBalance - NO PLAYER FOUND', $this->provider_db_id, json_encode(file_get_contents("php://input")), $response);
@@ -205,7 +205,7 @@ class SkyWindController extends Controller
 
         $cust_id = $data['cust_id'];
         $player_id_qry = Providerhelper::explodeUsername('_', $cust_id);
-        $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry);
+        $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry, 2);
         if($client_details == null){  // details/player not found
             $response = ["error_code" => -2];
             Helper::saveLog('SkyWind gameDebit - DUPLICATE', $this->provider_db_id,json_encode($request->all()), $response);
@@ -304,7 +304,7 @@ class SkyWindController extends Controller
 
         $cust_id = $data['cust_id'];
         $player_id_qry = Providerhelper::explodeUsername('_', $cust_id);
-        $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry);
+        $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry, 2);
         if($client_details == null){   // details/player not found
             $response = ["error_code" => -2];
             return $response;
@@ -400,7 +400,7 @@ class SkyWindController extends Controller
 
         $cust_id = $data['cust_id'];
         $player_id_qry = Providerhelper::explodeUsername('_', $cust_id);
-        $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry);
+        $client_details = Providerhelper::getClientDetails('player_id', $player_id_qry, 2);
         if($client_details == null){ 
              $response = [
                 "error_code" => -2, // details/player not found
