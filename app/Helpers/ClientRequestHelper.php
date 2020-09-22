@@ -82,8 +82,12 @@ class ClientRequestHelper{
      * @param $[refreshtoken] [<Default False, True token will be requested>]
      * 
      */
-    public static function playerDetailsCall($player_token, $refreshtoken=false){
-        $client_details = ProviderHelper::getClientDetails('token', $player_token);
+    public static function playerDetailsCall($player_token, $refreshtoken=false,$type=1){
+        if($type == 1){
+            $client_details = ProviderHelper::getClientDetails('token', $player_token);
+        }elseif($type == 2){
+            $client_details = ProviderHelper::getClientDetails('token', $player_token, 2);
+        }
         if($client_details){
             try{
                 $client = new Client([
