@@ -249,7 +249,12 @@ class KAGamingController extends Controller
            
         } catch (\Exception $e) {
           $response = ["status" => "Server Timeout", "statusCode" =>  1];
-          ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+            if(isset($gamerecord)){
+                if($check_bet_round == 'false'){
+                    ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+                }
+            }
           Helper::saveLog('KAGaming checkPlay - FATAL ERROR', $this->provider_db_id, $response, Helper::datesent());
           return $response;
         }
@@ -287,6 +292,13 @@ class KAGamingController extends Controller
             ProviderHelper::updatecreateGameTransExt($game_transextension_credit, $data, $response, $client_response_credit->requestoclient, $client_response_credit, $response,$general_details);
         }elseif(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "402"){
+            if($check_bet_round == 'false'){
+                 if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+                       ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+                else:
+                   ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+                endif;
+            }
           $response = ["status" => "Low Balance", "statusCode" =>  200];
           ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data, 'FAILED', $client_response, 'FAILED', $general_details);
         }else{ // Unknown Response Code

@@ -238,7 +238,7 @@ class SkyWindController extends Controller
           $bet_amount = $existing_bet_details->bet_amount + $amount;
           $income = $bet_amount - $pay_amount; //$existing_bet_details->income;
 
-          $this->updateGameTransaction($existing_bet_details->game_trans_id, $pay_amount, $income, $existing_bet_details->win, $existing_bet_details->entry_id,$bet_amount);
+          // $this->updateGameTransaction($existing_bet_details->game_trans_id, $pay_amount, $income, $existing_bet_details->win, $existing_bet_details->entry_id,$bet_amount);
           $game_transextension = ProviderHelper::createGameTransExtV2($existing_bet_details->game_trans_id,$provider_trans_id, $round_id, $amount, $game_transaction_type);
           $gamerecord = $existing_bet_details->game_trans_id;
 
@@ -260,15 +260,25 @@ class SkyWindController extends Controller
 
         if(isset($client_response->fundtransferresponse->status->code) 
              && $client_response->fundtransferresponse->status->code == "200"){
-            $response = [
-                "error_code" => 0,
-                "balance" => Providerhelper::amountToFloat($client_response->fundtransferresponse->balance),
-                "trx_id" => $provider_trans_id,
-            ];
+          if($check_bet_round != 'false'){
+            $this->updateGameTransaction($existing_bet_details->game_trans_id, $pay_amount, $income, $existing_bet_details->win, $existing_bet_details->entry_id,$bet_amount);
+          }
+          $response = [
+              "error_code" => 0,
+              "balance" => Providerhelper::amountToFloat($client_response->fundtransferresponse->balance),
+              "trx_id" => $provider_trans_id,
+          ];
          ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response,$general_details);
 
         }elseif(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "402"){
+          if($check_bet_round == 'false'){
+             if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+                 ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+            else:
+               ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+            endif;
+          }
           $response = ["error_code" => -4];
           ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data, 'FAILED', $client_response, 'FAILED', $general_details);
         }else{ // Unknown Response Code
