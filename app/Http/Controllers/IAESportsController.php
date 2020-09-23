@@ -266,7 +266,7 @@ class IAESportsController extends Controller
         		    Helper::saveLog('IA seamlessDeposit CRID',  $this->provider_db_id, json_encode($cha), $client_response1);
 	        	} catch (\Exception $e) {
 	        		$params = ["code" => 111006,"data" => [],"message" => "deposit failed client error"];
-	        		ProviderHelper::updateGameTransactionStatus($gamerecord1, 99, 99);
+	        		ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
                  	ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $params, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
             	    Helper::saveLog('IA seamlessDeposit - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
             	    return $params;
@@ -282,7 +282,7 @@ class IAESportsController extends Controller
 		        		Helper::saveLog('IA seamlessDeposit CRID',  $this->provider_db_id, json_encode($cha), $client_response2);
 		        	} catch (\Exception $e) {
 		        		$params = ["code" => 111006,"data" => [],"message" => "deposit failed client error"];
-	        		    ProviderHelper::updateGameTransactionStatus($gamerecord1, 99, 99);
+	        		    ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
                  	    ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $params, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
             	        Helper::saveLog('IA seamlessDeposit - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
             	        return $params;
@@ -463,7 +463,7 @@ class IAESportsController extends Controller
 		        	Helper::saveLog('IA seamlessWithdrawal CRID',  $this->provider_db_id, json_encode($cha), $client_response);
 		        } catch (\Exception $e) {
 		        	$params = ["code" => 111005,"data" => [],"message" => "withdrawal failed client error"];
-		        	ProviderHelper::updateGameTransactionStatus($gamerecord1, 99, 99);
+		        	ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
 	         	    ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $params, 'FAILED', $e->getMessage(), false, 'FAILED');
 	    	        Helper::saveLog('IA seamlessWithdrawal - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
 	    	        return $params;
@@ -522,7 +522,7 @@ class IAESportsController extends Controller
 	        	Helper::saveLog('IA seamlessWithdrawal CRID',  $this->provider_db_id, json_encode($cha), $client_response);
 	        } catch (\Exception $e) {
 	        	$params = ["code" => 111005,"data" => [],"message" => "withdrawal failed client error"];
-        		ProviderHelper::updateGameTransactionStatus($gamerecord, 99, 99);
+        		ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
          	    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $params, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
     	        Helper::saveLog('IA seamlessWithdrawal - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
     	        return $params;
@@ -576,31 +576,6 @@ class IAESportsController extends Controller
 		// Helper::saveLog('IA Balance', $this->provider_db_id, json_encode($cha), 'IA CALL DECODED');
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
-		// dd($client_details);
-		// $client = new Client([
-        //     'headers' => [ 
-        //     'Content-Type' => 'application/json',
-        //     'Authorization' => 'Bearer '.$client_details->client_access_token
-        //   ]
-        //  ]);
-		// $guzzle_response = $client->post($client_details->player_details_url,
-		// 			    ['body' => json_encode(
-		// 			        	["access_token" => $client_details->client_access_token,
-		// 							"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-		// 							"type" => "playerdetailsrequest",
-		// 							"datesent" => Helper::datesent(),
-		// 							"gameid" => "",
-		// 							"clientid" => $client_details->client_id,
-		// 							"playerdetailsrequest" => [
-		// 								"client_player_id" => $client_details->client_player_id,
-		// 								"token" => $client_details->player_token,
-		// 								"gamelaunch" => true,
-		// 								"refreshtoken" => false
-		// 							]
-		// 						]
-		// 			    )]
-		// );
-		// $client_response = json_decode($guzzle_response->getBody()->getContents());
 		$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
 		if($client_response == 'false'){
 			$params = ["code" => 111003,"data" => [],"message" => "User does not exist"];
@@ -700,11 +675,12 @@ class IAESportsController extends Controller
 
 	public function GG(){
 		$params = ["code" => 999,"data" => [],"message" => "CRON JOB"];
-		Helper::saveLog('GG', 1223, json_encode($params), Helper::datesent());
+		Helper::saveLog('IA SETTLED al:cron triggered', 1223, json_encode('CRONJOB WAS TRIGGERED'), Helper::datesent());
 	}
 
 
 	public function SettleRounds(){
+		Helper::saveLog('IA SETTLED al:cron triggered', 1223, json_encode('CRONJOB WAS TRIGGERED'), Helper::datesent());
 		$start_time = strtotime('-3 day'); 
 		$end_time = strtotime('+3 day'); 
 		$header = ['pch:'. $this->pch];
