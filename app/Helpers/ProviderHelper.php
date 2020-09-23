@@ -394,12 +394,29 @@ class ProviderHelper{
 		 "3" => 'Transaction updated to Draw',
 		 "4" => 'Transaction updated to Refund',
 		 "5" => 'Transaction updated to Processing',
+		 "6" => 'Transaction FAILED - Low Balance',
 		 "99" => 'Transaction FAILED - FATAL ERROR',
 		];
 		if(array_key_exists($win, $win_type)){
     		return $win_type[$win];
     	}else{
     		return 'Transaction Was Updated!';
+    	}
+	}
+
+	public static function checkFundStatus($win) {
+		$status_type = [
+		 "ok" => 'success code',
+		 "Ok" => 'success code',
+		 "OK" => 'success code',
+		 "success" => 'success code',
+		 "Success" => 'success code',
+		 "SUCCESS" => 'success code',
+		];
+		if(array_key_exists($win, $status_type)){
+    		return true; // if success
+    	}else{
+    		return false; // if failed
     	}
 	}
 
