@@ -3,783 +3,666 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use App\Helpers\Helper;
-use App\Helpers\ProviderHelper;
 use App\Helpers\ClientRequestHelper;
-use App\Helpers\AWSHelper;
+use App\Helpers\ProviderHelper;
+use App\Helpers\SAHelper;
 use App\Helpers\GameLobby;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
 use DB;
 
-/**
- * @author's note : Provider has feature Front End and API Blocking IP
- * @author's note : There are two kinds of method in here Single Wallet Callback and Backoffice Calls
- * @author's note : Backoffice call for directly communicate to the Provider Backoffice!
- * @author's note : Single Wallet call is the main methods tobe checked!
- * @author's note : Username/Player is Prefixed with the merchant_id_TG(player_id)
- * @method  [playerRegister] Register The Player to AWS Provider (DEPRECATED CENTRALIZED) (BO USED)
- * @method  [launchGame] Request Gamelaunch (DEPRECATED CENTRALIZED) (BO USED)
- * @method  [gameList] List Of All Gamelist (DEPRECATED CENTRALIZED)
- * @method  [playerManage] Disable/Enable a player in AWS Backoffice
- * @method  [playerStatus] Check Player Status in AWS Backoffice (BO USED)
- * @method  [playerBalance] Check Player Balance in AWS Backoffice (BO USED)
- * @method  [fundTransfer] Transfer fund to Player in AWS Backoffice (BO USED) (NOT USED)
- * @method  [queryStatus] Check the fund stats of a Player in AWS Backoffice (BO USED) (NOT USED)
- * @method  [queryOrder] Check the order stats in AWS Backoffice (BO USED) (NOT USED)
- * @method  [playerLogout] Logout the player
- * @method  [singleBalance] Single Wallet : Check Player Balance
- * @method  [singleFundTransfer] Single Fund Transfer : Transfer fund Debit/Credit
- * @method  [singleFundQuery] Check Fund
- *
- * 01_User Registration, 02_User Enablement, 03_User Status, 07_Launch Game 26, 08_User Kick-out (BO METHOD WE ONLY NEED)
- */
-class AWSController extends Controller
+class SAGamingController extends Controller
 {
 
-    public $api_url, $merchant_id, $merchant_key = '';
-    public $provider_db_id = 21;
+    public $game_db_id = 1;
+    public $game_db_code = 'SAGAMING';
 
     public function __construct(){
-        $this->api_url = config('providerlinks.aws.api_url');
-        $this->merchant_id = config('providerlinks.aws.merchant_id');
-        $this->merchant_key = config('providerlinks.aws.merchant_key');
+        header('Content-type: text/xml');
     }
 
-    /**
-     * SINGLE WALLET
-     * @author's Signature combination for every callback
-     * @param [obj] $[details] [<json to obj>]
-     * @param [int] $[signature_type] [<1 = balance, 2 = fundtransfer, fundquery>] // SIGNATURE TYPE 2 REMOVED
-     *
-     */
-    public function signatureCheck($details, $signature_type){
-        if($signature_type == 1){
-            $signature = md5($this->merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($this->merchant_key));
-        }elseif($signature_type == 2){
-            // $signature = false;
-            // $signature = array();
-            // $signature_combo = [ // Only In Amount Sometimes has .0 sometimes it has nothing!
-          //    'one' => $this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
-                // 'two' =>  $this->merchant_id.$details->currentTime.$details->amount.'0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
-                // 'three' =>  $this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
-                // 'four' =>  $this->merchant_id.$details->currentTime.$details->amount.'00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)
-                // 'one' => md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-                // 'two' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-                // 'three' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-                // 'four' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key))
-            // ];
-            // foreach ($signature_combo as $key) {
-            //  // array_push($signature, $key);
-            //  // if($key == $details->sign){
-            //  //  $signature = $key;
-            //  // }
-            // }
-        }
+    // public function debugme(Request $request){
+    //     $user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $request->username);
+    //     $client_details = Providerhelper::getClientDetails('player_id', $user_id);
+    //     $time = date('YmdHms'); //20140101123456
+    //     $method = $request->method;
+    //     $querystring = [
+    //         "method" => $method,
+    //         "Key" => config('providerlinks.sagaming.SecretKey'),
+    //         "Time" => $time,
+    //         "Username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
+    //     ];
+    //     $method == 'RegUserInfo' || $method == 'LoginRequest' ? $querystring['CurrencyType'] = $client_details->default_currency : '';
+    //     $data = http_build_query($querystring); // QS
+    //     $encrpyted_data = SAHelper::encrypt($data);
+    //     $md5Signature = md5($data.config('providerlinks.sagaming.MD5Key').$time.config('providerlinks.sagaming.SecretKey'));
+    //     $http = new Client();
+    //     $response = $http->post(config('providerlinks.sagaming.API_URL'), [
+    //         'form_params' => [
+    //             'q' => $encrpyted_data, 
+    //             's' => $md5Signature
+    //         ],
+    //     ]);
+    //     $resp = simplexml_load_string($response->getBody()->getContents());
+    //     dd($resp);
+    // }
 
-        if($signature == $details->sign){
-            return true;
-        }else{
-            return false;
-        }
+    // XML BUILD RECURSIVE FUNCTION
+    public function siteMap()
+    {
+        $test_array = array (
+            'bla' => 'blub',
+            'foo' => 'bar',
+            'another_array' => array (
+                'stack' => 'overflow',
+            ),
+        );
+
+        $xml_template_info = new \SimpleXMLElement("<?xml version=\"1.0\"?><template></template>");
+
+        $this->array_to_xml($test_array,$xml_template_info);
+        $xml_template_info->asXML(dirname(__FILE__)."/sitemap.xml") ;
+        header('Content-type: text/xml');
+        dd(readfile(dirname(__FILE__)."/sitemap.xml"));
     }
 
-    /**
-     * SINGLE WALLET
-     * @author's note : Player Single Balance 
-     *
-     */
-    public function singleBalance(Request $request){
-        $data = file_get_contents("php://input");
-        $details = json_decode($data);
+    public function array_to_xml(array $arr, \SimpleXMLElement $xml)
+    {
+      foreach ($arr as $k => $v) {
+          is_array($v)
+              ? $this->array_to_xml($v, $xml->addChild($k))
+              : $xml->addChild($k, $v);
+      }
+      return $xml;
+    }
+   
+    public function makeArrayXML($array){
+        $xml_data = new \SimpleXMLElement('<?xml version="1.0"?><RequestResponse></RequestResponse>');
+        $xml_file = $this->array_to_xml($array, $xml_data);
+        return $xml_file->asXML();
+    }
 
-        // Helper::saveLog('AWS Balance', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
-        $verify = $this->signatureCheck($details, 1);
-        if(!$verify){
-            $response = [
-                "msg"=> "Sign check encountered error, please verify sign is correct",
-                "code"=> 9200
-            ];
-            Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
-            return $response;
-        }
+    public function GetUserBalance(Request $request){
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        // Helper::saveLog('SA Gaming Balance', config('providerlinks.sagaming.pdbid'), json_encode($data), $decrypt_data);
 
-        $prefixed_username = explode("_TG", $details->accountId);
-        $client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-        $provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
-        if($provider_reg_currency == 'false'){
-            $response = [
-                "msg"=> "Currency not found",
-                "code"=> 102
-            ];
-            Helper::saveLog('AWS Single Currency Not Found', $this->provider_db_id, $data, $response);
-            return $response;
-        }
-
+        $user_id = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $data['username']);
+        $client_details = Providerhelper::getClientDetails('player_id', $user_id);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        if($player_details != 'false'){
-            $response = [
-                "msg"=> "success",
-                "code"=> 0,
-                "data"=> [
-                    "currency"=> $client_details->default_currency,
-                    "balance"=> floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
-                    "bonusBalance"=> 0
-                ]
-            ];
-        }else{
-            $response = [
-                "msg"=> "User balance retrieval error",
-                "code"=> 2211,
-                "data"=> []
-            ];
-        }
-        return $response;
+
+        $data_response = [
+            "username" => config('providerlinks.sagaming.prefix').$client_details->player_id,
+            "currency" => $client_details->default_currency,
+            "amount" => $player_details->playerdetailsresponse->balance,
+            "error" => 0,
+        ];
+
+        echo $this->makeArrayXML($data_response);
+        return;
     }
 
-    /**
-     * SINGLE WALLET
-     * @author's note : Player Single Fund Transfer 
-     * @author's note : Transfer amount, support 2 decimal places, negative number is withdraw/debit, positive number is deposit/credit
-     *
-     */
-    public function singleFundTransfer(Request $request){
-        $data = file_get_contents("php://input");
-        $details = json_decode($data);
-        Helper::saveLog('AWS singleFundTransfer EH', $this->provider_db_id, file_get_contents("php://input"), Helper::datesent());
-        $prefixed_username = explode("_TG", $details->accountId);
-        $client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-        // # 01 COMMENT THIS OUT WHEN DEBUGGING IN LOCAL
-        $explode1 = explode('"betAmount":', $data);
-        $explode2 = explode('amount":', $explode1[0]);
-        $amount_in_string = trim(str_replace(',', '', $explode2[1]));
-        $amount_in_string = trim(str_replace('"', '', $amount_in_string));
 
-        $signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
-        
-        if($signature != $details->sign){
-            $response = [
-                "msg"=> "Sign check encountered error, please verify sign is correct",
-                "code"=> 9200
-            ];
-            Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
-            return $response;
+
+    public function PlaceBet(){
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        Helper::saveLog('SA PlaceBet EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+
+        // LOCAL TEST
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
+        // dd($data);
+        $username = $data['username'];
+        $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
+        $currency = $data['currency'];
+        $amount = $data['amount'];
+        $txnid = $data['txnid'];
+        // $ip = $data['ip'];
+        $gametype = $data['gametype'];
+        $game_id = $this->game_db_code;
+        // $betdetails = $data['betdetails'];
+        $round_id = $data['gameid'];
+
+        $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
+        if($client_details == null){
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 10051]; // 1000
+            Helper::saveLog('SA PlaceBet - client_details Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
         }
-        // # 01 END
-
-        $provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
-        if($provider_reg_currency == 'false'){
-            $response = [
-                "msg"=> "Currency not found",
-                "code"=> 102
-            ];
-            Helper::saveLog('AWS singleFundTransfer - Currency Not Found', $this->provider_db_id, $data, $response);
-            return $response;
+        $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
+        if($getPlayer == 'false'){
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 10052];  // 9999
+            Helper::saveLog('SA PlaceBet - getPlayer Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
         }
-
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $details->gameId);
+        if($getPlayer->playerdetailsresponse->balance < $amount){
+            $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
+            Helper::saveLog('SA PlaceBet - Low Balance', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
+        }
+        $game_details = Helper::findGameDetails('game_code', config('providerlinks.sagaming.pdbid'), $game_id);
         if($game_details == null){
-            $response = [
-            "msg"=> "Game not found",
-            "code"=> 1100
-            ];
-            Helper::saveLog('AWS singleFundTransfer - Game Not Found', $this->provider_db_id, $data, $response);
-            return $response;
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 10053]; // 134 
+            Helper::saveLog('SA PlaceBet - Game Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
+        }
+        $provider_reg_currency = ProviderHelper::getProviderCurrency(config('providerlinks.sagaming.pdbid'), $client_details->default_currency);
+        if($provider_reg_currency == 'false' || $currency != $provider_reg_currency){ // currency not in the provider currency agreement
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 10054]; // 1001
+            Helper::saveLog('SA PlaceBet - Currency Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
         }
 
-        $transaction_type = $details->winAmount > 0 ? 'credit' : 'debit';
-        // $transaction_type = $details->amount > 0 ? 'credit' : 'debit';
-        // return $transaction_type;
-        $game_transaction_type = $transaction_type == 'debit' ? 1 : 2; // 1 Bet, 2 Win
-
-        $game_code = $game_details->game_id;
-        $token_id = $client_details->token_id;
-        $bet_amount = abs($details->betAmount);
-
-
-        if($transaction_type == 'credit'){
-            $method = 2;
-            $pay_amount =  $details->winAmount;
-            $win_type = 1;
-            $income = $bet_amount-$pay_amount;
-            // $pay_amount =  abs($details->amount);
-            // $win_type = $income > 0 ? 1 : 0;
-            // $win_type = $income > 0 ? 0 : 1;
-        }else{
-            $method = 1;
-            $pay_amount = $details->winAmount; // payamount zero
-            $income =$bet_amount-$pay_amount;
-            $win_type = 0;
-        }
-
-        
-        $win_or_lost = $win_type; // 0 lost,  5 processing
-        $payout_reason = $this->getOperationType($details->txnTypeId);
-        $provider_trans_id = $details->txnId;
-
-        $game_ext_check = $this->findGameExt($details->txnId, $game_transaction_type, 'transaction_id');
-        if($game_ext_check != 'false'){
-            $response = [
-            "msg"=> "marchantTransId already exist",
-            "code"=> 2200,
-            "data"=> [
-                    "currency"=> $client_details->default_currency,
-                    "balance"=> floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
-                    "bonusBalance"=> 0
-                ]
-            ];
-            Helper::saveLog('AWS singleFundTransfer - Order Already Exist', $this->provider_db_id, $data, $response);
-            return $response;
-        }
-        if($transaction_type == 'debit'){
-            if($bet_amount > $player_details->playerdetailsresponse->balance){
-                $response = [
-                    "msg"=> "Insufficient balance",
-                    "code"=> 1201
-                ];
-                Helper::saveLog('AWS singleFundTransfer - Insufficient Balance', $this->provider_db_id, $data, $response);
-                return $response;
+            $transaction_check = ProviderHelper::findGameExt($txnid, 1,'transaction_id');
+            if($transaction_check != 'false'){
+                $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; // 122 // transaction not found!
+                Helper::saveLog('SA PlaceBet - Transaction Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
             }
-        }
 
-        try {
+            try {
+               
+                $transaction_type = 'debit';
+                $game_transaction_type = 1; // 1 Bet, 2 Win
+                $game_code = $game_details->game_id;
+                $token_id = $client_details->token_id;
+                $bet_amount = $amount; 
+                $pay_amount = 0;
+                $income = 0;
+                $win_type = 0;
+                $method = 1;
+                $win_or_lost = 5; // 0 lost,  5 processing
+                $payout_reason = 'Bet';
+                $provider_trans_id = $txnid;
+                $round_id = $round_id;
 
-            $gamerecord  = $this->createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
-            // AWS IS 1 WAY FLIGHT
-            
-            $bet_amount_2way = abs($details->betAmount);
-            $win_amount_2way = abs($details->winAmount);
+          
 
-            $game_transextension1 = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $bet_amount_2way, 1);
-
-           try {
-             $client_response = ClientRequestHelper::fundTransfer($client_details,abs($bet_amount_2way),$game_details->game_code,$game_details->game_name,$game_transextension1,$gamerecord,'debit');
-             Helper::saveLog('AWS CR ID = '.$provider_trans_id, $this->provider_db_id, $data, $client_response);
-           } catch (\Exception $e) {
-                $response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
-                if(isset($gamerecord)){
-                    ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-                    ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $response, 'FAILED', $e->getMessage(), false, 'FAILED');
+                $game_trans_ext = ProviderHelper::findGameExt($round_id, 1, 'round_id');
+                if($game_trans_ext == 'false'){
+                    $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+                    $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
+                }else{
+                    $game_transaction = ProviderHelper::findGameTransaction($game_trans_ext->game_trans_id,'game_transaction');
+                    $bet_amount = $game_transaction->bet_amount + $amount;
+                    // $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, 5, $game_transaction->entry_id);
+                    $game_transextension = ProviderHelper::createGameTransExtV2($game_trans_ext->game_trans_id,$provider_trans_id, $round_id, $amount, $game_transaction_type);
+                     $gamerecord = $game_trans_ext->game_trans_id;
                 }
-                Helper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
-                return $response;
-           }
 
-            if(isset($client_response->fundtransferresponse->status->code) 
-             && $client_response->fundtransferresponse->status->code == "200"){
-
-                $game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $win_amount_2way, 2);
 
                 try {
-                    $client_response2 = ClientRequestHelper::fundTransfer($client_details,abs($win_amount_2way),$game_details->game_code,$game_details->game_name,$game_transextension2,$gamerecord,'credit');
+                    $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,$transaction_type);
+                    Helper::saveLog('SA PlaceBet CRID = '.$provider_trans_id, config('providerlinks.sagaming.pdbid'), json_encode($data), $client_response);
                 } catch (\Exception $e) {
-                    $response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
-                    ProviderHelper::updatecreateGameTransExt($game_transextension2, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-                    Helper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
-                    return $response;
+                     $data_response = ["username" => $username,"error" => 1005];
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                    Helper::saveLog('SA PlaceBet - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                    echo $this->makeArrayXML($data_response);
+                    return;
                 }
 
-
-                if(isset($client_response2->fundtransferresponse->status->code) 
-                 && $client_response2->fundtransferresponse->status->code == "200"){
-                    $response = [
-                        "msg"=> "success",
-                        "code"=> 0,
-                        "data"=> [
-                            "currency"=> $client_details->default_currency,
-                            "amount"=> (double)$details->amount,
-                            "accountId"=> $details->accountId,
-                            "txnId"=> $details->txnId,
-                            "eventTime"=> date('Y-m-d H:i:s'),
-                            "balance" => floatval(number_format((float)$client_response2->fundtransferresponse->balance, 2, '.', '')),
-                            "bonusBalance" => 0
-                        ]
+                if(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "200"){
+                    if($game_trans_ext != 'false'){
+                         $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, 5, $game_transaction->entry_id);
+                    }
+                    $data_response = [
+                        "username" => $username,
+                        "currency" => $client_details->default_currency,
+                        "amount" => $client_response->fundtransferresponse->balance,
+                        "error" => 0
                     ];
-                    ProviderHelper::updatecreateGameTransExt($game_transextension1, $details, $response, $client_response->requestoclient, $client_response,$response);
-
-                    ProviderHelper::updatecreateGameTransExt($game_transextension2, $details, $response, $client_response2->requestoclient, $client_response,$response);
-                }elseif(isset($client_response2->fundtransferresponse->status->code) 
-                 && $client_response2->fundtransferresponse->status->code == "402"){
-                    if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
-                       ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
-                    else:
-                       ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-                    endif;
-                    $response = [
-                        "msg"=> "Insufficient balance",
-                        "code"=> 1201
-                    ];
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
+                }elseif(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "402"){
+                    if($game_trans_ext == 'false'){
+                      if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+                            ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+                      else:
+                        ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+                      endif;
+                    }
+                    $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
+                }else{
+                    $data_response = ["username" => $username,"error" => 1005];
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $client_response, 'FAILED', 'FAILED');
+                    Helper::saveLog('SA PlaceBet - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), 'UNKNOWN STATUS CODE');
                 }
-
-            }elseif(isset($client_response->fundtransferresponse->status->code) 
-            && $client_response->fundtransferresponse->status->code == "402"){
-                if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
-                   ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
-                else:
-                   ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-                endif;
-                // $response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
-                $response = [
-                    "msg"=> "Insufficient balance",
-                    "code"=> 1201
-                ];
+                Helper::saveLog('SA PlaceBet', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            } catch (\Exception $e) {
+                $data_response = ["username" => $username,"error" => 1005];
+                Helper::saveLog('SA PlaceBet - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                echo $this->makeArrayXML($data_response);
+                return;
             }
-            Helper::saveLog('AWS singleFundTransfer SUCCESS = '.$gamerecord, $this->provider_db_id, $data, $response);
-            return $response;
-            
-        } catch (\Exception $e) {
-            $response = ["msg"=> "Fund transfer encountered error","code"=> 2205];
-            Helper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, $data, $response);
-            return $response;
+    }
+
+    public function PlayerWin(){
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        // Helper::saveLog('SA Gaming Win', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        Helper::saveLog('SA PlayerWin EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+
+        // LOCAL TEST
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data); 
+
+        $username = $data['username'];
+        $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
+        $currency = $data['currency'];
+        $amount = $data['amount'];
+        $txnid = $data['txnid'];
+        $gametype = $data['gametype'];
+        $game_id = $this->game_db_code;
+        $round_id = $data['gameid'];
+
+        $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
+        if($client_details == null){
+            $data_response = ["username" => $username, "error" => 1005]; // 1000
+            Helper::saveLog('SA PlayerWin - client_details Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
         }
-    }
-
-    /**
-     * SINGLE WALLET
-     * @author's note : PROVDER NOTE Query is prepare for if have transfer error, we can call "Query" to merchant to  make sure merchant received or not
-     * this function just check order not increase or decrease action.  (Debit/Credit)
-     *
-     */
-    public function singleFundQuery(Request $request){
-        $data = file_get_contents("php://input");
-        $details = json_decode($data);
-        Helper::saveLog('AWS singleFundQuery EH', $this->provider_db_id, $data, Helper::datesent());
-
-        $explode1 = explode('"betAmount":', $data);
-        $explode2 = explode('amount":', $explode1[0]);
-        $amount_in_string = trim(str_replace(',', '', $explode2[1]));
-        $amount_in_string = trim(str_replace('"', '', $amount_in_string));
-        $signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
-        
-        if($signature != $details->sign){
-            $response = [
-                "msg"=> "Sign check encountered error, please verify sign is correct",
-                "code"=> 9200
-            ];
-            Helper::saveLog('AWS singleFundQuery - Error Sign', $this->provider_db_id, $data, $response);
-            return $response;
+        $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token); 
+        if($getPlayer == 'false'){
+            $data_response = ["username" => $username, "error" => 1005];  // 9999
+            Helper::saveLog('SA PlayerWin - getPlayer Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
         }
-
-        $prefixed_username = explode("_TG", $details->accountId);
-        $client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-
-        if($player_details == 'false'){
-            $response = [
-                "msg"=> "Fund transfer encountered error",
-                "code"=> 2205
-            ];
-            Helper::saveLog('AWS singleFundQuery - Error Sign', $this->provider_db_id, $data, $response);
-            return $response;
+        $game_details = Helper::findGameDetails('game_code', config('providerlinks.sagaming.pdbid'), $game_id);
+        if($game_details == null){
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 1005];  // 134
+            Helper::saveLog('SA PlayerWin - game_details Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
         }
-
-        $transaction_type = $details->amount > 0 ? 'credit' : 'debit';
-        $game_transaction_type = $transaction_type == 'debit' ? 1 : 2; // 1 Bet, 2 Win
-        $game_ext_check = $this->findGameExt($details->txnId, $game_transaction_type, 'transaction_id');
-        // dd($game_ext_check);
-        if($game_ext_check != 'false'){ // The Transaction Has Been Processed!
-            $response = [
-                "msg"=> "success",
-                "code"=> 0,
-                "data"=> [
-                    "currency"=> $client_details->default_currency,
-                    "amount"=> (double)$details->amount,
-                    "accountId"=> $details->accountId,
-                    "txnId"=> $details->txnId,
-                    "eventTime"=> date('Y-m-d H:i:s'),
-                    "balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
-                    "bonusBalance" => 0
-                ]
-            ];
-            return $response;
-        }else{  // No Transaction Was Found 
-            $response = [
-            "msg"=> "Transfer history record not found",
-            "code"=> 106,
-            "data"=> [
-                    "currency"=> $client_details->default_currency,
-                    "amount"=> (double)$details->amount,
-                    "accountId"=> $details->accountId,
-                    "txnId"=> $details->txnId,
-                    "eventTime"=> date('Y-m-d H:i:s'),
-                    "balance" => floatval(number_format((float)$player_details->playerdetailsresponse->balance, 2, '.', '')),
-                    "bonusBalance" => 0
-                ]
-            ];
-        }
-        Helper::saveLog('AWS singleFundQuery - SUCCESS', $this->provider_db_id, $data, $response);
-        return $response;
-    }
-
-    /**
-     * MERCHANT BACKOFFICE
-     * @author's note : this is centralized in the gamelaunch (DEPRECATED/CENTRALIZED)
-     *
-     */
-    // public function playerRegister(Request $request)
-    // {
-    //    $register_player = AWSHelper::playerRegister($request->token);
-    //     // dd($register_player);
-    //    // $register_player->code == 2217 || $register_player->code == 0;
-    // }
-    
-    /**
-     * MERCHANT BACKOFFICE
-     * @author's NOTE : Launch Game (DEPRECATED/CENTRALIZED)
-     *
-     */
-    // public function launchGame(Request $request){
-    //  $lang = GameLobby::getLanguage('All Way Spin','en');
-    //  $client_details = ProviderHelper::getClientDetails('token', $request->token);
-    //  $client = new Client([
-    //      'headers' => [ 
-    //          'Content-Type' => 'application/json',
-    //      ]
-    //  ]);
-    //  $requesttosend = [
-    //      "merchantId" => $this->merchant_id,
-    //      "currentTime" => AWSHelper::currentTimeMS(),
-    //      "username" => $this->merchant_id.'_TG'.$client_details->player_id,
-    //      "playmode" => 0, // Mode of gameplay, 0: official
-    //      "device" => 1, // Identifying the device. Device, 0: mobile device 1: webpage
-    //      "gameId" => 'AWS_1',
-    //      "language" => $lang,
-    //  ];
-    //  $requesttosend['sign'] = AWSHelper::hashen($requesttosend);
-    //  $guzzle_response = $client->post($this->api_url.'/api/login',
-    //      ['body' => json_encode($requesttosend)]
-    //  );
-    //     $provider_response = json_decode($guzzle_response->getBody()->getContents());
-    //     Helper::saveLog('AWS BO Launch Game', 21, json_encode($requesttosend), $provider_response);
-    //     return isset($provider_response->data->gameUrl) ? $provider_response->data->gameUrl : 'false';
-    // }
-
-
-    /**
-     * MERCHANT BACKOFFICE
-     * @author's NOTE : Get All Game List (NOT/USED) ONE TIME USAGE ONLY
-     *
-     */
-    public function gameList(Request $request){
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ]
-        ]);
-        $requesttosend = [
-            "merchantId" => $this->merchant_id,
-            "currentTime" => AWSHelper::currentTimeMS(),
-            "language" => 'en_US'
-        ];
-        $requesttosend['sign'] = AWSHelper::hashen(AWSHelper::currentTimeMS(),$this->merchant_id);
-        $guzzle_response = $client->post($this->api_url.'/game/list',
-            ['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return json_encode($client_response);
-    }
-
-
-    /**
-     * MERCHANT BACKOFFICE (NOT/USED)
-     * @author's NOTE : This is only if we want to disable/enable a player on this provider 
-     * @param   $[request->status] [<enable or disable>]
-     *
-     */
-    public function playerManage(Request $request){
-        Helper::saveLog('AWS BO Player Manage', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
-        $status = $request->has('status') ? $request->status : 'enable';
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ]
-        ]);
-        $requesttosend = [
-            "merchantId" => $this->merchant_id,
-            "currentTime" => AWSHelper::currentTimeMS(),
-            "username" => $this->merchant_id.'_'.$client_details->player_id,
-            "sign" => $this->hashen($this->merchant_id.'_'.$client_details->player_id, AWSHelper::currentTimeMS()),
-        ];
-        $guzzle_response = $client->post($this->api_url.'/user/'.$status,
-            ['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
-    }
-
-    /**
-     * MERCHANT BACKOFFICE (NOT/USED)
-     * @author's NOTE : This is only if we want to check the player status on this provider
-     *
-     */
-    public function playerStatus(Request $request){
-        Helper::saveLog('AWS BO Player Status', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
-        $status = $request->has('status') ? $request->status : 'enable';
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ]
-        ]);
-        $requesttosend = [
-            "merchantId" => $this->merchant_id,
-            "currentTime" => AWSHelper::currentTimeMS(),
-            "username" => $this->merchant_id.'_'.$client_details->player_id,
-            "sign" => $this->hashen($this->merchant_id.'_'.$client_details->player_id, AWSHelper::currentTimeMS()),
-        ];
-        $guzzle_response = $client->post($this->api_url.'/user/status',
-            ['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
-    }
-
-    /**
-     * MERCHANT BACKOFFICE (NOT/USED)
-     * @author's NOTE : This is only if we want to check the player balance on this provider
-     *
-     */
-    public function playerBalance(Request $request){
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ]
-        ]);
-        $requesttosend = [
-            "merchantId" => $this->merchant_id,
-            "currentTime" => AWSHelper::currentTimeMS(),
-            "username" => $this->merchant_id.'_'.$client_details->player_id,
-            "sign" => $this->hashen($this->merchant_id.'_'.$client_details->player_id, AWSHelper::currentTimeMS()),
-        ];
-        $guzzle_response = $client->post($this->api_url.'/user/balance',
-            ['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
-    }
-
-    /**
-     * MERCHANT BACKOFFICE (NOT/USED) (NOT APLLICABLE IN THE SINGLE WALLET)
-     * @author's NOTE : Fund Transfer
-     *
-     */
-    public function fundTransfer(Request $request){
-        Helper::saveLog('AWS BO Fund Transfer', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ]
-        ]);
-        $requesttosend = [
-            "merchantId" => $this->merchant_id,
-            "currentTime" => AWSHelper::currentTimeMS(),
-            "username" => $this->merchant_id.'_'.$client_details->player_id,
-            "amount" => $request->amount,
-            "merchantTransId" => 'AWSF2019123199999', // for each player account, the transfer transaction code has to be unique
-            "sign" => $this->hashen($this->merchant_id.'_'.$client_details->player_id, AWSHelper::currentTimeMS()),
-        ];
-        $guzzle_response = $client->post($this->api_url.'/user/balance',
-            ['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
-    }
-
-    /**
-     * MERCHANT BACKOFFICE (NOT/USED) (NOT APLLICABLE IN THE SINGLE WALLET)
-     * @author's NOTE : Query status of fund transfer
-     *
-     */
-    public function queryStatus(Request $request){
-        Helper::saveLog('AWS BO Query Status', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ]
-        ]);
-        $requesttosend = [
-            "merchantId" => $this->merchant_id,
-            "currentTime" => AWSHelper::currentTimeMS(),
-            "username" => $this->merchant_id.'_'.$client_details->player_id,
-            "merchantTransId" => 'AWSF2019123199999', // for each player account, the transfer transaction code has to be unique
-            "sign" => $this->hashen($this->merchant_id.'_'.$client_details->player_id, AWSHelper::currentTimeMS()),
-        ];
-        $guzzle_response = $client->post($this->api_url.'/fund/queryStatus',
-            ['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
-    }
-
-    /**
-     * MERCHANT BACKOFFICE (NOT/USED) (NOT APLLICABLE IN THE SINGLE WALLET)
-     * @author's NOTE : Query status of fund transfer
-     *
-     */
-    public function queryOrder(Request $request){
-        Helper::saveLog('AWS BO Query Order', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ]
-        ]);
-        $requesttosend = [
-            "merchantId" => $this->merchant_id,
-            "currentTime" => AWSHelper::currentTimeMS(),
-            "username" => $this->merchant_id.'_'.$client_details->player_id,
-            "sign" => $this->hashen($this->merchant_id.'_'.$client_details->player_id, AWSHelper::currentTimeMS()),
-        ];
-        $guzzle_response = $client->post($this->api_url.'/order/query',
-            ['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
-    }
-
-
-    /**
-     * MERCHANT BACKOFFICE
-     * @author's NOTE : Logout the player
-     *
-     */
-    public function playerLogout(Request $request){
-        Helper::saveLog('AWS BO Player Logout', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-            ]
-        ]);
-        $requesttosend = [
-            "merchantId" => $this->merchant_id,
-            "currentTime" => AWSHelper::currentTimeMS(),
-            "username" => $this->merchant_id.'_'.$client_details->player_id,
-            "sign" => $this->hashen($this->merchant_id.'_'.$client_details->player_id, AWSHelper::currentTimeMS()),
-        ];
-        $guzzle_response = $client->post($this->api_url.'/api/logout',
-            ['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response;
-    }
-
-
-    /**
-     * HELPER
-     * Find The Transactions For Refund, Providers Transaction ID
-     * @return  [<string>]
-     * 
-     */
-    public  function getOperationType($operation_type) {
-        $operation_types = [
-            '100' => 'Bet',
-            '200' => 'Adjust',
-            '300' => 'Lucky Draw',
-            '400' => 'Tournament',
-        ];
-        if(array_key_exists($operation_type, $operation_types)){
-            return $operation_types[$operation_type];
-        }else{
-            return 'Operation Type is unknown!!';
+        $provider_reg_currency = ProviderHelper::getProviderCurrency(config('providerlinks.sagaming.pdbid'), $client_details->default_currency);
+        $data_response = ["username" => $username,"currency" => $currency, "error" => 1005]; // 1001
+        $provider_reg_currency = ProviderHelper::getProviderCurrency(config('providerlinks.sagaming.pdbid'), $client_details->default_currency);
+        if($provider_reg_currency == 'false' || $currency != $provider_reg_currency){ // currency not in the provider currency agreement
+            $data_response = ["username" => $username,"currency" => $currency, "error" => 10054]; // 1001
+            Helper::saveLog('SA PlayerWin - provider_reg_currency Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
         }
 
-    }
+            $check_win_entry = ProviderHelper::findGameExt($round_id, 2,'round_id');
+            if($check_win_entry != 'false'){
+                $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; //122 win already exist!
+                Helper::saveLog('SA PlayerWin - Win Already Processed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
 
-    /**
-     * HELPER
-     * Find Game Transaction Ext
-     * @param [string] $[provider_transaction_id] [<provider transaction id>]
-     * @param [int] $[game_transaction_type] [<1 bet, 2 win, 3 refund>]
-     * @param [string] $[type] [<transaction_id, round_id>]
-     * 
-     */
-    public  function findGameExt($provider_transaction_id, $game_transaction_type, $type) {
-        $transaction_db = DB::table('game_transaction_ext as gte');
-        if ($type == 'transaction_id') {
-            $transaction_db->where([
-                ["gte.provider_trans_id", "=", $provider_transaction_id],
-                ["gte.game_transaction_type", "=", $game_transaction_type],
-            ]);
-        }
-        if ($type == 'round_id') {
-            $transaction_db->where([
-                ["gte.round_id", "=", $provider_transaction_id],
-                ["gte.game_transaction_type", "=", $game_transaction_type],
-            ]);
-        }  
-        $result= $transaction_db->first();
-        return $result ? $result : 'false';
-    }
+            $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
+            if($transaction_check == 'false'){
+                $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; //152
+                Helper::saveLog('SA PlayerWin - Win Duplicate', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
 
-    /**
-     * HELPER
-     * Find Game Transaction
-     * @param [string] $[round_ids] [<round id for bets>]
-     * @param [string] $[type] [<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
-     * 
-     */
-    public  function getAllGameTransaction($round_ids, $type) 
-    {
-        $game_transactions = DB::table("game_transactions")
-                    ->where('win', $type)
-                    ->whereIn('round_id', $round_ids)
-                    ->get();
-        return (count($game_transactions) > 0 ? $game_transactions : 'false');
-    }
 
-    /**
-     * HELPER
-     * Create Game Transaction
-     * 
-     */
-    public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
-        $data = [
-                    "token_id" => $token_id,
-                    "game_id" => $game_id,
-                    "round_id" => $round_id,
-                    "bet_amount" => $bet_amount,
-                    "provider_trans_id" => $provider_trans_id,
-                    "pay_amount" => $payout,
-                    "income" => $income,
-                    "entry_id" => $entry_id,
-                    "win" => $win,
-                    "transaction_reason" => $transaction_reason,
-                    "payout_reason" => $payout_reason
+            try {
+                $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
+
+                $transaction_type = 'credit';
+                $game_transaction_type = 2; // 1 Bet, 2 Win
+                $game_code = $game_details->game_id;
+                $token_id = $client_details->token_id;
+                $bet_amount = $game_trans->bet_amount; 
+                $pay_amount = $amount;
+                $income = $bet_amount - $pay_amount;
+                $win_type = 0;
+                $method = 1;
+                $win_or_lost = 1; // 0 lost,  5 processing
+                $payout_reason = 'Win';
+                $provider_trans_id = $txnid;
+
+                ProviderHelper::updateBetTransaction($round_id, $pay_amount, $income, 1, 2);
+                $game_transextension = ProviderHelper::createGameTransExtV2($game_trans->game_trans_id,$provider_trans_id, $round_id, $pay_amount, $game_transaction_type);
+
+                try {
+                    $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id,$transaction_type);
+                    Helper::saveLog('SA PlayerWin CRID = '.$provider_trans_id, config('providerlinks.sagaming.pdbid'), json_encode($data), $client_response);
+                } catch (\Exception $e) {
+                    $data_response = ["username" => $username,"error" => 1005];
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                    Helper::saveLog('SA PlayerWin - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                    echo $this->makeArrayXML($data_response);
+                    return;
+                }
+
+                if(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "200"){
+                    $data_response = [
+                        "username" => $username,
+                        "currency" => $client_details->default_currency,
+                        "amount" => $client_response->fundtransferresponse->balance,
+                        "error" => 0
+                    ];
+
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
+                }elseif(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "402"){
+                     $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
+                }
+
+                Helper::saveLog('SA PlayerWin', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+
+                return;
+            } catch (\Exception $e) {
+                $data_response = [
+                    "username" => $username,
+                    // "currency" => $client_details->default_currency,
+                    // "amount" => $client_response->fundtransferresponse->balance,
+                    // "amount" => $getPlayer->playerdetailsresponse->balance,
+                    "error" => 1005 // 9999
                 ];
-        $data_saved = DB::table('game_transactions')->insertGetId($data);
-        return $data_saved;
+                Helper::saveLog('SA PlayerWin - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
     }
 
-    /**
-     * HELPER
-     * Create Game Transaction Extension
-     * @param  $[game_type] [<1=bet,2=win,3=refund>]
-     * 
-     */
-    public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail){
+    public function PlayerLost(){
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        // Helper::saveLog('SA Gaming Lost', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        Helper::saveLog('SA PlayerLost EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        // LOCAL TEST
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
+            
+        try {
+         
+            $username = $data['username'];
+            $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
+            $currency = $data['currency'];
+            $txnid = $data['txnid'];
+            $gametype = $data['gametype'];
+            $game_id = $this->game_db_code;
+            $round_id = $data['gameid'];
 
-        $gametransactionext = array(
-            "game_trans_id" => $game_trans_id,
-            "provider_trans_id" => $provider_trans_id,
-            "round_id" => $round_id,
-            "amount" => $amount,
-            "game_transaction_type"=>$game_type,
-            "provider_request" => json_encode($provider_request),
-            "mw_response" =>json_encode($mw_response),
-            "mw_request"=>json_encode($mw_request),
-            "client_response" =>json_encode($client_response),
-            "transaction_detail" =>json_encode($transaction_detail),
-        );
-        $gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
-        return $gametransactionext;
+            $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
+            if($client_details == null){
+                $data_response = ["username" => $username,"error" => 1005]; // 1000
+                Helper::saveLog('SA PlayerLost - Client Error', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+            $game_details = Helper::findGameDetails('game_code', config('providerlinks.sagaming.pdbid'), $game_id);
+            if($game_details == null){
+                $data_response = ["username" => $username, "error" => 1005];  // 134
+                Helper::saveLog('SA PlayerLost - Game Error', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+            $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
+            if($getPlayer == 'false'){
+                $data_response = ["username" => $username, "error" => 1005]; 
+                Helper::saveLog('SA PlayerLost - Player Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+            $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
+            if($transaction_check == 'false'){
+                $data_response = ["username" => $username,"currency" => $client_details->default_currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0];
+                 Helper::saveLog('SA PlayerLost - Round Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+            $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
+
+            $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+            $data_response = [
+                "username" => $username,
+                "currency" => $client_details->default_currency,
+                "amount" => $player_details->playerdetailsresponse->balance,
+                "error" => 0
+            ];
+
+            $game_trans_ext = ProviderHelper::findGameExt($round_id, 1, 'round_id');
+            $game_transaction = ProviderHelper::findGameTransaction($game_trans_ext->game_trans_id,'game_transaction');
+
+            $game_transextension = ProviderHelper::createGameTransExtV2($game_trans_ext->game_trans_id,$txnid, $round_id, 0, 2);
+            // When Player Lost Auto Callback 0 winning
+            try {
+                $client_response = ClientRequestHelper::fundTransfer($client_details,0,$game_details->game_code,$game_details->game_name,$game_transextension,$transaction_check->game_trans_id, 'credit');
+                Helper::saveLog('SA PlayerLost CRID', config('providerlinks.sagaming.pdbid'), json_encode($data), $client_response);
+            } catch (\Exception $e) {
+                $data_response = ["username" => $username,"error" => 1005];
+                ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                Helper::saveLog('SA PlayerLost - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+
+            if(isset($client_response->fundtransferresponse->status->code) 
+                    && $client_response->fundtransferresponse->status->code == "200"){
+                ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
+
+                ProviderHelper::updateBetTransaction($round_id, $game_transaction->pay_amount, $game_transaction->bet_amount, 0, $game_transaction->entry_id);
+
+            }
+
+            Helper::saveLog('SA PlayerLost SUCCESS', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+            echo $this->makeArrayXML($data_response);
+            return;
+
+        } catch (\Exception $e) {
+            $data_response = [
+                "username" => $username,
+                "error" => 1005 // 9999
+            ];
+            Helper::saveLog('SA PlayerLost - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($decrypt_data), $e->getMessage());
+            echo $this->makeArrayXML($data_response);
+            return;
+        }
+        
+        
+    }
+
+    public function PlaceBetCancel(){
+        $enc_body = file_get_contents("php://input");
+        $url_decoded = urldecode($enc_body);
+        $decrypt_data = SAHelper::decrypt($url_decoded);
+        parse_str($decrypt_data, $data);
+        // Helper::saveLog('SA Gaming BC', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+        Helper::saveLog('SA PlaceBetCancel EH', config('providerlinks.sagaming.pdbid'), json_encode($data), $enc_body);
+     
+        // LOCAL TEST
+        // $enc_body = file_get_contents("php://input");
+        // parse_str($enc_body, $data);
+
+            $username = $data['username'];
+            $playersid = Providerhelper::explodeUsername(config('providerlinks.sagaming.prefix'), $username);
+            $currency = $data['currency'];
+            $amount = $data['amount'];
+            $txnid = $data['txnid'];
+            $gametype = $data['gametype'];
+            $gamecancel = $data['gamecancel'];
+            $txn_reverse_id = $data['txn_reverse_id'];
+            $game_id = $this->game_db_code;
+            $round_id = $data['gameid'];
+            $transaction_type = 'credit';
+
+            $client_details = ProviderHelper::getClientDetails('player_id',$playersid);
+            if($client_details == null){
+                $data_response = ["username" => $username, "error" => 1005]; // 1000
+                Helper::saveLog('SA PlaceBetCancel - Player Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+            $game_details = Helper::findGameDetails('game_code', config('providerlinks.sagaming.pdbid'), $game_id);
+            if($game_details == null){
+                $data_response = ["username" => $username,"currency" => $currency, "error" => 1005];  // 134
+                Helper::saveLog('SA PlaceBetCancel - Game Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+            $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
+            if($getPlayer == 'false'){
+                $data_response = ["username" => $username, "error" => 1005]; 
+                Helper::saveLog('SA PlaceBetCancel - Client Failed', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+            $transaction_check = ProviderHelper::findGameExt($round_id, 1,'round_id');
+            if($transaction_check == 'false'){
+                $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; // 152 // 1005
+                // RETURN ERROR CODE 0 to stop the callbacks
+                Helper::saveLog('SA PlaceBetCancel - Transaction Not Found', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+
+            $existing_refund_call = $this->GameTransactionExt($txnid, $round_id, 3);
+            if($existing_refund_call != null){
+                $data_response = ["username" => $username,"currency" => $client_details->default_currency,"amount" => $getPlayer->playerdetailsresponse->balance, "error" => 0]; // 122 // 1005
+                // RETURN ERROR CODE 0 to stop the callbacks
+                Helper::saveLog('SA PlaceBetCancel - Existing Refund', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+            
+            try {
+
+            $game_trans = ProviderHelper::findGameTransaction($transaction_check->game_trans_id, 'game_transaction');
+
+            $game_trans_ext = ProviderHelper::findGameExt($round_id, 1, 'round_id');
+            $game_transaction = ProviderHelper::findGameTransaction($game_trans_ext->game_trans_id,'game_transaction');
+
+            $all_bet = $this->getAllBet($round_id, 1);
+            // $transaction_check = ProviderHelper::findGameExt($txnid, 1,'transaction_id');
+            // dd($all_bet);
+            if(count($all_bet) > 0){ // MY BETS!
+                if(count($all_bet) == 1){
+                    ProviderHelper::updateBetTransaction($round_id, $game_transaction->pay_amount, $game_transaction->bet_amount, 4, $game_transaction->entry_id);
+                }else{
+                    $sum = 0;
+                    foreach($all_bet as $key=>$value){
+                      if(isset($value->amount)){
+                         $sum += $value->amount;
+                      }
+                    }
+                    $bet_amount = $sum - $amount;
+                    if($game_transaction->pay_amount > 0){
+                        $pay_amount = $game_transaction->pay_amount - $amount;
+                    }else{
+                        $pay_amount = $game_transaction->pay_amount;
+                    }
+                    if($game_transaction->income > 0){
+                        $income = $bet_amount - $pay_amount;
+                    }else{
+                        $income = $game_transaction->income;
+                    }
+                    $this->updateBetTransaction($round_id, $pay_amount, $bet_amount, $income, $game_transaction->win, $game_transaction->entry_id);
+                    // $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, $game_transaction->win, $game_transaction->entry_id);
+                }
+            }
+          
+            $game_transextension = ProviderHelper::createGameTransExtV2($game_trans->game_trans_id,$txnid, $round_id, $amount, 3);
+
+            try {
+                $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans->game_trans_id,$transaction_type, true);
+                Helper::saveLog('SA PlaceBetCancel CRID', config('providerlinks.sagaming.pdbid'), json_encode($data), $client_response);
+            } catch (\Exception $e) {
+                $data_response = ["username" => $username,"error" => 1005];
+                ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                Helper::saveLog('SA PlaceBetCancel - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+                echo $this->makeArrayXML($data_response);
+                return;
+            }
+      
+                if(isset($client_response->fundtransferresponse->status->code) 
+                     && $client_response->fundtransferresponse->status->code == "200"){
+                     $data_response = [
+                        "username" => $username,
+                        "currency" => $client_details->default_currency,
+                        "amount" => $client_response->fundtransferresponse->balance,
+                        "error" => 0
+                    ];
+
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
+
+                    Helper::saveLog('SA PlaceBetCancel - SUCCESS', config('providerlinks.sagaming.pdbid'), json_encode($data), $data_response);
+                    echo $this->makeArrayXML($data_response);
+                    return;
+               }
+           
+        
+
+          } catch (\Exception $e) {
+            $data_response = [
+                "username" => $username,
+                // "currency" => $client_details->default_currency,
+                // "amount" => $client_response->fundtransferresponse->balance,
+                "error" => 1005
+            ];
+            Helper::saveLog('SA PlaceBetCancel - FATAL ERROR', config('providerlinks.sagaming.pdbid'), json_encode($data), $e->getMessage());
+            echo $this->makeArrayXML($data_response);
+            return;
+          }
+
+      
 
     }
-    
+
+
+    public function GameTransactionExt($provider_trans_id, $round_id, $type){
+        $game_ext = DB::table('game_transaction_ext as gte')
+                    ->where('gte.provider_trans_id', $provider_trans_id)
+                    ->where('gte.round_id', $round_id)
+                    ->where('gte.game_transaction_type', $type)
+                    ->first();
+        return $game_ext;
+    }
+
+
+    public function updateBetTransaction($round_id, $pay_amount, $bet_amount, $income, $win, $entry_id){
+        DB::table('game_transactions')
+            ->where('round_id', $round_id)
+            ->update(['pay_amount' => $pay_amount, 
+                  'bet_amount' => $bet_amount, 
+                  'income' => $income, 
+                  'win' => $win, 
+                  'entry_id' => $entry_id,
+                  'transaction_reason' => ProviderHelper::updateReason($win),
+            ]);
+    }
+
+    public function getAllBet($round_id, $gtt){
+        $game_ext = DB::table('game_transaction_ext as gte')
+                    // ->select(DB::raw('SUM(gte.amount) as total_bet'))
+                    ->select('gte.amount')
+                    ->where('gte.round_id', $round_id)
+                    ->where('gte.game_transaction_type', $gtt)
+                    ->get();
+        return $game_ext;
+
+    }
 }
