@@ -30,6 +30,7 @@ class SAHelper{
                 's' => $md5Signature
             ],
         ]);
+        Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($response->getBody()->getContents()), $querystring);
         $resp = simplexml_load_string($response->getBody()->getContents());
         $json_encode = json_encode($resp);
         Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($querystring), json_decode($resp));
