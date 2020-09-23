@@ -131,7 +131,7 @@ class PragmaticPLayController extends Controller
         $dataSort = json_decode($json_encode, true);
 
         $hash = $this->hashParam($dataSort);
-
+        
         // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         
         if($hash != $data->hash){
@@ -355,12 +355,13 @@ class PragmaticPLayController extends Controller
         $income = $game_trans[0]->bet_amount - $payout;
        
         $win = $bet_amount > 0 ? 1 : 0;
+         
         $entry_id = $win == 0 ? '1' : '2';
         $provider_trans_id = $data->reference;
         $round_id = $data->roundId;
    
             if(isset($data->promoCampaignID)){
-                return "yes1";
+           
                 $gametrans = ProviderHelper::createGameTransaction($client_details->token_id, $game_details->game_id, 0.00, $data->promoWinAmount, 2, 1, null, "Promo Win (prize drop)", 0 - $data->promoWinAmount, $data->reference, $data->roundId);
                 $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $game_trans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, $entry_id);
                 try {
@@ -396,7 +397,7 @@ class PragmaticPLayController extends Controller
             }
 
             if(isset($data->promoCampaignID)){
-                return "yes2";
+              
                 $gametrans = ProviderHelper::createGameTransaction($client_details->token_id, $game_details->game_id, 0.00, $data->promoWinAmount, 2, 1, null, "Promo Win (prize drop)", 0 - $data->promoWinAmount, $data->reference, $data->roundId);
                 $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $game_trans[0]->game_trans_id, $data->promoCampaignID, $round_id, $data->promoWinAmount, $entry_id);
                 
@@ -440,7 +441,7 @@ class PragmaticPLayController extends Controller
             $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, $game_trans[0]->game_trans_id, 'credit');
 
             $income = $game_trans[0]->bet_amount - $data->amount;
-            $win = 1;
+            
             
             $update = DB::table('game_transactions')->where("game_trans_id","=",$game_trans[0]->game_trans_id)->update(["round_id" => $round_id, "pay_amount" => $payout, "income" => $income, "win" => $win, "entry_id" => $entry_id ]);
 
