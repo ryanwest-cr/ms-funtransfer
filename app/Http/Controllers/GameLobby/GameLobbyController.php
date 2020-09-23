@@ -316,7 +316,7 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($request->input('game_provider')=="Allwayspin"){
+                elseif($request->input('game_provider')=="AllWaySpin"){
                     $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
                     $url = GameLobby::awsLaunchUrl($request->token,$request->game_code,$lang);
                     if($url){
