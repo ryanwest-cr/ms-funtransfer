@@ -342,7 +342,7 @@ class GameLobby{
         $client_details = Providerhelper::getClientDetails('token', $token);
         if(!empty($client_details)){
             $check_user = SAHelper::userManagement(config('providerlinks.sagaming.prefix').$client_details->player_id, 'VerifyUsername');
-            if($check_user->IsExist == true){
+            if(isset($check_user->IsExist) && $check_user->IsExist == true){
                 $login_token = SAHelper::userManagement(config('providerlinks.sagaming.prefix').$client_details->player_id, 'LoginRequest');
             }else{
                 $check_user = SAHelper::userManagement(config('providerlinks.sagaming.prefix').$client_details->player_id, 'RegUserInfo');
