@@ -68,6 +68,7 @@ $app->post('/api/oryx/{brand_code}/tokens/{token}/authenticate', 'OryxGamingCont
 $app->post('/api/oryx/{brand_code}/players/{player_id}/balance', 'OryxGamingController@getBalance');
 $app->post('/api/oryx/{brand_code}/game-transaction', 'OryxGamingController@gameTransaction');
 $app->put('/api/oryx/{brand_code}/game-transactions', 'OryxGamingController@gameTransactionV2');
+$app->post('/api/oryx/{brand_code}/free-rounds/finish', 'OryxGamingController@roundFinished');
 
 // SimplePlay Endpoints
 $app->post('/api/simpleplay/{brand_code}/GetUserBalance', 'SimplePlayController@getBalance');

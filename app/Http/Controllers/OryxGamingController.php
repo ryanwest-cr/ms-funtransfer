@@ -505,6 +505,51 @@ class OryxGamingController extends Controller
 
 	}
 
+	public function roundFinished(Request $request) 
+	{
+		$json_data = json_decode(file_get_contents("php://input"), true);
+		$client_code = RouteParam::get($request, 'brand_code');
+		$player_id = RouteParam::get($request, 'player_id');
+
+		if(!CallParameters::check_keys($json_data, 'freeRoundId', 'playerId')) {
+				$http_status = 401;
+				$response = [
+							"responseCode" =>  "REQUEST_DATA_FORMAT",
+							"errorDescription" => "Data format of request not as expected."
+						];
+		}
+		else
+		{
+			$http_status = 402;
+			$response = [
+							"responseCode" =>  "TOKEN_NOT_VALID",
+							"errorDescription" => "Token provided in request not valid in Wallet."
+						];
+
+			// Find the player and client details
+			$client_details = $this->_getClientDetails('player_id', $json_data['playerId']);
+
+			if ($client_details) {
+					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+					
+					if(isset($client_response->playerdetailsresponse->status->code) 
+					&& $client_response->playerdetailsresponse->status->code == "200") {
+						$http_status = 200;
+						$response = [
+							"responseCode" => "OK",
+							"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
+						];
+					}
+				/*}*/
+			}
+		}
+
+		Helper::saveLog('oryx_round_finish', 18, file_get_contents("php://input"), $response);
+		return response()->json($response, $http_status);
+
+	}
+
+
 	private function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
 				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
