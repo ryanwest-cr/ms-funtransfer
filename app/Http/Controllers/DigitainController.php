@@ -616,7 +616,10 @@ class DigitainController extends Controller
 					 "errorCode" => 999, 
 					 "metadata" => isset($key['metadata']) ? $key['metadata'] : ''
 	   			);
-				ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $json_data, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+	   			if(isset($game_trans)){
+				   ProviderHelper::updateGameTransactionStatus($game_trans, 2, 99);
+				   ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $json_data, 'FAILED', $e->getMessage(), 'FAILED', $general_details);    
+				}
 				Helper::saveLog('RSG bet - FATAL ERROR', $this->provider_db_id, json_encode($items_array), Helper::datesent());
 	   			continue;
 			}
@@ -684,6 +687,11 @@ class DigitainController extends Controller
 	    	    continue;
 			}elseif(isset($client_response->fundtransferresponse->status->code) 
 	            && $client_response->fundtransferresponse->status->code == "402"){
+				if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+				     ProviderHelper::updateGameTransactionStatus($game_trans, 2, 6);
+				else:
+				   ProviderHelper::updateGameTransactionStatus($game_trans, 2, 99);
+				endif;
 				$items_array[] = array(
 					 "info" => $key['info'], 
 					 "errorCode" => 6, 
@@ -1482,7 +1490,12 @@ class DigitainController extends Controller
 					 "errorCode" => 999, 
 					 "metadata" => isset($key['metadata']) ? $key['metadata'] : ''
 					);
-				ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $json_data, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+
+				if(isset($game_trans)){
+				  ProviderHelper::updateGameTransactionStatus($game_trans, 2, 99);
+				  ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $json_data, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+				}
+				
 				Helper::saveLog('RSG betwin - FATAL ERROR', $this->provider_db_id, json_encode($items_array), Helper::datesent());
 					continue;
 				}
@@ -1552,6 +1565,12 @@ class DigitainController extends Controller
 
 				}elseif(isset($client_response->fundtransferresponse->status->code) 
 				            && $client_response->fundtransferresponse->status->code == "402"){
+
+					if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+					     ProviderHelper::updateGameTransactionStatus($game_trans, 2, 6);
+					else:
+					   ProviderHelper::updateGameTransactionStatus($game_trans, 2, 99);
+					endif;
 
 					$general_details['client']['afterbalance'] = $this->formatBalance($client_response->fundtransferresponse->balance);
 					$general_details['aggregator']['externalTxId'] = $game_transextension;
@@ -2623,7 +2642,8 @@ class DigitainController extends Controller
 	}
 
 	public function PromoWin(){
-		Helper::saveLog('RSG amend - EH', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+		Helper::saveLog('RSG PromoWin - EH', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
+		return 'NOT SUPPORTED FOR THE MEANTIME -TigerGames';
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$general_details = ["aggregator" => [], "provider" => [], "client" => []];
 		$response = array(
@@ -2717,7 +2737,7 @@ class DigitainController extends Controller
 				 "metadata" => isset($json_data['metadata']) ? $json_data['metadata'] : '' // Optional but must be here!
 		    ]; 
 			ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $json_data, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-			Helper::saveLog('RSG win - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
+			Helper::saveLog('RSG PromoWin - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
 			return $response;
 		}
 

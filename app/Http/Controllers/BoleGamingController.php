@@ -570,7 +570,10 @@ class BoleGamingController extends Controller
 							    Helper::saveLog('BOLE playerWalletCost CRID '.$gamerecord, $this->provider_db_id, $request->getContent(), $client_response);
 							} catch (\Exception $e) {
 								$data = ["data" => [],"status" => ["code" => -1,"msg" => "Client Failure"]];
-								ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+								if(isset($gamerecord)){
+									ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+							        ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+								}
 								Helper::saveLog('BOLE playerWalletCost - FATAL ERROR', $this->provider_db_id, $data, Helper::datesent());
 								return $data;
 							}
@@ -596,6 +599,11 @@ class BoleGamingController extends Controller
 
 							}elseif(isset($client_response->fundtransferresponse->status->code) 
 					            && $client_response->fundtransferresponse->status->code == "402"){
+								if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+									ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+								else:
+								   ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+								endif;
 								// $data = ["resp_msg" => ["code" => 43802,"message" => "there is not enough gold","errors" => []]];
 								// $data = ["resp_msg" => ["code" => 1,"message" => "Insufficient Balance" ,"errors" => []]];
 								// LOGGER
@@ -622,6 +630,9 @@ class BoleGamingController extends Controller
 
 					    } catch (\Exception $e) {
 					    	// $data = ["resp_msg" => ["code" => -1,"message" => 'Failed',"errors" => []]];
+					    	if(isset($gamerecord)){
+									ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+							}
 					    	$data = [
 								"data" => [],
 								"status" => [

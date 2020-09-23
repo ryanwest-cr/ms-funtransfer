@@ -259,8 +259,10 @@ class AWSController extends Controller
            	 Helper::saveLog('AWS CR ID = '.$provider_trans_id, $this->provider_db_id, $data, $client_response);
            } catch (\Exception $e) {
            	    $response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
-           	    ProviderHelper::updateGameTransactionStatus($gamerecord, 99, 99);
-            	ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $response, 'FAILED', $e->getMessage(), false, 'FAILED');
+            	if(isset($gamerecord)){
+	        		ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+            	    ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $response, 'FAILED', $e->getMessage(), false, 'FAILED');
+	        	}
             	Helper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
             	return $response;
            }
@@ -279,35 +281,50 @@ class AWSController extends Controller
             		return $response;
             	}
 
-             	$response = [
-					"msg"=> "success",
-					"code"=> 0,
-					"data"=> [
-						"currency"=> $client_details->default_currency,
-						"amount"=> (double)$details->amount,
-						"accountId"=> $details->accountId,
-						"txnId"=> $details->txnId,
-						"eventTime"=> date('Y-m-d H:i:s'),
-						"balance" => floatval(number_format((float)$client_response2->fundtransferresponse->balance, 2, '.', '')),
-						"bonusBalance" => 0
-					]
-				];
-				ProviderHelper::updatecreateGameTransExt($game_transextension1, $details, $response, $client_response->requestoclient, $client_response,$response);
 
-				ProviderHelper::updatecreateGameTransExt($game_transextension2, $details, $response, $client_response2->requestoclient, $client_response,$response);
+            	if(isset($client_response2->fundtransferresponse->status->code) 
+            	 && $client_response2->fundtransferresponse->status->code == "200"){
+            		$response = [
+						"msg"=> "success",
+						"code"=> 0,
+						"data"=> [
+							"currency"=> $client_details->default_currency,
+							"amount"=> (double)$details->amount,
+							"accountId"=> $details->accountId,
+							"txnId"=> $details->txnId,
+							"eventTime"=> date('Y-m-d H:i:s'),
+							"balance" => floatval(number_format((float)$client_response2->fundtransferresponse->balance, 2, '.', '')),
+							"bonusBalance" => 0
+						]
+					];
+					ProviderHelper::updatecreateGameTransExt($game_transextension1, $details, $response, $client_response->requestoclient, $client_response,$response);
+
+					ProviderHelper::updatecreateGameTransExt($game_transextension2, $details, $response, $client_response2->requestoclient, $client_response,$response);
+            	}elseif(isset($client_response2->fundtransferresponse->status->code) 
+           		 && $client_response2->fundtransferresponse->status->code == "402"){
+            		if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+		          	   ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+		            else:
+		               ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+		            endif;
+		            $response = [
+						"msg"=> "Insufficient balance",
+						"code"=> 1201
+					];
+            	}
 
 			}elseif(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "402"){
+            	if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+	          	   ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+	            else:
+	               ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+	            endif;
+	            // $response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
 				$response = [
 					"msg"=> "Insufficient balance",
 					"code"=> 1201
 				];
-			}else{ // Unknown Response Code
-				$response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
-				ProviderHelper::updateGameTransactionStatus($gamerecord, 99, 99);
-        		ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $response, 'FAILED', $client_response, 'FAILED', 'FAILED');
-        		Helper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, json_encode($response), 'UNKNOWN STATUS CODE');
-        		return $response;
 			}
 			Helper::saveLog('AWS singleFundTransfer SUCCESS = '.$gamerecord, $this->provider_db_id, $data, $response);
 			return $response;

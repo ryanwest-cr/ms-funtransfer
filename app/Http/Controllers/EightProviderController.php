@@ -195,6 +195,11 @@ class EightProviderController extends Controller
 				 	    ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
 					}elseif(isset($client_response->fundtransferresponse->status->code) 
 					            && $client_response->fundtransferresponse->status->code == "402"){
+						if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+							   ProviderHelper::updateGameTransactionStatus($game_trans, 2, 6);
+						else:
+						   ProviderHelper::updateGameTransactionStatus($game_trans, 2, 99);
+						endif;
 						$response = array(
 							"status" => 'error',
 							"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]

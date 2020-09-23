@@ -199,7 +199,7 @@ class SAGamingController extends Controller
                 }else{
                     $game_transaction = ProviderHelper::findGameTransaction($game_trans_ext->game_trans_id,'game_transaction');
                     $bet_amount = $game_transaction->bet_amount + $amount;
-                    $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, 5, $game_transaction->entry_id);
+                    // $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, 5, $game_transaction->entry_id);
                     $game_transextension = ProviderHelper::createGameTransExtV2($game_trans_ext->game_trans_id,$provider_trans_id, $round_id, $amount, $game_transaction_type);
                      $gamerecord = $game_trans_ext->game_trans_id;
                 }
@@ -218,7 +218,10 @@ class SAGamingController extends Controller
 
                 if(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "200"){
-                     $data_response = [
+                    if($game_trans_ext != 'false'){
+                         $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, 5, $game_transaction->entry_id);
+                    }
+                    $data_response = [
                         "username" => $username,
                         "currency" => $client_details->default_currency,
                         "amount" => $client_response->fundtransferresponse->balance,
@@ -227,7 +230,14 @@ class SAGamingController extends Controller
                     ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
                 }elseif(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "402"){
-                     $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
+                    if($game_trans_ext == 'false'){
+                      if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
+                            ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+                      else:
+                        ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+                      endif;
+                    }
+                    $data_response = ["username" => $username,"currency" => $currency, "amount" => $getPlayer->playerdetailsresponse->balance, "error" => 1004];  // Low Balance1
                 }else{
                     $data_response = ["username" => $username,"error" => 1005];
                     ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data_response, 'FAILED', $client_response, 'FAILED', 'FAILED');
