@@ -745,7 +745,7 @@ class GameLobby{
     public static function solidLaunchUrl($game_code,$token,$exitUrl){
         $client_code = config("providerlinks.solid.BRAND");
         $launch_url = config("providerlinks.solid.LAUNCH_URL");
-        $url = $launch_url.$client_code.'/'.$game_code.'?language=en&currency=USD&token='.$token.'';
+        $url = $launch_url.$client_code.'/'.$game_code.'?language=en&currency=USD&token='.$token.'&exiturl='.$exitUrl.'';
         return $url;
     }
 
