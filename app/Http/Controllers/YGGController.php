@@ -447,7 +447,7 @@ class YGGController extends Controller
             }
 
 
-            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_v2, $checkTrans[0]->game_trans_id, 'credit');
+            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_details[0]->game_code, $game_details[0]->game_name, $game_trans_ext_v2, $getTrans[0]->game_trans_id, 'credit');
 
             $response = array(
                 "code" => 0,
