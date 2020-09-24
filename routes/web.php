@@ -462,6 +462,14 @@ $app->get('api/ygg/appendwagerresult.json','YGGController@appendwagerresult');
 $app->get('api/ygg/endwager.json','YGGController@endwager');
 $app->get('api/ygg/campaignpayout.json','YGGController@campaignpayout');
 $app->get('api/ygg/getbalance.json','YGGController@getbalance');
+// ygg local
+$app->post('api/ygg/playerinfo','YGGController@playerinfo');
+$app->post('api/ygg/wager','YGGController@wager');
+$app->post('api/ygg/cancelwager','YGGController@cancelwager');
+$app->post('api/ygg/appendwagerresult','YGGController@appendwagerresult');
+$app->post('api/ygg/endwager','YGGController@endwager');
+$app->post('api/ygg/campaignpayout','YGGController@campaignpayout');
+$app->post('api/ygg/getbalance','YGGController@getbalance');
 
 
 //IFRAME URL ENDPOINTS
