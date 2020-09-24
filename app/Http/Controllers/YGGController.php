@@ -424,27 +424,30 @@ class YGGController extends Controller
         $entry_id = $bet_amount > 0 ? 2 : 1;
         $win = $bet_amount > 0 ? 1 : 0;
         
-        $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $getTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, $entry_id);
+
         
+        if(count($checkTrans) > 0){
+            $response = array(
+                "code" => 0,
+                "data" => array(
+                    "currency" => $client_details->default_currency,
+                    "applicableBonus" => 0.00,
+                    "homeCurrency" => $client_details->default_currency,
+                    "organization" => $this->org,
+                    "balance" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
+                    "nickName" => $client_details->display_name,
+                    "playerId" => "TGaming_".$client_details->player_id,
+                    "balik" => true
+                ),
+            );
+            Helper::saveLog("YGG endwager(win) dubplicate", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
+            return $response;
+        }
+
+        $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $getTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, $entry_id);
+       
         try{
 
-            if(count($checkTrans) > 0){
-                $response = array(
-                    "code" => 0,
-                    "data" => array(
-                        "currency" => $client_details->default_currency,
-                        "applicableBonus" => 0.00,
-                        "homeCurrency" => $client_details->default_currency,
-                        "organization" => $this->org,
-                        "balance" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
-                        "nickName" => $client_details->display_name,
-                        "playerId" => "TGaming_".$client_details->player_id,
-                        "balik" => true
-                    ),
-                );
-                Helper::saveLog("YGG endwager(win) dubplicate", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
-                return $response;
-            }
 
 
             $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_details[0]->game_code, $game_details[0]->game_name, $game_trans_ext_v2, $getTrans[0]->game_trans_id, 'credit');
@@ -456,7 +459,7 @@ class YGGController extends Controller
                     "applicableBonus" => 0.00,
                     "homeCurrency" => $client_details->default_currency,
                     "organization" => $this->org,
-                    "balance" => floatval(number_format($client_response['client_response']->fundtransferresponse->balance, 2, '.', '')),
+                    "balance" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
                     "nickName" => $client_details->display_name,
                     "playerId" => "TGaming_".$client_details->player_id
                 ),
@@ -467,7 +470,7 @@ class YGGController extends Controller
                         ->update(["win" => $win, "pay_amount" => $bet_amount, "entry_id" => $entry_id, "income" => $income]);
 
             $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $bet_amount,"game_transaction_type" => $entry_id,"provider_request" => json_encode($request->all(),JSON_FORCE_OBJECT),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
-            
+            Helper::saveLog("YGG endwager (win)", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
 
         }catch(\Exception $e){
