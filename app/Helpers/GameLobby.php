@@ -434,16 +434,16 @@ class GameLobby{
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $get_previous = ProviderHelper::getNonceprevious(config('providerlinks.booming.provider_db_id'));
         try{
-            $nonce = date('mdYHisu');
 
-            if(!$get_previous == "false"){
-                $i = 1;
-                while($get_previous->request_data > $nonce){
-                    $nonce = date('mdYHisu', strtotime('+'.$i.' hours'));
+            $nonce = date('YmdHis');
+            
+            if(!($get_previous == "false")){
+                $i = 0;
+                do{
+                    $nonce = date('YmdHis', strtotime('+'.$i.' hours'));
                     $i++;
-                }
-            }    
-
+                }while($get_previous->response_data > $nonce);
+            }   
             $requesttosend = array (
                 'game_id' => $data["game_code"],
                 'balance' => $player_details->playerdetailsresponse->balance,
