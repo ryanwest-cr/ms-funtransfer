@@ -599,7 +599,7 @@ class ProviderHelper{
 		$nonce_previous = DB::table('seamless_request_logs')
 			->where('method_name', 'Booming nonce')
 			->where('provider_id',$provider_id)
-	    	->first();
+			->latest()->first();
 	    return $nonce_previous ? $nonce_previous : 'false';
 	}
 
