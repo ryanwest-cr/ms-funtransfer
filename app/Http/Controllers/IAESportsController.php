@@ -334,15 +334,16 @@ class IAESportsController extends Controller
 					return $params;
 	        	}
 	        	$bet_details = ProviderHelper::findGameTransaction($is_exist_bet->game_trans_id,'game_transaction');
-	        	if($bet_details->bet_amount > $cha->money){
- 	  				$win = 0; // lost
- 	  				$entry_id = 1; //lost
- 	  				$income = $bet_details->bet_amount - $cha->money;
- 	  			}else{
+	        	// When it has payour always mark as win
+	        	// if($bet_details->bet_amount > $cha->money){
+ 	  				// $win = 0; // lost
+ 	  				// $entry_id = 1; //lost
+ 	  				// $income = $bet_details->bet_amount - $cha->money;
+ 	  			// }else{
  	  				$win = 1; //win
  	  				$entry_id = 2; //win
  	  				$income = $bet_details->bet_amount - $cha->money;
- 	  			}
+ 	  			// }
 	        	$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
  	  			$is_refunded = $transaction_code == 13 || $transaction_code == 15 ? 3 : 2; // 3 to refund!
 
