@@ -188,7 +188,7 @@ class IAESportsController extends Controller
 	 */
 	public function seamlessDeposit(Request $request)
 	{	
-		Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		Helper::saveLog('IA Deposit', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
