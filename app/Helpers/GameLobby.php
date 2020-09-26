@@ -630,7 +630,7 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token',$data['token']);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $player_id = "TG_".$client_details->player_id;
-       
+        $nickname = str_replace(' ', '_', $client_details->display_name);
         try{
             $url_create = $gameluanch_url ."/Player/Create?secret_key=".$secrete_key."&operator_token=".$operator_token."&player_name=".$player_id."&currency=".$client_details->default_currency;
         
@@ -644,7 +644,7 @@ class GameLobby{
             Helper::saveLog('GoldenF Create Player response', $provider_id, json_encode($data), $create_player);
          
             if($create_player->data->action_result == "Success"):
-                $gameluanch_url = $gameluanch_url."/Launch?secret_key=".$secrete_key."&operator_token=".$operator_token."&game_code=".$data['game_code']."&player_name=".$player_id."&nickname=".$client_details->display_name."&language=".$client_details->language;
+                $gameluanch_url = $gameluanch_url."/Launch?secret_key=".$secrete_key."&operator_token=".$operator_token."&game_code=".$data['game_code']."&player_name=".$player_id."&nickname=".$nickname."&language=".$client_details->language;
 
                 $response = $http->post($gameluanch_url);
                 $get_url = json_decode($response->getBody()->getContents());
