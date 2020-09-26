@@ -409,7 +409,7 @@ class IAESportsController extends Controller
 	public function seamlessWithdrawal(Request $request)
 	{
 
-		Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		Helper::saveLog('IA Withrawal', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
 		// dd($cha);
@@ -859,13 +859,12 @@ class IAESportsController extends Controller
 			if($round_details != 'false'){
 				$is_project_multiple = explode(',', $round_details->round_id);
 				foreach ($is_project_multiple as $key) {
-					// array_push($roundIds, $round_details->round_id);
 					array_push($roundIds, $key);
 				}
+				// array_push($roundIds, $round_details->round_id);
 			}
 		}
 
-		dd($roundIds);
 		if(count($roundIds) == 0){
 			Helper::saveLog('IA API WAGER', $this->provider_db_id, file_get_contents("php://input"), 'No Round ID II');
 			return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(),  "code" => 404, "msg" => "round's not found"];
