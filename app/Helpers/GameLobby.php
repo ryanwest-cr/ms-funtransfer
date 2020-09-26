@@ -623,7 +623,7 @@ class GameLobby{
     }
 
     public static function goldenFLaunchUrl($data){
-        $url_create = config("providerlinks.goldenF.url_create");
+        $operator_token = config("providerlinks.goldenF.operator_token");
         $gameluanch_url = config("providerlinks.goldenF.api_url");
         $secrete_key = config("providerlinks.goldenF.secrete_key");
         $provider_id = config("providerlinks.goldenF.provider_id");
@@ -631,7 +631,7 @@ class GameLobby{
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $player_id = "TG_".$client_details->player_id;
         try{
-            $url_create = $gameluanch_url ."/Player/Create?secret_key=".$secrete_key."&operator_token=".$data['token']."&player_name=".$player_id."&currency=".$client_details->default_currency;
+            $url_create = $gameluanch_url ."/Player/Create?secret_key=".$secrete_key."&operator_token=".$operator_token."&player_name=".$player_id."&currency=".$client_details->default_currency;
             Helper::saveLog('GoldenF Create Player', $provider_id, json_encode($data), $url_create);
             if($url_create['data']->action_result == "Success"):
                 $gameluanch_url = $gameluanch_url."/Launch?secret_key=".$secrete_key."&operator_token=".$data['token']."&game_code=".$data['game_code']."&nickname=".$client_details->display_name."&language=".$client_details->language;

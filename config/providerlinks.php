@@ -303,7 +303,7 @@ return [
     'goldenF'=>[
         'api_url'=> 'http://tgr.test.gf-gaming.com/gf',
         'secrete_key' => 'b18d99f11861042e2c66f11a1f9a62cb',
-        'operator_token' => 'Platform need to be activated',
+        'operator_token' => '009583d3138a9e3934787112c345ef10',
         'provider_id' => 41,
     ],
 ];
