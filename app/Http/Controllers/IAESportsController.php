@@ -326,7 +326,7 @@ class IAESportsController extends Controller
 	        }else{
 	        	// $bet_details = $this->getOrderData($cha->projectId);
 	        	$bet_details = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
-	        	if($is_exist_bet == 'false'){
+	        	if($bet_details == 'false'){
 	        		$params = [
 			            "code" => 111006,
 			            "data" => [],
@@ -335,16 +335,9 @@ class IAESportsController extends Controller
 					return $params;
 	        	}
 	        	$bet_details = ProviderHelper::findGameTransaction($is_exist_bet->game_trans_id,'game_transaction');
-	        	// When it has payour always mark as win
-	        	// if($bet_details->bet_amount > $cha->money){
- 	  				// $win = 0; // lost
- 	  				// $entry_id = 1; //lost
- 	  				// $income = $bet_details->bet_amount - $cha->money;
- 	  			// }else{
- 	  				$win = 1; //win
- 	  				$entry_id = 2; //win
- 	  				$income = $bet_details->bet_amount - $cha->money;
- 	  			// }
+  				$win = 1; //win
+  				$entry_id = 2; //win
+  				$income = $bet_details->bet_amount - $cha->money;
 	        	$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
  	  			$is_refunded = $transaction_code == 13 || $transaction_code == 15 ? 3 : 2; // 3 to refund!
 
@@ -416,7 +409,7 @@ class IAESportsController extends Controller
 	public function seamlessWithdrawal(Request $request)
 	{
 
-		// Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
 		// dd($cha);
@@ -861,11 +854,18 @@ class IAESportsController extends Controller
 			return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(),  "code" => 400, "msg" => "round id could not be empty"];
 		}
 		foreach ($data_body->roundId as $round) {
-			$round_details = ProviderHelper::findGameExt($round, 1, 'game_trans_id');
+			// $round_details = ProviderHelper::findGameExt($round, 1, 'game_trans_id');
+			$round_details = ProviderHelper::findGameTransaction($round,'game_transaction');
 			if($round_details != 'false'){
-				array_push($roundIds, $round_details->round_id);
+				$is_project_multiple = explode(',', $round_details->round_id);
+				foreach ($is_project_multiple as $key) {
+					// array_push($roundIds, $round_details->round_id);
+					array_push($roundIds, $key);
+				}
 			}
 		}
+
+		dd($roundIds);
 		if(count($roundIds) == 0){
 			Helper::saveLog('IA API WAGER', $this->provider_db_id, file_get_contents("php://input"), 'No Round ID II');
 			return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(),  "code" => 404, "msg" => "round's not found"];
