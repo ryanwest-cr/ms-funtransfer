@@ -325,8 +325,8 @@ class IAESportsController extends Controller
 				return $params;
 	        }else{
 	        	// $bet_details = $this->getOrderData($cha->projectId);
-	        	$bet_details = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
-	        	if($bet_details == 'false'){
+	        	$is_exist_bet = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
+	        	if($is_exist_bet == 'false'){
 	        		$params = [
 			            "code" => 111006,
 			            "data" => [],
