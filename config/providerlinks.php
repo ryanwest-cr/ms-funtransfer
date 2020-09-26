@@ -298,7 +298,14 @@ return [
         'NUCLEUS_URL' => 'https://2vivo.com/FlashRunGame/set2/RunNucGame.aspx',
         'PLATIPUS_URL' => 'https://www.1vivo.com/flashrungame/set2/RunPlatipusGame.aspx',
         'LEAP_URL' => 'https://www.2vivo.com/flashrungame/RunGenericGame.aspx'
-    ]
+    ],
+
+    'goldenF'=>[
+        'api_url'=> 'http://tgr.test.gf-gaming.com/gf',
+        'secrete_key' => 'b18d99f11861042e2c66f11a1f9a62cb',
+        'operator_token' => 'Platform need to be activated',
+        'provider_id' => 41,
+    ],
 ];
 
 ?>
