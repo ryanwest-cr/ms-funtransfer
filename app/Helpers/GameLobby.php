@@ -630,10 +630,34 @@ class GameLobby{
         $client_details = ProviderHelper::getClientDetails('token',$data['token']);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $player_id = "TG_".$client_details->player_id;
+        // try{
+        //     $url_create = $gameluanch_url ."/Player/Create?secret_key=".$secrete_key."&operator_token=".$operator_token."&player_name=".$player_id."&currency=".$client_details->default_currency;
+        //     Helper::saveLog('GoldenF Create Player', $provider_id, json_encode($data), $url_create);
+        //     if($url_create->data->action_result == "Success"):
+        //         $gameluanch_url = $gameluanch_url."/Launch?secret_key=".$secrete_key."&operator_token=".$data['token']."&game_code=".$data['game_code']."&nickname=".$client_details->display_name."&language=".$client_details->language;
+        //         Helper::saveLog('GoldenF gamelaunch', $provider_id, json_encode($data), $gameluanch_url);
+        //         return $gameluanch_url;
+        //     endif;
+        // }catch(\Exception $e){
+        //     $error = [
+        //         'error' => $e->getMessage()
+        //     ];
+        //     Helper::saveLog('GoldenF gamelaunch err', $provider_id, json_encode($data), $e->getMessage());
+        //     return $error;
+        // }
         try{
             $url_create = $gameluanch_url ."/Player/Create?secret_key=".$secrete_key."&operator_token=".$operator_token."&player_name=".$player_id."&currency=".$client_details->default_currency;
+        
+            $http = new Client();
+            // TRY BOTH
+            // $response = $http->get($url_create);
+            $response = $http->post($url_create);
+            $create_player = json_decode($response->getBody()->getContents());
+            // Helper::saveLog('GoldenF Create Player response', $provider_id, json_encode($data), $response);
             Helper::saveLog('GoldenF Create Player', $provider_id, json_encode($data), $url_create);
-            if($url_create['data']->action_result == "Success"):
+            Helper::saveLog('GoldenF Create Player response', $provider_id, json_encode($data), $create_player);
+         
+            if($create_player->data->action_result == "Success"):
                 $gameluanch_url = $gameluanch_url."/Launch?secret_key=".$secrete_key."&operator_token=".$data['token']."&game_code=".$data['game_code']."&nickname=".$client_details->display_name."&language=".$client_details->language;
                 Helper::saveLog('GoldenF gamelaunch', $provider_id, json_encode($data), $gameluanch_url);
                 return $gameluanch_url;
@@ -642,7 +666,7 @@ class GameLobby{
             $error = [
                 'error' => $e->getMessage()
             ];
-            Helper::saveLog('YGG gamelaunch', $provider_id, json_encode($data), $e->getMessage());
+            Helper::saveLog('GoldenF gamelaunch err', $provider_id, json_encode($data), $e->getMessage());
             return $error;
         }
     }
