@@ -645,8 +645,12 @@ class GameLobby{
          
             if($create_player->data->action_result == "Success"):
                 $gameluanch_url = $gameluanch_url."/Launch?secret_key=".$secrete_key."&operator_token=".$operator_token."&game_code=".$data['game_code']."&player_name=".$player_id."&nickname=".$client_details->display_name."&language=".$client_details->language;
+
+                $response = $http->post($gameluanch_url);
+                $get_url = json_decode($response->getBody()->getContents());
                 Helper::saveLog('GoldenF gamelaunch', $provider_id, json_encode($data), $gameluanch_url);
-                return $gameluanch_url;
+                Helper::saveLog('GoldenF game url', $provider_id, json_encode($data), $get_url->data->game_url);
+                return $get_url->data->game_url;
             endif;
         }catch(\Exception $e){
             $error = [
