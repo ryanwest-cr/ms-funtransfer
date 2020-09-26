@@ -78,6 +78,7 @@ class AlController extends Controller
 
 
     public function debugMe(){
+        // SAGAMING
         $client_details = Providerhelper::getClientDetails('player_id', 98);
         $time = date('YmdHms'); //20140101123456
         $method = 'VerifyUsername';
@@ -98,6 +99,7 @@ class AlController extends Controller
                 's' => $md5Signature
             ],
         ]);
+        Helper::saveLog('ALDEBUG '.$method, config('providerlinks.sagaming.pdbid'), json_encode(['for_params' => ['q'=>$encrpyted_data, 's'=>$md5Signature]]), $querystring);
         return $response->getBody()->getContents();
     }
 

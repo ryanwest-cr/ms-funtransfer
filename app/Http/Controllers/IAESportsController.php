@@ -315,6 +315,9 @@ class IAESportsController extends Controller
 			            "data" => [],
 						"message" => "Insufficient balance",
 			        ];
+				}else{
+					ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 6);
+					$params = ["code" => 111005,"data" => [],"message" => "failed client error"];
 				}
         		Helper::saveLog('IA seamlessDeposit - SUCCESS', $this->provider_db_id,json_encode($cha), $params);
 				return $params;
@@ -534,6 +537,7 @@ class IAESportsController extends Controller
 
 		 	    }else{
 		 	    	// ERROR STATUS CODE
+		 	    	ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
 		 	    	$params = ["code" => 111005,"data" => [],"message" => "withdrawal failed client error"];
 		 	    }
               	Helper::saveLog('IA seamlessWithdrawal - SUCCESS', $this->provider_db_id,json_encode($cha), $params);
@@ -581,6 +585,7 @@ class IAESportsController extends Controller
 					"message" => "Insufficient balance",
 		        ];
 		    else:
+		    	ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
 		    	$params = ["code" => 111005,"data" => [],"message" => "withdrawal failed client error"];
 		    	ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $params, 'FAILED', $client_response, 'FAILED', 'FAILED');
 			endif;
@@ -725,7 +730,6 @@ class IAESportsController extends Controller
 			"is_settle" => -1, // Default:1, 1 is settled,0 is not ,-1 is all.
 			// "order_id" => $order_id, //'GAMEVBDDCFBEJK,GAMEVBDDCFBFAK',
         );
-        // return $params;
 		try {
 	        $uhayuu = $this->hashen($params);
 			$timeout = 5;
@@ -735,6 +739,7 @@ class IAESportsController extends Controller
 					return;
 			}
 			$data = json_decode($this->rehashen($client_response[1], true));
+			Helper::saveLog('CALL DATA', 1223, json_encode($data), 'ALL ROUNDS');
 			if(!isset($data->data->list)){
 					Helper::saveLog('IA SETTLE ROUND - NO LIST', $this->provider_db_id, json_encode($data), 'SETTLE ROUNDS FAILED II');
 					return;
