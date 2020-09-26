@@ -631,10 +631,10 @@ class GameLobby{
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $player_id = "TG_".$client_details->player_id;
         try{
-            $url_create = $gameluanch_url ."?secret_key=".$secrete_key."&operator_token=".$data['token']."&player_name=".$player_id."&currency".$client_details->default_currency;
+            $url_create = $gameluanch_url ."/Player/Create?secret_key=".$secrete_key."&operator_token=".$data['token']."&player_name=".$player_id."&currency=".$client_details->default_currency;
             Helper::saveLog('GoldenF Create Player', $provider_id, json_encode($data), $url_create);
             if($url_create['data']->action_result == "Success"):
-                $gameluanch_url = $gameluanch_url."?secret_key=".$secrete_key."&operator_token=".$data['token']."&game_code=".$data['game_code']."&nickname=".$client_details->display_name."&language=".$client_details->language;
+                $gameluanch_url = $gameluanch_url."/Launch?secret_key=".$secrete_key."&operator_token=".$data['token']."&game_code=".$data['game_code']."&nickname=".$client_details->display_name."&language=".$client_details->language;
                 Helper::saveLog('GoldenF gamelaunch', $provider_id, json_encode($data), $gameluanch_url);
                 return $gameluanch_url;
             endif;
