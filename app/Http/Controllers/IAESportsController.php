@@ -206,6 +206,8 @@ class IAESportsController extends Controller
 	        ];	
 			return $params;
 		endif;	
+		$is_project_multiple = explode(',', $cha->projectId);
+		
 		// if($this->getOrder($cha->orderId)):
 		// dd($this->findGameExt($cha->orderId, 2, 'transaction_id'));
 		if($this->findGameExt($cha->orderId, 2, 'transaction_id') != 'false'):
@@ -323,8 +325,7 @@ class IAESportsController extends Controller
 				return $params;
 	        }else{
 	        	// $bet_details = $this->getOrderData($cha->projectId);
-	        	// $bet_details = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
-	        	$is_exist_bet = ProviderHelper::findGameExt('GAMEVBDDCFEBJK', 1,'round_id');
+	        	$bet_details = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
 	        	if($is_exist_bet == 'false'){
 	        		$params = [
 			            "code" => 111006,
@@ -768,7 +769,6 @@ class IAESportsController extends Controller
 					Helper::saveLog('IA SETTLE ROUND - NO LIST', $this->provider_db_id, json_encode($data), 'SETTLE ROUNDS FAILED II');
 					return;
 			}
-
 			$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
 			if(isset($data)):
 				foreach ($data->data->list as $matches):
@@ -792,7 +792,6 @@ class IAESportsController extends Controller
 
 				    if(count($game_transactions_ext) > 0){
 				    	foreach($game_transactions_ext as $gte_ids):
-
 				    		$gt_data = ProviderHelper::findGameTransaction($gte_ids->game_trans_id,'game_transaction');
 					    	// $existing_game_ext = ProviderHelper::findGameExt($up->round_id, 1, 'round_id');
 					    	$client_details = ProviderHelper::getClientDetails('token_id', $gt_data->token_id);
