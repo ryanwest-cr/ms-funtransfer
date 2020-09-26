@@ -206,6 +206,8 @@ class IAESportsController extends Controller
 	        ];	
 			return $params;
 		endif;	
+		$is_project_multiple = explode(',', $cha->projectId);
+		
 		// if($this->getOrder($cha->orderId)):
 		// dd($this->findGameExt($cha->orderId, 2, 'transaction_id'));
 		if($this->findGameExt($cha->orderId, 2, 'transaction_id') != 'false'):
@@ -323,8 +325,7 @@ class IAESportsController extends Controller
 				return $params;
 	        }else{
 	        	// $bet_details = $this->getOrderData($cha->projectId);
-	        	// $bet_details = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
-	        	$is_exist_bet = ProviderHelper::findGameExt('GAMEVBDDCFEBJK', 1,'round_id');
+	        	$is_exist_bet = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
 	        	if($is_exist_bet == 'false'){
 	        		$params = [
 			            "code" => 111006,
@@ -334,16 +335,9 @@ class IAESportsController extends Controller
 					return $params;
 	        	}
 	        	$bet_details = ProviderHelper::findGameTransaction($is_exist_bet->game_trans_id,'game_transaction');
-	        	// When it has payour always mark as win
-	        	// if($bet_details->bet_amount > $cha->money){
- 	  				// $win = 0; // lost
- 	  				// $entry_id = 1; //lost
- 	  				// $income = $bet_details->bet_amount - $cha->money;
- 	  			// }else{
- 	  				$win = 1; //win
- 	  				$entry_id = 2; //win
- 	  				$income = $bet_details->bet_amount - $cha->money;
- 	  			// }
+  				$win = 1; //win
+  				$entry_id = 2; //win
+  				$income = $bet_details->bet_amount - $cha->money;
 	        	$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
  	  			$is_refunded = $transaction_code == 13 || $transaction_code == 15 ? 3 : 2; // 3 to refund!
 
@@ -415,7 +409,7 @@ class IAESportsController extends Controller
 	public function seamlessWithdrawal(Request $request)
 	{
 
-		// Helper::saveLog('IA Withrawal', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
+		Helper::saveLog('IA Withrawal', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true));
 		// dd($cha);
@@ -768,7 +762,6 @@ class IAESportsController extends Controller
 					Helper::saveLog('IA SETTLE ROUND - NO LIST', $this->provider_db_id, json_encode($data), 'SETTLE ROUNDS FAILED II');
 					return;
 			}
-
 			$order_ids = array(); // round_id's to check in game_transaction with win type 5/processing
 			if(isset($data)):
 				foreach ($data->data->list as $matches):
@@ -792,7 +785,6 @@ class IAESportsController extends Controller
 
 				    if(count($game_transactions_ext) > 0){
 				    	foreach($game_transactions_ext as $gte_ids):
-
 				    		$gt_data = ProviderHelper::findGameTransaction($gte_ids->game_trans_id,'game_transaction');
 					    	// $existing_game_ext = ProviderHelper::findGameExt($up->round_id, 1, 'round_id');
 					    	$client_details = ProviderHelper::getClientDetails('token_id', $gt_data->token_id);
@@ -862,11 +854,17 @@ class IAESportsController extends Controller
 			return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(),  "code" => 400, "msg" => "round id could not be empty"];
 		}
 		foreach ($data_body->roundId as $round) {
-			$round_details = ProviderHelper::findGameExt($round, 1, 'game_trans_id');
+			// $round_details = ProviderHelper::findGameExt($round, 1, 'game_trans_id');
+			$round_details = ProviderHelper::findGameTransaction($round,'game_transaction');
 			if($round_details != 'false'){
-				array_push($roundIds, $round_details->round_id);
+				$is_project_multiple = explode(',', $round_details->round_id);
+				foreach ($is_project_multiple as $key) {
+					array_push($roundIds, $key);
+				}
+				// array_push($roundIds, $round_details->round_id);
 			}
 		}
+
 		if(count($roundIds) == 0){
 			Helper::saveLog('IA API WAGER', $this->provider_db_id, file_get_contents("php://input"), 'No Round ID II');
 			return ["Tiger Games API" => $this->api_version,"date" => Helper::datesent(),  "code" => 404, "msg" => "round's not found"];
