@@ -187,10 +187,11 @@ class IAESportsController extends Controller
 	 *
 	 */
 	public function seamlessDeposit(Request $request)
-	{
-
-		ProviderHelper::updateGameTransaction(624, 100, 200, 1, 1,'game_trans_id');
-		return 1;
+	{	
+		$allgg = $this->getAllTransactionID(624);
+		dd($allgg);
+		// ProviderHelper::updateGameTransaction(624, 100, 200, 1, 1,'game_trans_id');
+		// return 1;
 		// Helper::saveLog('IA Deposit', 2, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
@@ -780,46 +781,58 @@ class IAESportsController extends Controller
 			endif;
 			if(count($order_ids) > 0):
 				$update = $this->getAllGameTransaction($order_ids, 5);
+				$game_transactions_ext = array();
 				if($update != 'false'):
 				    foreach($update as $up):
-				    	
-				    	// $existing_game_ext = ProviderHelper::findGameExt($up->round_id, 1, 'round_id');
-				    	$client_details = ProviderHelper::getClientDetails('token_id', $up->token_id);
-
-				    	$existing_game_ext = ProviderHelper::findGameExt($up->round_id, 2, 'round_id');
-				    	if($existing_game_ext != 'false'){
-				    		$game_transextension = $existing_game_ext->game_trans_ext_id;
-				    	}else{
-				    		$game_transextension = ProviderHelper::createGameTransExtV2($up->game_trans_id,$up->round_id, $up->round_id, 0, 2);
-				    	}
-				    	
-            			try {
-            				$client_response = ClientRequestHelper::fundTransfer($client_details,0,$this->game_code,$this->game_name,$game_transextension,$up->game_trans_id,'credit');
-	            			$response = [
-	            				"message" => 'This was successfully Updated to lost',
-	            				"orderid" => $up->round_id
-	            			];
-							ProviderHelper::updatecreateGameTransExt($game_transextension, $response, $response, $client_response->requestoclient, $client_response,$response);
-
-					    	DB::table('game_transactions')
-				                ->where('round_id', $up->round_id)
-				                ->update([
-				        		  'win' => 0, 
-				        		  'transaction_reason' => 'Bet updated'
-			    			]);
-            			} catch (\Exception $e) {
-            				$existing_game_ext = ProviderHelper::findGameExt($up->round_id, 2, 'round_id');
-            				$response = [
-	            				"message" => 'Failed to Updated to lost '.$e->getMessage(),
-	            				"orderid" => $up->round_id
-	            			];
-							ProviderHelper::updatecreateGameTransExt($existing_game_ext->game_trans_ext_id, $response, $response, $response, $response,$response);
-            				continue;
-            			}
-
+				    	$allgg = $this->getAllTransactionID($up->game_trans_id);
+				    	foreach ($allgg as $key) {
+				    		array_push($game_transactions_ext, $key)
+				    	}				    
 				    endforeach;
+
+				    if(count($game_transactions_ext) > 0){
+				    	foreach($game_transactions_ext as $gte_ids):
+
+				    		$gt_data = ProviderHelper::findGameTransaction($gte_ids->game_trans_id,'game_transaction');
+
+					    	// $existing_game_ext = ProviderHelper::findGameExt($up->round_id, 1, 'round_id');
+					    	$client_details = ProviderHelper::getClientDetails('token_id', $gt_data->token_id);
+
+					    	$existing_game_ext = ProviderHelper::findGameExt($gte_ids->round_id, 2, 'round_id');
+					    	if($existing_game_ext != 'false'){
+					    		$game_transextension = $existing_game_ext->game_trans_ext_id;
+					    	}else{
+					    		$game_transextension = ProviderHelper::createGameTransExtV2($up->game_trans_id,$up->round_id, $up->round_id, 0, 2);
+					    	}
+					    	
+	            			try {
+	            				$client_response = ClientRequestHelper::fundTransfer($client_details,0,$this->game_code,$this->game_name,$game_transextension,$up->game_trans_id,'credit');
+		            			$response = [
+		            				"message" => 'This was successfully Updated to lost',
+		            				"orderid" => $up->round_id
+		            			];
+								ProviderHelper::updatecreateGameTransExt($game_transextension, $response, $response, $client_response->requestoclient, $client_response,$response);
+
+						    	DB::table('game_transactions')
+					                ->where('round_id', $up->round_id)
+					                ->update([
+					        		  'win' => 0, 
+					        		  'transaction_reason' => 'Bet updated'
+				    			]);
+	            			} catch (\Exception $e) {
+	            				$existing_game_ext = ProviderHelper::findGameExt($up->round_id, 2, 'round_id');
+	            				$response = [
+		            				"message" => 'Failed to Updated to lost '.$e->getMessage(),
+		            				"orderid" => $up->round_id
+		            			];
+								ProviderHelper::updatecreateGameTransExt($existing_game_ext->game_trans_ext_id, $response, $response, $response, $response,$response);
+	            				continue;
+	            			}
+					    endforeach;
+				    }
 				endif;
 	 		endif;
+
 	 		Helper::saveLog('IA Search Order SUCCESS', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'SUCCESS');
 		} catch (\Exception $e) {
 			Helper::saveLog('IA Search Order Failed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $e->getMessage());
@@ -1114,6 +1127,16 @@ class IAESportsController extends Controller
 				    ->first();		    
 		return $game_transactions ? $game_transactions : false;
     }
+
+    public  function getAllTransactionID($provider_identifier) {
+		$transaction_db = DB::table('game_transaction_ext as gte');
+		$transaction_db->where([
+				["gte.game_transaction_type", "=", 1],
+		 		["gte.game_trans_id", "=", $provider_identifier],
+	 	]);
+		$result = $transaction_db->get();
+		return $result ? $result : 'false';
+	}
 
 
     /**
