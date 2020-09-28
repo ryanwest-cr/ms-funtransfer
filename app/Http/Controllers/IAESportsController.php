@@ -658,10 +658,10 @@ class IAESportsController extends Controller
   		// $uhayuu = $this->hashen($params);
  		// dd($uhayuu);
 		// Helper::saveLog('IA Search Order', $this->provider_db_id, '', 'CALL RECEIVED');
-		Helper::saveLog('IA Search Order', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'IA CALL');
+		// Helper::saveLog('IA Search Order', $this->provider_db_id, json_encode(file_get_contents("php://input")), 'IA CALL');
 		$data_received = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data_received, true));
-		Helper::saveLog('IA Search DECODED', $this->provider_db_id,json_encode($cha), $data_received);
+		// Helper::saveLog('IA Search DECODED', $this->provider_db_id,json_encode($cha), $data_received);
 		if($this->getOrder($cha->orderId)):
 			$params = [
 	            "code" => 200,
