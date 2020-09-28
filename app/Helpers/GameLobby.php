@@ -651,7 +651,7 @@ class GameLobby{
                 Helper::saveLog('GoldenF gamelaunch', $provider_id, json_encode($data), $gameluanch_url);
                 Helper::saveLog('GoldenF game url', $provider_id, json_encode($data), $get_url->data->game_url);
                 
-                $deposit = $api_url."/GetPlayerBalance?secret_key=".$secrete_key."&operator_token=".$operator_token."&player_name=".$player_id."&amount=50.00&traceId=1000";
+                $deposit = $api_url."/TransferIn?secret_key=".$secrete_key."&operator_token=".$operator_token."&player_name=".$player_id."&amount=50.00&traceId=1000";
                 $send_amt = $http->post($deposit);
                 $amount = json_decode($send_amt->getBody()->getContents());
                 Helper::saveLog('GoldenF deposit', $provider_id, json_encode($amount), $deposit); 
