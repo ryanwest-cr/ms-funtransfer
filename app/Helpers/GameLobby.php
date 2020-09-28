@@ -650,6 +650,12 @@ class GameLobby{
                 $get_url = json_decode($response->getBody()->getContents());
                 Helper::saveLog('GoldenF gamelaunch', $provider_id, json_encode($data), $gameluanch_url);
                 Helper::saveLog('GoldenF game url', $provider_id, json_encode($data), $get_url->data->game_url);
+
+                $get_bal_url = $gameluanch_url."/GetPlayerBalance?secret_key=".$secrete_key."&operator_token=".$operator_token."&player_name=".$player_id;
+                $get_bal = $http->post($get_bal_url);
+                $bal = json_decode($get_bal->getBody()->getContents());
+                Helper::saveLog('GoldenF balance', $provider_id, json_encode($bal), $get_bal_url); 
+
                 return $get_url->data->game_url;
             endif;
         }catch(\Exception $e){
