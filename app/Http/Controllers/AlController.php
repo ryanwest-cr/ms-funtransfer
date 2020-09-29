@@ -49,10 +49,67 @@ class AlController extends Controller
 
 
     public function checkCLientPlayer(Request $request){
-        $client_details = Providerhelper::getClientDetails('token', $request->token);
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        return $player_details;
+
+        $indentifer = $request->identifier;
+        $data = $request->data;
+
+        if(!isset($request->hashen)){
+          return ['al' => 'OOPS RAINDROPS'];
+        }
+
+        if($request->hashen != 'ALHananONTHELiNE'){
+           return ['al' => 'OOPS RAINDROPS'];
+        }
+
+        $client_details = Providerhelper::getClientDetails($indentifer,  $data);
+        // $gg = Providerhelper::playerDetailsCall($client_details->player_token);
+        if($client_details == 'false'){
+          return ['al' => 'NO PLAYER FOUND'];
+        }else{
+          $client = new Client([
+              'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$client_details->client_access_token
+              ]
+          ]);
+          $datatosend = ["access_token" => $client_details->client_access_token,
+            "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+            "type" => "playerdetailsrequest",
+            "datesent" => Helper::datesent(),
+            "clientid" => $client_details->client_id,
+            "playerdetailsrequest" => [
+              "player_username"=>$client_details->username,
+              "client_player_id" => $client_details->client_player_id,
+              "token" => $client_details->player_token,
+              "gamelaunch" => true,
+              "refreshtoken" => $request->has('refreshtoken') ? true : false,
+            ]
+          ];
+          try{  
+            $guzzle_response = $client->post($client_details->player_details_url,
+                ['body' => json_encode($datatosend)]
+            );
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            $client_response->request_body = $datatosend;
+            return json_encode($client_response);
+          }catch (\Exception $e){
+             $message = [
+              'request_body' => $datatosend,
+              'al' => $e->getMessage(),
+             ];
+             return $message;
+          } 
+        }
+
     }
+
+
+     
+   
+
+
+
+
 
     public function tapulan(){
 

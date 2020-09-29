@@ -195,7 +195,12 @@ class ProviderHelper{
 				);
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
 				Helper::saveLog('ALDEBUG REQUEST SEND = '.$player_token,  99, json_encode($client_response), $datatosend);
-			 	return $client_response;
+				if(isset($client_response->playerdetailsresponse->status->code) && $client_response->playerdetailsresponse->status->code != 200 || $client_response->playerdetailsresponse->status->code != '200'){
+					return 'false';
+				}else{
+			 		return $client_response;
+				}
+
             }catch (\Exception $e){
                Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
                return 'false';
