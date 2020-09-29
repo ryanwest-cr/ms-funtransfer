@@ -242,7 +242,7 @@ class IAESportsController extends Controller
 			Helper::saveLog('IA seamlessWithdrawal - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
 	        return $params;
 		}
-		if($client_player->playerdetailsresponse->balance > $cha->money):
+		// if($client_player->playerdetailsresponse->balance > $cha->money):
 
 
 		    if($transaction_code == 16 || $transaction_code == 17){ // AUTO CHESS GAME // 1 WAY FLIGHT
@@ -387,13 +387,13 @@ class IAESportsController extends Controller
 		        ];
 			endif;
 
-	     else:
-		    $params = [
-	            "code" => 111004,
-	            "data" => [],
-				"message" => "Insufficient balance",
-	        ];
-		endif;
+	 //     else:
+		//     $params = [
+	 //            "code" => 111004,
+	 //            "data" => [],
+		// 		"message" => "Insufficient balance",
+	 //        ];
+		// endif;
 		Helper::saveLog('IA Deposit Response', $this->provider_db_id,json_encode($cha), $params);
 
 		// $this->userWager(); // QUERY 1000 pages settle match
