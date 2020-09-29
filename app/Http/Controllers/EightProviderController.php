@@ -331,7 +331,7 @@ class EightProviderController extends Controller
 						 	    $bet_payout = 0; // Bet always 0 payout!
 						 	    $income = '-'.$data['data']['amount']; // NEgative
 
-								$game_ext = ProviderHelper::findGameExt($data['round_id'], 1, 'round_id');
+								$game_ext = ProviderHelper::findGameExt($round_id, 1, 'round_id');
 								if($game_ext != 'false'){
 									$game_trans = $game_ext->game_trans_id;
 									$existing_bet = ProviderHelper::findGameTransaction($game_ext->game_trans_id, 'game_transaction');
@@ -339,7 +339,7 @@ class EightProviderController extends Controller
 									$this->updateBetTransaction($round_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
 								}else{
 
-									$game_ext = ProviderHelper::findGameExt($data['round_id'], 2, 'round_id');
+									$game_ext = ProviderHelper::findGameExt($round_id, 2, 'round_id');
 									if($game_ext != 'false'){
 										$game_trans = $game_ext->game_trans_id;
 										$existing_bet = ProviderHelper::findGameTransaction($game_ext->game_trans_id, 'game_transaction');
