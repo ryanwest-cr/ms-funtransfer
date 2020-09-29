@@ -193,7 +193,7 @@ class IAESportsController extends Controller
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
 		$transaction_code = $desc_json['code']; // 13,15 refund, 
-		$rollback = $transaction_code == 13 || $transaction_code == 15 ? true : false;
+		$rollback = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 ? true : false;
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
 		Helper::saveLog('IA seamlessDeposit EH', $this->provider_db_id,json_encode($cha), $data);
@@ -338,8 +338,8 @@ class IAESportsController extends Controller
   				$win = 1; //win
   				$entry_id = 2; //win
   				$income = $bet_details->bet_amount - $cha->money;
-	        	$win = $transaction_code == 13 || $transaction_code == 15 ? 4 : $win; // 4 to refund!
- 	  			$is_refunded = $transaction_code == 13 || $transaction_code == 15 ? 3 : 2; // 3 to refund!
+	        	$win = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 ? 4 : $win; // 4 to refund!
+ 	  			$is_refunded = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 ? 3 : 2; // 3 to refund!
 
 	        	$mw_request_data = json_decode($is_exist_bet->mw_request);
 	        	$gamerecord = $mw_request_data->fundtransferrequest->fundinfo->roundId;
