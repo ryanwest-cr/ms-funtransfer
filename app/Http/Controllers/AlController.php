@@ -229,7 +229,7 @@ class AlController extends Controller
         $game_transextension = ProviderHelper::createGameTransExtV2($round_id->game_trans_id,$provider_trans_id, $provider_round_id, $amount, $game_ext_type);
 
         try {
-          $client_response = ClientRequestHelper::fundTransfer($client_details,abs($bet_amount),$game_information->game_code,$game_information->game_name,$game_transextension, $round_id->game_trans_id, $transaction_type, $rollback);
+          $client_response = ClientRequestHelper::fundTransfer($client_details,abs($amount),$game_information->game_code,$game_information->game_name,$game_transextension, $round_id->game_trans_id, $transaction_type, $rollback);
           Helper::saveLog('RESEND CRID '.$round_id->game_trans_id, 999,json_encode($request->all()), $client_response);
         } catch (\Exception $e) {
           $response = ["status" => "failed", "msg" => $e->getMessage()];
