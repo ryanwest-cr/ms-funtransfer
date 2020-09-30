@@ -197,7 +197,9 @@ class ProviderHelper{
 				Helper::saveLog('ALDEBUG REQUEST SEND = '.$player_token,  99, json_encode($client_response), $datatosend);
 				if(isset($client_response->playerdetailsresponse->status->code) && $client_response->playerdetailsresponse->status->code != 200 || $client_response->playerdetailsresponse->status->code != '200'){
 					if($refreshtoken == true){
-						if(isset($client_response->playerdetailsresponse->refreshtoken)){
+						if(isset($client_response->playerdetailsresponse->refreshtoken) &&
+					    $client_response->playerdetailsresponse->refreshtoken != false || 
+					    $client_response->playerdetailsresponse->refreshtoken != 'false'){
 							DB::table('player_session_tokens')->insert(
 	                        array('player_id' => $client_details->player_id, 
 	                        	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
@@ -208,11 +210,15 @@ class ProviderHelper{
 					return 'false';
 				}else{
 					if($refreshtoken == true){
-						DB::table('player_session_tokens')->insert(
-	                        array('player_id' => $client_details->player_id, 
-	                        	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
-	                        	  'status_id' => '1')
-	                    );
+						if(isset($client_response->playerdetailsresponse->refreshtoken) &&
+					    $client_response->playerdetailsresponse->refreshtoken != false || 
+					    $client_response->playerdetailsresponse->refreshtoken != 'false'){
+							DB::table('player_session_tokens')->insert(
+		                        array('player_id' => $client_details->player_id, 
+		                        	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
+		                        	  'status_id' => '1')
+		                    );
+						}
 					}
 			 		return $client_response;
 				}
