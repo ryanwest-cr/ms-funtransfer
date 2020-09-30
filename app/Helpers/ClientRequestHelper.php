@@ -72,6 +72,7 @@ class ClientRequestHelper{
         );
         $client_reponse = json_decode($guzzle_response->getBody()->getContents());
         $client_reponse->requestoclient = $requesttocient;
+        ClientRequestHelper::currencyRateConverter($client_details->default_currency,$roundId);
         return $client_reponse;
     }
     public static function currencyRateConverter($currency,$roundId=1){
