@@ -5,7 +5,9 @@ use GuzzleHttp\Client;
 use App\Helpers\Helper;
 use App\Helpers\GameLobby;
 use App\Helpers\ProviderHelper;
-use DB; 
+use App\Payment;
+use DB;
+use ErrorException;
 
 class ClientRequestHelper{
     
@@ -72,7 +74,29 @@ class ClientRequestHelper{
         $client_reponse->requestoclient = $requesttocient;
         return $client_reponse;
     }
-
+    public static function currencyRateConverter($currency,$roundId=1){
+        try{
+            $currency_conversion_list = DB::table('currencies_convert_list')->where('currency_code',$currency)->first();
+            $currency_conversion_list = json_decode($currency_conversion_list->convert_list,TRUE);
+            $rates = array(
+                "USD_rate"=> $currency_conversion_list["USD"]["rate"],
+                "JPY_rate"=> $currency_conversion_list["JPY"]["rate"],
+                "EUR_rate"=> $currency_conversion_list["EUR"]["rate"],
+                "CNY_rate"=> $currency_conversion_list["CNY"]["rate"],
+                "THB_rate"=> $currency_conversion_list["THB"]["rate"],
+            );
+            $update_transaction_rate = DB::table('game_transactions')->where('game_trans_id',$roundId)->update($rates);
+            if($update_transaction_rate){
+                Helper::saveLog('currencyRateConverter("success")', 0, json_encode($rates), "Transaction update successfully!");
+            }
+            else{
+                Helper::saveLog('currencyRateConverter("failed")', 0, json_encode($rates), "Transaction did not exist!");
+            }
+        }
+        catch(ErrorException $e){
+            Helper::saveLog('currencyRateConverter("failed")', 0, json_encode($e->getMessage()), "Transaction did not exist!");
+        }
+    }
 
     /**
      * GLOBAL

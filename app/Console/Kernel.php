@@ -15,7 +15,8 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         //
         'App\Console\Commands\AlCron',        
-        'App\Console\Commands\riandraft',        
+        'App\Console\Commands\riandraft',
+        'App\Console\Commands\UpdateCurrency',        
     ];
 
     /**

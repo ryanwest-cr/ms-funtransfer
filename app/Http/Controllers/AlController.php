@@ -160,6 +160,10 @@ class AlController extends Controller
         return $response->getBody()->getContents();
     }
 
+    public function currency(){
+      return ClientRequestHelper::currencyRateConverter("USD",12829967);
+    }
+
 
 
 }
