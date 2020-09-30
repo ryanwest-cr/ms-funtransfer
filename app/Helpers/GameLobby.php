@@ -349,8 +349,8 @@ class GameLobby{
                 $login_token = SAHelper::userManagement(config('providerlinks.sagaming.prefix').$client_details->player_id, 'LoginRequest');
             }
 
-            if(isset($login_token->Token)){
-                $url = 'https://www.sai.slgaming.net/app.aspx?username='.config('providerlinks.sagaming.prefix').$client_details->player_id.'&token='.$login_token->Token.'&lobby='.config('providerlinks.sagaming.lobby').'&lang='.$lang.'&returnurl='.$url.'';
+            if(isset($login_token['Token'])){
+                $url = 'https://www.sai.slgaming.net/app.aspx?username='.config('providerlinks.sagaming.prefix').$client_details->player_id.'&token='.$login_token['Token'].'&lobby='.config('providerlinks.sagaming.lobby').'&lang='.$lang.'&returnurl='.$url.'';
                 return $url;
             }else{
                 return false;

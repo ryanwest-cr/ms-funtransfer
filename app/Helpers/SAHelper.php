@@ -31,11 +31,14 @@ class SAHelper{
             ],
         ]);
         Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($response->getBody()->getContents()), $querystring);
-        $resp = simplexml_load_string($response->getBody()->getContents());
-        $json_encode = json_encode($resp);
-        Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($querystring), json_decode($resp));
-        Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($querystring), json_decode($json_encode));
-        return json_decode($json_encode);
+        // $xml = simplexml_load_string($response->getBody()->getContents());
+        $xml = simplexml_load_string($response->getBody());
+        $json = json_encode($xml);
+        $array = json_decode($json,TRUE);
+
+        Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($querystring), $array);
+        Helper::saveLog('SA UserManagement '.$method, config('providerlinks.sagaming.pdbid'), json_encode($querystring), $array);
+        return $array;
     }
 
     public static function encrypt($str) {
