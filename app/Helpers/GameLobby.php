@@ -231,7 +231,7 @@ class GameLobby{
             "gameId" => $game_code,
             "language" => $lang,
         ];
-        $requesttosend['sign'] = AWSHelper::hashen($requesttosend);
+        $requesttosend['sign'] = AWSHelper::hashen($requesttosend, $client_details->player_token);
         $guzzle_response = $client->post(config('providerlinks.aws.api_url').'/api/login',
             ['body' => json_encode($requesttosend)]
         );

@@ -32,7 +32,6 @@ class AWSHelper{
 	 */
     public static function playerRegister($token, $provider='AllWaySpin', $lang='en')
 	{
-
 		$lang = GameLobby::getLanguage($provider,$lang);
 		$client_details = ProviderHelper::getClientDetails('token', $token);
 		if($client_details == 'false'){
@@ -53,7 +52,7 @@ class AWSHelper{
 			"currentTime" => AWSHelper::currentTimeMS(),
 			"username" => $merchant_id.'_TG'.$client_details->player_id,
 		];
-		$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
+		$requesttosend['sign'] = AWSHelper::hashen($requesttosend,$client_details->player_token);
 		$requesttosend['language'] = $lang;
 		$guzzle_response = $client->post(config('providerlinks.aws.api_url').'/api/register',
 		    ['body' => json_encode($requesttosend)]
@@ -91,8 +90,7 @@ class AWSHelper{
 			"currentTime" => AWSHelper::currentTimeMS(),
 			"username" => $merchant_id.'_TG'.$client_details->player_id,
 		];
-		$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
-		// $requesttosend['language'] = $lang;
+		$requesttosend['sign'] = AWSHelper::hashen($requesttosend,$client_details->player_token);
 		$guzzle_response = $client->post(config('providerlinks.aws.api_url').'/user/status',
 		    ['body' => json_encode($requesttosend)]
 		);
@@ -107,15 +105,27 @@ class AWSHelper{
 	 * @return MD5 String
 	 *
 	 */
-	public static function hashen($data, $merchant_id=false)
+	public static function hashen($data, $token)
 	{	
+		$client_details = ProviderHelper::getClientDetails('token', $token);
+		if($client_details == 'false'){
+			return false;
+		}
+		if(!AWSHelper::findMerchantIdByClientId($client_details->client_id)){
+			return false;
+		}
+
+		// $merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
+		$base65_key = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_key'];
+
 		if(is_array($data)) {
 			$signature = implode('', array_filter($data, function($val){ return !($val === null || (is_array($val) && !$val));}));
         } else {
             $signature = $data;
         }
-	    $merchant_id = $merchant_id!=false?config('providerlinks.aws.merchant_id'):'';
-	    $hashen = md5($merchant_id.$signature.base64_encode(config('providerlinks.aws.merchant_key')));
+	    // $merchant_id = $merchant_id!=false?config('providerlinks.aws.merchant_id'):'';
+	    $merchant_id ='';
+	    $hashen = md5($merchant_id.$signature.base64_encode($base65_key));
 		return $hashen;
 	}
 
