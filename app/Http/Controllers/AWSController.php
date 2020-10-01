@@ -54,36 +54,17 @@ class AWSController extends Controller
 	 * @param [int] $[signature_type] [<1 = balance, 2 = fundtransfer, fundquery>] // SIGNATURE TYPE 2 REMOVED
 	 *
 	 */
-    public function signatureCheck($details, $signature_type){
-    	if($signature_type == 1){
-    		$signature = md5($this->merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($this->merchant_key));
-    	}elseif($signature_type == 2){
-    		// $signature = false;
-    		// $signature = array();
-			// $signature_combo = [ // Only In Amount Sometimes has .0 sometimes it has nothing!
-		  //   	'one' => $this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
-				// 'two' =>  $this->merchant_id.$details->currentTime.$details->amount.'0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
-				// 'three' =>  $this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key),
-				// 'four' =>  $this->merchant_id.$details->currentTime.$details->amount.'00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)
-				// 'one' => md5($this->merchant_id.$details->currentTime.$details->amount.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-				// 'two' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-				// 'three' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'.0'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key)),
-				// 'four' =>  md5($this->merchant_id.$details->currentTime.$details->amount.'00'.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key))
-			// ];
-			// foreach ($signature_combo as $key) {
-			// 	// array_push($signature, $key);
-			// 	// if($key == $details->sign){
-			// 	// 	$signature = $key;
-			// 	// }
-			// }
-    	}
+    // public function signatureCheck($details, $signature_type){
+    // 	if($signature_type == 1){
+    // 		$signature = md5($this->merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($this->merchant_key));
+    // 	}
 
-    	if($signature == $details->sign){
-    		return true;
-    	}else{
-    		return false;
-    	}
-    }
+    // 	if($signature == $details->sign){
+    // 		return true;
+    // 	}else{
+    // 		return false;
+    // 	}
+    // }
 
 	/**
 	 * SINGLE WALLET
@@ -94,9 +75,32 @@ class AWSController extends Controller
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
 
-		// Helper::saveLog('AWS Balance', 21, file_get_contents("php://input"), 'ENDPOINT HIT');
-		$verify = $this->signatureCheck($details, 1);
-		if(!$verify){
+		$prefixed_username = explode("_TG", $details->accountId);
+		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
+		if($client_details == 'false'){
+		   $response = [
+				"msg"=> "Player Not Found - Client Failed To Respond",
+				"code"=> 100,
+			];
+			Helper::saveLog('AWS singleBalance - Client Not Found', $this->provider_db_id, $data, $response);
+			return $response;
+		}
+
+		if(!AWSHelper::findMerchantIdByClientId($client_details->client_id)){
+            $response = [
+				"msg"=> "Player Not Found - Client Failed To Respond",
+				"code"=> 100,
+			];
+			Helper::saveLog('AWS singleBalance - Client ID NOT FOUND', $this->provider_db_id, $data, $response);
+			return $response;
+        }
+
+        $merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
+		$merchant_key = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_key'];
+
+		$signature = md5($merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($merchant_key));
+		
+		if($signature != $details->sign){
 			$response = [
 				"msg"=> "Sign check encountered error, please verify sign is correct",
 				"code"=> 9200
@@ -104,9 +108,7 @@ class AWSController extends Controller
 			Helper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
 			return $response;
 		}
-
-		$prefixed_username = explode("_TG", $details->accountId);
-		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
+	
 		$provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 		if($provider_reg_currency == 'false'){
 			$response = [
@@ -150,14 +152,26 @@ class AWSController extends Controller
 		Helper::saveLog('AWS singleFundTransfer EH', $this->provider_db_id, file_get_contents("php://input"), Helper::datesent());
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
+		if($client_details == 'false'){
+		   $response = [
+				"msg"=> "Player Not Found - Client Failed To Respond",
+				"code"=> 100,
+			];
+			Helper::saveLog('AWS singleFundTransfer - client_details not found', $this->provider_db_id, $data, $response);
+			return $response;
+		}
+
 		// # 01 COMMENT THIS OUT WHEN DEBUGGING IN LOCAL
 		$explode1 = explode('"betAmount":', $data);
 		$explode2 = explode('amount":', $explode1[0]);
 		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
 		$amount_in_string = trim(str_replace('"', '', $amount_in_string));
 
-		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
-		
+		$merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
+		$merchant_key = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_key'];
+
+		$signature = md5($merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($merchant_key));
+
 		if($signature != $details->sign){
 			$response = [
 				"msg"=> "Sign check encountered error, please verify sign is correct",
@@ -351,7 +365,6 @@ class AWSController extends Controller
 		$explode2 = explode('amount":', $explode1[0]);
 		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
 		$amount_in_string = trim(str_replace('"', '', $amount_in_string));
-		$signature = md5($this->merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($this->merchant_key));
 		
 		if($signature != $details->sign){
 			$response = [
@@ -365,6 +378,20 @@ class AWSController extends Controller
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
 		$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+
+		if(!AWSHelper::findMerchantIdByClientId($client_details->client_id)){
+            $response = [
+				"msg"=> "Player Not Found - Client Failed To Respond",
+				"code"=> 100,
+			];
+			Helper::saveLog('AWS singleFundQuery - Error Sign', $this->provider_db_id, $data, $response);
+			return $response;
+        }
+
+		$merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
+		$merchant_key = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_key'];
+
+		$signature = md5($merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($merchant_key));
 
 		if($player_details == 'false'){
 			$response = [
@@ -462,24 +489,24 @@ class AWSController extends Controller
 	 * @author's NOTE : Get All Game List (NOT/USED) ONE TIME USAGE ONLY
 	 *
 	 */
-	public function gameList(Request $request){
-		$client = new Client([
-		    'headers' => [ 
-		    	'Content-Type' => 'application/json',
-		    ]
-		]);
-		$requesttosend = [
-			"merchantId" => $this->merchant_id,
-			"currentTime" => AWSHelper::currentTimeMS(),
-			"language" => 'en_US'
-		];
-		$requesttosend['sign'] = AWSHelper::hashen(AWSHelper::currentTimeMS(),$this->merchant_id);
-		$guzzle_response = $client->post($this->api_url.'/game/list',
-		    ['body' => json_encode($requesttosend)]
-		);
-	    $client_response = json_decode($guzzle_response->getBody()->getContents());
-	    return json_encode($client_response);
-	}
+	// public function gameList(Request $request){
+	// 	$client = new Client([
+	// 	    'headers' => [ 
+	// 	    	'Content-Type' => 'application/json',
+	// 	    ]
+	// 	]);
+	// 	$requesttosend = [
+	// 		"merchantId" => $this->merchant_id,
+	// 		"currentTime" => AWSHelper::currentTimeMS(),
+	// 		"language" => 'en_US'
+	// 	];
+	// 	$requesttosend['sign'] = AWSHelper::hashen(AWSHelper::currentTimeMS(),$this->merchant_id);
+	// 	$guzzle_response = $client->post($this->api_url.'/game/list',
+	// 	    ['body' => json_encode($requesttosend)]
+	// 	);
+	//     $client_response = json_decode($guzzle_response->getBody()->getContents());
+	//     return json_encode($client_response);
+	// }
 
 
 	/**
