@@ -193,11 +193,22 @@ class GameLobby{
 
      public static function awsLaunchUrl($token,$game_code,$lang='en'){
         $client_details = ProviderHelper::getClientDetails('token', $token);
+        if($client_details == 'false'){
+            return 'false';
+        }
         $provider_reg_currency = Providerhelper::getProviderCurrency(21, $client_details->default_currency);
         if($provider_reg_currency == 'false'){
             return 'false';
         }
+        if(!AWSHelper::findMerchantIdByClientId($client_details->client_id)){
+            return 'false';
+        }
+        $merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
         $player_check = AWSHelper::playerCheck($token);
+        if(!$player_check){
+            Helper::saveLog('AWS Launch Game Failed', 21, json_encode($client_details), $client_details);
+            return 'false';
+        }
         if($player_check->code == 100){ // Not Registered!
             $register_player = AWSHelper::playerRegister($token);
             if($register_player->code != 2217 || $register_player->code != 0){
@@ -211,10 +222,10 @@ class GameLobby{
             ]
         ]);
         $requesttosend = [
-            "merchantId" => config('providerlinks.aws.merchant_id'),
+            "merchantId" => $merchant_id,
             "currency" => $client_details->default_currency,
             "currentTime" => AWSHelper::currentTimeMS(),
-            "username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
+            "username" => $merchant_id.'_TG'.$client_details->player_id,
             "playmode" => 0, // Mode of gameplay, 0: official
             "device" => 1, // Identifying the device. Device, 0: mobile device 1: webpage
             "gameId" => $game_code,

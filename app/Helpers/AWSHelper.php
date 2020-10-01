@@ -11,24 +11,47 @@ class AWSHelper{
 
 	/**
 	 * MERCHANT BACKOFFICE
+	 * @author's note : Every Client Should have submerchant in AWS Provider
+	 * 
+	 */
+	public static function findMerchantIdByClientId($client_id){
+		$aws_config = config('providerlinks.aws');
+
+		if(array_key_exists(($client_id), $aws_config)){
+			return $aws_config[$client_id];
+		}else{
+			return false;
+		}
+	}
+
+	/**
+	 * MERCHANT BACKOFFICE
 	 * @author's note : Register the player to the provider database
 	 * @return object
 	 * 
 	 */
     public static function playerRegister($token, $provider='AllWaySpin', $lang='en')
 	{
+
 		$lang = GameLobby::getLanguage($provider,$lang);
 		$client_details = ProviderHelper::getClientDetails('token', $token);
+		if($client_details == 'false'){
+			return false;
+		}
+		if(!AWSHelper::findMerchantIdByClientId($client_details->client_id)){
+			return false;
+		}
 		$client = new Client([
 		    'headers' => [ 
 		    	'Content-Type' => 'application/json',
 		    ]
 		]);
+		$merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
 		$requesttosend = [
-			"merchantId" => config('providerlinks.aws.merchant_id'),
+			"merchantId" => $merchant_id,
 			"currency" => $client_details->default_currency,
 			"currentTime" => AWSHelper::currentTimeMS(),
-			"username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
+			"username" => $merchant_id.'_TG'.$client_details->player_id,
 		];
 		$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
 		$requesttosend['language'] = $lang;
@@ -50,16 +73,23 @@ class AWSHelper{
     public static function playerCheck($token)
 	{
 		$client_details = ProviderHelper::getClientDetails('token', $token);
+		if($client_details == 'false'){
+			return false;
+		}
+		if(!AWSHelper::findMerchantIdByClientId($client_details->client_id)){
+			return false;
+		}
+		$merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
 		$client = new Client([
 		    'headers' => [ 
 		    	'Content-Type' => 'application/json',
 		    ]
 		]);
 		$requesttosend = [
-			"merchantId" => config('providerlinks.aws.merchant_id'),
+			"merchantId" => $merchant_id,
 			"currency" => $client_details->default_currency,
 			"currentTime" => AWSHelper::currentTimeMS(),
-			"username" => config('providerlinks.aws.merchant_id').'_TG'.$client_details->player_id,
+			"username" => $merchant_id.'_TG'.$client_details->player_id,
 		];
 		$requesttosend['sign'] = AWSHelper::hashen($requesttosend);
 		// $requesttosend['language'] = $lang;
