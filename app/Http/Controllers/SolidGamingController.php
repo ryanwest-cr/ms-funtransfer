@@ -53,7 +53,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "The provided token could not be verified/Token already authenticated",
 						];
 			
-			$client_details = $this->_getClientDetails('token', $json_data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $json_data['token']);
 			
 			if ($client_details) {
 				/*$client = new Client([
@@ -140,7 +140,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "The provided playerid don’t exist.",
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
@@ -215,7 +215,7 @@ class SolidGamingController extends Controller
 						];
 
 			// Find the player and client details
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 			
 			if ($client_details) {
@@ -306,7 +306,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "Player not found",
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
@@ -413,7 +413,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "Player not found",
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details/* && $player_details != NULL*/) {
@@ -506,7 +506,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "Player not found",
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details/* && $player_details != NULL*/) {
@@ -650,7 +650,7 @@ class SolidGamingController extends Controller
 						"errormessage" => "The provided playerid don’t exist.",
 					];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 
 			if ($client_details) {
 				// Check if round exist
@@ -798,7 +798,7 @@ class SolidGamingController extends Controller
 						"errormessage" => "The provided playerid don’t exist.",
 					];
 
-		$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+		$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 		/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 		if ($client_details/* && $player_details != NULL*/) {
