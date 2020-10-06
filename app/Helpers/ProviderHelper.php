@@ -103,7 +103,7 @@ class ProviderHelper{
 
 		 // Overall Operator Table
 		 $query = DB::table("clients AS c")
-		 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency','p.test_player', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'op.client_api_key', 'op.client_code','op.client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url','p.created_at')
+		 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'op.client_api_key', 'op.client_code','op.client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url','p.created_at')
 		 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 		 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 		 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -112,7 +112,7 @@ class ProviderHelper{
 		}elseif($gg==2){  // TEST MULTI CURRENCY SETUP
 
 			 $query = DB::table("clients AS c")
-			 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency', 'p.test_player', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'op.client_api_key', 'op.client_code','op.client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url','p.created_at')
+			 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'op.client_api_key', 'op.client_code','op.client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url','p.created_at')
 			 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 			 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 			 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
