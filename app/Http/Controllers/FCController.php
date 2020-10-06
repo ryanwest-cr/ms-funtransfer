@@ -8,6 +8,7 @@ use App\Helpers\FCHelper;
 use GuzzleHttp\Client;
 use App\Helpers\ClientRequestHelper;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use DB;
 class FCController extends Controller
 {
