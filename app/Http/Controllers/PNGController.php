@@ -7,6 +7,7 @@ use SimpleXMLElement;
 use App\Helpers\PNGHelper;
 use GuzzleHttp\Client;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use App\Helpers\ClientRequestHelper;
 use DB;
 class PNGController extends Controller
@@ -17,7 +18,7 @@ class PNGController extends Controller
         $xmlparser = new SimpleXMLElement($data);
         $accessToken = "secrettoken";
         if($xmlparser->username){
-            $client_details = $this->_getClientDetails('token', $xmlparser->username);
+            $client_details = ProviderHelper::getClientDetails('token', $xmlparser->username);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
@@ -77,7 +78,7 @@ class PNGController extends Controller
         $xmlparser = new SimpleXMLElement($data);
         $accessToken = "secrettoken";
         if($xmlparser->externalGameSessionId){
-            $client_details = $this->_getClientDetails('token', $xmlparser->externalGameSessionId);
+            $client_details = ProviderHelper::getClientDetails('token', $xmlparser->externalGameSessionId);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($xmlparser->transactionId);
                 if(Helper::getBalance($client_details) < $xmlparser->real){
@@ -146,7 +147,7 @@ class PNGController extends Controller
         $xmlparser = new SimpleXMLElement($data);
         $accessToken = "secrettoken";
         if($xmlparser->externalGameSessionId){
-            $client_details = $this->_getClientDetails('token',$xmlparser->externalGameSessionId);
+            $client_details = ProviderHelper::getClientDetails('token',$xmlparser->externalGameSessionId);
             if($client_details){
                 $returnWinTransaction = PNGHelper::gameTransactionExtChecker($xmlparser->transactionId);
                 if($returnWinTransaction){
@@ -213,7 +214,7 @@ class PNGController extends Controller
             return PNGHelper::arrayToXml($array_data,"<balance/>");
         }
         if($xmlparser->externalGameSessionId){
-            $client_details = $this->_getClientDetails('token', $xmlparser->externalGameSessionId);
+            $client_details = ProviderHelper::getClientDetails('token', $xmlparser->externalGameSessionId);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
@@ -259,7 +260,7 @@ class PNGController extends Controller
         $xmlparser = new SimpleXMLElement($data);
         $accessToken = "secrettoken";
         if($xmlparser->externalGameSessionId){
-            $client_details = $this->_getClientDetails('token', $xmlparser->externalGameSessionId);
+            $client_details = ProviderHelper::getClientDetails('token', $xmlparser->externalGameSessionId);
         if($client_details){
             $reservechecker = PNGHelper::gameTransactionExtChecker($xmlparser->transactionId);
             $rollbackchecker = PNGHelper::gameTransactionRollbackExtChecker($xmlparser->transactionId,3);
