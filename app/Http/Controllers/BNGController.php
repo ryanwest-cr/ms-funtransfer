@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use App\Helpers\ClientRequestHelper;
 use DB;
 class BNGController extends Controller
@@ -88,7 +89,7 @@ class BNGController extends Controller
     }
     private function _authPlayer($data){
         if($data["token"]){
-            $client_details = $this->_getClientDetails('token', $data["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
@@ -147,7 +148,7 @@ class BNGController extends Controller
     }
     private function _getBalance($data){
         if($data["token"]){
-            $client_details = $this->_getClientDetails('token', $data["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
@@ -189,7 +190,7 @@ class BNGController extends Controller
     private function _betGame($data){
         //return $data["args"]["bet"];
         if($data["token"]){
-            $client_details = $this->_getClientDetails('token', $data["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
                 if(Helper::getBalance($client_details) < round($data["args"]["bet"],2)){ 
                     $response =array(
@@ -267,7 +268,7 @@ class BNGController extends Controller
     private function _winGame($data){
         //return $data["args"]["win"];
         if($data["token"]){
-            $client_details = $this->_getClientDetails('token', $data["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
                 if(Helper::getBalance($client_details) < round($data["args"]["bet"],2)){ 
                     $response =array(
@@ -339,7 +340,7 @@ class BNGController extends Controller
     private function _rollbackGame($data){
         //return $data["args"]["bet"];
         if($data["token"]){
-            $client_details = $this->_getClientDetails('token', $data["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
                 $rollbackchecker = Helper::checkGameTransaction($data["args"]["transaction_uid"],$data["args"]["round_id"],1);

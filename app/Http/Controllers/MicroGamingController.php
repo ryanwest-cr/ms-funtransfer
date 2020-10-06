@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use App\Services\AES;
 use App\Helpers\FCHelper;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use Carbon\Carbon;
 use App\Helpers\ClientRequestHelper;
 use DB;
@@ -44,7 +45,7 @@ class MicroGamingController extends Controller
     }
     public function getPlayerBalance(Request $request){
         if($request->has("token")){
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
@@ -98,7 +99,7 @@ class MicroGamingController extends Controller
     }
     public function makeDeposit(Request $request){
         if($request->has("token")&&$request->has("player_id")&&$request->has("amount")){
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
                 $game_details = Helper::getInfoPlayerGameRound($request->token);
                 $json_data = array(
@@ -171,7 +172,7 @@ class MicroGamingController extends Controller
     }
     public function makeWithdraw(Request $request){
         if($request->has("token")&&$request->has("player_id")){
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
                 $game_details = Helper::getInfoPlayerGameRound($request->token);
                 $json_data = array(

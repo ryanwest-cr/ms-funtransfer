@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Helpers\ClientRequestHelper;
 use App\Helpers\EVGHelper;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use DB;
 class EvolutionController extends Controller
 {
@@ -15,7 +16,7 @@ class EvolutionController extends Controller
         Helper::saveLog('Authentication(EVG)', 74, json_encode($request->getContent()), "test");
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
-            $client_details = $this->_getClientDetails("player_id",$data["userId"]);
+            $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             Helper::saveLog('Authentication(EVG)', 74, json_encode($data), $client_details);
             if($client_details){
                 $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
@@ -49,7 +50,7 @@ class EvolutionController extends Controller
     public function sid(Request $request){
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
-            $client_details = $this->_getClientDetails("player_id",$data["userId"]);
+            $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
                 $msg = array(
@@ -79,7 +80,7 @@ class EvolutionController extends Controller
     public function balance(Request $request){
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
-            $client_details = $this->_getClientDetails("player_id",$data["userId"]);
+            $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
                 $msg = array(
@@ -110,7 +111,7 @@ class EvolutionController extends Controller
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
             Helper::saveLog('debitrequest(EVG)', 50, json_encode($data), "debit");
-            $client_details = $this->_getClientDetails("player_id",$data["userId"]);
+            $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"]);
                 if($game_transaction){
@@ -186,7 +187,7 @@ class EvolutionController extends Controller
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
             Helper::saveLog('creditrequest(EVG)', 50, json_encode($data), "credit");
-            $client_details = $this->_getClientDetails("player_id",$data["userId"]);
+            $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"]);
                 if($game_transaction){
@@ -258,7 +259,7 @@ class EvolutionController extends Controller
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
             Helper::saveLog('cancelrequest(EVG)', 50, json_encode($data), "cancel");
-            $client_details = $this->_getClientDetails("player_id",$data["userId"]);
+            $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"],$data["transaction"]["refId"],3);
                 if($game_transaction){

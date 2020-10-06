@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\PlayerDetail;
 use App\Models\PlayerSessionToken;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use App\Helpers\GameTransaction;
 use App\Helpers\GameSubscription;
 use App\Helpers\GameRound;
@@ -95,7 +96,7 @@ class ICGController extends Controller
     public function authPlayer(Request $request){
         Helper::saveLog('AuthPlayer(ICG)', 2, json_encode(array("token"=>$request->token)), "test");
         if($request->has("token")){
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             Helper::saveLog('AuthPlayer(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
             if($client_details){
                 $client = new Client([
@@ -165,7 +166,7 @@ class ICGController extends Controller
     }
     public function playerDetails(Request $request){
         if($request->has("token")){
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             //Helper::saveLog('PlayerDetails(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
             if($client_details){
                 $client = new Client([
@@ -234,7 +235,7 @@ class ICGController extends Controller
     public function betGame(Request $request){
         $json = json_decode($request->getContent(),TRUE);
         if($json["token"]){
-            $client_details = $this->_getClientDetails('token', $json["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $json["token"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($json["transactionId"]);
                 if(Helper::getBalance($client_details) < round($json["amount"]/100,2)){
@@ -314,7 +315,7 @@ class ICGController extends Controller
         $json = json_decode($request->getContent(),TRUE);
         // Helper::saveLog('winGame(ICG)', 2, json_encode($json), "data");
         if($json["token"]){
-            $client_details = $this->_getClientDetails('token', $json["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $json["token"]);
             if($client_details){
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
                 $win = $json["amount"] == 0 ? 0 : 1;
@@ -404,7 +405,7 @@ class ICGController extends Controller
     public function withdraw(Request $request){
         $json = json_decode($request->getContent(),TRUE);
         if($json["token"]){
-            $client_details = $this->_getClientDetails('token', $json["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $json["token"]);
             if($client_details){
                 //$game_transaction = Helper::checkGameTransaction($json["transactionId"]);
                 
@@ -469,7 +470,7 @@ class ICGController extends Controller
     public function deposit(Request $request){
         $json = json_decode($request->getContent(),TRUE);
         if($json["token"]){
-            $client_details = $this->_getClientDetails('token', $json["token"]);
+            $client_details = ProviderHelper::getClientDetails('token', $json["token"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($json["transactionId"]);
                 $game_details = Helper::getInfoPlayerGameRound($json["token"]);
