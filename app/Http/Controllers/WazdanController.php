@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Helpers\Helper;
 use App\Helpers\WazdanHelper;
 use GuzzleHttp\Client;
+use App\Helpers\ProviderHelper;
 use App\Helpers\ClientRequestHelper;
 use DB;
 class WazdanController extends Controller
