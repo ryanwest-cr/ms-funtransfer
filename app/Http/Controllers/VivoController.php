@@ -36,7 +36,7 @@ class VivoController extends Controller
 	public function authPlayer(Request $request)
 	{
 		$client_code = RouteParam::get($request, 'brand_code');
-		$client_details = $this->_getClientDetails('token', $request->token);
+		$client_details = ProviderHelper::getClientDetails('token', $request->token);
 		
 		header("Content-type: text/xml; charset=utf-8");
 			$response = '<?xml version="1.0" encoding="utf-8"?>';
@@ -127,7 +127,7 @@ class VivoController extends Controller
 			 							<FIRSTNAME></FIRSTNAME>
 			 							<LASTNAME></LASTNAME>
 			 							<EMAIL>'.$client_response->playerdetailsresponse->email.'</EMAIL>
-			 							<CURRENCY>'.$client_details->currency.'</CURRENCY>
+			 							<CURRENCY>'.$client_details->default_currency.'</CURRENCY>
 			 							<BALANCE>'.$client_response->playerdetailsresponse->balance.'</BALANCE>
 			 							<GAMESESSIONID></GAMESESSIONID>
 			 						</RESPONSE>
@@ -162,7 +162,7 @@ class VivoController extends Controller
 		$response = '';
 		$response .= '<VGSSYSTEM><REQUEST><USERID>'.$request->userId.'</USERID><AMOUNT>'.$request->Amount.'</AMOUNT><TRANSACTIONID >'.$request->TransactionID.'</TRANSACTIONID><TRNTYPE>'.$request->TrnType.'</TRNTYPE><GAMEID>'.$request->gameId.'</GAMEID><ROUNDID>'.$request->roundId.'</ROUNDID><TRNDESCRIPTION>'.$request->TrnDescription.'</TRNDESCRIPTION><HISTORY>'.$request->History.'</HISTORY><ISROUNDFINISHED>'.$request->isRoundFinished.'</ISROUNDFINISHED><HASH>'.$request->hash.'</HASH></REQUEST><TIME>'.Helper::datesent().'</TIME><RESPONSE><RESULT>FAILED</RESULT><CODE>300</CODE></RESPONSE></VGSSYSTEM>';
 
-		$client_details = $this->_getClientDetails('player_id', $request->userId);
+		$client_details = ProviderHelper::getClientDetails('player_id', $request->userId);
 
 		$hash = md5($request->userId.$request->Amount.$request->TrnType.$request->TrnDescription.$request->roundId.$request->gameId.$request->History.env('VIVO_PASS_KEY'));
 
@@ -218,7 +218,7 @@ class VivoController extends Controller
 										      "transactiontype" => "credit",
 										      "transferid" => "",
 										      "rollback" => "true",
-										      "currencycode" => $client_details->currency,
+										      "currencycode" => $client_details->default_currency,
 										      "amount" => $request->Amount
 										]
 									  ]
@@ -343,7 +343,7 @@ class VivoController extends Controller
 						</RESPONSE>
 					</VGSSYSTEM>';
 
-		$client_details = $this->_getClientDetails('player_id', $request->userId);
+		$client_details = ProviderHelper::getClientDetails('player_id', $request->userId);
 
 		$hash = md5($request->userId.$request->casinoTransactionId.env('VIVO_PASS_KEY'));
 
@@ -412,7 +412,7 @@ class VivoController extends Controller
 						</RESPONSE>
 					</VGSSYSTEM>';
 
-		$client_details = $this->_getClientDetails('player_id', $request->userId);
+		$client_details = ProviderHelper::getClientDetails('player_id', $request->userId);
 
 		$hash = md5($request->userId.env('VIVO_PASS_KEY'));
 

@@ -884,6 +884,7 @@ class GameLobby{
     }
 
     public static function vivoGamingLaunchUrl($game_code,$token,$exitUrl,$provider){
+        $client_details = Providerhelper::getClientDetails('token', $token); // New
         $operator_id = config("providerlinks.vivo.OPERATOR_ID");
         $server_id = config("providerlinks.vivo.SERVER_ID");
 
@@ -915,7 +916,9 @@ class GameLobby{
                 break;
 
             case 'Leap':
-                $url = config("providerlinks.vivo.LEAP_URL").'?tableguid=JHN3978RJH39UR93USDF34&token='.$token.'&OperatorId='.$operator_id.'&language=en&cashierUrl=&homeUrl=&GameID='.$game_code.'&mode=real&skinid=37&siteid=1&currency=USD';
+                // $url = config("providerlinks.vivo.LEAP_URL").'?tableguid=JHN3978RJH39UR93USDF34&token='.$token.'&OperatorId='.$operator_id.'&language=en&cashierUrl=&homeUrl=&GameID='.$game_code.'&mode=real&skinid=37&siteid=1&currency=USD';
+
+            $url = config("providerlinks.vivo.LEAP_URL").'?tableguid=JHN3978RJH39UR93USDF34&token='.$token.'&OperatorId='.$operator_id.'&language=en&cashierUrl=&homeUrl=&GameID='.$game_code.'&mode=real&skinid=37&siteid=1&currency='.$client_details->default_currency.'';
                 break;
             
             default:
