@@ -53,7 +53,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "The provided token could not be verified/Token already authenticated",
 						];
 			
-			$client_details = $this->_getClientDetails('token', $json_data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $json_data['token']);
 			
 			if ($client_details) {
 				/*$client = new Client([
@@ -97,7 +97,7 @@ class SolidGamingController extends Controller
 						"status" => "OK",
 						"brand" => 'BETRNKMW',
 						"playerid" => "$player_id",
-						"currency" => $client_details->currency,
+						"currency" => $client_details->default_currency,
 						"balance" => $client_response->playerdetailsresponse->balance,
 						"testaccount" => ($client_details->test_player ? true : false),
 						"wallettoken" => "",
@@ -140,7 +140,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "The provided playerid don’t exist.",
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
@@ -179,7 +179,7 @@ class SolidGamingController extends Controller
 					$response = [
 						"status" => "OK",
 						"brand" => 'BETRNKMW',
-						"currency" => $client_details->currency,
+						"currency" => $client_details->default_currency,
 						"testaccount" => ($client_details->test_player ? true : false),
 						"country" => "",
 						"affiliatecode" => "",
@@ -215,7 +215,7 @@ class SolidGamingController extends Controller
 						];
 
 			// Find the player and client details
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 			
 			if ($client_details) {
@@ -267,7 +267,7 @@ class SolidGamingController extends Controller
 						$http_status = 200;
 						$response = [
 							"status" => "OK",
-							"currency" => $client_details->currency,
+							"currency" => $client_details->default_currency,
 							"balance" => $client_response->playerdetailsresponse->balance,
 						];
 					}
@@ -306,7 +306,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "Player not found",
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
@@ -369,7 +369,7 @@ class SolidGamingController extends Controller
 								$http_status = 200;
 								$response = [
 									"status" => "OK",
-									"currency" => $client_details->currency,
+									"currency" => $client_details->default_currency,
 									"balance" => $client_response->fundtransferresponse->balance,
 								];
 							}
@@ -413,7 +413,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "Player not found",
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details/* && $player_details != NULL*/) {
@@ -463,7 +463,7 @@ class SolidGamingController extends Controller
 							$http_status = 200;
 							$response = [
 								"status" => "OK",
-								"currency" => $client_details->currency,
+								"currency" => $client_details->default_currency,
 								"balance" => $client_response->fundtransferresponse->balance,
 							];
 						}
@@ -506,7 +506,7 @@ class SolidGamingController extends Controller
 							"errormessage" => "Player not found",
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details/* && $player_details != NULL*/) {
@@ -573,7 +573,7 @@ class SolidGamingController extends Controller
 							{
 								$response = [
 										"status" => "OK",
-										"currency" => $client_details->currency,
+										"currency" => $client_details->default_currency,
 										"balance" => $debit_client_response->fundtransferresponse->balance,
 									];
 
@@ -604,7 +604,7 @@ class SolidGamingController extends Controller
 									
 									$response = [
 										"status" => "OK",
-										"currency" => $client_details->currency,
+										"currency" => $client_details->default_currency,
 										"balance" => $credit_client_response->fundtransferresponse->balance,
 									];
 
@@ -650,7 +650,7 @@ class SolidGamingController extends Controller
 						"errormessage" => "The provided playerid don’t exist.",
 					];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 
 			if ($client_details) {
 				// Check if round exist
@@ -701,7 +701,7 @@ class SolidGamingController extends Controller
 								$http_status = 200;
 								$response = [
 									"status" => "OK",
-									"currency" => $client_details->currency,
+									"currency" => $client_details->default_currency,
 									"balance" => $client_response->fundtransferresponse->balance,
 								];
 							}
@@ -760,7 +760,7 @@ class SolidGamingController extends Controller
 										$http_status = 200;
 										$response = [
 											"status" => "OK",
-											"currency" => $client_details->currency,
+											"currency" => $client_details->default_currency,
 											"balance" => $client_response->fundtransferresponse->balance,
 										];
 									}
@@ -798,7 +798,7 @@ class SolidGamingController extends Controller
 						"errormessage" => "The provided playerid don’t exist.",
 					];
 
-		$client_details = $this->_getClientDetails('player_id', $json_data['playerid']);
+		$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 		/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 		if ($client_details/* && $player_details != NULL*/) {
@@ -823,7 +823,7 @@ class SolidGamingController extends Controller
 				$http_status = 200;
 				$response = [
 					"status" => "OK",
-					"currency" => $client_details->currency,
+					"currency" => $client_details->default_currency,
 					"balance" => $client_response->playerdetailsresponse->balance,
 				];
 			
