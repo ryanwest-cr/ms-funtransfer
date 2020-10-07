@@ -54,7 +54,7 @@ class OryxGamingController extends Controller
 							"errorDescription" => "Token provided in request not valid in Wallet."
 						];
 			
-			$client_details = $this->_getClientDetails('token', $token);
+			$client_details = ProviderHelper::getClientDetails('token', $token);
 			
 			if ($client_details) {
 
@@ -72,7 +72,8 @@ class OryxGamingController extends Controller
 					$http_status = 200;
 					$response = [
 						"playerId" => "$player_id",
-						"currencyCode" => "USD",
+						// "currencyCode" => "USD", // RiAN
+						"currencyCode" => $client_details->default_currency, 
 						"languageCode" => "ENG",
 						"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
 						"sessionToken" => $token
@@ -114,7 +115,7 @@ class OryxGamingController extends Controller
 						];
 
 			// Find the player and client details
-			$client_details = $this->_getClientDetails('player_id', $player_id);
+			$client_details = ProviderHelper::getClientDetails('player_id', $player_id);
 
 			if ($client_details) {
 					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
@@ -175,7 +176,7 @@ class OryxGamingController extends Controller
 							"errorDescription" => "Token provided in request not valid in Wallet."
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerId']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
 
 			if ($client_details) {
 				// Check if the game is available for the client
@@ -432,7 +433,7 @@ class OryxGamingController extends Controller
 							"errorDescription" => "Token provided in request not valid in Wallet."
 						];
 
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerId']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
 
 			if ($client_details) {
 
@@ -527,7 +528,7 @@ class OryxGamingController extends Controller
 						];
 
 			// Find the player and client details
-			$client_details = $this->_getClientDetails('player_id', $json_data['playerId']);
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
 
 			if ($client_details) {
 					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
