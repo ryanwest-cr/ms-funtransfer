@@ -32,6 +32,8 @@ class ClientHelper
 	
 	public static function checkClientID($data){
 
+
+
 		// Client Filter [NOT FOUND or DEACTIVATED]
 		$client = DB::table('clients')->where('client_id', $data['client_id'])->first();
 		if($client == '' || $client == null){ return 1; } 
@@ -48,10 +50,8 @@ class ClientHelper
 		if($sub_provider->on_maintenance != 0){ return 6; }
 
 		// Player Disabled
-		$player= DB::table('players')
-		->where('client_id', $data['client_id'])
-		->where('client_player_id', $data['client_player_id'])
-		->first();
+		$player= DB::table('players')->where('client_id', $data['client_id'])
+				->where('client_player_id', $data['client_player_id'])->first();
 		if($player != '' || $player != null){
 			if($player->test_player == 2){ return 7; }
 		}
