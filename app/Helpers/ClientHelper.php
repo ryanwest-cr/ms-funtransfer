@@ -52,10 +52,11 @@ class ClientHelper
 		// Player Disabled
 		$player= DB::table('players')->where('client_id', $data['client_id'])
 				->where('client_player_id', $data['client_player_id'])->first();
-		if($player != '' || $player != null){
-			if($player->test_player == 2){ return 7; }
+		if(isset($player->player_status)){
+			if($player != '' || $player != null){
+				if($player->player_status == 2){ return 7; }
+			}
 		}
-
 		return 200; // All Good Request May Proceed!
 	}
 	
