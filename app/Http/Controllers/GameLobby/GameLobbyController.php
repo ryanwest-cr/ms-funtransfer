@@ -10,6 +10,7 @@ use App\Models\GameProvider;
 use App\Models\GameSubProvider;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
+use App\Helpers\ClientHelper;
 use App\Helpers\GameLobby;
 use App\Models\ClientGameSubscribe;
 use Stripe\Balance;
@@ -98,6 +99,7 @@ class GameLobbyController extends Controller
             else{
                 $ip_address = "127.0.0.1";
             }
+
             // CLIENT SUBSCRIPTION FILTER
             // $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
             // if(!$subscription_checker){
@@ -107,8 +109,18 @@ class GameLobbyController extends Controller
             //     );
             //     return $msg;
             // }
-            //
-    
+            
+            // if(ClientHelper::checkClientID($request->all()) != 200){
+            //     $msg = array(
+            //         "error_code" => ClientHelper::checkClientID($request->all()),
+            //         "message" => ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())),
+            //         "game_launch" => false
+            //     );
+            //     return response($msg,200)
+            //     ->header('Content-Type', 'application/json');
+            // }
+
+
            $solid_gamings = ['Solid Gaming', 'Booongo', 'Concept', 'Espresso', 'EvoPlay', 'GameArt', 'Habanero', 'MultiSlot', 'NetEnt', 'Oryx Gaming', 'Omi Gaming', 'Push Gaming', 'Revolver Gaming', 'RTG Asia', 'TPG', '1X2 Network', 'BetSoft', 'Booming', 'Leander', 'Lotus Gaming', 'No Limit City', 'One Touch', 'Quick Fire', 'Relax', 'Wazdan', 'Yggdrasil', 'Evolution Gaming', 'Golden Hero'];
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
