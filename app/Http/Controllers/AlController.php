@@ -261,7 +261,12 @@ class AlController extends Controller
 
 
 
-    public function tapulan(){
+    public function tapulan(Request $request){
+      Helper::saveLog('IP LOG', 999, json_encode($request->ip()), Helper::datesent());
+      return $request->ip();
+      return 1;
+      // $client_details = Providerhelper::getClientDetails('player_id',  98);
+      // dd($client_details);
 
       // return response()
       //       ->json(['name' => 'Abigail', 'state' => 'CA'])
