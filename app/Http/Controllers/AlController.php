@@ -264,13 +264,23 @@ class AlController extends Controller
     public function tapulan(Request $request){
       // return $this->getUserIpAddr();
       // Helper::saveLog('IP LOG', 999, json_encode($request->ip()), $_SERVER["REMOTE_ADDR"].' '.$request->ip().' '.$this->getUserIpAddr());
-      Helper::saveLog('IP LOG1', 999, json_encode($request->ip()), $_SERVER["REMOTE_ADDR"]);
-      Helper::saveLog('IP LOG2', 999, json_encode($request->ip()), $_SERVER["HTTP_CLIENT_IP"]);
-      Helper::saveLog('IP LOG3', 999, json_encode($request->ip()), $_SERVER["HTTP_X_FORWARDED_FOR"]);
-      Helper::saveLog('IP LOG4', 999, json_encode($request->ip()), $_SERVER["HTTP_X_FORWARDED"]);
-      Helper::saveLog('IP LOG5', 999, json_encode($request->ip()), $_SERVER["HTTP_FORWARDED_FOR"]);
-      Helper::saveLog('IP LOG6', 999, json_encode($request->ip()), $_SERVER["HTTP_FORWARDED"]);
-      Helper::saveLog('IP LOG7', 999, json_encode($request->ip()), $_SERVER["REMOTE_ADDR"]);
+
+       if(isset($_SERVER['HTTP_CLIENT_IP'])):
+            Helper::saveLog('IP LOG2', 999, json_encode($request->ip()), $_SERVER["HTTP_CLIENT_IP"]);
+       elseif(isset($_SERVER['HTTP_X_FORWARDED_FOR'])):
+           Helper::saveLog('IP LOG3', 999, json_encode($request->ip()), $_SERVER["HTTP_X_FORWARDED_FOR"]);
+       elseif(isset($_SERVER['HTTP_X_FORWARDED'])):
+           Helper::saveLog('IP LOG4', 999, json_encode($request->ip()), $_SERVER["HTTP_X_FORWARDED"]);
+       elseif(isset($_SERVER['HTTP_FORWARDED_FOR'])):
+           Helper::saveLog('IP LOG5', 999, json_encode($request->ip()), $_SERVER["HTTP_FORWARDED_FOR"]);
+       elseif(isset($_SERVER['HTTP_FORWARDED'])):
+            Helper::saveLog('IP LOG6', 999, json_encode($request->ip()), $_SERVER["HTTP_FORWARDED"]);
+       elseif(isset($_SERVER['REMOTE_ADDR'])):
+            Helper::saveLog('IP LOG7', 999, json_encode($request->ip()), $_SERVER["REMOTE_ADDR"]);
+       else:
+
+       endif;
+
       return 1;
       // $client_details = Providerhelper::getClientDetails('player_id',  98);
       // dd($client_details);
