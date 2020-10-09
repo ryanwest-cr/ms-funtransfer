@@ -262,6 +262,19 @@ class AlController extends Controller
 
 
     public function tapulan(Request $request){
+
+      if(isset($_SERVER["HTTP_X_FORWARDED_FOR"])){
+        if($_SERVER["HTTP_X_FORWARDED_FOR"] == '119.92.151.236'){
+          $msg = 'your whilisted';
+        }else{
+          $msg = 'your blocked';
+        }
+      }else{
+        $msg = 'not set';
+      }
+
+
+
       // return $this->getUserIpAddr();
       // Helper::saveLog('IP LOG', 999, json_encode($request->ip()), $_SERVER["REMOTE_ADDR"].' '.$request->ip().' '.$this->getUserIpAddr());
 
@@ -281,7 +294,8 @@ class AlController extends Controller
 
        endif;
 
-      return 1;
+      return  $msg;
+      
       // $client_details = Providerhelper::getClientDetails('player_id',  98);
       // dd($client_details);
 
