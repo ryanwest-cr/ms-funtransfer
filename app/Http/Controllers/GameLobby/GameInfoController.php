@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use App\Helpers\Helper;
+use App\Helpers\ProviderHelper;
 use Session;
 use DB;
 
