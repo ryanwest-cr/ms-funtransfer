@@ -11,9 +11,10 @@ class ClientHelper
 		  1 => 'Client not found',
 		  2 => 'Client is disabled',
 		  3 => 'Game not found',
-		  4 => 'Games is under maintenance',
+		  4 => 'Game is under maintenance',
 		  5 => 'Provider not found',
 		  6 => 'Provider is under maintenance',
+		  7 => 'Player is disabled',
 		];
 		return $msg[$error_code];
 	}
@@ -33,16 +34,27 @@ class ClientHelper
 
 		// Client Filter [NOT FOUND or DEACTIVATED]
 		$client = DB::table('clients')->where('client_id', $data['client_id'])->first();
-		if($client == '' || $client == null){ return 1; } // Not Found Client
-		if($client->status_id != 1 ){ return 2; } // Client is Disabled
+		if($client == '' || $client == null){ return 1; } 
+		if($client->status_id != 1 ){ return 2; }
 
+		// Game Not Found / Game on maintenance
 		$games = DB::table('games')->where('game_code', $data['game_code'])->first();
 		if($games == '' || $games == null){ return 3; }
 		if($games->on_maintenance != 0 ){ return 4; } 
 
+		// Provider Disabled
 		$sub_provider = DB::table('sub_providers')->where('sub_provider_name', $data['game_provider'])->first();
 		if($sub_provider == '' || $sub_provider == null){ return 5; }
 		if($sub_provider->on_maintenance != 0){ return 6; }
+
+		// Player Disabled
+		$player= DB::table('players')
+		->where('client_id', $data['client_id'])
+		->where('client_player_id', $data['client_player_id'])
+		->first();
+		if($player != '' || $player != null){
+			if($player->test_player == 2){ return 7; }
+		}
 
 		return 200; // All Good Request May Proceed!
 	}
