@@ -292,6 +292,11 @@ class KAGamingController extends Controller
                    $win_or_lost = 0;
                    $entry_id = 1;
                 }
+
+                if($pay_amount == $bet_amount){
+                    $win_or_lost = 3;
+                }
+                
                 ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id);
             }
             ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response,$general_details);
