@@ -363,11 +363,19 @@ class KAGamingController extends Controller
         $existing_bet = ProviderHelper::findGameTransaction($gamerecord,'game_transaction');
 
         $round_id = $existing_bet->round_id;
-        $entry_id = 1;
-        $win_or_lost = 1; // 0 lost,  5 processing
+      
+       
         $bet_amount = $existing_bet->bet_amount;
         $pay_amount =  $existing_bet->pay_amount + $amount; //abs($data['amount']);
         $income = $bet_amount - $pay_amount;
+
+        if($pay_amount > 0){
+            $entry_id = 2; // Credit
+            $win_or_lost = 1; // 0 lost,  5 processing
+        }else{
+            $entry_id = 1; // Debit
+            $win_or_lost = 0; // 0 lost,  5 processing
+        }
 
         $game_transaction_type = 2; // 1 Bet, 2 Win
         $game_code = $game_information->game_id;
