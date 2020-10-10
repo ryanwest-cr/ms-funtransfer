@@ -270,11 +270,17 @@ class KAGamingController extends Controller
                 "statusCode" =>  0
             ];
             if($check_bet_round != 'false'){
+                $win_or_lost = $existing_bet_details->win;
+                $entry_id = $existing_bet_details->entry_id;
+
                 $pay_amount = $existing_bet_details->pay_amount + $win_amount;
                 $bet_amount = $existing_bet_details->bet_amount + $bet_amount;
                 $income = $bet_amount - $pay_amount; //$existing_bet_details->income;
-                $win_or_lost = $existing_bet_details->win;
-                $entry_id = $existing_bet_details->entry_id;
+
+                if($pay_amount == $bet_amount){
+                    $win_or_lost = 3;
+                }
+
                 ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id,'game_trans_id',$bet_amount,$multi_bet=true);
             }else{
                 $pay_amount = $win_amount;
