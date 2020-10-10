@@ -191,6 +191,19 @@ class ProviderHelper{
 					"refreshtoken" => $refreshtoken
 				]
 			];
+
+			// Filter Player If Disabled
+			$player= DB::table('players')->where('client_id', $client_details->client_id)
+					->where('player_id', $client_details->player_id)->first();
+			if(isset($player->player_status)){
+				if($player != '' || $player != null){
+					if($player->player_status == 3){
+					Helper::saveLog('ALDEBUG PLAYER BLOCKED = '.$player->player_status,  999, json_encode($datatosend), $datatosend);
+					 return 'false';
+					}
+				}
+			}
+
 			// return json_encode($datatosend);
 			try{	
 				$guzzle_response = $client->post($client_details->player_details_url,
