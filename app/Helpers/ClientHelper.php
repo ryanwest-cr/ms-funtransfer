@@ -15,6 +15,8 @@ class ClientHelper
 		  5 => 'Provider not found',
 		  6 => 'Provider is under maintenance',
 		  7 => 'Player is disabled',
+		  8 => 'Operator Not Found',
+		  9 => 'Operator Disabled',
 		];
 		return $msg[$error_code];
 	}
@@ -32,12 +34,15 @@ class ClientHelper
 	
 	public static function checkClientID($data){
 
-
-
 		// Client Filter [NOT FOUND or DEACTIVATED]
 		$client = DB::table('clients')->where('client_id', $data['client_id'])->first();
 		if($client == '' || $client == null){ return 1; } 
 		if($client->status_id != 1 ){ return 2; }
+
+		// Operator maintenance
+		$operator = DB::table('operator')->where('operator_id', $client->operator_id)->first();
+		if($operator == '' || $operator == null){ return 8; } 
+		if(isset($operator->status_id) && $operator->status_id != 1 ){ return 9; }
 
 		// Game Not Found / Game on maintenance
 		$games = DB::table('games')->where('game_code', $data['game_code'])->first();
