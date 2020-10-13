@@ -161,7 +161,8 @@ class EvolutionController extends Controller
                     elseif(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "402"){
                         $game->game_trans_id=$gametransactionid;
-                        Helper::updateGameTransaction($game,$json_data,"fail");
+                        Helper::saveLog('debitrequest(EVG)', 50, json_encode($game), "debit");
+                        Helper::updateGameTransaction($game,$json_data,$transactionId);
                         $msg = array(
                             "status"=>"INSUFFICIENT_FUNDS",
                             "uuid"=>$data["uuid"],
