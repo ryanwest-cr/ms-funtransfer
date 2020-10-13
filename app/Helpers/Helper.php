@@ -267,6 +267,7 @@ class Helper
 		return $game;
 	}
 	public static function checkGameTransaction($provider_transaction_id,$round_id=false,$type=false){
+		DB::enableQueryLog();
 		if($type&&$round_id){
 			$game = DB::table('game_transaction_ext')
 				->where('provider_trans_id',$provider_transaction_id)
@@ -279,6 +280,7 @@ class Helper
 				->where('provider_trans_id',$provider_transaction_id)
 				->first();
 		}
+		Helper::saveLog('TIMEcheckGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return $game ? true :false;
 	}
 	public static function getBalance($client_details){
