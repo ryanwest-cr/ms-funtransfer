@@ -457,6 +457,7 @@ class Helper
 	}
 
 	public static function updateGameTransaction($existingdata,$request_data,$type){
+		DB::enableQueryLog();
 		switch ($type) {
 			case "debit":
 					$trans_data["win"] = 0;
@@ -488,6 +489,7 @@ class Helper
 			default:
 		}
 		/*var_dump($trans_data); die();*/
+		Helper::saveLog('TIMEupdateGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return DB::table('game_transactions')->where("game_trans_id",$existingdata->game_trans_id)->update($trans_data);
 	}
 	/**
