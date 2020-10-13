@@ -160,10 +160,12 @@ class EvolutionController extends Controller
                     }
                     elseif(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "402"){
+                        Helper::updateGameTransaction($game,$json_data,"fail");
                         $msg = array(
                             "status"=>"INSUFFICIENT_FUNDS",
                             "uuid"=>$data["uuid"],
                         );
+                        Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
                         return response($msg,200)
                         ->header('Content-Type', 'application/json');
                     }

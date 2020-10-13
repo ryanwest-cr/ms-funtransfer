@@ -478,7 +478,13 @@ class Helper
 					$trans_data["income"]= $existingdata->bet_amount-$request_data["amount"];
 					$trans_data["payout_reason"] = "Refund of this transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"];
 				break;
-
+			case "fail":
+				$trans_data["win"] = 2;
+				$trans_data["pay_amount"] = $request_data["amount"];
+				$trans_data["entry_id"] = 1;
+				$trans_data["income"]= 0;
+				$trans_data["payout_reason"] = "Fail  transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"] .":Insuffecient Balance";
+			break;
 			default:
 		}
 		/*var_dump($trans_data); die();*/
