@@ -37,7 +37,7 @@ class GameTransaction
 		    		$trans_data["provider_trans_id"] = (array_key_exists('transid', $request_data) ? $request_data["transid"] : '');
 					$trans_data["bet_amount"] = 0;
 					$trans_data["win"] = 1;
-					$trans_data["pay_amount"] = $game_data->pay_amount;
+					$trans_data["pay_amount"] = $game_data->bet_amount;
 					$trans_data["entry_id"] = 3;
 					$trans_data["payout_reason"] = "Rollback of transaction ID: ".$game_data->game_trans_id;
 		        break;
@@ -105,6 +105,15 @@ class GameTransaction
 								->first();
 
 		return ($transaction_id ? $transaction_id : false);
+	}
+
+	public static function find_refund($original_trans_id) {
+		$transaction_result = DB::table('game_transactions')
+								->where('provider_trans_id', $original_trans_id)
+								->where('entry_id', 3)
+								->first();
+
+		return ($transaction_result ? $transaction_result->game_trans_id : false);
 	}
 
 	public static function rollback($original_trans_id) {
