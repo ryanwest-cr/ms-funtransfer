@@ -114,7 +114,9 @@ class EvolutionController extends Controller
             $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"]);
+                Helper::saveLog('debitrequestcheck(EVG)', 50, json_encode($game_transaction), "debit");
                 if($game_transaction){
+                    Helper::saveLog('debitrequestcheck2(EVG)', 50, json_encode($game_transaction), "debit");
                     $msg = array(
                         "status"=>"BET_ALREADY_EXIST",
                         "uuid"=>$data["uuid"],
