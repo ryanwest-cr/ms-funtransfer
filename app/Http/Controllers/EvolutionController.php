@@ -217,7 +217,12 @@ class EvolutionController extends Controller
                     );
                     $game = Helper::getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
                     if(!$game){
-                        $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
+                        //$gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
+                        $msg = array(
+                            "status"=>"BET_DOES_NOT_EXIST",
+                            "uuid"=>$data["uuid"],
+                        );
+                        return response($msg,200)->header('Content-Type', 'application/json');
                     }
                     else{
                         if($win == 0){
