@@ -219,7 +219,7 @@ class EvolutionController extends Controller
                         "payout_reason" => null,
                         "win" => $win,
                     );
-                    $game = Helper::getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
+                    $game = EVGHelper::getGameTransaction($data["transaction"]["refId"]);
                     if(!$game){
                         //$gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
                         $msg = array(
