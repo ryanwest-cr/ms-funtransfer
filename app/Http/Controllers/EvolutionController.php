@@ -350,6 +350,86 @@ class EvolutionController extends Controller
     public function gameLaunch(Request $request){
         return EVGHelper::gameLaunch($request->token,"139.180.159.34",$request->game_code);
     }
+    public function internalrefund(Request $request){
+        if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
+            $data = json_decode($request->getContent(),TRUE);
+            Helper::saveLog('cancelrequest(EVG)', 50, json_encode($data), "cancel");
+            $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
+            if($client_details){
+                $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"],$data["transaction"]["refId"],3);
+                if($game_transaction){
+                    $msg = array(
+                        "status"=>"BET_ALREADY_SETTLED",
+                        "uuid"=>$data["uuid"],
+                    );
+                    return response($msg,200)->header('Content-Type', 'application/json');
+                }
+                else{
+                    $check_bet_exist = Helper::checkGameTransaction($data["transaction"]["id"],$data["transaction"]["refId"],1);
+                    if(!$check_bet_exist){
+                        $msg = array(
+                            "status"=>"BET_DOES_NOT_EXIST",
+                            "uuid"=>$data["uuid"],
+                        );
+                        return response($msg,200)->header('Content-Type', 'application/json');
+                    }
+                    else{
+                        $win = 0;
+                        if(config("providerlinks.evolution.env") == 'test'){
+                            $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"],config("providerlinks.evolution.env"));
+                        }
+                        if(config("providerlinks.evolution.env") == 'production'){
+                            $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],null,config("providerlinks.evolution.env"));
+                        }
+                        $json_data = array(
+                            "transid" => $data["transaction"]["id"],
+                            "amount" => round($data["transaction"]["amount"],2),
+                            "roundid" => $data["transaction"]["refId"],
+                        );
+                        if($data["transaction"]["refId"]){
+                            $gametransactionid=$data["transaction"]["refId"];
+                        }
+                        else{
+                            $msg = array(
+                                "status"=>"INVALID_PARAMETER",
+                                "uuid"=>$data["uuid"],
+                            );
+                            return response($msg,200)->header('Content-Type', 'application/json');
+                        }
+                        $transactionId= EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,3); 
+                        $client_response = ClientRequestHelper::fundTransfer($client_details,round($data["transaction"]["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
+                        $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+                        if(isset($client_response->fundtransferresponse->status->code) 
+                        && $client_response->fundtransferresponse->status->code == "200"){
+                            $msg = array(
+                                "status"=>"OK",
+                                "balance"=>(float)$balance,
+                                "uuid"=>$data["uuid"],
+                            );
+                            Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
+                            return response($msg,200)
+                                ->header('Content-Type', 'application/json');
+                        }
+                    }
+                }
+            }
+            else{
+                $msg = array(
+                    "status"=>"INVALID_PARAMETER",
+                    "uuid"=>$data["uuid"],
+                );
+                return response($msg,200)->header('Content-Type', 'application/json');
+            }
+        }
+        else{
+            $data = json_decode($request->getContent(),TRUE);
+            $msg = array(
+                "status"=>"INVALID_TOKEN_ID",
+                "uuid"=>$data["uuid"],
+            );
+            return response($msg,200)->header('Content-Type', 'application/json');
+        }
+    }
     private function _getClientDetails($type = "", $value = "") {
 
 		$query = DB::table("clients AS c")

@@ -493,6 +493,7 @@ $app->post('/api/evogaming/credit','EvolutionController@credit');
 $app->post('/api/evogaming/cancel','EvolutionController@cancel');
 $app->post('/api/evogaming/sid','EvolutionController@sid');
 $app->post('/api/evogaming/launch','EvolutionController@gameLaunch');
+$app->post('/api/evogaming/internalrefund','EvolutionController@internalrefund');
 
 
 //Golden F Game System
