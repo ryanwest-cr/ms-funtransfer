@@ -283,47 +283,51 @@ class EvolutionController extends Controller
                     );
                     return response($msg,200)->header('Content-Type', 'application/json');
                 }
-                $check_bet_exist = Helper::checkGameTransaction($data["transaction"]["id"],$data["transaction"]["refId"],1);
-                if(!$check_bet_exist){
-                    $msg = array(
-                        "status"=>"BET_DOES_NOT_EXIST",
-                        "uuid"=>$data["uuid"],
-                    );
-                    return response($msg,200)->header('Content-Type', 'application/json');
-                }
-                $win = 0;
-                if(config("providerlinks.evolution.env") == 'test'){
-                    $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"],config("providerlinks.evolution.env"));
-                }
-                if(config("providerlinks.evolution.env") == 'production'){
-                    $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],null,config("providerlinks.evolution.env"));
-                }
-                $json_data = array(
-                    "transid" => $data["transaction"]["id"],
-                    "amount" => round($data["transaction"]["amount"],2),
-                    "roundid" => $data["transaction"]["refId"],
-                );
-                $game = Helper::getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
-                if(!$game){
-                    $gametransactionid=Helper::createGameTransaction('refund', $json_data, $game_details, $client_details); 
-                }
                 else{
-                    $gameupdate = Helper::updateGameTransaction($game,$json_data,"refund");
-                    $gametransactionid = $game->game_trans_id;
-                }
-                $transactionId= EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,3); 
-                $client_response = ClientRequestHelper::fundTransfer($client_details,round($data["transaction"]["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
-                $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
-                if(isset($client_response->fundtransferresponse->status->code) 
-                && $client_response->fundtransferresponse->status->code == "200"){
-                    $msg = array(
-                        "status"=>"OK",
-                        "balance"=>(float)$balance,
-                        "uuid"=>$data["uuid"],
-                    );
-                    Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
-                    return response($msg,200)
-                        ->header('Content-Type', 'application/json');
+                    $check_bet_exist = Helper::checkGameTransaction($data["transaction"]["id"],$data["transaction"]["refId"],1);
+                    if(!$check_bet_exist){
+                        $msg = array(
+                            "status"=>"BET_DOES_NOT_EXIST",
+                            "uuid"=>$data["uuid"],
+                        );
+                        return response($msg,200)->header('Content-Type', 'application/json');
+                    }
+                    else{
+                        $win = 0;
+                        if(config("providerlinks.evolution.env") == 'test'){
+                            $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"],config("providerlinks.evolution.env"));
+                        }
+                        if(config("providerlinks.evolution.env") == 'production'){
+                            $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],null,config("providerlinks.evolution.env"));
+                        }
+                        $json_data = array(
+                            "transid" => $data["transaction"]["id"],
+                            "amount" => round($data["transaction"]["amount"],2),
+                            "roundid" => $data["transaction"]["refId"],
+                        );
+                        $game = Helper::getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
+                        if(!$game){
+                            $gametransactionid=Helper::createGameTransaction('refund', $json_data, $game_details, $client_details); 
+                        }
+                        else{
+                            $gameupdate = Helper::updateGameTransaction($game,$json_data,"refund");
+                            $gametransactionid = $game->game_trans_id;
+                        }
+                        $transactionId= EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,3); 
+                        $client_response = ClientRequestHelper::fundTransfer($client_details,round($data["transaction"]["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
+                        $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
+                        if(isset($client_response->fundtransferresponse->status->code) 
+                        && $client_response->fundtransferresponse->status->code == "200"){
+                            $msg = array(
+                                "status"=>"OK",
+                                "balance"=>(float)$balance,
+                                "uuid"=>$data["uuid"],
+                            );
+                            Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
+                            return response($msg,200)
+                                ->header('Content-Type', 'application/json');
+                        }
+                    }
                 }
             }
             else{

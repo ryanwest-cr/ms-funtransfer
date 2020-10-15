@@ -248,7 +248,7 @@ class Helper
 					$trans_data["provider_trans_id"] = $request_data["transid"];
 					$trans_data["bet_amount"] = 0;
 					$trans_data["win"] = 0;
-					$trans_data["pay_amount"] = $request_data["amount"];
+					$trans_data["pay_amount"] = 0;
 					$trans_data["entry_id"] = 2;
 					$trans_data["payout_reason"] = "Refund of this transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"];
 				break;
