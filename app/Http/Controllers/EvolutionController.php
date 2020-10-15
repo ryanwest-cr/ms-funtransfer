@@ -366,14 +366,6 @@ class EvolutionController extends Controller
                 }
                 else{
                     $check_bet_exist = Helper::checkGameTransaction($data["transaction"]["id"],$data["transaction"]["refId"],1);
-                    if(!$check_bet_exist){
-                        $msg = array(
-                            "status"=>"BET_DOES_NOT_EXIST",
-                            "uuid"=>$data["uuid"],
-                        );
-                        return response($msg,200)->header('Content-Type', 'application/json');
-                    }
-                    else{
                         $win = 0;
                         if(config("providerlinks.evolution.env") == 'test'){
                             $game_details = EVGHelper::getGameDetails($data["game"]["details"]["table"]["id"],$data["game"]["type"],config("providerlinks.evolution.env"));
@@ -410,7 +402,6 @@ class EvolutionController extends Controller
                             return response($msg,200)
                                 ->header('Content-Type', 'application/json');
                         }
-                    }
                 }
             }
             else{
