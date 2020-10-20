@@ -280,6 +280,7 @@ class Helper
 						FROM game_transactions g
 						INNER JOIN player_session_tokens USING (token_id)
 						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
+		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode($game), "DB TIME");
 		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return $game;
 	}
