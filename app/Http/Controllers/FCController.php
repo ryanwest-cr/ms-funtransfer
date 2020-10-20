@@ -67,6 +67,7 @@ class FCController extends Controller
                 "roundid" => $data["RecordID"]
             );
             $game = Helper::getGameTransaction($client_details->player_token,$data["RecordID"]);
+            dd($game);
             if(!$game){
                 $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
             }
