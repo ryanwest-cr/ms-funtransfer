@@ -279,9 +279,7 @@ class Helper
 						entry_id,bet_amount,game_trans_id
 						FROM game_transactions g
 						INNER JOIN player_session_tokens USING (token_id)
-						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
-		$game_details = json_encode($game);
-		$game = json_decode($game_details,TRUE);
+						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'")->get();
 		Helper::saveLog('getGameTransaction(EVG)', 189, json_encode($game["bet_amount"]), "getGameTransaction");
 		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return $game;
