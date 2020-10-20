@@ -257,30 +257,30 @@ class FCController extends Controller
     }
     private function _getClientDetails($type = "", $value = "") {
 
-		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.client_player_id','p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name','c.default_currency', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
-				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
-				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
-				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
-				 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id");
-				 
-				if ($type == 'token') {
-					$query->where([
-				 		["pst.player_token", "=", $value],
-				 		["pst.status_id", "=", 1]
-				 	]);
-				}
+        $query = DB::table("clients AS c")
+                 ->select('p.client_id', 'p.player_id', 'p.client_player_id','p.username', 'p.email', 'p.language', 'p.currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name','c.default_currency', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+                 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
+                 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
+                 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
+                 ->leftJoin("client_access_tokens AS cat", "c.client_id", "=", "cat.client_id");
+                 
+                if ($type == 'token') {
+                    $query->where([
+                        ["pst.player_token", "=", $value],
+                        ["pst.status_id", "=", 1]
+                    ]);
+                }
 
-				if ($type == 'player_id') {
-					$query->where([
-				 		["p.player_id", "=", $value],
-				 		["pst.status_id", "=", 1]
-				 	])->orderBy('pst.token_id','desc')->limit(1);
-				}
+                if ($type == 'player_id') {
+                    $query->where([
+                        ["p.player_id", "=", $value],
+                        ["pst.status_id", "=", 1]
+                    ])->orderBy('pst.token_id','desc')->limit(1);
+                }
 
-				 $result= $query->first();
+                 $result= $query->first();
 
-		return $result;
+        return $result;
     }
 
 }

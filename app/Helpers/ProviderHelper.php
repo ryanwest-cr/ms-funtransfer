@@ -98,9 +98,8 @@ class ProviderHelper{
 	 * @param $[value] [<value to be searched>]
 	 * 
 	 */
-    public static function getClientDetails($type = "", $value = "", $gg=1) {
+    public static function getClientDetails($type = "", $value = "", $gg=1, $providerfilter='all') {
 	    if($gg==1){
-
 		 // Overall Operator Table
 		 $query = DB::table("clients AS c")
 		 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency','p.test_player','p.created_at','pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'op.client_api_key', 'op.client_code','op.client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url','p.created_at')
@@ -125,12 +124,22 @@ class ProviderHelper{
 				 		// ["pst.status_id", "=", 1]
 				 	]);
 				}
-				if ($type == 'player_id') {
+				
+				if($providerfilter=='fachai'){
+				  if ($type == 'player_id') {
+						$query->where([
+					 		["p.player_id", "=", $value],
+					 		["pst.status_id", "=", 1]
+					 	])->orderBy('pst.token_id','desc')->limit(1);
+					}
+				}else{
+	 		      if ($type == 'player_id') {
 					$query->where([
-				 		["p.player_id", "=", $value],
-				 		// ["pst.status_id", "=", 1]
-				 	]);
+					 		["p.player_id", "=", $value],
+					 	]);
+					}
 				}
+
 				if ($type == 'site_url') {
 					$query->where([
 				 		["c.client_url", "=", $value],
@@ -146,9 +155,12 @@ class ProviderHelper{
 				 		["pst.token_id", $value],
 				 	]);
 				}
-				$result= $query
-				 			->latest('token_id')
-				 			->first();
+
+				if($providerfilter=='fachai'){
+				  $result= $query->first();
+				}else{
+	 		      $result= $query->latest('token_id')->first();
+				}
 
 			    return $result;
 	}
