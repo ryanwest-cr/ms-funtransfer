@@ -493,13 +493,13 @@ class Helper
 			case "debit":
 					$trans_data["win"] = 0;
 					$trans_data["pay_amount"] = 0;
-					$trans_data["income"]=$existingdata->bet_amount-$request_data["amount"];
+					$trans_data["income"]=$existingdata["bet_amount"]-$request_data["amount"];
 					$trans_data["entry_id"] = 1;
 				break;
 			case "credit":
 					$trans_data["win"] = $request_data["win"];
 					$trans_data["pay_amount"] = abs($request_data["amount"]);
-					$trans_data["income"]=$existingdata->bet_amount-$request_data["amount"];
+					$trans_data["income"]=$existingdata["bet_amount"]-$request_data["amount"];
 					$trans_data["entry_id"] = 2;
 					$trans_data["payout_reason"] = $request_data["payout_reason"];
 				break;
@@ -507,7 +507,7 @@ class Helper
 					$trans_data["win"] = 4;
 					$trans_data["pay_amount"] = $request_data["amount"];
 					$trans_data["entry_id"] = 2;
-					$trans_data["income"]= $existingdata->bet_amount-$request_data["amount"];
+					$trans_data["income"]= $existingdata["bet_amount"]-$request_data["amount"];
 					$trans_data["payout_reason"] = "Refund of this transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"];
 				break;
 			case "fail":
@@ -521,7 +521,7 @@ class Helper
 		}
 		/*var_dump($trans_data); die();*/
 		Helper::saveLog('TIMEupdateGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
-		return DB::table('game_transactions')->where("game_trans_id",$existingdata->game_trans_id)->update($trans_data);
+		return DB::table('game_transactions')->where("game_trans_id",$existingdata["game_trans_id"])->update($trans_data);
 	}
 	/**
 	 * @token = player_token
