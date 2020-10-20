@@ -282,7 +282,7 @@ class Helper
 						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
 		$game_details = json_encode($game);
 		$game = json_decode($game_details,TRUE);
-		Helper::saveLog('getGameTransaction(EVG)', 189, json_encode($game[0]), "getGameTransaction");
+		Helper::saveLog('getGameTransaction(EVG)', 189, json_encode($game["bet_amount"]), "getGameTransaction");
 		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return $game;
 	}
