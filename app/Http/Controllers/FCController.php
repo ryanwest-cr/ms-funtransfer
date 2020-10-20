@@ -32,7 +32,7 @@ class FCController extends Controller
         $datareq = FCHelper::AESDecode((string)$request->Params);
         $data = json_decode($datareq,TRUE);
         //return $data;
-        $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"]);
+        $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"], 1, 'fachai');
         if($client_details){
             if(Helper::getBalance($client_details) < round($data["Bet"],2)){ 
                 $response =array(
@@ -134,7 +134,7 @@ class FCController extends Controller
         $datareq = FCHelper::AESDecode((string)$request->Params);
         $data = json_decode($datareq,TRUE);
         //return $data;
-        $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"]);
+        $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"], 1, 'fachai');
         if($client_details){
             $rollbackchecker = Helper::checkGameTransaction($data["BankID"]);
             if(!$rollbackchecker){
@@ -196,7 +196,7 @@ class FCController extends Controller
     public function getBalance(Request $request){
         if($request->has("Params")){
             $datareq = FCHelper::AESDecode((string)$request->Params);
-            $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"]);
+            $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount", 1, 'fachai']);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
