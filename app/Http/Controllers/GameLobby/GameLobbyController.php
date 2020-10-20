@@ -83,6 +83,12 @@ class GameLobbyController extends Controller
         }
         
     }
+
+    public function createFallbackLink($data){
+        $log_id = Helper::saveLog('GAME LAUNCH', 99, json_encode($data), 'FAILED LAUNCH');
+        $url =config('providerlinks.tigergames').'/tigergames/api?msg=Something went wrong please contact Tiger Games&id='.$log_id;
+        return $url;
+    }
     public function gameLaunchUrl(Request $request){
         if($request->has('client_id')
         &&$request->has('client_player_id')
@@ -112,9 +118,11 @@ class GameLobbyController extends Controller
             
             // Filters
             if(ClientHelper::checkClientID($request->all()) != 200){
+                $log_id = Helper::saveLog('GAME LAUNCH', 99, json_encode($request->all()), 'FAILED LAUNCH '.$request->client_id);
                 $msg = array(
                     "error_code" => ClientHelper::checkClientID($request->all()),
                     "message" => ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())),
+                    "url" => config('providerlinks.tigergames').'/tigergames/api?msg='.ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())).'&id='.$log_id,
                     "game_launch" => false
                 );
                 return response($msg,200)
@@ -210,6 +218,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
@@ -238,6 +247,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
@@ -256,6 +266,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
@@ -273,6 +284,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
@@ -293,6 +305,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
@@ -312,6 +325,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
@@ -340,6 +354,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
@@ -357,6 +372,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
@@ -413,6 +429,7 @@ class GameLobbyController extends Controller
                     }else{
                         $msg = array(
                             "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
