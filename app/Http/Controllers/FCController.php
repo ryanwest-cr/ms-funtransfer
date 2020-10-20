@@ -32,6 +32,7 @@ class FCController extends Controller
         $datareq = FCHelper::AESDecode((string)$request->Params);
         $data = json_decode($datareq,TRUE);
         //return $data;
+        Helper::saveLog('transactionMake(FC)', 27, json_encode($data), json_encode($data));
         $duplicatechecker = Helper::checkGameTransactionupdate($data["BankID"],1);
         if(!$duplicatechecker){
             $response =array(
