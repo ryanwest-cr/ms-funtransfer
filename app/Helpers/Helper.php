@@ -283,6 +283,15 @@ class Helper
 		Helper::saveLog('TIMEcheckGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return $game ? true :false;
 	}
+	public static function checkGameTransactionupdate($round_id=false,$type=false){
+		DB::enableQueryLog();
+			$game = DB::table('game_transaction_ext')
+				->where('round_id',$round_id)
+				->where('game_transaction_type',$type)
+				->first();
+		Helper::saveLog('TIMEcheckGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
+		return $game ? true :false;
+	}
 	public static function getBalance($client_details){
             if($client_details){
                 $client = new Client([
