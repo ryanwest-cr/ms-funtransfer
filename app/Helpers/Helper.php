@@ -276,7 +276,7 @@ class Helper
 		// 		->where("gt.round_id",$game_round)
 		// 		->first();
 		$game = DB::select("SELECT
-						entry_id
+						entry_id,bet_amount,game_trans_id
 						FROM game_transactions g
 						INNER JOIN player_session_tokens USING (token_id)
 						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
