@@ -283,6 +283,14 @@ class Helper
 		Helper::saveLog('TIMEcheckGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return $game ? true :false;
 	}
+	public static function checkGameTransactionData($provider_transaction_id){
+		DB::enableQueryLog();
+		$game = DB::table('game_transaction_ext')
+			->where('provider_trans_id',$provider_transaction_id)
+			->first();
+		Helper::saveLog('TIMEcheckGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
+		return $game;
+	}
 	public static function checkGameTransactionupdate($round_id=false,$type=false){
 		DB::enableQueryLog();
 			$game = DB::table('game_transaction_ext')

@@ -19,8 +19,17 @@ class BNGController extends Controller
         }
         elseif($data["name"]== "transaction"){
             if($data["args"]["bet"]!= null && $data["args"]["win"]!= null){
-                $this->_betGame($data);
-                return $this->_winGame($data);
+                $game_transaction = Helper::checkGameTransactionData($data["uid"]);
+                if(!empty($game_transaction)){
+                    $response = json_decode($game_transaction->mw_reponse,TRUE);
+                    Helper::saveLog('betAlreadyExist(BNG)', 12, json_encode($data), $response);
+                    return response($response,200)
+                        ->header('Content-Type', 'application/json');
+                }
+                else{
+                    $this->_betGame($data);
+                    return $this->_winGame($data);
+                }
             }
             elseif($data["args"]["bet"]== null && $data["args"]["win"]!= null){
                 return $this->_winGame($data);
