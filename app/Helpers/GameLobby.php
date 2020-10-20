@@ -38,6 +38,7 @@ class GameLobby{
         $client = GameLobby::getClientDetails("token",$token);
         Helper::savePLayerGameRound($game_code,$token,$provider);
         $data = FCHelper::loginGame($client->player_id,$game_code,1,$exitUrl);
+        Helper::saveLog('GAMELAUNCH FC', 11, json_encode($game_code), json_encode($data));
         return $data["Url"];
     }
     public static function booongoLaunchUrl($game_code,$token,$provider,$exitUrl){
