@@ -105,7 +105,7 @@ class Helper
 						"request_data" => json_encode(json_decode($request_data)),
 						"response_data" => json_encode($response_data)
 					];
-			DB::table('seamless_request_logs')->insert($data);
+			return DB::table('seamless_request_logs')->insertGetId($data);
 	}
 
 	public static function saveClientLog($method, $provider_id = 0, $sent_data, $response_data) {

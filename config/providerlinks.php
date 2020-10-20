@@ -2,6 +2,7 @@
 
 
 return [
+    'tigergames' => '127.0.0.1:8000',
     'icgaminglogin' => 'https://admin-stage.iconic-gaming.com/service/login',
     'icgaminggames' => 'https://admin-stage.iconic-gaming.com/service/api/v1/games?type=all&lang=en',
     'icgagents'=>[
