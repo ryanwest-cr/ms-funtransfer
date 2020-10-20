@@ -32,19 +32,27 @@ class FCController extends Controller
         $datareq = FCHelper::AESDecode((string)$request->Params);
         $data = json_decode($datareq,TRUE);
         //return $data;
-        $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"],1,'fachai');
-        if($client_details){
-            if(Helper::getBalance($client_details) < round($data["Bet"],2)){ 
-                $response =array(
-                    "Result"=>203,
-                    "ErrorText"=> "Your Cash Balance not enough."
-                );
-                return response($response,200)
-                    ->header('Content-Type', 'application/json');
+        $duplicatechecker = Helper::checkGameTransactionupdate($data["BankID"],1);
+        if(!$duplicatechecker){
+            $response =array(
+                "Result"=>205,
+                "ErrorText" => "Duplicate Transaction ID number",
+            );
+            return response($response,200)
+                ->header('Content-Type', 'application/json');
+        }else{
+            $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"],1,'fachai');
+            if($client_details){
+                $bet_response = $this->_betGame($client_details,$data);
+                if(isset($bet_response)&&array_key_exists("ErrorText",$bet_response)){
+                    return response($bet_response,200)
+                                ->header('Content-Type', 'application/json');
+                }else{
+                    return $this->_winGame($client_details,$data);
+                }
             }
-            $this->_betGame($client_details,$data);
-            return $this->_winGame($client_details,$data);
         }
+        
     }
     private function _betGame($client_details,$data){
         if($client_details){
@@ -72,14 +80,20 @@ class FCController extends Controller
             //Helper::saveLog('betGamecheck(FC)', 2, json_encode($transactionId), "data");
             if(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "200"){
-                
                 $response =array(
                     "recordID"=>$data["RecordID"],
-                    "balance" =>Helper::getBalance($client_details),
+                    "balance" =>$balance,
                 );
                 FCHelper::updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
-                return response($response,200)
-                    ->header('Content-Type', 'application/json');
+                return $response;
+            }
+            elseif(isset($client_response->fundtransferresponse->status->code) 
+                && $client_response->fundtransferresponse->status->code == "402"){
+                    $response =array(
+                        "Result"=>203,
+                        "ErrorText"=> "Your Cash Balance not enough."
+                    );
+                return $response;
             }
         }
     }
