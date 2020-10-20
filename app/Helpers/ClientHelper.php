@@ -3,6 +3,7 @@ namespace App\Helpers;
 use DB;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
+use App\Helpers\Helper;
 
 class ClientHelper
 {
@@ -62,6 +63,7 @@ class ClientHelper
 				if($player->player_status == 2){ return 7; }
 			}
 		}
+
 		return 200; // All Good Request May Proceed!
 	}
 	
