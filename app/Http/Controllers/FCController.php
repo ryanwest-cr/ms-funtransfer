@@ -35,7 +35,7 @@ class FCController extends Controller
         Helper::saveLog('transactionMake(FC)', 27, json_encode($data), json_encode($data));
         $duplicatechecker = Helper::checkGameTransactionupdate($data["BankID"],1);
         Helper::saveLog('transactionMake(FC)', 27, json_encode($data), json_encode($duplicatechecker));
-        if(!$duplicatechecker){
+        if($duplicatechecker){
             $response =array(
                 "Result"=>205,
                 "ErrorText" => "Duplicate Transaction ID number",
