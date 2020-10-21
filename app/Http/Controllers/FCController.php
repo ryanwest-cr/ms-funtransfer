@@ -118,9 +118,9 @@ class FCController extends Controller
             }
             else{
                 if($win == 0){
-                    $gameupdate = Helper::updateGameTransaction($game,$json_data,"debit");
+                    $gameupdate = FCHelper::updateGameTransaction($game,$json_data,"debit");
                 }else{
-                    $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
+                    $gameupdate = FCHelper::updateGameTransaction($game,$json_data,"credit");
                 }
                 $gametransactionid = $game[0]->game_trans_id;
             }
@@ -185,7 +185,7 @@ class FCController extends Controller
                         $gametransactionid=Helper::createGameTransaction('refund', $json_data, $game_details, $client_details); 
                     }
                     else{
-                        $gameupdate = Helper::updateGameTransaction($game,$json_data,"refund");
+                        $gameupdate = FCHelper::updateGameTransaction($game,$json_data,"refund");
                         $gametransactionid = $game[0]->game_trans_id;
 
                     }
