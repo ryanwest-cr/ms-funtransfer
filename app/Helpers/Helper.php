@@ -282,7 +282,8 @@ class Helper
 						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
 		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode($game), "DB TIME");
 		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
-		$data = json_decode($game,TRUE);
+		$game_details = (array)$game;
+		$data = json_decode($game_details[0],TRUE);
 		return $data;
 	}
 	public static function checkGameTransaction($provider_transaction_id,$round_id=false,$type=false){
