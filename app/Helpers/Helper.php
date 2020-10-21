@@ -488,6 +488,7 @@ class Helper
 	}
 
 	public static function updateGameTransaction($existingdata,$request_data,$type){
+		return $existingdata;
 		DB::enableQueryLog();
 		switch ($type) {
 			case "debit":

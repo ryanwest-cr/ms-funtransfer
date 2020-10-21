@@ -114,7 +114,6 @@ class FCController extends Controller
                 "win" => $win,
             );
             $game = Helper::getGameTransaction($client_details->player_token,$data["RecordID"]);
-            return $game;
             if(!$game){
                 $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
             }
@@ -123,6 +122,7 @@ class FCController extends Controller
                     $gameupdate = Helper::updateGameTransaction($game,$json_data,"debit");
                 }else{
                     $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
+                    return $game;
                 }
                 $gametransactionid = $game->game_trans_id;
             }
