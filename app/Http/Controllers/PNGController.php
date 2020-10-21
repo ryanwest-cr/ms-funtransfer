@@ -145,6 +145,7 @@ class PNGController extends Controller
     public function release(Request $request){
         $data = $request->getContent();
         $xmlparser = new SimpleXMLElement($data);
+        Helper::saveLog('PNGReleasechecker(PNG)', 189, json_encode($xmlparser), "Checker");
         $accessToken = "secrettoken";
         if($xmlparser->externalGameSessionId){
             $client_details = ProviderHelper::getClientDetails('token',$xmlparser->externalGameSessionId);
