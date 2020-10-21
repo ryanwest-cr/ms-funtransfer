@@ -57,6 +57,22 @@ class FCHelper
         );
         return json_decode($provider_response->getBody(),TRUE);
     }
+    public static function getGameTransactionupdate($player_token,$game_round){
+		DB::enableQueryLog();
+		// $game = DB::table("player_session_tokens as pst")
+		// 		->leftJoin("game_transactions as gt","pst.token_id","=","gt.token_id")
+		// 		->where("pst.player_token",$player_token)
+		// 		->where("gt.round_id",$game_round)
+		// 		->first();
+		$game = DB::select("SELECT
+						entry_id,bet_amount,game_trans_id
+						FROM game_transactions g
+						INNER JOIN player_session_tokens USING (token_id)
+						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
+		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode($game), "DB TIME");
+		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
+		return $game;
+	}
     public static function createFCGameTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type){
 		$gametransactionext = array(
 			"provider_trans_id" => $provider_request["BankID"],

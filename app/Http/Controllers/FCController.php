@@ -67,12 +67,12 @@ class FCController extends Controller
                 "amount" => $data["Bet"],
                 "roundid" => $data["RecordID"]
             );
-            $game = Helper::getGameTransaction($client_details->player_token,$data["RecordID"]);
+            $game = FCHelper::getGameTransactionupdate($client_details->player_token,$data["RecordID"]);
             if(!$game){
                 $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
             }
             else{
-                $gametransactionid= $game->game_trans_id;
+                $gametransactionid= $game[0]->game_trans_id;
             }
             if(!$game_transaction){
                 $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,1);
@@ -113,7 +113,7 @@ class FCController extends Controller
                 "payout_reason" => null,
                 "win" => $win,
             );
-            $game = Helper::getGameTransaction($client_details->player_token,$data["RecordID"]);
+            $game = FCHelper::getGameTransactionupdate($client_details->player_token,$data["RecordID"]);
             return $game;
             if(!$game){
                 $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
@@ -124,7 +124,7 @@ class FCController extends Controller
                 }else{
                     $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
                 }
-                $gametransactionid = $game->game_trans_id;
+                $gametransactionid = $game[0]->game_trans_id;
             }
             if(!$game_transaction){
                 $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,2);
@@ -182,13 +182,13 @@ class FCController extends Controller
                         "amount" => round($refund_amount,2),
                         "roundid" => 0,
                     );
-                    $game = FCHelper::getGameTransaction($client_details->player_token,$data["BankID"]);
+                    $game = FCHelper::getGameTransactionupdate($client_details->player_token,$data["BankID"]);
                     if(!$game){
                         $gametransactionid=Helper::createGameTransaction('refund', $json_data, $game_details, $client_details); 
                     }
                     else{
                         $gameupdate = Helper::updateGameTransaction($game,$json_data,"refund");
-                        $gametransactionid = $game->game_trans_id;
+                        $gametransactionid = $game[0]->game_trans_id;
 
                     }
                     if(!empty($game_transaction)){

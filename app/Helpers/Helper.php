@@ -270,23 +270,13 @@ class Helper
 	}
 	public static function getGameTransaction($player_token,$game_round){
 		DB::enableQueryLog();
-		// $game = DB::table("player_session_tokens as pst")
-		// 		->leftJoin("game_transactions as gt","pst.token_id","=","gt.token_id")
-		// 		->where("pst.player_token",$player_token)
-		// 		->where("gt.round_id",$game_round)
-		// 		->first();
-		$game = DB::select("SELECT
-						entry_id,bet_amount,game_trans_id
-						FROM game_transactions g
-						INNER JOIN player_session_tokens USING (token_id)
-						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
-		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode($game), "DB TIME");
+		$game = DB::table("player_session_tokens as pst")
+				->leftJoin("game_transactions as gt","pst.token_id","=","gt.token_id")
+				->where("pst.player_token",$player_token)
+				->where("gt.round_id",$game_round)
+				->first();
 		Helper::saveLog('TIMEgetGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
-		$game_details = array_map(function ($value) {
-			return (array)$value;
-		}, $game);
-		$data = json_decode($game_details[0],TRUE);
-		return $data;
+		return $game;
 	}
 	public static function checkGameTransaction($provider_transaction_id,$round_id=false,$type=false){
 		if($type&&$round_id){
