@@ -45,7 +45,7 @@ class FCController extends Controller
             $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"],1,'fachai');
             if($client_details){
                 $bet_response = $this->_betGame($client_details,$data);
-                return $bet_response;
+                return $this->_winGame($client_details,$data);
                 if(isset($bet_response)&&array_key_exists("ErrorText",$bet_response)){
                     return response($bet_response,200)
                                 ->header('Content-Type', 'application/json');
@@ -68,7 +68,6 @@ class FCController extends Controller
                 "roundid" => $data["RecordID"]
             );
             $game = Helper::getGameTransaction($client_details->player_token,$data["RecordID"]);
-            return $game;
             if(!$game){
                 $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
             }
@@ -115,6 +114,7 @@ class FCController extends Controller
                 "win" => $win,
             );
             $game = Helper::getGameTransaction($client_details->player_token,$data["RecordID"]);
+            return $game;
             if(!$game){
                 $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
             }
