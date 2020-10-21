@@ -45,6 +45,7 @@ class FCController extends Controller
             $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"],1,'fachai');
             if($client_details){
                 $bet_response = $this->_betGame($client_details,$data);
+                return $bet_response;
                 if(isset($bet_response)&&array_key_exists("ErrorText",$bet_response)){
                     return response($bet_response,200)
                                 ->header('Content-Type', 'application/json');
