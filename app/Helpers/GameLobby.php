@@ -603,7 +603,7 @@ class GameLobby{
         $result = json_encode($url);
         
         // $result = json_decode(json_decode($result));
-        Helper::saveLog('start game url PP', 49, $result,"$result");
+        Helper::saveLog('start game url PP', 26, $result,"$result");
         return $url;
 
         // return isset($result->gameURL) ? $result->gameURL : false;
