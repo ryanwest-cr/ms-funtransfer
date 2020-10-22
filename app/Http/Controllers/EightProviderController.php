@@ -115,7 +115,7 @@ class EightProviderController extends Controller
 	 */
 	public function gameInitialize($data){
 		$player_details = ProviderHelper::playerDetailsCall($data['token']);
-		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+		$client_details = $this->getClientDetails('token', $data['token']);
 		$response = array(
 			'status' => 'ok',
 			'data' => [
@@ -154,7 +154,7 @@ class EightProviderController extends Controller
 					return $msg;
 			   	endif;
 
-			    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			    $client_details = $this->getClientDetails('token', $data['token']);
 			    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
 				try {
 
@@ -221,7 +221,7 @@ class EightProviderController extends Controller
 		    else:
 		    	// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 		    	$player_details = ProviderHelper::playerDetailsCall($data['token']);
-				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$client_details = $this->getClientDetails('token', $data['token']);
 				$response = array(
 					'status' => 'ok',
 					'data' => [
@@ -252,7 +252,7 @@ class EightProviderController extends Controller
 		$game_ext = ProviderHelper::findGameExt($data['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
 		if($game_ext == 'false'):
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win
-				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$client_details = $this->getClientDetails('token', $data['token']);
 		
 					try {
 
@@ -317,7 +317,7 @@ class EightProviderController extends Controller
 			else: 
 				    // No Bet was found check if this is a free spin and proccess it!
 				    if($string_to_obj->game->action == 'freespin'):
-				  	    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				  	    $client_details = $this->getClientDetails('token', $data['token']);
 						
 							try {
 								Helper::saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), 'FREESPIN');
@@ -390,7 +390,7 @@ class EightProviderController extends Controller
 				    else:
 				            //NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 							$player_details = ProviderHelper::playerDetailsCall($data['token']);
-							$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+							$client_details = $this->getClientDetails('token', $data['token']);
 							$response = array(
 								'status' => 'ok',
 								'data' => [
@@ -405,7 +405,7 @@ class EightProviderController extends Controller
 		else:
 			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 			    $player_details = ProviderHelper::playerDetailsCall($data['token']);
-				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$client_details = $this->getClientDetails('token', $data['token']);
 				$response = array(
 					'status' => 'ok',
 					'data' => [
@@ -444,7 +444,7 @@ class EightProviderController extends Controller
 		$game_transaction_ext = ProviderHelper::findGameExt($data['data']['refund_round_id'], 1, 'round_id'); // Find GameEXT
 		if($game_transaction_ext == 'false'):
 		    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$client_details = $this->getClientDetails('token', $data['token']);
 			$response = array(
 				'status' => 'ok',
 				'data' => [
@@ -459,7 +459,7 @@ class EightProviderController extends Controller
 		$game_transaction_ext_refund = ProviderHelper::findGameExt($data['data']['refund_round_id'], 4, 'round_id'); // Find GameEXT
 		if($game_transaction_ext_refund != 'false'):
 		    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$client_details = $this->getClientDetails('token', $data['token']);
 			$response = array(
 				'status' => 'ok',
 				'data' => [
@@ -475,7 +475,7 @@ class EightProviderController extends Controller
 		$existing_transaction = ProviderHelper::findGameTransaction($game_transaction_ext->game_trans_id, 'game_transaction');
 		if($existing_transaction != 'false'): // IF BET WAS FOUND PROCESS IT!
 			$transaction_type = $game_transaction_ext->game_transaction_type == 1 ? 'credit' : 'debit'; // 1 Bet
-		    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+		    $client_details = $this->getClientDetails('token', $data['token']);
 		    if($transaction_type == 'debit'):
 			   	$player_details = ProviderHelper::playerDetailsCall($data['token']);
 			   	if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
@@ -530,7 +530,7 @@ class EightProviderController extends Controller
 		else:
 			// NO BET WAS FOUND DO NOTHING
 			$player_details = ProviderHelper::playerDetailsCall($data['token']);
-			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$client_details = $this->getClientDetails('token', $data['token']);
 			$response = array(
 				'status' => 'ok',
 				'data' => [
@@ -544,7 +544,7 @@ class EightProviderController extends Controller
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS/DUPLICATE PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 			$player_details = ProviderHelper::playerDetailsCall($data['token']);
-			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$client_details = $this->getClientDetails('token', $data['token']);
 			$response = array(
 				'status' => 'ok',
 				'data' => [
@@ -607,6 +607,7 @@ class EightProviderController extends Controller
 		return ($update ? true : false);
 	}
 
+
 	/**
 	 * Find bet and update to win 
 	 * @param [int] $[win] [< Win TYPE>][<0 Lost, 1 win, 3 draw, 4 refund, 5 processing>]
@@ -627,70 +628,37 @@ class EightProviderController extends Controller
     	}
 	}
 
-	/**
-	 * Find Game Transaction
-	 * @param [string] $[identifier] [<ID of the game transaction>]
-	 * @param [int] $[type] [<transaction_id, round_id, refundbet>]
-	 * @param [int] $[entry_type] [<1 bet/debit, 2 win/credit>]
-	 * 
-	 */
- //    public  function findGameTransaction($identifier, $type, $entry_type='') {
-	// 	$transaction_db = DB::table('game_transactions as gt')
-	// 			    	->select('gt.*', 'gte.transaction_detail')
-	// 				    ->leftJoin("game_transaction_ext AS gte", "gte.game_trans_id", "=", "gt.game_trans_id");
-	 				   
-	//     if ($type == 'transaction_id') {
-	// 		$transaction_db->where([
-	// 	 		["gt.provider_trans_id", "=", $identifier],
-	// 	 		["gt.entry_id", "=", $entry_type],
-	// 	 	]);
-	// 	}
-	// 	if ($type == 'game_transaction') {
-	// 		$transaction_db->where([
-	// 	 		["gt.game_trans_id", "=", $identifier],
-	// 	 	]);
-	// 	}
-	// 	if ($type == 'round_id') {
-	// 		$transaction_db->where([
-	// 	 		["gt.round_id", "=", $identifier],
-	// 	 		["gt.entry_id", "=", $entry_type],
-	// 	 	]);
-	// 	}
-	// 	if ($type == 'refundbet') { // TEST
-	// 		$transaction_db->where([
-	// 	 		["gt.round_id", "=", $identifier],
-	// 	 		["gt.entry_id", "=", $entry_type],
-	// 	 	]);
-	// 	}
-	// 	$result= $transaction_db
- // 			->first();
-	// 	return $result ? $result : 'false';
-	// }
+	 public function getClientDetails($type = "", $value = "", $gg=1, $providerfilter='all') {
+	    if ($type == 'token') {
+		 	$where = 'where pst.player_token = "'.$value.'"';
+		}
+		if($providerfilter=='fachai'){
+		    if ($type == 'player_id') {
+				$where = 'where '.$type.' = "'.$value.'" AND pst.status_id = 1 ORDER BY pst.token_id desc';
+			}
+		}else{
+	        if ($type == 'player_id') {
+			   $where = 'where '.$type.' = "'.$value.'"';
+			}
+		}
+		if ($type == 'username') {
+		 	$where = 'where p.username = "'.$value.'"';
+		}
+		if ($type == 'token_id') {
+			$where = 'where pst.token_id = "'.$value.'"';
+		}
+		if($providerfilter=='fachai'){
+		 	$filter = 'LIMIT 1';
+		}else{
+		    // $result= $query->latest('token_id')->first();
+		    $filter = 'order by token_id desc LIMIT 1';
+		}
 
-	/**
-	 * Find Game Transaction Ext
-	 * @param [string] $[provider_transaction_id] [<provider transaction id>]
-	 * @param [int] $[game_transaction_type] [<1 bet, 2 win, 3 refund>]
-	 * @param [string] $[type] [<transaction_id, round_id>]
-	 * 
-	 */
-	// public  function findGameExt($provider_transaction_id, $game_transaction_type, $type) {
-	// 	$transaction_db = DB::table('game_transaction_ext as gte');
- //        if ($type == 'transaction_id') {
-	// 		$transaction_db->where([
-	// 	 		["gte.provider_trans_id", "=", $provider_transaction_id],
-	// 	 		["gte.game_transaction_type", "=", $game_transaction_type],
-	// 	 	]);
-	// 	}
-	// 	if ($type == 'round_id') {
-	// 		$transaction_db->where([
-	// 	 		["gte.round_id", "=", $provider_transaction_id],
-	// 	 		["gte.game_transaction_type", "=", $game_transaction_type],
-	// 	 	]);
-	// 	}  
-	// 	$result= $transaction_db->first();
-	// 	return $result ? $result : 'false';
-	// }
+		$query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
+
+		 $client_details = count($query);
+		 return $client_details > 0 ? $query[0] : null;
+	}
 
 	
 }
