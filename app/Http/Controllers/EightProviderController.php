@@ -277,7 +277,7 @@ class EightProviderController extends Controller
 		 	  			// $entry_id = 2; //win
 		 	  			// $income = $existing_bet->bet_amount - $amount;
 
-						$this->updateBetTransaction($round_id, $amount, $income, $win, $entry_id);
+						$this->updateBetTransaction($existing_bet->game_trans_id, $amount, $income, $win, $entry_id);
 						$game_transextension = ProviderHelper::createGameTransExtV2($existing_bet->game_trans_id,$data['callback_id'], $round_id, $data['data']['amount'], 2);
 
 						try {
@@ -336,7 +336,7 @@ class EightProviderController extends Controller
 									$game_trans = $game_ext->game_trans_id;
 									$existing_bet = ProviderHelper::findGameTransaction($game_ext->game_trans_id, 'game_transaction');
 									$payout = $existing_bet->pay_amount+$data['data']['amount'];
-									$this->updateBetTransaction($round_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
+									$this->updateBetTransaction($game_ext->game_trans_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
 								}else{
 
 									$game_ext = ProviderHelper::findGameExt($round_id, 2, 'round_id');
@@ -344,7 +344,7 @@ class EightProviderController extends Controller
 										$game_trans = $game_ext->game_trans_id;
 										$existing_bet = ProviderHelper::findGameTransaction($game_ext->game_trans_id, 'game_transaction');
 										$payout = $existing_bet->pay_amount+$data['data']['amount'];
-										$this->updateBetTransaction($round_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
+										$this->updateBetTransaction($game_ext->game_trans_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
 									}else{
 										$game_trans = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, 0, $data['data']['amount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
 									}
@@ -489,7 +489,7 @@ class EightProviderController extends Controller
 
 			try {
 
-				$this->updateBetTransaction($existing_transaction->round_id, $existing_transaction->pay_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
+				$this->updateBetTransaction($existing_transaction->game_trans_id, $existing_transaction->pay_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
 
 				$game_transextension = ProviderHelper::createGameTransExtV2($existing_transaction->game_trans_id,$data['callback_id'], $data['data']['refund_round_id'], $data['data']['amount'], 4);
 
@@ -596,7 +596,8 @@ class EightProviderController extends Controller
 	 */
 	public  function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id) {
    	    $update = DB::table('game_transactions')
-                ->where('round_id', $round_id)
+                // ->where('round_id', $round_id)
+   	    ->where('game_trans_id', $round_id)
                 ->update(['pay_amount' => $pay_amount, 
 	        		  'income' => $income, 
 	        		  'win' => $win, 

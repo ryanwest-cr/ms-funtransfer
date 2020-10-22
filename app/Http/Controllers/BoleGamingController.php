@@ -334,16 +334,16 @@ class BoleGamingController extends Controller
 								$method = 2;
 								$win_or_lost = 1;
 							}
-							ProviderHelper::updateBetTransaction($existing_bet->round_id, $pay_amount, $income, $win_or_lost, $method);
-							$update = DB::table('game_transactions')
-		              	    ->where('round_id', $existing_bet->round_id)
-		               		->update(['pay_amount' => $pay_amount, 
-				        		  'income' => $existing_bet->bet_amount - $pay_amount, 
-				        		  'game_id' => $game_details->game_id, 
-				        		  'win' => $win_or_lost, 
-				        		  'entry_id' => $method,
-				        		  'transaction_reason' => ProviderHelper::updateReason($win_or_lost),
-			    			]);
+							ProviderHelper::updateBetTransaction($existing_bet->game_trans_id, $pay_amount, $income, $win_or_lost, $method);
+							// $update = DB::table('game_transactions')
+		     //          	    ->where('round_id', $existing_bet->round_id)
+		     //           		->update(['pay_amount' => $pay_amount, 
+				   //      		  'income' => $existing_bet->bet_amount - $pay_amount, 
+				   //      		  'game_id' => $game_details->game_id, 
+				   //      		  'win' => $win_or_lost, 
+				   //      		  'entry_id' => $method,
+				   //      		  'transaction_reason' => ProviderHelper::updateReason($win_or_lost),
+			    // 			]);
 						}else{
 							$check_game_ext = ProviderHelper::findGameExt($json_data->report_id, 1, 'transaction_id');
 							if($check_game_ext == 'false'){
@@ -363,17 +363,18 @@ class BoleGamingController extends Controller
 								return $data;
 							}
 							$existing_bet = ProviderHelper::findGameTransaction($check_game_ext->game_trans_id, 'game_transaction');
-							ProviderHelper::updateBetTransaction($existing_bet->round_id, $pay_amount, $income, $win_or_lost, $method);
+							ProviderHelper::updateBetTransaction($existing_bet->game_trans_id, $pay_amount, $income, $win_or_lost, $method);
 
-							$update = DB::table('game_transactions')
-		              	    ->where('round_id', $existing_bet->round_id)
-		               		->update(['pay_amount' => $pay_amount, 
-				        		  'income' => $income, 
-				        		  'game_id' => $game_details->game_id, 
-				        		  'win' => $win_or_lost, 
-				        		  'entry_id' => $method,
-				        		  'transaction_reason' => ProviderHelper::updateReason($win_or_lost),
-			    			]);
+							// $update = DB::table('game_transactions')
+		     //          	    // ->where('round_id', $existing_bet->round_id)
+		     //          	    ->where('round_id', $existing_bet->round_id)
+		     //           		->update(['pay_amount' => $pay_amount, 
+				   //      		  'income' => $income, 
+				   //      		  'game_id' => $game_details->game_id, 
+				   //      		  'win' => $win_or_lost, 
+				   //      		  'entry_id' => $method,
+				   //      		  'transaction_reason' => ProviderHelper::updateReason($win_or_lost),
+			    // 			]);
 						}
 
 						if(in_array($json_data->game_code, $contest_games)){

@@ -219,7 +219,7 @@ class SAGamingController extends Controller
                 if(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "200"){
                     if($game_trans_ext != 'false'){
-                         $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, 5, $game_transaction->entry_id);
+                         $this->updateBetTransaction($gamerecord, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, 5, $game_transaction->entry_id);
                     }
                     $data_response = [
                         "username" => $username,
@@ -339,7 +339,7 @@ class SAGamingController extends Controller
                 $payout_reason = 'Win';
                 $provider_trans_id = $txnid;
 
-                ProviderHelper::updateBetTransaction($round_id, $pay_amount, $income, 1, 2);
+                ProviderHelper::updateBetTransaction($game_trans->game_trans_id, $pay_amount, $income, 1, 2);
                 $game_transextension = ProviderHelper::createGameTransExtV2($game_trans->game_trans_id,$provider_trans_id, $round_id, $pay_amount, $game_transaction_type);
 
                 try {
@@ -465,7 +465,7 @@ class SAGamingController extends Controller
                     && $client_response->fundtransferresponse->status->code == "200"){
                 ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $data_response, $client_response->requestoclient, $client_response, $data_response);
 
-                ProviderHelper::updateBetTransaction($round_id, $game_transaction->pay_amount, $game_transaction->bet_amount, 0, $game_transaction->entry_id);
+                ProviderHelper::updateBetTransaction($transaction_check->game_trans_id, $game_transaction->pay_amount, $game_transaction->bet_amount, 0, $game_transaction->entry_id);
 
             }
 
@@ -561,7 +561,7 @@ class SAGamingController extends Controller
             // dd($all_bet);
             if(count($all_bet) > 0){ // MY BETS!
                 if(count($all_bet) == 1){
-                    ProviderHelper::updateBetTransaction($round_id, $game_transaction->pay_amount, $game_transaction->bet_amount, 4, $game_transaction->entry_id);
+                    ProviderHelper::updateBetTransaction($game_trans_ext->game_trans_id, $game_transaction->pay_amount, $game_transaction->bet_amount, 4, $game_transaction->entry_id);
                 }else{
                     $sum = 0;
                     foreach($all_bet as $key=>$value){
@@ -580,7 +580,7 @@ class SAGamingController extends Controller
                     }else{
                         $income = $game_transaction->income;
                     }
-                    $this->updateBetTransaction($round_id, $pay_amount, $bet_amount, $income, $game_transaction->win, $game_transaction->entry_id);
+                    $this->updateBetTransaction($game_trans_ext->game_trans_id, $pay_amount, $bet_amount, $income, $game_transaction->win, $game_transaction->entry_id);
                     // $this->updateBetTransaction($round_id, $game_transaction->pay_amount, $bet_amount, $game_transaction->income, $game_transaction->win, $game_transaction->entry_id);
                 }
             }
@@ -645,7 +645,8 @@ class SAGamingController extends Controller
 
     public function updateBetTransaction($round_id, $pay_amount, $bet_amount, $income, $win, $entry_id){
         DB::table('game_transactions')
-            ->where('round_id', $round_id)
+            // ->where('round_id', $round_id)
+            ->where('game_trans_id', $round_id)
             ->update(['pay_amount' => $pay_amount, 
                   'bet_amount' => $bet_amount, 
                   'income' => $income, 

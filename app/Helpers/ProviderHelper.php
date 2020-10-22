@@ -99,70 +99,35 @@ class ProviderHelper{
 	 * 
 	 */
     public static function getClientDetails($type = "", $value = "", $gg=1, $providerfilter='all') {
-	    if($gg==1){
-		 // Overall Operator Table
-		 $query = DB::table("clients AS c")
-		 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency','p.test_player','p.created_at','pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'op.client_api_key', 'op.client_code','op.client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url','p.created_at')
-		 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
-		 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
-		 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
-		 ->leftJoin("operator AS op", "c.operator_id", "=", "op.operator_id");
-		 
-		}elseif($gg==2){  // TEST MULTI CURRENCY SETUP
-
-			 $query = DB::table("clients AS c")
-			 ->select('p.client_id', 'p.player_id', 'p.username', 'p.email', 'p.client_player_id','p.language', 'p.currency', 'p.test_player', 'p.created_at','pst.token_id', 'pst.player_token' , 'c.client_url', 'c.default_currency', 'pst.status_id', 'p.display_name', 'op.client_api_key', 'op.client_code','op.client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url','p.created_at')
-			 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
-			 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
-			 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
-			 ->leftJoin("operator AS op", "c.operator_id", "=", "op.operator_id");
+	    if ($type == 'token') {
+		 	$where = 'where pst.player_token = "'.$value.'"';
+		}
+		if($providerfilter=='fachai'){
+		    if ($type == 'player_id') {
+				$where = 'where '.$type.' = "'.$value.'" AND pst.status_id = 1 ORDER BY pst.token_id desc';
+			}
+		}else{
+	        if ($type == 'player_id') {
+			   $where = 'where '.$type.' = "'.$value.'"';
+			}
+		}
+		if ($type == 'username') {
+		 	$where = 'where p.username = "'.$value.'"';
+		}
+		if ($type == 'token_id') {
+			$where = 'where pst.token_id = "'.$value.'"';
+		}
+		if($providerfilter=='fachai'){
+		 	$filter = 'LIMIT 1';
+		}else{
+		    // $result= $query->latest('token_id')->first();
+		    $filter = 'order by token_id desc LIMIT 1';
 		}
 
-				if ($type == 'token') {
-					$query->where([
-				 		["pst.player_token", "=", $value],
-				 		// ["pst.status_id", "=", 1]
-				 	]);
-				}
-				
-				if($providerfilter=='fachai'){
-				  if ($type == 'player_id') {
-						$query->where([
-					 		["p.player_id", "=", $value],
-					 		["pst.status_id", "=", 1]
-					 	])->orderBy('pst.token_id','desc')->limit(1);
-					}
-				}else{
-	 		      if ($type == 'player_id') {
-					$query->where([
-					 		["p.player_id", "=", $value],
-					 	]);
-					}
-				}
+		$query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
 
-				if ($type == 'site_url') {
-					$query->where([
-				 		["c.client_url", "=", $value],
-				 	]);
-				}
-				if ($type == 'username') {
-					$query->where([
-				 		["p.username", $value],
-				 	]);
-				}
-				if ($type == 'token_id') {
-					$query->where([
-				 		["pst.token_id", $value],
-				 	]);
-				}
-
-				if($providerfilter=='fachai'){
-				  $result= $query->first();
-				}else{
-	 		      $result= $query->latest('token_id')->first();
-				}
-
-			    return $result;
+		 $client_details = count($query);
+		 return $client_details > 0 ? $query[0] : null;
 	}
 
 	/**
@@ -374,7 +339,8 @@ class ProviderHelper{
 	 */
 	public  static function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id) {
    	    $update = DB::table('game_transactions')
-                ->where('round_id', $round_id)
+                ->where('game_trans_id', $round_id)
+                // ->where('round_id', $round_id)
                 ->update(['pay_amount' => $pay_amount, 
 	        		  'income' => $income, 
 	        		  'win' => $win, 

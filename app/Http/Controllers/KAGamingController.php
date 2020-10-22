@@ -252,7 +252,7 @@ class KAGamingController extends Controller
             if(isset($gamerecord)){
                 if($check_bet_round == 'false'){
                     ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', json_encode($response), 'FAILED', $e->getMessage(), 'FAILED', $general_details);
                 }
             }
           Helper::saveLog('KAGaming checkPlay - FATAL ERROR', $this->provider_db_id, $response, Helper::datesent());
@@ -401,7 +401,7 @@ class KAGamingController extends Controller
         } catch (\Exception $e) {
           $response = ["status" => "Server Timeout", "statusCode" =>  1];
           ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
-          Helper::saveLog('KAGaming gameCredit - FATAL ERROR', $this->provider_db_id, $response, Helper::datesent());
+          Helper::saveLog('KAGaming gameCredit - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
           return $response;
         }
         if(isset($client_response->fundtransferresponse->status->code) 
@@ -519,7 +519,7 @@ class KAGamingController extends Controller
         } catch (\Exception $e) {
           $response = ["status" => "Server Timeout", "statusCode" =>  1];
           ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
-          Helper::saveLog('KAGaming gameRevoke - FATAL ERROR', $this->provider_db_id, $response, Helper::datesent());
+          Helper::saveLog('KAGaming gameRevoke - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
           return $response;
         }
         if(isset($client_response->fundtransferresponse->status->code) 
