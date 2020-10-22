@@ -45,6 +45,7 @@ class AlController extends Controller
 
 
     public function checkCLientPlayer(Request $request){
+        DB::enableQueryLog();
         if(!$request->header('hashen')){
           return ['al' => 'OOPS RAINDROPS'];
         }
@@ -81,12 +82,14 @@ class AlController extends Controller
               );
               $client_response = json_decode($guzzle_response->getBody()->getContents());
               $client_response->request_body = $datatosend;
+              Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
               return json_encode($client_response);
             }catch (\Exception $e){
                $message = [
                 'request_body' => $datatosend,
                 'al' => $e->getMessage(),
                ];
+               Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
                return $message;
             } 
           }
@@ -104,6 +107,7 @@ class AlController extends Controller
             } 
             $result = $gg->limit($request->has('limit') ? $request->limit : 1);
             $result = $gg->latest()->get(); // Added Latest (CQ9) 08-12-20 - Al
+            Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
             return $result ? $result : 'false';
         }elseif($request->debugtype == 3){
             $gg = DB::table('game_transaction_ext');
@@ -129,6 +133,7 @@ class AlController extends Controller
             } 
             $result = $gg->limit($request->has('limit') ? $request->limit : 1);
             $result = $gg->latest()->get(); // Added Latest (CQ9) 08-12-20 - Al
+            Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
             return $result ? $result : 'false';
         }
 
