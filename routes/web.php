@@ -507,5 +507,9 @@ $app->post('api/gf/Transaction/Record/Get','GoldenFController@TransactionRecordG
 $app->post('api/gf/Transaction/Record/Player/Get','GoldenFController@TransactionRecordPlayerGet');
 $app->post('api/gf/Bet/Record/Detail','GoldenFController@BetRecordDetail');
 
+$app->post('api/playerdetailsport','ClientPortController@playerDetailsRequest');
+$app->post('api/fundtransferport','ClientPortController@fundTransferRequest');
+
+
 
 $app->post('api/currency','AlController@currency');
