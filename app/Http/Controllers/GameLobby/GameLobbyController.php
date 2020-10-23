@@ -573,7 +573,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="UltraPlay"){ 
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::UltraPlayLaunchUrl($request->all()), //TEST
+                        "url" => GameLobby::ultraPlayLaunchUrl($request->game_code,$request->token,$request->exitUrl), //TEST
                         "game_launch" => true
                     );
                     return response($msg,200)
