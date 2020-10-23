@@ -73,7 +73,7 @@ class EightProviderController extends Controller
 	 * 
 	 */
 	public function index(Request $request){
-
+		DB::enableQueryLog();
 		Helper::saveLog('8P index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
 		// $signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->secret_key);
@@ -89,21 +89,25 @@ class EightProviderController extends Controller
 		if($request->name == 'init'){
 
 			$game_init = $this->gameInitialize($request->all());
+			Helper::saveLog('init MLOG', 999, json_encode(DB::getQueryLog()), "METHODLOG 8Provider");
 			return json_encode($game_init);
 
 		}elseif($request->name == 'bet'){
 
 			$bet_handler = $this->gameBet($request->all());
+			Helper::saveLog('bet MLOG', 999, json_encode(DB::getQueryLog()), "METHODLOG 8Provider");
 			return json_encode($bet_handler);
 
 		}elseif($request->name == 'win'){
 
 			$win_handler = $this->gameWin($request->all());
+			Helper::saveLog('win MLOG', 999, json_encode(DB::getQueryLog()), "METHODLOG 8Provider");
 			return json_encode($win_handler);
 
 		}elseif($request->name == 'refund'){
 
 			$refund_handler = $this->gameRefund($request->all());
+			Helper::saveLog('refund MLOG', 999, json_encode(DB::getQueryLog()), "METHODLOG 8Provider");
 			return json_encode($refund_handler);
 		}
 	}
