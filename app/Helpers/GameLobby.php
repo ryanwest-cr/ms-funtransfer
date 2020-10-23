@@ -958,6 +958,13 @@ class GameLobby{
         return $url;
     }
 
+     public static function UltraPlayLaunchUrl($game_code,$token,$exitUrl){
+        $url = $exitUrl;
+
+        $url = config("providerlinks.ultraplay.domain_url").'/UI/ExternalLogin?loginToken='.$token.'&deviceType=desktop&lang=en-US&oddformat=decimal';
+        return $url;
+    }
+
     
     
     public static function getLanguage($provider_name,$language){

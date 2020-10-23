@@ -319,6 +319,9 @@ return [
         'operator_token' => '009583d3138a9e3934787112c345ef10',
         'provider_id' => 41,
     ],
+    'ultraplay'=>[
+        'domain_url'=> 'https://stage-tet.ultraplay.net',
+    ],
 ];
 
 ?>

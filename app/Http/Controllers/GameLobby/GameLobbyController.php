@@ -570,6 +570,15 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider')=="UltraPlay"){ 
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::UltraPlayLaunchUrl($request->all()), //TEST
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
             }
         }
         else{
