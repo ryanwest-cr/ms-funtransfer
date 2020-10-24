@@ -28,11 +28,18 @@ use DB;
 class EightProviderController extends Controller
 {
 
-	public $api_url = 'http://api.8provider.com';
-	public $secret_key = 'c270d53d4d83d69358056dbca870c0ce';
-	public $project_id = '1042';
+	// public $api_url = 'http://api.8provider.com';
+	// public $secret_key = 'c270d53d4d83d69358056dbca870c0ce';
+	// public $project_id = '1042';
 	public $provider_db_id = 19;
 
+	public $api_url, $secret_key, $project_id = '';
+
+	public function __construct(){
+    	$this->api_url = config('providerlinks.evoplay.api_url');
+    	$this->project_id = config('providerlinks.evoplay.project_id');
+    	$this->secret_key = config('providerlinks.evoplay.secretkey');
+    }
 
     /**
      * @return string
@@ -76,15 +83,15 @@ class EightProviderController extends Controller
 		DB::enableQueryLog();
 		Helper::saveLog('8P index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
-		// $signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->secret_key);
-		// if($signature_checker == 'false'):
-		// 	$msg = array(
-		// 				"status" => 'error',
-		// 				"error" => ["scope" => "user","no_refund" => 1,"message" => "Signature is invalid!"]
-		// 			);
-		// 	Helper::saveLog('8P Signature Failed '.$request->name, $this->provider_db_id, json_encode($request->all()), $msg);
-		// 	return $msg;
-		// endif;
+		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->secret_key);
+		if($signature_checker == 'false'):
+			$msg = array(
+						"status" => 'error',
+						"error" => ["scope" => "user","no_refund" => 1,"message" => "Signature is invalid!"]
+					);
+			Helper::saveLog('8P Signature Failed '.$request->name, $this->provider_db_id, json_encode($request->all()), $msg);
+			return $msg;
+		endif;
 
 		if($request->name == 'init'){
 
@@ -141,10 +148,11 @@ class EightProviderController extends Controller
 			$game_ext = ProviderHelper::findGameExt($data['callback_id'], 1, 'transaction_id'); // Find if this callback in game extension
 		    if($game_ext == 'false'): // NO BET
 				// DECODE THE JSON_STRING
-			    $array = (array)$data['data']['details'];
-			    $newStr = str_replace("\\", '', $array[0]);
-			    $newStr2 = str_replace(';', '', $newStr);
-			    $string_to_obj = json_decode($newStr2);
+			    // $array = (array)$data['data']['details'];
+			    // $newStr = str_replace("\\", '', $array[0]);
+			    // $newStr2 = str_replace(';', '', $newStr);
+			    // $string_to_obj = json_decode($newStr2);
+			    $string_to_obj = json_decode(json_encode($data['data']['details']));
 			    $game_id = $string_to_obj->game->game_id;
 			    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);	
 
@@ -245,10 +253,12 @@ class EightProviderController extends Controller
 	 *
 	 */
 	public function gameWin($data){
-		$array = (array)$data['data']['details'];
-	    $newStr = str_replace("\\", '', $array[0]);
-	    $newStr2 = str_replace(';', '', $newStr);
-	    $string_to_obj = json_decode($newStr2);
+		//    $array = (array)$data['data']['details'];
+	    //    $newStr = str_replace("\\", '', $array[0]);
+	    //    $newStr2 = str_replace(';', '', $newStr);
+	    //    $string_to_obj = json_decode($newStr2);
+	    $string_to_obj = json_decode(json_encode($data['data']['details']));
+
 	    $game_id = $string_to_obj->game->game_id;
 	    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 
@@ -429,10 +439,11 @@ class EightProviderController extends Controller
 	 * 
 	 */
 	public function gameRefund($data){
-		$array = (array)$data['data']['details'];
-	    $newStr = str_replace("\\", '', $array[0]);
-	    $newStr2 = str_replace(';', '', $newStr);
-	    $string_to_obj = json_decode($newStr2);
+		// 	  $array = (array)$data['data']['details'];
+		//    $newStr = str_replace("\\", '', $array[0]);
+		//    $newStr2 = str_replace(';', '', $newStr);
+		//    $string_to_obj = json_decode($newStr2);
+	    $string_to_obj = json_decode(json_encode($data['data']['details']));
 	    $game_id = $string_to_obj->game->game_id;
 	    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		$game_refund = ProviderHelper::findGameExt($data['callback_id'], 4, 'transaction_id'); // Find if this callback in game extension	
