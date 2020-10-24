@@ -148,11 +148,11 @@ class EightProviderController extends Controller
 			$game_ext = ProviderHelper::findGameExt($data['callback_id'], 1, 'transaction_id'); // Find if this callback in game extension
 		    if($game_ext == 'false'): // NO BET
 				// DECODE THE JSON_STRING
-			    // $array = (array)$data['data']['details'];
-			    // $newStr = str_replace("\\", '', $array[0]);
-			    // $newStr2 = str_replace(';', '', $newStr);
-			    // $string_to_obj = json_decode($newStr2);
-			    $string_to_obj = json_decode(json_encode($data['data']['details']));
+			    $array = (array)$data['data']['details'];
+			    $newStr = str_replace("\\", '', $array[0]);
+			    $newStr2 = str_replace(';', '', $newStr);
+			    $string_to_obj = json_decode($newStr2);
+			    // $string_to_obj = json_decode(json_encode($data['data']['details']));
 			    $game_id = $string_to_obj->game->game_id;
 			    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);	
 
@@ -253,12 +253,11 @@ class EightProviderController extends Controller
 	 *
 	 */
 	public function gameWin($data){
-		//    $array = (array)$data['data']['details'];
-	    //    $newStr = str_replace("\\", '', $array[0]);
-	    //    $newStr2 = str_replace(';', '', $newStr);
-	    //    $string_to_obj = json_decode($newStr2);
-	    $string_to_obj = json_decode(json_encode($data['data']['details']));
-
+	    $array = (array)$data['data']['details'];
+	    $newStr = str_replace("\\", '', $array[0]);
+	    $newStr2 = str_replace(';', '', $newStr);
+	    $string_to_obj = json_decode($newStr2);
+	    // $string_to_obj = json_decode(json_encode($data['data']['details']));
 	    $game_id = $string_to_obj->game->game_id;
 	    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 
@@ -439,11 +438,11 @@ class EightProviderController extends Controller
 	 * 
 	 */
 	public function gameRefund($data){
-		// 	  $array = (array)$data['data']['details'];
-		//    $newStr = str_replace("\\", '', $array[0]);
-		//    $newStr2 = str_replace(';', '', $newStr);
-		//    $string_to_obj = json_decode($newStr2);
-	    $string_to_obj = json_decode(json_encode($data['data']['details']));
+	    $array = (array)$data['data']['details'];
+		$newStr = str_replace("\\", '', $array[0]);
+		$newStr2 = str_replace(';', '', $newStr);
+		$string_to_obj = json_decode($newStr2);
+	    // $string_to_obj = json_decode(json_encode($data['data']['details']));
 	    $game_id = $string_to_obj->game->game_id;
 	    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		$game_refund = ProviderHelper::findGameExt($data['callback_id'], 4, 'transaction_id'); // Find if this callback in game extension	
