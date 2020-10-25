@@ -21,7 +21,6 @@ class BNGController extends Controller
         elseif($data["name"]== "transaction"){
             if($data["args"]["bet"]!= null && $data["args"]["win"]!= null){
                 $game_transaction = TransactionHelper::checkGameTransactionData($data["uid"]);
-                return $game_transaction;
                 if(!empty($game_transaction)){
                     $response = json_decode($game_transaction[0]->mw_response,TRUE);
                     Helper::saveLog('betAlreadyExist(BNG)', 12, json_encode($data), $response);
