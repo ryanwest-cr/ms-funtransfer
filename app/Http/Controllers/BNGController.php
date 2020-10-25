@@ -24,17 +24,21 @@ class BNGController extends Controller
                 if(!empty($game_transaction)){
                     $response = json_decode($game_transaction[0]->mw_response,TRUE);
                     Helper::saveLog('betAlreadyExist(BNG)', 12, json_encode($data), $response);
+                    Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>LARAVEL_START,"response"=>microtime(true)]), microtime(true) - LARAVEL_START);
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
+                        
                 }
                 else{
                     $bet_response = $this->_betGame($data);
                     if($bet_response){
                         if(array_key_exists("error",$bet_response)){
+                        Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>LARAVEL_START,"response"=>microtime(true)]), microtime(true) - LARAVEL_START);
                         return response($bet_response,200)
                         ->header('Content-Type', 'application/json');
                         }
                         else{
+                            Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>LARAVEL_START,"response"=>microtime(true)]), microtime(true) - LARAVEL_START);
                             return $this->_winGame($data);
                         }
                     }
@@ -50,16 +54,19 @@ class BNGController extends Controller
                 }
             }
             elseif($data["args"]["bet"]== null && $data["args"]["win"]!= null){
+                Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>LARAVEL_START,"response"=>microtime(true)]), microtime(true) - LARAVEL_START);
                 return $this->_winGame($data);
             }
             elseif($data["args"]["bet"]!= null && $data["args"]["win"]== null){
                     $bet_response = $this->_betGame($data);
                     if($bet_response){
                         if(array_key_exists("error",$bet_response)){
+                            Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>LARAVEL_START,"response"=>microtime(true)]), microtime(true) - LARAVEL_START);
                             return response($bet_response,200)
                             ->header('Content-Type', 'application/json');
                         }
                         else{
+                            Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>LARAVEL_START,"response"=>microtime(true)]), microtime(true) - LARAVEL_START);
                             return response($bet_response,200)
                             ->header('Content-Type', 'application/json');
                         }
