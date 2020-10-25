@@ -17,7 +17,7 @@ class TransactionHelper
     }
     public static function getGameTransaction($player_token,$game_round){
 		$game = DB::select("SELECT
-						entry_id,bet_amount,game_trans_id
+						entry_id,bet_amount,game_trans_id,pay_amount
 						FROM game_transactions g
 						INNER JOIN player_session_tokens USING (token_id)
 						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");

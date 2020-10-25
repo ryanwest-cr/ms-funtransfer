@@ -32,7 +32,6 @@ class BNGController extends Controller
                     Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>$this->startTime,"response"=>microtime(true)]), microtime(true) - $this->startTime);
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
-                        
                 }
                 else{
                     $bet_response = $this->_betGame($data);
@@ -328,7 +327,7 @@ class BNGController extends Controller
                     $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
                 }
                 else{
-                    $json_data["amount"] = round($data["args"]["win"],2)+ $game->pay_amount;
+                    $json_data["amount"] = round($data["args"]["win"],2)+ $game[0]->pay_amount;
                     if($win == 0){
                         $gameupdate = TransactionHelper::updateGameTransaction($game,$json_data,"debit");
                     }else{
