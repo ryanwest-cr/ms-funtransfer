@@ -12,16 +12,17 @@ class TransactionHelper
 		$game = DB::select("SELECT game_trans_ext_id,mw_response
         FROM game_transaction_ext
         where provider_trans_id='".$provider_transaction_id."' limit 1");
-        Helper::saveLog('checkGameTransactionData(TransactionHelper)', 189, json_encode(DB::getQueryLog()), "DB TIME");
+        Helper::saveLog('TransactionHelpercheckGameTransactionData(TransactionHelper)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return $game;
     }
     public static function getGameTransaction($player_token,$game_round){
+        DB::enableQueryLog();
 		$game = DB::select("SELECT
 						entry_id,bet_amount,game_trans_id,pay_amount
 						FROM game_transactions g
 						INNER JOIN player_session_tokens USING (token_id)
 						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
-
+        Helper::saveLog('TransactionHelpergetGameTransaction(TransactionHelper)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return $game;
     }
     public static function updateGameTransaction($existingdata,$request_data,$type){
@@ -57,7 +58,7 @@ class TransactionHelper
 			default:
 		}
 		/*var_dump($trans_data); die();*/
-		Helper::saveLog('TIMEupdateGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
+		Helper::saveLog('TransactionHelperupdateGameTransaction(TransactionHelper)', 189, json_encode(DB::getQueryLog()), "DB TIME");
 		return DB::table('game_transactions')->where("game_trans_id",$existingdata[0]->game_trans_id)->update($trans_data);
 	}
 }
