@@ -8,7 +8,7 @@ class TransactionHelper
 {
 
     public static function checkGameTransactionData($provider_transaction_id){
-		$game = DB::select("SELECT game_trans_ext_id,mw_response
+		$game = DB::select("SELECT game_trans_ext_id
         FROM game_transaction_ext
         where provider_trans_id='".$provider_transaction_id."' limit 1");
 		return $game;
