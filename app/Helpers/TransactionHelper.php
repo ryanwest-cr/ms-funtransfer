@@ -9,7 +9,7 @@ class TransactionHelper
 
     public static function checkGameTransactionData($provider_transaction_id){
         DB::enableQueryLog();
-		$game = DB::select("SELECT game_trans_ext_id
+		$game = DB::select("SELECT game_trans_ext_id,mw_response
         FROM game_transaction_ext
         where provider_trans_id='".$provider_transaction_id."' limit 1");
         Helper::saveLog('checkGameTransactionData(TransactionHelper)', 189, json_encode(DB::getQueryLog()), "DB TIME");
