@@ -12,6 +12,7 @@ use App\Helpers\GameSubscription;
 use App\Helpers\GameRound;
 use App\Helpers\Game;
 use App\Helpers\ClientRequestHelper;
+use App\Helpers\TransactionHelper;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use DB;
@@ -238,22 +239,6 @@ class ICGController extends Controller
             $client_details = ProviderHelper::getClientDetails('token', $json["token"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($json["transactionId"]);
-                if(Helper::getBalance($client_details) < round($json["amount"]/100,2)){
-                    $response =array(
-                        "data" => array(
-                            "statusCode"=>2,
-                            "username" => $client_details->username,
-                            "balance" =>round(Helper::getBalance($client_details)*100,2),
-                        ),
-                        "error" => array(
-                            "title"=> "Not Enough Balance",
-                            "description"=>"Not Enough Balance"
-                        )
-                    ); 
-                    Helper::saveLog('betGameInsuficientN(ICG)', 12, json_encode($json), $response);
-                    return response($response,400)
-                    ->header('Content-Type', 'application/json');
-                }
                 //Changes Starts here create the transaction and update later if the client already response with something
                 $json_data = array(
                     "transid" => $json["transactionId"],
@@ -261,8 +246,7 @@ class ICGController extends Controller
                     "roundid" => $json["roundId"]
                 );
                 $game_details = Helper::getInfoPlayerGameRound($json["token"]);
-                Helper::saveLog('checkGamedetails(ICG)', 12, json_encode($game_details), $game_details);
-                $game = Helper::getGameTransaction($request->token,$request->gameId);
+                $game = TransactionHelper::getGameTransaction($request->token,$request->gameId);
                 if(!$game){
                     $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
                 }
@@ -327,13 +311,13 @@ class ICGController extends Controller
                     "payout_reason" => null,
                     "win" => $win,
                 );
-                $game = Helper::getGameTransaction($request->token,$json["transactionId"]);
+                $game = TransactionHelper::getGameTransaction($request->token,$json["transactionId"]);
                 if(!$game){
                     $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
                 }
                 else{
-                    $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
-                    $gametransactionid = $game->game_trans_id;
+                    $gameupdate = TransactionHelper::updateGameTransaction($game,$json_data,"credit");
+                    $gametransactionid = $game[0]->game_trans_id;
                 }
                 $transactionId=Helper::createICGGameTransactionExt($gametransactionid,$json,null,null,null,2);
                 $client_response = ClientRequestHelper::fundTransfer($client_details,round($json["amount"]/100,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
@@ -418,13 +402,13 @@ class ICGController extends Controller
                     "payout_reason" => null,
                     "win" => $win,
                 );
-                $game = Helper::getGameTransaction($request->token,0);
+                $game = TransactionHelper::getGameTransaction($request->token,0);
                 if(!$game){
                     $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
                 }
                 else{
-                    $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
-                    $gametransactionid = $game->game_trans_id;
+                    $gameupdate = TransactionHelper::updateGameTransaction($game,$json_data,"credit");
+                    $gametransactionid = $game[0]->game_trans_id;
                 }
                 $transactionId=Helper::createICGGameTransactionExt($gametransactionid,$json,null,null,null,2);
                 $client_response = ClientRequestHelper::fundTransfer($client_details,round($json["amount"]/100,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
@@ -479,7 +463,7 @@ class ICGController extends Controller
                     "amount" => round($json["amount"]/100,2),
                     "roundid" => 0
                 );
-                $game = Helper::getGameTransaction($request->token,0);
+                $game = TransactionHelper::getGameTransaction($request->token,0);
                 if(!$game){
                     $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
                     // $game_transaction_id=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
@@ -490,8 +474,8 @@ class ICGController extends Controller
                     $json_data = array(
                         "amount" => round($json["amount"]/100,2),
                     );
-                    $gameupdate = Helper::updateGameTransaction($game,$json_data,"debit");
-                    $gametransactionid = $game->game_trans_id;
+                    $gameupdate = TransactionHelper::updateGameTransaction($game,$json_data,"debit");
+                    $gametransactionid = $game[0]->game_trans_id;
                 }
                 $transactionId=Helper::createICGGameTransactionExt($gametransactionid,$json,null,null,null,1);
                 $client_response = ClientRequestHelper::fundTransfer($client_details,round($json["amount"]/100,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
