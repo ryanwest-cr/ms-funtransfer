@@ -348,7 +348,7 @@ class EightProviderController extends Controller
 								$game_ext = ProviderHelper::findGameExt($round_id, 1, 'round_id');
 								if($game_ext != 'false'){
 									$game_trans = $game_ext->game_trans_id;
-									$existing_bet = ProviderHelper::findGameTransaction($game_ext->game_trans_id, 'game_transaction');
+									$existing_bet = $this->findGameTransID($game_ext->game_trans_id);
 									$payout = $existing_bet->pay_amount+$data['data']['amount'];
 									$this->updateBetTransaction($game_ext->game_trans_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
 								}else{
@@ -356,7 +356,7 @@ class EightProviderController extends Controller
 									$game_ext = ProviderHelper::findGameExt($round_id, 2, 'round_id');
 									if($game_ext != 'false'){
 										$game_trans = $game_ext->game_trans_id;
-										$existing_bet = ProviderHelper::findGameTransaction($game_ext->game_trans_id, 'game_transaction');
+										$existing_bet = $this->findGameTransID($game_ext->game_trans_id);
 										$payout = $existing_bet->pay_amount+$data['data']['amount'];
 										$this->updateBetTransaction($game_ext->game_trans_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
 									}else{
@@ -487,7 +487,7 @@ class EightProviderController extends Controller
 		endif;
 
 
-		$existing_transaction = ProviderHelper::findGameTransaction($game_transaction_ext->game_trans_id, 'game_transaction');
+		$existing_transaction = $this->findGameTransID($game_transaction_ext->game_trans_id);
 		if($existing_transaction != 'false'): // IF BET WAS FOUND PROCESS IT!
 			$transaction_type = $game_transaction_ext->game_transaction_type == 1 ? 'credit' : 'debit'; // 1 Bet
 		    // $client_details = ProviderHelper::getClientDetails('token', $data['token']);
@@ -570,6 +570,16 @@ class EightProviderController extends Controller
 			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
 			return $response;
 		endif;
+	}
+
+
+	public function findGameTransID($game_trans_id){
+		$transaction_db = DB::table('game_transactions as gt');
+		$transaction_db->where([
+              ["gt.game_trans_id", "=", $game_trans_id],
+        ]);
+		$result= $transaction_db->first();
+        return $result ? $result : 'false';
 	}
 
 
