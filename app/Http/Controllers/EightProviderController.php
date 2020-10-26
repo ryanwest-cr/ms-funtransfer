@@ -348,7 +348,7 @@ class EightProviderController extends Controller
 								$game_ext = ProviderHelper::findGameExt($round_id, 1, 'round_id');
 								if($game_ext != 'false'){
 									$game_trans = $game_ext->game_trans_id;
-									$existing_bet = $this->findGameTransIDn($game_ext->game_trans_id);
+									$existing_bet = $this->findGameTransID($game_ext->game_trans_id);
 									$payout = $existing_bet->pay_amount+$data['data']['amount'];
 									$this->updateBetTransaction($game_ext->game_trans_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
 								}else{
@@ -356,7 +356,7 @@ class EightProviderController extends Controller
 									$game_ext = ProviderHelper::findGameExt($round_id, 2, 'round_id');
 									if($game_ext != 'false'){
 										$game_trans = $game_ext->game_trans_id;
-										$existing_bet = $this->findGameTransIDn($game_ext->game_trans_id);
+										$existing_bet = $this->findGameTransID($game_ext->game_trans_id);
 										$payout = $existing_bet->pay_amount+$data['data']['amount'];
 										$this->updateBetTransaction($game_ext->game_trans_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
 									}else{
@@ -574,7 +574,7 @@ class EightProviderController extends Controller
 
 
 	public function findGameTransID($game_trans_id){
-		$transaction_db = DB::table('game_transactions as gt')
+		$transaction_db = DB::table('game_transactions as gt');
 		$transaction_db->where([
               ["gt.game_trans_id", "=", $game_trans_id],
         ]);
