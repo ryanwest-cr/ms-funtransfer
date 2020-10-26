@@ -259,13 +259,15 @@ class EightProviderController extends Controller
 	    $string_to_obj = json_decode($newStr2);
 	    // $string_to_obj = json_decode(json_encode($data['data']['details']));
 	    $game_id = $string_to_obj->game->game_id;
-	    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+		$player_details = ProviderHelper::playerDetailsCall($data['token']);
+		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
 
-		$existing_bet = ProviderHelper::findGameTransaction($data['data']['round_id'], 'round_id', 1); // Find if win has bet record
 		$game_ext = ProviderHelper::findGameExt($data['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
 		if($game_ext == 'false'):
+			$existing_bet = ProviderHelper::findGameTransaction($data['data']['round_id'], 'round_id', 1); // Find if win has bet record
+			// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win
-				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
 		
 					try {
 
@@ -330,8 +332,7 @@ class EightProviderController extends Controller
 			else: 
 				    // No Bet was found check if this is a free spin and proccess it!
 				    if($string_to_obj->game->action == 'freespin'):
-				  	    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
-						
+				  	    // $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 							try {
 								Helper::saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), 'FREESPIN');
 								$payout_reason = 'Free Spin';
@@ -402,8 +403,8 @@ class EightProviderController extends Controller
 							}
 				    else:
 				            //NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-							$player_details = ProviderHelper::playerDetailsCall($data['token']);
-							$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+							// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+							// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 							$response = array(
 								'status' => 'ok',
 								'data' => [
@@ -417,8 +418,8 @@ class EightProviderController extends Controller
 			endif;
 		else:
 			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			    $player_details = ProviderHelper::playerDetailsCall($data['token']);
-				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				$response = array(
 					'status' => 'ok',
 					'data' => [
