@@ -884,19 +884,32 @@ class SolidGamingController extends Controller
 
 	private function _isIdempotent($transaction_id, $is_rollback = false) {
 		$result = false;
-		$query = DB::table('game_transaction_ext')
-								->where('provider_trans_id', $transaction_id);
+		/*$query = DB::table('game_transaction_ext')
+								->select('mw_response')
+								->where('provider_trans_id', $transaction_id);*/
+
+		$query_str = "SELECT mw_response FROM game_transaction_ext WHERE provider_trans_id = '".$transaction_id."' AND mw_response NOT LIKE '%FAILED%' LIMIT 1" ;
+		
 		if ($is_rollback == true) {
+			$query_str = "SELECT mw_response FROM game_transaction_ext WHERE provider_trans_id = '".$transaction_id."' AND game_transaction_type = 3 AND mw_response NOT LIKE '%FAILED%' LIMIT 1" ;
+		}
+
+
+         $transaction_exist = DB::select($query_str);
+
+		/*if ($is_rollback == true) {
 					$query->where([
 				 		["game_transaction_type", "=", 3],
 				 		["mw_response", "NOT LIKE", "%FAILED%"]
 				 	]);
 				}
 
-		$transaction_exist = $query->first();
+		$query->limit(1);
+
+		$transaction_exist = $query->first();*/
 
 		if($transaction_exist) {
-			$result = $transaction_exist;
+			$result = $transaction_exist[0];
 		}
 
 		return $result;								
