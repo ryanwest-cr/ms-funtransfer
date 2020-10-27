@@ -375,28 +375,39 @@ class GameLobby{
     }
 
      public static function tidylaunchUrl( $game_code = null, $token = null){
-        $url = config('providerlinks.tidygaming.url_lunch');
-        $client_details = Providerhelper::getClientDetails('token', $token);
-        $get_code_currency = TidyHelper::currencyCode($client_details->default_currency);
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $requesttosend = [
-            'client_id' =>  config('providerlinks.tidygaming.client_id'),
-            'game_id' => $game_code,
-            'username' => $client_details->username,
-            'token' => $token,
-            'uid' => 'TG_'.$client_details->player_id,
-            'currency' => $get_code_currency
-        ];
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer '.TidyHelper::generateToken($requesttosend)
-            ]
-        ]);
-        $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-        return $client_response->link;
+        Helper::saveLog('Tidy Gameluanch', 23, "", "");
+        try{
+            $url = config('providerlinks.tidygaming.url_lunch');
+            $client_details = Providerhelper::getClientDetails('token', $token);
+            $get_code_currency = TidyHelper::currencyCode($client_details->default_currency);
+            $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+            $requesttosend = [
+                'client_id' =>  config('providerlinks.tidygaming.client_id'),
+                'game_id' => $game_code,
+                'username' => $client_details->username,
+                'token' => $token,
+                'uid' => 'TG_'.$client_details->player_id,
+                'currency' => $get_code_currency
+            ];
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.TidyHelper::generateToken($requesttosend)
+                ]
+            ]);
+            $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
+            );
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            Helper::saveLog('Tidy Gameluanch 102', 23, json_encode($requesttosend), $client_response);
+            return $client_response->link;
+        }catch(\Exception $e){
+            $requesttosend = [
+                'error' => 1010
+            ];
+            Helper::saveLog('Tidy Gameluanch 101', 23, json_encode($requesttosend), $e->getMessage() );
+            return $e->getMessage();
+        }
+        
     }
 
     public static function tgglaunchUrl( $game_code = null, $token = null){
