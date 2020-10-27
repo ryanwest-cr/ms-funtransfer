@@ -270,7 +270,7 @@ class TidyController extends Controller
 
 		//CHECKING WIN EXISTING game_transaction_ext IF WIN ALREADY PROCESS
 		$transaction_check = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
-		if($transaction_check == 'false'){
+		if($transaction_check != 'false'){
 			$data_response = [
 				'error' => '99-011' 
 			];
