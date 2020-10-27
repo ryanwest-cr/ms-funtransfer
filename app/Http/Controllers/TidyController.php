@@ -269,6 +269,15 @@ class TidyController extends Controller
 		// }
 
 		//CHECKING WIN EXISTING game_transaction_ext IF WIN ALREADY PROCESS
+		// $transaction_check = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
+		// if($transaction_check != 'false'){
+		// 	$data_response = [
+		// 		'error' => '99-011' 
+		// 	];
+		// 	Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
+		// 	return $data_response;
+		// }
+		
 		try{
 			//get details on game_transaction
 			$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'transaction_id',1);
