@@ -402,7 +402,7 @@ class TGGController extends Controller
 					$response = array(
 						'status' => 'ok',
 						'data' => [
-							'balance' => $player_details->playerdetailsresponse->balance,
+							'balance' => (string)$player_details->playerdetailsresponse->balance,
 							'currency' => $client_details->default_currency,
 						],
 						);
@@ -419,7 +419,7 @@ class TGGController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => $player_details->playerdetailsresponse->balance,
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 					);
