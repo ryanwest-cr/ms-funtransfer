@@ -396,6 +396,18 @@ class TGGController extends Controller
 					$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
 					Helper::saveLog('TGG FREE SPIN', $this->provider_db_id, json_encode($request), $response); 
 					return $response;
+				else:
+					$player_details = ProviderHelper::playerDetailsCall($request['token']);
+					$client_details = ProviderHelper::getClientDetails('token', $request['token']);
+					$response = array(
+						'status' => 'ok',
+						'data' => [
+							'balance' => $player_details->playerdetailsresponse->balance,
+							'currency' => $client_details->default_currency,
+						],
+						);
+						Helper::saveLog('TGG second '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
+					return $response;
 				endif;
 			endif;
 		
@@ -411,7 +423,7 @@ class TGGController extends Controller
 						'currency' => $client_details->default_currency,
 					],
 					);
-					Helper::saveLog('TGG Provider '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
+					Helper::saveLog('TGG second '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
 				return $response;
 			// else:
 			// 	$msg = array(
