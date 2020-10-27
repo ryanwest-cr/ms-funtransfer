@@ -80,74 +80,38 @@ class EightProviderController extends Controller
 	 * 
 	 */
 	public function index(Request $request){
-		DB::enableQueryLog();
-		Helper::saveLog('8P index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+		// DB::enableQueryLog();
+		$this->saveLog('8P index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
-		// $signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->secret_key);
-		// if($signature_checker == 'false'):
-		// 	$msg = array(
-		// 				"status" => 'error',
-		// 				"error" => ["scope" => "user","no_refund" => 1,"message" => "Signature is invalid!"]
-		// 			);
-		// 	Helper::saveLog('8P Signature Failed '.$request->name, $this->provider_db_id, json_encode($request->all()), $msg);
-		// 	return $msg;
-		// endif;
+		$signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->secret_key);
+		if($signature_checker == 'false'):
+			$msg = array(
+						"status" => 'error',
+						"error" => ["scope" => "user","no_refund" => 1,"message" => "Signature is invalid!"]
+					);
+			$this->saveLog('8P Signature Failed '.$request->name, $this->provider_db_id, json_encode($request->all()), $msg);
+			return $msg;
+		endif;
 
+		$data = $request->all();
 		if($request->name == 'init'){
 
-			$game_init = $this->gameInitialize($request->all());
-			Helper::saveLog('init MLOG', 999, json_encode(DB::getQueryLog()), "METHODLOG 8Provider");
-			return json_encode($game_init);
+			$player_details = ProviderHelper::playerDetailsCall($data['token']);
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$response = array(
+				'status' => 'ok',
+				'data' => [
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'currency' => $client_details->default_currency,
+				],
+			);
+			$this->saveLog('8P GAME INIT', $this->provider_db_id, json_encode($data), $response);
+			return $response;
 
 		}elseif($request->name == 'bet'){
 
-			$bet_handler = $this->gameBet($request->all());
-			Helper::saveLog('bet MLOG', 999, json_encode(DB::getQueryLog()), "METHODLOG 8Provider");
-			return json_encode($bet_handler);
-
-		}elseif($request->name == 'win'){
-
-			$win_handler = $this->gameWin($request->all());
-			Helper::saveLog('win MLOG', 999, json_encode(DB::getQueryLog()), "METHODLOG 8Provider");
-			return json_encode($win_handler);
-
-		}elseif($request->name == 'refund'){
-
-			$refund_handler = $this->gameRefund($request->all());
-			Helper::saveLog('refund MLOG', 999, json_encode(DB::getQueryLog()), "METHODLOG 8Provider");
-			return json_encode($refund_handler);
-		}
-	}
-
-
-	/**
-	 * @param data [array]
-	 * 
-	 */
-	public function gameInitialize($data){
-		$player_details = ProviderHelper::playerDetailsCall($data['token']);
-		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
-		$response = array(
-			'status' => 'ok',
-			'data' => [
-				'balance' => (string)$player_details->playerdetailsresponse->balance,
-				'currency' => $client_details->default_currency,
-			],
-	 	 );
-		Helper::saveLog('8P GAME INIT', $this->provider_db_id, json_encode($data), $response);
-	  	return $response;
-	}
-
-	/**
-	 * [gameBet]
-	 * @author's note [FLOW] [Look for bet transaction if dont process the callback]
-	 * @param  [array] $data [array data from the index method]
-	 * 
-	 */
-	public function gameBet($data){
-			// $game_ext = ProviderHelper::findGameExt($data['callback_id'], 1, 'transaction_id'); // Find if this callback in game extension
 			$game_ext = $this->checkTransactionExist($data['callback_id'], 1);
-		    if($game_ext == 'false'): // NO BET
+			if($game_ext == 'false'): // NO BET
 				$string_to_obj = json_decode($data['data']['details']);
 			    $game_id = $string_to_obj->game->game_id;
 			    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);	
@@ -157,13 +121,13 @@ class EightProviderController extends Controller
 						"status" => 'error',
 						"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
 					);
-					Helper::saveLog('8Provider gameBet PC', $this->provider_db_id, json_encode($player_details), $msg);
+					$this->saveLog('8Provider gameBet PC', $this->provider_db_id, json_encode($player_details), $msg);
 					return $msg;
 			   	endif;
 
 			    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				try {
-
+					$this->saveLog('8Provider gameBet 1', $this->provider_db_id, json_encode($data), 1);
 					$payout_reason = 'Bet';
 			 		$win_or_lost = 0; // 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
 			 		$method = 1; // 1 bet, 2 win
@@ -179,18 +143,19 @@ class EightProviderController extends Controller
 
 					try {
 						$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
-			       	     Helper::saveLog('8Provider gameBet CRID '.$round_id, $this->provider_db_id, json_encode($data), $client_response);
+			       	     $this->saveLog('8Provider gameBet CRID '.$round_id, $this->provider_db_id, json_encode($data), $client_response);
 					} catch (\Exception $e) {
 						$msg = array("status" => 'error',"message" => $e->getMessage());
 						ProviderHelper::updateGameTransactionStatus($game_trans, 99, 99);
 						ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-						Helper::saveLog('8Provider gameBet - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+						$this->saveLog('8Provider gameBet - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
 						return $msg;
 					}
 
 
 					if(isset($client_response->fundtransferresponse->status->code) 
 					             && $client_response->fundtransferresponse->status->code == "200"){
+						$this->saveLog('8Provider gameBet 2', $this->provider_db_id, json_encode($data), 2);
 						$response = array(
 							'status' => 'ok',
 							'data' => [
@@ -214,18 +179,19 @@ class EightProviderController extends Controller
 					}
 
 			   		// $trans_ext = $this->create8PTransactionExt($game_trans, $data, $requesttosend, $client_response, $client_response,$data, 1, $data['data']['amount'], $provider_trans_id,$round_id);
-			   		Helper::saveLog('8Provider gameBet', $this->provider_db_id, json_encode($data), $response);
+			   		$this->saveLog('8Provider gameBet', $this->provider_db_id, json_encode($data), $response);
 				  	return $response;
 				}catch(\Exception $e){
 					$msg = array(
 						"status" => 'error',
 						"message" => $e->getMessage(),
 					);
-					Helper::saveLog('8P gameBet - FATAL ERROR', $this->provider_db_id, json_encode($data), $e->getMessage());
+					$this->saveLog('8P gameBet - FATAL ERROR', $this->provider_db_id, json_encode($data), $e->getMessage());
 					return $msg;
 				}
 		    else:
 		    	// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
+		    	$this->saveLog('8Provider gameBet 3', $this->provider_db_id, json_encode($data), 3);
 		    	$player_details = ProviderHelper::playerDetailsCall($data['token']);
 				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				// dd($client_details);
@@ -236,96 +202,33 @@ class EightProviderController extends Controller
 						'currency' => $client_details->default_currency,
 					],
 			 	 );
-				Helper::saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
+				$this->saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
 				return $response;
 		    endif;
-	}
 
-	/**
-	 * [gameWin description]
-	 * @author's note [FLOW] [Look for bet transaction if found update the transaction and if not return error bet not found ]
-	 * @param  [array] $data [array data from the index method]
-	 *
-	 */
-	public function gameWin($data){
-		$string_to_obj = json_decode($data['data']['details']);
+		}elseif($request->name == 'win'){
+
+			$string_to_obj = json_decode($data['data']['details']);
 		$game_id = $string_to_obj->game->game_id;
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		$player_details = ProviderHelper::playerDetailsCall($data['token']);
 		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
 
-		$game_ext = ProviderHelper::findGameExt($data['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
+		$game_ext = $this->checkTransactionExist($data['callback_id'], 2); // Find if this callback in game extension
+		// $game_ext = ProviderHelper::findGameExt($data['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
+		$this->saveLog('8P game_ext', $this->provider_db_id, json_encode($data), 'game_ext');
 		if($game_ext == 'false'):
-			$existing_bet = ProviderHelper::findGameTransaction($data['data']['round_id'], 'round_id', 1); // Find if win has bet record
+			$existing_bet = $this->findGameTransaction($data['data']['round_id'], 'round_id', 1); // Find if win has bet record
+			$this->saveLog('8P existing_bet', $this->provider_db_id, json_encode($data), 'existing_bet');
 			// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win
-		
-					try {
-
-						$amount = $data['data']['amount'];
-				 	    $round_id = $data['data']['round_id'];
-
-				 	    // WIN IS ALWAYS WIN OLD
-				 	     // if($existing_bet->bet_amount > $amount):
-				 	     if($amount == 0):
-		 	  				$win = 0; // lost
-		 	  				$entry_id = 1; //lost
-		 	  				$income = $existing_bet->bet_amount - $amount;
-		 	  			else:
-		 	  				$win = 1; //win
-		 	  				$entry_id = 2; //win
-		 	  				$income = $existing_bet->bet_amount - $amount;
-		 	  			endif;
-		 	  			// END OLD
-		 	  			
-		 	  			// REVISION 08/21/20
-		 	  			// $win = 1; //win
-		 	  			// $entry_id = 2; //win
-		 	  			// $income = $existing_bet->bet_amount - $amount;
-
-						$this->updateBetTransaction($existing_bet->game_trans_id, $amount, $income, $win, $entry_id);
-						$game_transextension = ProviderHelper::createGameTransExtV2($existing_bet->game_trans_id,$data['callback_id'], $round_id, $data['data']['amount'], 2);
-
-						try {
-							$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$existing_bet->game_trans_id,'credit');
-						    Helper::saveLog('8Provider gameWin CRID = '.$round_id, $this->provider_db_id, json_encode($data), $client_response);
-						} catch (\Exception $e) {
-							$msg = array("status" => 'error',"message" => $e->getMessage());
-							ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-							Helper::saveLog('8Provider gameWin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
-						    return $msg;
-						}
-
-						if(isset($client_response->fundtransferresponse->status->code) 
-			             	&& $client_response->fundtransferresponse->status->code == "200"){
-							$response = array(
-								'status' => 'ok',
-								'data' => [
-									'balance' => (string)$client_response->fundtransferresponse->balance,
-									'currency' => $client_details->default_currency,
-								],
-						 	 );
-
-							ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
-						}
-						
-						Helper::saveLog('8Provider Win', $this->provider_db_id, json_encode($data), $response);
-					  	return $response;
-
-					}catch(\Exception $e){
-						$msg = array(
-							"status" => 'error',
-							"message" => $e->getMessage(),
-						);
-						Helper::saveLog('8P ERROR WIN', $this->provider_db_id, json_encode($data), $e->getMessage());
-						return $msg;
-					}
-			else: 
-				    // No Bet was found check if this is a free spin and proccess it!
+					 // No Bet was found check if this is a free spin and proccess it!
+					$this->saveLog('8P existing_bet = false', $this->provider_db_id, json_encode($data), 'existing_bet = false');
 				    if($string_to_obj->game->action == 'freespin'):
+				    	$this->saveLog('8Provider freespin 1', $this->provider_db_id, json_encode($data), 1);
 				  	    // $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 							try {
-								Helper::saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), 'FREESPIN');
+								$this->saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), 'FREESPIN');
 								$payout_reason = 'Free Spin';
 						 		$win_or_lost = 1; // 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
 						 		$method = 2; // 1 bet, 2 win
@@ -360,11 +263,11 @@ class EightProviderController extends Controller
 
 								try {
 									$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'credit');
-								    Helper::saveLog('8Provider Win Freespin CRID = '.$round_id, $this->provider_db_id, json_encode($data), $client_response);
+								    $this->saveLog('8Provider Win Freespin CRID = '.$round_id, $this->provider_db_id, json_encode($data), $client_response);
 								} catch (\Exception $e) {
 									$msg = array("status" => 'error',"message" => $e->getMessage());
 									ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-									Helper::saveLog('8Provider Freespin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+									$this->saveLog('8Provider Freespin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
 									return $msg;
 								}
 
@@ -379,7 +282,7 @@ class EightProviderController extends Controller
 								 	 );
 
 									ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
-									Helper::saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), $response);
+									$this->saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), $response);
 							  		return $response;
 								}
 
@@ -389,28 +292,76 @@ class EightProviderController extends Controller
 									"status" => 'error',
 									"message" => $e->getMessage(),
 								);
-								Helper::saveLog('8P ERROR FREESPIN - FATAL ERROR', $this->provider_db_id, json_encode($data), $e->getMessage());
+								$this->saveLog('8P ERROR FREESPIN - FATAL ERROR', $this->provider_db_id, json_encode($data), $e->getMessage());
 								return $msg;
 							}
 				    else:
-				            //NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-							// $player_details = ProviderHelper::playerDetailsCall($data['token']);
-							// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
-							$response = array(
-								'status' => 'ok',
-								'data' => [
-									'balance' => (string)$player_details->playerdetailsresponse->balance,
-									'currency' => $client_details->default_currency,
-								],
-						 	 );
-							Helper::saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
-							return $response;
-				    endif;
-			endif;
-		else:
-			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
-				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+							try {
+								$this->saveLog('8P win normal 1', $this->provider_db_id, json_encode($data), 'normal');
+								$amount = $data['data']['amount'];
+								$round_id = $data['data']['round_id'];
+
+								// WIN IS ALWAYS WIN OLD
+								// if($existing_bet->bet_amount > $amount):
+								if($amount == 0):
+									$win = 0; // lost
+									$entry_id = 1; //lost
+									$income = $existing_bet->bet_amount - $amount;
+								else:
+									$win = 1; //win
+									$entry_id = 2; //win
+									$income = $existing_bet->bet_amount - $amount;
+								endif;
+								// END OLD
+								
+								// REVISION 08/21/20
+								// $win = 1; //win
+								// $entry_id = 2; //win
+								// $income = $existing_bet->bet_amount - $amount;
+
+								$game_transextension = ProviderHelper::createGameTransExtV2($existing_bet->game_trans_id,$data['callback_id'], $round_id, $data['data']['amount'], 2);
+
+								try {
+									$this->saveLog('Win Call Request', $this->provider_db_id, json_encode($data), 1);
+									$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$existing_bet->game_trans_id,'credit');
+									$this->saveLog('Win Response Receive', $this->provider_db_id, json_encode($data), 1);
+									$this->saveLog('8Provider gameWin CRID = '.$round_id, $this->provider_db_id, json_encode($data), $client_response);
+								} catch (\Exception $e) {
+									$msg = array("status" => 'error',"message" => $e->getMessage());
+									ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+									$this->saveLog('8Provider gameWin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+									return $msg;
+								}
+
+								if(isset($client_response->fundtransferresponse->status->code) 
+									&& $client_response->fundtransferresponse->status->code == "200"){
+									$this->updateBetTransaction($existing_bet->game_trans_id, $amount, $income, $win, $entry_id);
+									$this->saveLog('Bet Updated', $this->provider_db_id, json_encode($data), 1);
+									$response = array(
+										'status' => 'ok',
+										'data' => [
+											'balance' => (string)$client_response->fundtransferresponse->balance,
+											'currency' => $client_details->default_currency,
+										],
+									);
+
+									ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+								}
+								
+								$this->saveLog('8Provider Win', $this->provider_db_id, json_encode($data), $response);
+								return $response;
+
+							}catch(\Exception $e){
+								$msg = array(
+									"status" => 'error',
+									"message" => $e->getMessage(),
+								);
+								$this->saveLog('8P ERROR WIN', $this->provider_db_id, json_encode($data), $e->getMessage());
+								return $msg;
+							}
+				    endif;	
+			else: 
+				$this->saveLog('8Provider win 4', $this->provider_db_id, json_encode($data), 1);
 				$response = array(
 					'status' => 'ok',
 					'data' => [
@@ -418,165 +369,183 @@ class EightProviderController extends Controller
 						'currency' => $client_details->default_currency,
 					],
 			 	);
-				Helper::saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
+				$this->saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
+				return $response;  
+			endif;
+		else:
+			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+			 	);
+			 	$this->saveLog('8Provider win 5', $this->provider_db_id, json_encode($data), 1);
+				$this->saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
 				return $response;
 		endif;
-	}
 
-	/**
-	 * [GAME REFUND]
-	 * @author's note [if bet was found send it as credit, and if win was found send it as debit]
-	 * @param  [array] $data [array data from the index method]
-	 * 
-	 */
-	public function gameRefund($data){
-	    $string_to_obj = json_decode($data['data']['details']);
-		$game_id = $string_to_obj->game->game_id;
-	    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
-		$game_refund = ProviderHelper::findGameExt($data['callback_id'], 4, 'transaction_id'); // Find if this callback in game extension	
-		if($game_refund == 'false'): // NO REFUND WAS FOUND PROCESS IT!
+		}elseif($request->name == 'refund'){
 
-		$player_details = ProviderHelper::playerDetailsCall($data['token']);
-		if($player_details == 'false'){
-			$msg = array("status" => 'error',"message" => $e->getMessage());
-			Helper::saveLog('8Provider gameRefund - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
-			return $msg;
-		}
-		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
-		$game_transaction_ext = ProviderHelper::findGameExt($data['data']['refund_round_id'], 1, 'round_id'); // Find GameEXT
-		if($game_transaction_ext == 'false'):
-		    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
-			$response = array(
-				'status' => 'ok',
-				'data' => [
-					'balance' => (string)$player_details->playerdetailsresponse->balance,
-					'currency' => $client_details->default_currency,
-				],
-		 	);
-			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
-			return $response;
-		endif;
+			$string_to_obj = json_decode($data['data']['details']);
+			$game_id = $string_to_obj->game->game_id;
+			$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+			$game_refund = ProviderHelper::findGameExt($data['callback_id'], 4, 'transaction_id'); // Find if this callback in game extension	
+			if($game_refund == 'false'): // NO REFUND WAS FOUND PROCESS IT!
 
-		$game_transaction_ext_refund = ProviderHelper::findGameExt($data['data']['refund_round_id'], 4, 'round_id'); // Find GameEXT
-		if($game_transaction_ext_refund != 'false'):
-		    // $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
-			$response = array(
-				'status' => 'ok',
-				'data' => [
-					'balance' => (string)$player_details->playerdetailsresponse->balance,
-					'currency' => $client_details->default_currency,
-				],
-		 	);
-			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
-			return $response;
-		endif;
-
-
-		$existing_transaction = $this->findGameTransID($game_transaction_ext->game_trans_id);
-		if($existing_transaction != 'false'): // IF BET WAS FOUND PROCESS IT!
-			$transaction_type = $game_transaction_ext->game_transaction_type == 1 ? 'credit' : 'debit'; // 1 Bet
-		    // $client_details = ProviderHelper::getClientDetails('token', $data['token']);
-		    if($transaction_type == 'debit'):
-			   	// $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			   	if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
-			   		$msg = array(
-						"status" => 'error',
-						"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
-					);
-					return $msg;
-			   	endif;
-		    endif;
-
-			try {
-
-				$this->updateBetTransaction($existing_transaction->game_trans_id, $existing_transaction->pay_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
-
-				$game_transextension = ProviderHelper::createGameTransExtV2($existing_transaction->game_trans_id,$data['callback_id'], $data['data']['refund_round_id'], $data['data']['amount'], 4);
-
-				try {
-					$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$existing_transaction->game_trans_id, $transaction_type);
-				    Helper::saveLog('8Provider Refund CRID '.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $client_response);
-				} catch (\Exception $e) {
-					$msg = array("status" => 'error',"message" => $e->getMessage());
-					ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-					Helper::saveLog('8Provider gameRefund - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
-					return $msg;
-				}
-
-				if(isset($client_response->fundtransferresponse->status->code) 
-				             && $client_response->fundtransferresponse->status->code == "200"){
-					$response = array(
-						'status' => 'ok',
-						'data' => [
-							'balance' => (string)$client_response->fundtransferresponse->balance,
-							'currency' => $client_details->default_currency,
-						],
-				 	 );
-
-					ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
-					Helper::saveLog('8P REFUND', $this->provider_db_id, json_encode($data), $response);
-				  	return $response;
-				}
-									
-
-			}catch(\Exception $e){
-				$msg = array(
-					"status" => 'error',
-					"message" => $e->getMessage(),
-				);
-				Helper::saveLog('8P ERROR REFUND', $this->provider_db_id, json_encode($data), $e->getMessage());
+			$player_details = ProviderHelper::playerDetailsCall($data['token']);
+			if($player_details == 'false'){
+				$msg = array("status" => 'error',"message" => $e->getMessage());
+				$this->saveLog('8Provider gameRefund - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
 				return $msg;
 			}
-		else:
-			// NO BET WAS FOUND DO NOTHING
-			// $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
-			$response = array(
-				'status' => 'ok',
-				'data' => [
-					'balance' => (string)$player_details->playerdetailsresponse->balance,
-					'currency' => $client_details->default_currency,
-				],
-		 	 );
-			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
-			return $response;
-		endif;
-		else:
-			// NOTE IF CALLBACK WAS ALREADY PROCESS/DUPLICATE PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			// $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
-			$response = array(
-				'status' => 'ok',
-				'data' => [
-					'balance' => (string)$player_details->playerdetailsresponse->balance,
-					'currency' => $client_details->default_currency,
-				],
-		 	 );
-			Helper::saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
-			return $response;
-		endif;
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$game_transaction_ext = ProviderHelper::findGameExt($data['data']['refund_round_id'], 1, 'round_id'); // Find GameEXT
+			if($game_transaction_ext == 'false'):
+				// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+				);
+				$this->saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+				return $response;
+			endif;
+
+			$game_transaction_ext_refund = ProviderHelper::findGameExt($data['data']['refund_round_id'], 4, 'round_id'); // Find GameEXT
+			if($game_transaction_ext_refund != 'false'):
+				// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+				);
+				$this->saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+				return $response;
+			endif;
+
+
+			$existing_transaction = $this->findGameTransID($game_transaction_ext->game_trans_id);
+			if($existing_transaction != 'false'): // IF BET WAS FOUND PROCESS IT!
+				$transaction_type = $game_transaction_ext->game_transaction_type == 1 ? 'credit' : 'debit'; // 1 Bet
+				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				if($transaction_type == 'debit'):
+					// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+					if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
+						$msg = array(
+							"status" => 'error',
+							"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
+						);
+						return $msg;
+					endif;
+				endif;
+
+				try {
+
+					$this->updateBetTransaction($existing_transaction->game_trans_id, $existing_transaction->pay_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
+
+					$game_transextension = ProviderHelper::createGameTransExtV2($existing_transaction->game_trans_id,$data['callback_id'], $data['data']['refund_round_id'], $data['data']['amount'], 4);
+
+					try {
+						$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$existing_transaction->game_trans_id, $transaction_type);
+						$this->saveLog('8Provider Refund CRID '.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $client_response);
+					} catch (\Exception $e) {
+						$msg = array("status" => 'error',"message" => $e->getMessage());
+						ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+						$this->saveLog('8Provider gameRefund - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+						return $msg;
+					}
+
+					if(isset($client_response->fundtransferresponse->status->code) 
+								&& $client_response->fundtransferresponse->status->code == "200"){
+						$response = array(
+							'status' => 'ok',
+							'data' => [
+								'balance' => (string)$client_response->fundtransferresponse->balance,
+								'currency' => $client_details->default_currency,
+							],
+						);
+
+						ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+						$this->saveLog('8P REFUND', $this->provider_db_id, json_encode($data), $response);
+						return $response;
+					}
+										
+
+				}catch(\Exception $e){
+					$msg = array(
+						"status" => 'error',
+						"message" => $e->getMessage(),
+					);
+					$this->saveLog('8P ERROR REFUND', $this->provider_db_id, json_encode($data), $e->getMessage());
+					return $msg;
+				}
+			else:
+				// NO BET WAS FOUND DO NOTHING
+				// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+				);
+				$this->saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+				return $response;
+			endif;
+			else:
+				// NOTE IF CALLBACK WAS ALREADY PROCESS/DUPLICATE PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
+				// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$response = array(
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'currency' => $client_details->default_currency,
+					],
+				);
+				$this->saveLog('8Provider'.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
+				return $response;
+			endif;
+		}
 	}
 
-
-	 public function checkTransactionExist($identifier, $transaction_type){
+	public function checkTransactionExist($identifier, $transaction_type){
 		$query = DB::select('select `game_transaction_type` from game_transaction_ext where `provider_trans_id`  = "'.$identifier.'" AND `game_transaction_type` = "'.$transaction_type.'" LIMIT 1');
     	$data = count($query);
-		return $data > 0 ? $query[0] : null;
+		return $data > 0 ? $query[0] : 'false';
 	}
 
-	public function findGameTransID($game_trans_id){
+	public  function findGameTransaction($identifier, $type, $entry_type='') {
 
+    	if ($type == 'transaction_id') {
+		 	$where = 'where gt.provider_trans_id = "'.$identifier.'" AND gt.entry_id = '.$entry_type.'';
+		}
+		if ($type == 'game_transaction') {
+		 	$where = 'where gt.game_trans_id = "'.$identifier.'"';
+		}
+		if ($type == 'round_id') {
+			$where = 'where gt.round_id = "'.$identifier.'" AND gt.entry_id = '.$entry_type.'';
+		}
+	 	
+	 	$filter = 'LIMIT 1';
+    	$query = DB::select('select *, (select transaction_detail from game_transaction_ext where game_trans_id = gt.game_trans_id order by game_trans_id limit 1) as transaction_detail from game_transactions gt '.$where.' '.$filter.'');
+    	$client_details = count($query);
+		return $client_details > 0 ? $query[0] : 'false';
+    }
+
+	public function findGameTransID($game_trans_id){
 		$query = DB::select('select `game_trans_id`,`token_id`, `provider_trans_id`, `round_id`, `bet_amount`, `win`, `pay_amount`, `income`, `entry_id` from game_transactions where `game_trans_id`  = '.$game_trans_id.' LIMIT 1');
     	$data = count($query);
-		return $data > 0 ? $query[0] : null;
-		// $transaction_db = DB::table('game_transactions as gt');
-		// $transaction_db->where([
-        //       ["gt.game_trans_id", "=", $game_trans_id],
-        // ]);
-		// $result= $transaction_db->first();
-        // return $result ? $result : 'false';
+		return $data > 0 ? $query[0] : 'false';
 	}
 
 
@@ -604,6 +573,16 @@ class EightProviderController extends Controller
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
 		return $gamestransaction_ext_ID;
+	}
+
+	public  function saveLog($method, $provider_id = 0, $request_data, $response_data) {
+		$data = [
+				"method_name" => $method,
+				"provider_id" => $provider_id,
+				"request_data" => json_encode(json_decode($request_data)),
+				"response_data" => json_encode($response_data)
+			];
+		return DB::table('seamless_request_logs')->insertGetId($data);
 	}
 
 
