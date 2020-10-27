@@ -444,14 +444,29 @@ class GameLobbyController extends Controller
                     // ->header('Content-Type', 'application/json');
                 } 
                 elseif($request->input('game_provider')=="Tidy"){ 
-                    $msg = array(
-                        "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::tidylaunchUrl($request->game_code,$request->token), //TEST
-                        "game_launch" => true
-                    );
-                    
-                    return response($msg,200)
-                    ->header('Content-Type', 'application/json');
+                    // $msg = array(
+                    //     "game_code" => $request->input("game_code"),
+                    //     "url" => GameLobby::tidylaunchUrl($request->game_code,$request->token), //TEST
+                    //     "game_launch" => true
+                    // );
+
+                    $url = GameLobby::tidylaunchUrl($request->game_code,$request->token);
+                    if($url){
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $url,
+                            "game_launch" => true
+                        );
+                    }else{
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
+                            "game_launch" => false
+                        );
+                    }
+                    return $msg;
+                    // return response($msg,200)
+                    // ->header('Content-Type', 'application/json');
                     
                 }
                 elseif($request->input('game_provider') == "Top Grade Games"){ 
