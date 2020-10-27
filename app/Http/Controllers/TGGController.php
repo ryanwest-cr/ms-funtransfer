@@ -314,7 +314,7 @@ class TGGController extends Controller
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win //temporary == make it !=
 				try {
 					// No Bet was found check if this is a free spin and proccess it!
-				if($string_to_obj->game->action == 'freespin'):
+				if(isset($string_to_obj->game->action) && $string_to_obj->game->action == 'freespin'):
 					try {
 						$client_details = ProviderHelper::getClientDetails('token', $request['token']);
 						$game_transaction_type = 2; // 1 Bet, 2 Win
@@ -550,8 +550,8 @@ class TGGController extends Controller
 					],
 			 	 );
 				// $this->updateBetTransaction($data['data']['refund_round_id'], $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
-				$this->updateBetTransaction($existing_transaction->game_trans_id, $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
-				$this->creteTGGtransaction($existing_transaction->game_trans_id, $data, $requesttosend, $client_response, $client_response,$data, 4, $data['data']['amount'], $data['callback_id'], $data['data']['refund_round_id']);
+				$this->updateBetTransaction($game_transaction_ext->game_trans_id, $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
+				$this->creteTGGtransaction($game_transaction_ext->game_trans_id, $data, $requesttosend, $client_response, $client_response,$data, 4, $data['data']['amount'], $data['callback_id'], $data['data']['refund_round_id']);
 				Helper::saveLog('TGG Success '.$data["name"].' '.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
 			  	return $response;
 
