@@ -136,6 +136,7 @@ class TidyController extends Controller
 	}
 
 	public function gameBet(Request $request){
+		
 		$header = $request->header('Authorization');
 	    Helper::saveLog('Tidy Authorization Logger BET', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
 
@@ -143,7 +144,7 @@ class TidyController extends Controller
      	parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
-
+		
 		$game_id = $data->game_id;
 		$token = $data->token;
 		$amount = $data->amount;
@@ -155,9 +156,9 @@ class TidyController extends Controller
 		$client_details = ProviderHelper::getClientDetails('token',$token); // cheking the token and get details
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
-
 		$transaction_check = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id');
-
+		
+		
 		if($transaction_check != 'false'){
 			$data_response = [
 				'error' => '99-011' 
@@ -165,8 +166,10 @@ class TidyController extends Controller
 			Helper::saveLog('Tidy error bet', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 			return $data_response;
 		}
+
 		try{
 			//Initialize
+			
 			$game_transaction_type = 1; // 1 Bet, 2 Win
 			$game_code = $game_details->game_id;
 			$token_id = $client_details->token_id;
@@ -180,16 +183,17 @@ class TidyController extends Controller
 			$provider_trans_id = $transaction_uuid;
 
 			//Create GameTransaction, GameExtension
-			$gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
-			$game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $bet_id, $bet_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-		
+			$game_trans_id  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
+
+			$game_trans_ext_id = $this->createGameTransExt($game_trans_id,$provider_trans_id, $bet_id, $bet_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+			
 			//get Round_id, Transaction_id
-			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id'); //extension
+			//$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id'); //extension
 		
 			//requesttosend, and responsetoclient client side
 			$type = "debit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
 			//response to provider				
 			$num = $client_response->fundtransferresponse->balance;
@@ -201,12 +205,15 @@ class TidyController extends Controller
 			];
 			//UPDATE gameExtension
 			
-			$this->updateGameTransactionExt($transaction_id->game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
+			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
+
 			Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-			return $data_response;
+
+			return $data_response; // response to provider
+		
 		}catch(\Exception $e){
 			$data_response = [
-				'error' => '99-011' 
+				'error' => '99-012' 
 			];
 			Helper::saveLog('Tidy Bet error = '.$e->getMessage(), $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 			return $data_response;
@@ -215,6 +222,7 @@ class TidyController extends Controller
 	}
 
 	public function gameWin(Request $request){
+		
 		//HEADER AUTHORIZATION
 		$header = $request->header('Authorization');
 		Helper::saveLog('Tidy Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
@@ -236,6 +244,8 @@ class TidyController extends Controller
 
 		//CHECKING TOKEN
 		$client_details = ProviderHelper::getClientDetails('token',$token);
+
+		
 		if($client_details == null){
 			$data_response = [
 				'error' => '99-011' 
@@ -243,22 +253,24 @@ class TidyController extends Controller
 			Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 			return $data_response;
 		}
+		
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		
 		//CHECKING if BET EXISTING game_transaction_ext IF FALSE no bet record
-		$existing_bet = ProviderHelper::findGameExt($reference_transaction_uuid, 1,'transaction_id');
-		if($existing_bet == 'false'){
-			$data_response = [
-				'error' => '99-011' 
-			];
-			Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-			return $data_response;
-		}
+		// $existing_bet = ProviderHelper::findGameExt($reference_transaction_uuid, 1,'transaction_id');
+		
+		// if($existing_bet == 'false'){
+		// 	$data_response = [
+		// 		'error' => '99-011' 
+		// 	];
+		// 	Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
+		// 	return $data_response;
+		// }
 
 		//CHECKING WIN EXISTING game_transaction_ext IF WIN ALREADY PROCESS
 		$transaction_check = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
-		if($transaction_check != 'false'){
+		if($transaction_check == 'false'){
 			$data_response = [
 				'error' => '99-011' 
 			];
@@ -268,16 +280,17 @@ class TidyController extends Controller
 		
 		try{
 			//get details on game_transaction
-			$bet_transaction = ProviderHelper::findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
-			$game_transextension = $this->createGameTransExt($bet_transaction->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+			$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'transaction_id',1);
+			
+			$game_trans_ext_id = $this->createGameTransExt($bet_transaction->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
 			
 			//get game_trans_id and game_trans_ext
-			$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
+			//$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
 
 			//requesttosend, and responsetoclient client side
 			$type = "credit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$transaction_id->game_trans_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$bet_transaction->game_trans_id,$type,$rollback);
 
 			//reponse to provider
 		    $num = $client_response->fundtransferresponse->balance;
@@ -298,7 +311,7 @@ class TidyController extends Controller
 			];
 			//update transaction
 			Helper::updateGameTransaction($bet_transaction,$request_data,$type);
-			$this->updateGameTransactionExt($transaction_id->game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
+			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
 		    Helper::saveLog('Tidy Win Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
 	        return $data_response;
 		}catch(\Exception $e){
