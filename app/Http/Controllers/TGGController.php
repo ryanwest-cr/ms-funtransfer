@@ -416,24 +416,24 @@ class TGGController extends Controller
 		else:
 			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 			// if($game_ext->provider_trans_id == $request["callback_id"]): //if same duplicate
-				$player_details = ProviderHelper::playerDetailsCall($request['token']);
-				$client_details = ProviderHelper::getClientDetails('token', $request['token']);
-				$response = array(
-					'status' => 'ok',
-					'data' => [
-						'balance' => (string)$player_details->playerdetailsresponse->balance,
-						'currency' => $client_details->default_currency,
-					],
-					);
-					Helper::saveLog('TGG second101 '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
-				return $response;
+				// $player_details = ProviderHelper::playerDetailsCall($request['token']);
+				// $client_details = ProviderHelper::getClientDetails('token', $request['token']);
+				// $response = array(
+				// 	'status' => 'ok',
+				// 	'data' => [
+				// 		'balance' => (string)$player_details->playerdetailsresponse->balance,
+				// 		'currency' => $client_details->default_currency,
+				// 	],
+				// );
+				// Helper::saveLog('TGG second101 '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
+				// return $response;
 			// else:
-			// 	$msg = array(
-			// 		"status" => 'error',
-			// 		"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
-			// 	);
-			// 	Helper::saveLog('TGG error second '.$request["name"], $this->provider_db_id, json_encode($request), $msg);
-			// 	return $msg;
+				$msg = array(
+					"status" => 'error',
+					"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
+				);
+				Helper::saveLog('TGG error second '.$request["name"], $this->provider_db_id, json_encode($request), $msg);
+				return $msg;
 			// endif;
 		endif;
 
