@@ -205,7 +205,6 @@ class TGGController extends Controller
 	    $game_id = $string_to_obj->game->game_id;
 	
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
-		dd($game_details);
 		// $game_ext = $this->findGameExt($request['callback_id'], 1, 'transaction_id'); // Find if this callback in game extension
 		$game_ext = $this->checkTransactionExist($request['callback_id'], 1);
 		if($game_ext == 'false'): // NO BET
@@ -270,7 +269,7 @@ class TGGController extends Controller
 			// }
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			if($game_ext->provider_trans_id == $request["callback_id"]): //if same duplicate
+			// if($game_ext->provider_trans_id == $request["callback_id"]): //if same duplicate
 				$player_details = ProviderHelper::playerDetailsCall($request['token']);
 				$client_details = ProviderHelper::getClientDetails('token', $request['token']);
 				$response = array(
@@ -283,17 +282,17 @@ class TGGController extends Controller
 	
 				Helper::saveLog('TGG second bet '.$request['name'].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
 				return $response;
-			else:
-				$response = array(
-					'status' => 'ok',
-					'data' => [
-						'balance' => $player_details->playerdetailsresponse->balance,
-						'currency' => $client_details->default_currency,
-					],
-				);
-				Helper::saveLog('TGG error second '.$request["name"], $this->provider_db_id, json_encode($request), $response);
-				return $msg;
-			endif;
+			// else:
+			// 	$response = array(
+			// 		'status' => 'ok',
+			// 		'data' => [
+			// 			'balance' => $player_details->playerdetailsresponse->balance,
+			// 			'currency' => $client_details->default_currency,
+			// 		],
+			// 	);
+			// 	Helper::saveLog('TGG error second '.$request["name"], $this->provider_db_id, json_encode($request), $response);
+			// 	return $msg;
+			// endif;
 		endif;
 	}
 
