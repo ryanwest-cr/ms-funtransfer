@@ -417,6 +417,12 @@ class SolidGamingController extends Controller
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details/* && $player_details != NULL*/) {
+				// If free round create round id
+				if(isset($json_data['payoutreason'])) {
+					if($json_data['payoutreason'] == 'FREEROUND_WIN') {
+						GameRound::create($json_data['roundid'], $client_details->token_id);
+					}
+				}
 
 				// Check if the game is available for the client
 				/*$subscription = new GameSubscription();
@@ -444,7 +450,15 @@ class SolidGamingController extends Controller
 
 						$json_data['income'] = $json_data["amount"];
 
-						$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+						if(isset($json_data['payoutreason'])) {
+							if($json_data['payoutreason'] == 'FREEROUND_WIN') {
+								$game_transaction_id = GameTransaction::save('credit', $json_data, $game_details, $client_details, $client_details);;
+							}
+						}
+						else
+						{
+							$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
+						}
 
 						$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
 
