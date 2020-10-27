@@ -361,6 +361,7 @@ class TGGController extends Controller
 				Helper::saveLog('TGG success '.$request["name"].' '.$request['data']['round_id'], $this->provider_db_id, json_encode($request), $response);   
 				return $response;
 			else:
+				
 				if(isset($string_to_obj->game->action) && $string_to_obj->game->action == 'freespin'):
 					$client_details = ProviderHelper::getClientDetails('token', $request['token']);
 					$game_transaction_type = 2; // 1 Bet, 2 Win
@@ -406,9 +407,10 @@ class TGGController extends Controller
 							'currency' => $client_details->default_currency,
 						],
 						);
-						Helper::saveLog('TGG second '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
+						Helper::saveLog('TGG second102 '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
 					return $response;
 				endif;
+			
 			endif;
 		
 		else:
@@ -423,7 +425,7 @@ class TGGController extends Controller
 						'currency' => $client_details->default_currency,
 					],
 					);
-					Helper::saveLog('TGG second '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
+					Helper::saveLog('TGG second101 '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
 				return $response;
 			// else:
 			// 	$msg = array(
