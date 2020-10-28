@@ -32,7 +32,6 @@ class TGGController extends Controller
 		// 	Helper::saveLog('TGG Signature Failed '.$request->name, $this->provider_db_id, json_encode($request->all()), $msg);
 		// 	return $msg;
 		// endif;
-
 		if($request->name == 'init'){
 
 			$game_init = $this->gameInit($request->all());
