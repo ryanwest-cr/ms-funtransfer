@@ -208,16 +208,11 @@ class TGGController extends Controller
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		// $game_ext = $this->findGameExt($request['callback_id'], 1, 'transaction_id'); // Find if this callback in game extension
 		$game_ext = $this->checkTransactionExist($request['callback_id'], 1);
-
-		$this->saveLog('TGG Success Bet playerdetails and clientdetails', $this->provider_db_id, json_encode($request), 'bet arrived');
-		// $player_details = ProviderHelper::playerDetailsCall($request['token']);
+		$player_details = ProviderHelper::playerDetailsCall($request['token']);
 		$client_details = ProviderHelper::getClientDetails('token', $request['token']);
-		$this->saveLog('TGG Success Bet playerdetails and clientdetails processed', $this->provider_db_id, json_encode($request), 'bet arrived');
 		
 		if($game_ext == 'false'): // NO BET
-			$this->saveLog('TGG Success Bet PD', $this->provider_db_id, json_encode($request), 'game_ext= false');
-			$player_details = ProviderHelper::playerDetailsCall($request['token']);
-			$this->saveLog('TGG Success Bet PD Arrived', $this->provider_db_id, json_encode($request), 'game_ext= false');
+			
 			//if the amount is grater than to the bet amount  error message
 			// if($player_details->playerdetailsresponse->balance < $request['data']['amount']):
 			// 	$msg = array(
@@ -245,20 +240,17 @@ class TGGController extends Controller
 				$bet_id = $request['data']['round_id'];
 	
 				//Create GameTransaction, GameExtension
-				$this->saveLog('TGG Success Bet createGameTransaction', $this->provider_db_id, json_encode($request), 'game_ext= false');
 				$game_trans_id  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
 				
-				$this->saveLog('TGG Success Bet createGameTransExt', $this->provider_db_id, json_encode($request), 'game_ext= false');
 				$game_trans_ext_id = $this->createGameTransExt($game_trans_id,$provider_trans_id, $bet_id, $bet_amount, $game_transaction_type, $request, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+				
 				//get Round_id, Transaction_id
 				// $transaction_id = ProviderHelper::findGameExt($provider_trans_id, 1,'transaction_id');
 				
 				//requesttosend, and responsetoclient client side
 				$type = "debit";
 				$rollback = false;
-				$this->saveLog('TGG Success Bet fundTransfer', $this->provider_db_id, json_encode($request), 'game_ext= false');
 				$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
-				$this->saveLog('TGG Success Bet fundTransfer response', $this->provider_db_id, json_encode($request), 'game_ext= false');
 				//response to provider				
 				$response = array(
 					'status' => 'ok',
@@ -268,9 +260,8 @@ class TGGController extends Controller
 					],
 				  );
 				//UPDATE gameExtension
-				$this->saveLog('TGG Success Bet updateGameTransactionExt response', $this->provider_db_id, json_encode($request), 'game_ext= false');
+				
 				$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
-				$this->saveLog('TGG Success Bet updateGameTransactionExt updated and responsed', $this->provider_db_id, json_encode($request), 'game_ext= false');
 				Helper::saveLog('TGG PROCESS '.$request['name'], $this->provider_db_id, json_encode($request), $response);
 			    return $response;
 			// }catch(\Exception $e){
@@ -284,8 +275,7 @@ class TGGController extends Controller
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 			// if($game_ext->provider_trans_id == $request["callback_id"]): //if same duplicate
-				$player_details = ProviderHelper::playerDetailsCall($request['token']);
-				$this->saveLog('TGG Bet Player Details', $this->provider_db_id, json_encode($request), 'game_ext != false');	
+				
 				$response = array(
 					'status' => 'ok',
 					'data' => [
@@ -386,7 +376,6 @@ class TGGController extends Controller
 					$rollback = false;
 					$this->saveLog('TGG win fundTransfer', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
-					$this->saveLog('TGG win fundTransfer client respond', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					//reponse to provider
 					$response = array(
 						'status' => 'ok',
@@ -457,8 +446,7 @@ class TGGController extends Controller
 
 	}
 
-	public function gameRefund($request){
-		$this->saveLog('TGG gameRefund', $this->provider_db_id, json_encode($request), 'game_ext != false');
+	public function gameRefund($data){
 		$string_to_obj = json_decode($data['data']['details']);
 		$game_id = $string_to_obj->game->game_id;
 		
@@ -562,7 +550,6 @@ class TGGController extends Controller
 				$this->updateBetTransaction($game_transaction_ext->game_trans_id, $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
 				$this->creteTGGtransaction($game_transaction_ext->game_trans_id, $data, $requesttosend, $client_response, $client_response,$data, 4, $data['data']['amount'], $data['callback_id'], $data['data']['refund_round_id']);
 				Helper::saveLog('TGG Success '.$data["name"].' '.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), $response);
-				$this->saveLog('TGG gameRefund responsed', $this->provider_db_id, json_encode($request), 'game_ext != false');
 			  	return $response;
 
 			}catch(\Exception $e){
@@ -575,7 +562,6 @@ class TGGController extends Controller
 			}
 		else:
 			// NO BET WAS FOUND DO NOTHING
-			$this->saveLog('TGG gameRefund Player Details 1', $this->provider_db_id, json_encode($request), 'game_ext != false');
 			$player_details = ProviderHelper::playerDetailsCall($data['token']);
 			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
 			$response = array(
@@ -590,7 +576,6 @@ class TGGController extends Controller
 		endif;
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS/DUPLICATE PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-			$this->saveLog('TGG gameRefund Player Details 2', $this->provider_db_id, json_encode($request), 'game_ext != false');
 			$player_details = ProviderHelper::playerDetailsCall($data['token']);
 			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
 			$response = array(
