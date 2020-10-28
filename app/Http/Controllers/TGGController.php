@@ -317,7 +317,6 @@ class TGGController extends Controller
 		if($game_ext == 'false'):
 			
 			$existing_bet = ProviderHelper::findGameTransaction($request['data']['round_id'], 'round_id', 1); // Find if win has bet record
-			
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win //temporary == make it !=
 					// No Bet was found check if this is a free spin and proccess it!
 					

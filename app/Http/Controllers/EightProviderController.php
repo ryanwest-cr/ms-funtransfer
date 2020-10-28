@@ -208,7 +208,7 @@ class EightProviderController extends Controller
 
 		}elseif($request->name == 'win'){
 
-			$string_to_obj = json_decode($data['data']['details']);
+		$string_to_obj = json_decode($data['data']['details']);
 		$game_id = $string_to_obj->game->game_id;
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		$player_details = ProviderHelper::playerDetailsCall($data['token']);
@@ -224,7 +224,7 @@ class EightProviderController extends Controller
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win
 					 // No Bet was found check if this is a free spin and proccess it!
 					$this->saveLog('8P existing_bet = false', $this->provider_db_id, json_encode($data), 'existing_bet = false');
-				    if($string_to_obj->game->action == 'freespin'):
+				    if(isset($string_to_obj->game->action) && $string_to_obj->game->action == 'freespin'):
 				    	$this->saveLog('8Provider freespin 1', $this->provider_db_id, json_encode($data), 1);
 				  	    // $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 							try {
