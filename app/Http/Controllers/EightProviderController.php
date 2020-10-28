@@ -208,7 +208,7 @@ class EightProviderController extends Controller
 
 		}elseif($request->name == 'win'){
 
-			$string_to_obj = json_decode($data['data']['details']);
+		$string_to_obj = json_decode($data['data']['details']);
 		$game_id = $string_to_obj->game->game_id;
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		$player_details = ProviderHelper::playerDetailsCall($data['token']);
@@ -224,7 +224,7 @@ class EightProviderController extends Controller
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win
 					 // No Bet was found check if this is a free spin and proccess it!
 					$this->saveLog('8P existing_bet = false', $this->provider_db_id, json_encode($data), 'existing_bet = false');
-				    if($string_to_obj->game->action == 'freespin'):
+				    if(isset($string_to_obj->game->action) && $string_to_obj->game->action == 'freespin'):
 				    	$this->saveLog('8Provider freespin 1', $this->provider_db_id, json_encode($data), 1);
 				  	    // $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 							try {
@@ -361,7 +361,7 @@ class EightProviderController extends Controller
 							}
 				    endif;	
 			else: 
-				$this->saveLog('8Provider win 4', $this->provider_db_id, json_encode($data), 1);
+				$this->saveLog('8Provider win Player Balance', $this->provider_db_id, json_encode($data), 1);
 				$response = array(
 					'status' => 'ok',
 					'data' => [
@@ -381,7 +381,7 @@ class EightProviderController extends Controller
 						'currency' => $client_details->default_currency,
 					],
 			 	);
-			 	$this->saveLog('8Provider win 5', $this->provider_db_id, json_encode($data), 1);
+			 	$this->saveLog('8Provider win Player Balance', $this->provider_db_id, json_encode($data), 1);
 				$this->saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
 				return $response;
 		endif;
@@ -582,7 +582,8 @@ class EightProviderController extends Controller
 				"request_data" => json_encode(json_decode($request_data)),
 				"response_data" => json_encode($response_data)
 			];
-		return DB::table('seamless_request_logs')->insertGetId($data);
+		// return DB::table('seamless_request_logs')->insertGetId($data);
+		return DB::table('debug')->insertGetId($data);
 	}
 
 
