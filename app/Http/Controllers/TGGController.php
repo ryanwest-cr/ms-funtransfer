@@ -105,12 +105,13 @@ class TGGController extends Controller
 				$type = "debit";
 				$rollback = false;
 				$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
-
-				//response to provider				
+				
+				$num = (float)$client_response->fundtransferresponse->balance;
+				$nombre_format_francais = number_format($num, 2, ',', ' ');			
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
+						'balance' => (string)$nombre_format_francais,
 						'currency' => $client_details->default_currency,
 					],
 				  );
@@ -133,7 +134,7 @@ class TGGController extends Controller
 			$response = array(
 				'status' => 'ok',
 				'data' => [
-					'balance' => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
 					'currency' => $client_details->default_currency,
 				],
 			);
@@ -184,13 +185,15 @@ class TGGController extends Controller
 					$rollback = false;
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
+					$num = (float)$client_response->fundtransferresponse->balance;
+					$nombre_format_francais = number_format($num, 2, ',', ' ');			
 					$response = array(
 						'status' => 'ok',
 						'data' => [
-							'balance' => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
+							'balance' => (string)$nombre_format_francais,
 							'currency' => $client_details->default_currency,
 						],
-					);
+					  );
 
 					TGGHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
 					TGGHelper::saveLog('TGG FREE SPIN success', $this->provider_db_id, json_encode($request), $response); 
@@ -209,13 +212,15 @@ class TGGController extends Controller
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
 					//reponse to provider
 					
+					$num = (float)$client_response->fundtransferresponse->balance;
+					$nombre_format_francais = number_format($num, 2, ',', ' ');			
 					$response = array(
 						'status' => 'ok',
 						'data' => [
-							'balance' => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
+							'balance' => (string)$nombre_format_francais,
 							'currency' => $client_details->default_currency,
 						],
-					);
+					  );
 					
 					//Initialize data to pass
 					$win = $amount > 0  ?  1 : 0;  /// 1win 0lost
@@ -236,7 +241,7 @@ class TGGController extends Controller
 				$response = array(
 				'status' => 'ok',
 				'data' => [
-					'balance' => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
 					'currency' => $client_details->default_currency,
 				],
 				);
@@ -249,7 +254,7 @@ class TGGController extends Controller
 			$response = array(
 				'status' => 'ok',
 				'data' => [
-					'balance' => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
 					'currency' => $client_details->default_currency,
 				],
 			);
@@ -313,13 +318,16 @@ class TGGController extends Controller
 						['body' => json_encode($requesttosend)]
 					);
 					$client_response = json_decode($guzzle_response->getBody()->getContents());
+					
+					$num = (float)$client_response->fundtransferresponse->balance;
+					$nombre_format_francais = number_format($num, 2, ',', ' ');			
 					$response = array(
 						'status' => 'ok',
 						'data' => [
-							'balance' => ProviderHelper::amountToFloat($client_response->fundtransferresponse->balance),
+							'balance' => (string)$nombre_format_francais,
 							'currency' => $client_details->default_currency,
 						],
-				 	 );
+					  );
 					// $this->updateBetTransaction($data['data']['refund_round_id'], $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
 					TGGHelper::updateBetTransaction($existing_transaction->game_trans_id, $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
 					TGGHelper::creteTGGtransaction($existing_transaction->game_trans_id, $data, $requesttosend, $client_response, $client_response,$data, 4, $data['data']['amount'], $data['callback_id'], $data['data']['refund_round_id']);
@@ -340,7 +348,7 @@ class TGGController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 			 	 );
@@ -353,7 +361,7 @@ class TGGController extends Controller
 			$response = array(
 				'status' => 'ok',
 				'data' => [
-					'balance' => ProviderHelper::amountToFloat($player_details->playerdetailsresponse->balance),
+					'balance' => (string)$player_details->playerdetailsresponse->balance,
 					'currency' => $client_details->default_currency,
 				],
 		 	 );
@@ -470,18 +478,18 @@ class TGGController extends Controller
 	public function gameInit($request){
 		$data = $request;
 		$token = $data['token'];
-		$client_details = $this->getClientDetails('token',$token);
+		$client_details = TGGHelper::getClientDetails('token',$token);
 		if($client_details != null){
-			$player_details = $this->playerDetailsCall($client_details->player_token);
+			$player_details = TGGHelper::playerDetailsCall($client_details->player_token);
 				$data_response = [
 					'status' => 'ok',
 					'data' => [
-						'balance' => $player_details->playerdetailsresponse->balance,
+						'balance' => (string)$player_details->playerdetailsresponse->balance,
 						'currency' => $client_details->default_currency,
 						'display_name' => $client_details->display_name
 					]
 				];
-				Helper::saveLog('TGG Balance Response '.$data['name'], $this->provider_db_id, json_encode($data), $data_response);
+				TGGHelper::saveLog('TGG Balance Response '.$data['name'], $this->provider_db_id, json_encode($data), $data_response);
 				return $data_response;
 		}else{
 			$data_response = [
@@ -492,7 +500,7 @@ class TGGController extends Controller
 					'detils' => ''
 				]
 			];
-			Helper::saveLog('TGG ERROR '.$data['name'], $this->provider_db_id,  json_encode($data), $data_response);
+			TGGHelper::saveLog('TGG ERROR '.$data['name'], $this->provider_db_id,  json_encode($data), $data_response);
 			return $data_response;
 		}
 	}
