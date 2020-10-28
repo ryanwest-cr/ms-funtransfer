@@ -246,13 +246,13 @@ class TidyController extends Controller
 		$client_details = ProviderHelper::getClientDetails('token',$token);
 
 		
-		if($client_details == null){
-			$data_response = [
-				'error' => '99-011' 
-			];
-			Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-			return $data_response;
-		}
+		// if($client_details == null){
+		// 	$data_response = [
+		// 		'error' => '99-011' 
+		// 	];
+		// 	Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
+		// 	return $data_response;
+		// }
 		
 		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
@@ -290,8 +290,8 @@ class TidyController extends Controller
 			//requesttosend, and responsetoclient client side
 			$type = "credit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$bet_transaction->game_trans_id,$type,$rollback);
-
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_id,$game_details->game_name,$game_trans_ext_id,$bet_transaction->game_trans_id,$type,$rollback);
+		
 			//reponse to provider
 		    $num = $client_response->fundtransferresponse->balance;
 			$data_response = [
