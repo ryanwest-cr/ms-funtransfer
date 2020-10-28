@@ -141,7 +141,7 @@ class ProviderHelper{
 	 * 
 	 */
 	public static function playerDetailsCall($player_token, $refreshtoken=false, $type=1){
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
 		if($type == 1){
 			$client_details = ProviderHelper::getClientDetails('token', $player_token);
 			// return 1;
@@ -203,7 +203,7 @@ class ProviderHelper{
 	                        );
 						}
 					}
-					Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+					// Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
 					return 'false';
 				}else{
 					if($refreshtoken == true){
@@ -217,17 +217,17 @@ class ProviderHelper{
 		                    );
 						}
 					}
-					Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+					// Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
 			 		return $client_response;
 				}
 
             }catch (\Exception $e){
-               Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+               // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
                Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
                return 'false';
             }
 		}else{
-			Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+			// Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
 			// Helper::saveLog('ALDEBUG Token Not Found = '.$player_token,  99, json_encode($datatosend), 'TOKEN NOT FOUND');
 			return 'false';
 		}
