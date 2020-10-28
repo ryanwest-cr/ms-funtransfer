@@ -210,12 +210,14 @@ class TGGController extends Controller
 		$game_ext = $this->checkTransactionExist($request['callback_id'], 1);
 
 		$this->saveLog('TGG Success Bet playerdetails and clientdetails', $this->provider_db_id, json_encode($request), 'bet arrived');
-		$player_details = ProviderHelper::playerDetailsCall($request['token']);
+		// $player_details = ProviderHelper::playerDetailsCall($request['token']);
 		$client_details = ProviderHelper::getClientDetails('token', $request['token']);
 		$this->saveLog('TGG Success Bet playerdetails and clientdetails processed', $this->provider_db_id, json_encode($request), 'bet arrived');
 		
 		if($game_ext == 'false'): // NO BET
-			$this->saveLog('TGG Success Bet', $this->provider_db_id, json_encode($request), 'game_ext= false');
+			$this->saveLog('TGG Success Bet PD', $this->provider_db_id, json_encode($request), 'game_ext= false');
+			$player_details = ProviderHelper::playerDetailsCall($request['token']);
+			$this->saveLog('TGG Success Bet PD Arrived', $this->provider_db_id, json_encode($request), 'game_ext= false');
 			//if the amount is grater than to the bet amount  error message
 			// if($player_details->playerdetailsresponse->balance < $request['data']['amount']):
 			// 	$msg = array(
@@ -282,6 +284,7 @@ class TGGController extends Controller
 		else:
 			// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 			// if($game_ext->provider_trans_id == $request["callback_id"]): //if same duplicate
+				$player_details = ProviderHelper::playerDetailsCall($request['token']);
 				$this->saveLog('TGG Bet Player Details', $this->provider_db_id, json_encode($request), 'game_ext != false');	
 				$response = array(
 					'status' => 'ok',
@@ -727,8 +730,8 @@ class TGGController extends Controller
 				"request_data" => json_encode(json_decode($request_data)),
 				"response_data" => json_encode($response_data)
 			];
-		// return DB::table('seamless_request_logs')->insertGetId($data);
-		return DB::table('debug')->insertGetId($data);
+		return DB::table('seamless_request_logs')->insertGetId($data);
+		// return DB::table('debug')->insertGetId($data);
 	}
 
 
