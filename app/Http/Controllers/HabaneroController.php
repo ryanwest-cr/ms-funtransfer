@@ -163,12 +163,15 @@ class HabaneroController extends Controller
             return $response;
         endif;
 
-        $checkTrans = DB::table('game_transactions')->select('game_trans_id')->where('provider_trans_id','=',$provider_trans_id)->get();
+        // $checkTrans = DB::table('game_transactions')->select('game_trans_id','bet_amount')->where('provider_trans_id','=',$provider_trans_id)->get();
+        $checkTrans = DB::select("select game_trans_id, bet_amount from game_transactions where provider_trans_id = '".$provider_trans_id."' ");
      
         if(count($checkTrans) > 0): // transaction already exist (mostly realted to win)
            
-            $checkT = DB::table('game_transactions')->select('entry_id')->where('provider_trans_id','=',$provider_trans_id)->where('round_id','=',$round_id)->get();
-            $getTransExt = DB::table('game_transaction_ext')->where('game_trans_id','=',$checkTrans[0]->game_trans_id)->get();
+            // $checkT = DB::table('game_transactions')->select('entry_id')->where('provider_trans_id','=',$provider_trans_id)->where('round_id','=',$round_id)->get();
+            $checkT = DB::select("SELECT entry_id FROM game_transactions WHERE provider_trans_id='".$provider_trans_id."' and round_id= '".$round_id."' ");
+            
+            // $getTransExt = DB::select("select * from game_transaction_ext where game_trans_id = '".$checkTrans[0]->game_trans_id."'");
             if($refund == true):
 
                 if(count($checkT) > 0):
@@ -214,7 +217,8 @@ class HabaneroController extends Controller
                 }
             endif;
             
-            $getTrans = DB::table('game_transactions')->where('game_trans_id','=',$checkTrans[0]->game_trans_id)->get();
+            // $getTrans = DB::table('game_transactions')->where('game_trans_id','=',$checkTrans[0]->game_trans_id)->get();
+            $getTrans = DB::select("SELECT bet_amount, pay_amount FROM game_transactions WHERE game_trans_id = '".$checkTrans[0]->game_trans_id."' ");
             $isretry = $details->fundtransferrequest->isretry;
             $isrecredit = $details->fundtransferrequest->isrecredit;
             
@@ -321,10 +325,10 @@ class HabaneroController extends Controller
                         "currencycode" => $client_details->default_currency,
                         ]
                     ];  
-                    Helper::saveLog('HBN trans duplicate call amt = 0 state = 2', 24, json_encode($details), $response);
-                    return $response;
-                endif;
-                if($amount > 0 && $gamestatemode == 0 ): // win call
+                Helper::saveLog('HBN trans duplicate call amt = 0 state = 2', 24, json_encode($details), $response);
+                return $response;
+            endif;
+            if($amount > 0 && $gamestatemode == 0 ): // win call
                 if(count($checkT) > 0):
                     $response = [
                         "fundtransferresponse" => [
@@ -339,9 +343,9 @@ class HabaneroController extends Controller
                         Helper::saveLog('HBN trans duplicate call amoung > 0 state = 0', 24, json_encode($details), $response);
                         return $response;
                     endif;
-                    try{
-                        $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $checkTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, $entry_id);
-                        
+                try{
+                    $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $checkTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, $entry_id);
+                    
                     $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, $checkTrans[0]->game_trans_id, 'credit');
                     $amounts = $getTrans[0]->bet_amount + $amount;
                     
@@ -354,6 +358,7 @@ class HabaneroController extends Controller
                             "currencycode" => $client_details->default_currency,
                             ]
                     ];
+                     
                     $payout = $getTrans[0]->pay_amount + $amount;
                     $income = $checkTrans[0]->bet_amount - $payout;
                     $win = $amount > 0 ? 1 : 0;
@@ -430,7 +435,8 @@ class HabaneroController extends Controller
                 return $response;
             endif;
         endif;
-        $checkTrans2 = DB::table('game_transactions')->select('entry_id')->where('provider_trans_id','=',$provider_trans_id)->where('round_id','=',$round_id)->get();
+        // $checkTrans2 = DB::table('game_transactions')->select('entry_id')->where('provider_trans_id','=',$provider_trans_id)->where('round_id','=',$round_id)->get();
+        $checkTrans2 = DB::select("SELECT entry_id FROM game_transactions WHERE provider_trans_id = '".$provider_trans_id."' AND round_id = '".$round_id."' ");
         if(!count($checkTrans2) > 0): // check if transaction not exist
 
             $gamerecord = $this->createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id, 0, null, null, $income, $provider_trans_id, $round_id);
