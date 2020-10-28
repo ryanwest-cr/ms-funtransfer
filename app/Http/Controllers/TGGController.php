@@ -376,6 +376,7 @@ class TGGController extends Controller
 					$rollback = false;
 					$this->saveLog('TGG win fundTransfer', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
+					$this->saveLog('TGG win fundTransfer client respond', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					//reponse to provider
 					$response = array(
 						'status' => 'ok',
