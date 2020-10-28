@@ -457,7 +457,7 @@ class TGGController extends Controller
 
 	}
 
-	public function gameRefund($data){
+	public function gameRefund($request){
 		$this->saveLog('TGG gameRefund', $this->provider_db_id, json_encode($request), 'game_ext != false');
 		$string_to_obj = json_decode($data['data']['details']);
 		$game_id = $string_to_obj->game->game_id;
