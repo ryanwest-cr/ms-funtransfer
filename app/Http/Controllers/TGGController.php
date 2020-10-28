@@ -104,14 +104,12 @@ class TGGController extends Controller
 				//requesttosend, and responsetoclient client side
 				$type = "debit";
 				$rollback = false;
-				$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 				
-				$num = (float)$client_response->fundtransferresponse->balance;
-				$nombre_format_francais = number_format($num, 2, ',', ' ');			
+				$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => (string)$nombre_format_francais,
+						'balance' => (string)$client_response->fundtransferresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 				  );
@@ -185,13 +183,11 @@ class TGGController extends Controller
 					$rollback = false;
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
-					$num = (float)$client_response->fundtransferresponse->balance;
-					$nombre_format_francais = number_format($num, 2, ',', ' ');			
 					$response = array(
-						'status' => 'ok',
-						'data' => [
-							'balance' => (string)$nombre_format_francais,
-							'currency' => $client_details->default_currency,
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$client_response->fundtransferresponse->balance,
+						'currency' => $client_details->default_currency,
 						],
 					  );
 
@@ -212,13 +208,11 @@ class TGGController extends Controller
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
 					//reponse to provider
 					
-					$num = (float)$client_response->fundtransferresponse->balance;
-					$nombre_format_francais = number_format($num, 2, ',', ' ');			
 					$response = array(
-						'status' => 'ok',
-						'data' => [
-							'balance' => (string)$nombre_format_francais,
-							'currency' => $client_details->default_currency,
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$client_response->fundtransferresponse->balance,
+						'currency' => $client_details->default_currency,
 						],
 					  );
 					
@@ -319,13 +313,11 @@ class TGGController extends Controller
 					);
 					$client_response = json_decode($guzzle_response->getBody()->getContents());
 					
-					$num = (float)$client_response->fundtransferresponse->balance;
-					$nombre_format_francais = number_format($num, 2, ',', ' ');			
 					$response = array(
-						'status' => 'ok',
-						'data' => [
-							'balance' => (string)$nombre_format_francais,
-							'currency' => $client_details->default_currency,
+					'status' => 'ok',
+					'data' => [
+						'balance' => (string)$client_response->fundtransferresponse->balance,
+						'currency' => $client_details->default_currency,
 						],
 					  );
 					// $this->updateBetTransaction($data['data']['refund_round_id'], $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
