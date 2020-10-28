@@ -216,7 +216,7 @@ class FCController extends Controller
                             "MainPoints" => $balance,
                         );
                         $this->updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
-                        Helper::saveLog('responseTime(FC)', 12, json_encode(["type"=>"refundsuccess","stating"=>$this->startTime,"response"=>microtime(true)]), microtime(true) - $this->startTime);
+                        Helper::saveLog('responseTime(FC)', 12, json_encode(["type"=>"refundsuccess","stating"=>$this->startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $this->startTime,"clientresponse"=>$client_response_time]);
                         return response($response,200)
                             ->header('Content-Type', 'application/json');
                     }
@@ -238,6 +238,7 @@ class FCController extends Controller
             $datareq = FCHelper::AESDecode((string)$request->Params);
             $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"],1,'fachai');
             if($client_details){
+                $sendtoclient =  microtime(true);
                 $client = new Client([
                     'headers' => [ 
                         'Content-Type' => 'application/json',
@@ -262,11 +263,12 @@ class FCController extends Controller
                     )]
                 );
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
+                $client_response_time = microtime(true) - $sendtoclient;
                 $msg = array(
                     "Result"=>0,
                     "MainPoints"=>(float)number_format($client_response->playerdetailsresponse->balance,2,'.', '')
                 );
-                Helper::saveLog('responseTime(FC)', 12, json_encode(["type"=>"getbalance","stating"=>$this->startTime,"response"=>microtime(true)]), microtime(true) - $this->startTime);
+                Helper::saveLog('responseTime(FC)', 12, json_encode(["type"=>"getbalance","stating"=>$this->startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $this->startTime,"clientresponse"=>$client_response_time]);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
             else{
