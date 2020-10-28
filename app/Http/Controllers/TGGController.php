@@ -313,7 +313,8 @@ class TGGController extends Controller
 		// $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, 1);
 		
 		// $game_ext = $this->checkTransactionExist($request['callback_id'], 2);
-		$game_ext = ProviderHelper::findGameTransaction($request['data']['round_id'], 'round_id', 2);
+		// $game_ext = ProviderHelper::findGameTransaction($request['data']['round_id'], 'round_id', 2);
+		$game_ext = $this->checkTransactionExist($data['callback_id'], 2);
 		if($game_ext == 'false'):
 			
 			$existing_bet = ProviderHelper::findGameTransaction($request['data']['round_id'], 'round_id', 1); // Find if win has bet record
