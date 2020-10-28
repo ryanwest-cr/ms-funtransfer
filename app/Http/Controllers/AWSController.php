@@ -74,7 +74,7 @@ class AWSController extends Controller
 	public function singleBalance(Request $request){
 		$data = file_get_contents("php://input");
 		$details = json_decode($data);
-
+		Helper::saveLog('AWS singleBalance - Client ID NOT FOUND', $this->provider_db_id, $data, $details);
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = Providerhelper::getClientDetails('player_id', $prefixed_username[1]);
 		if($client_details == 'false'){
