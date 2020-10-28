@@ -10,6 +10,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use App\Helpers\ClientRequestHelper;
 use App\Helpers\ProviderHelper;
+use App\Helpers\TransactionHelper;
 use DB;
 class EDPController extends Controller
 {

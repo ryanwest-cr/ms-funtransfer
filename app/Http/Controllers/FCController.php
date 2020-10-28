@@ -31,9 +31,7 @@ class FCController extends Controller
     public function transactionMake(Request $request){
         $datareq = FCHelper::AESDecode((string)$request->Params);
         $data = json_decode($datareq,TRUE);
-        //return $data;
-        Helper::saveLog('transactionMake(FC)', 27, json_encode($data), json_encode($data));
-        $duplicatechecker = Helper::checkGameTransactionupdate($data["BankID"],1);
+        $duplicatechecker = $this->checkGameTransactionupdate($data["BankID"],1);
         if($duplicatechecker){
             $response =array(
                 "Result"=>205,
@@ -57,7 +55,7 @@ class FCController extends Controller
     }
     private function _betGame($client_details,$data){
         if($client_details){
-            $game_transaction = Helper::checkGameTransaction($data["BankID"]);
+            $game_transaction = $this->checkGameTransaction($data["BankID"]);
             $bet_amount = $game_transaction ? 0 : round($data["Bet"],2);
             $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
             $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data["GameID"]);
@@ -66,15 +64,15 @@ class FCController extends Controller
                 "amount" => $data["Bet"],
                 "roundid" => $data["RecordID"]
             );
-            $game = FCHelper::getGameTransactionupdate($client_details->player_token,$data["RecordID"]);
+            $game = $this->getGameTransactionupdate($client_details->player_token,$data["RecordID"]);
             if(!$game){
-                $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
+                $gametransactionid=$this->createGameTransaction('debit', $json_data, $game_details, $client_details); 
             }
             else{
                 $gametransactionid= $game[0]->game_trans_id;
             }
             if(!$game_transaction){
-                $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,1);
+                $transactionId=$this->createFCGameTransactionExt($gametransactionid,$data,null,null,null,1);
             } 
             $client_response = ClientRequestHelper::fundTransfer($client_details,$data["Bet"],$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
             $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
@@ -85,7 +83,7 @@ class FCController extends Controller
                     "recordID"=>$data["RecordID"],
                     "balance" =>$balance,
                 );
-                FCHelper::updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
+                $this->updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                 return $response;
             }
             elseif(isset($client_response->fundtransferresponse->status->code) 
@@ -100,7 +98,7 @@ class FCController extends Controller
     }
     private function _winGame($client_details,$data){
         if($client_details){
-            $game_transaction = Helper::checkGameTransaction($data["BankID"],$data["RecordID"],2);
+            $game_transaction = $this->checkGameTransaction($data["BankID"],$data["RecordID"],2);
             $win_amount = $game_transaction ? 0 : $data["Win"];
             $win_amount = $win_amount < 0 ? 0 :$win_amount;
             $win = $data["Win"] == 0 ? 0 : 1;
@@ -112,20 +110,20 @@ class FCController extends Controller
                 "payout_reason" => null,
                 "win" => $win,
             );
-            $game = FCHelper::getGameTransactionupdate($client_details->player_token,$data["RecordID"]);
+            $game = $this->getGameTransactionupdate($client_details->player_token,$data["RecordID"]);
             if(!$game){
-                $gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
+                $gametransactionid=$this->createGameTransaction('credit', $json_data, $game_details, $client_details); 
             }
             else{
                 if($win == 0){
-                    $gameupdate = FCHelper::updateGameTransaction($game,$json_data,"debit");
+                    $gameupdate = $this->updateGameTransaction($game,$json_data,"debit");
                 }else{
-                    $gameupdate = FCHelper::updateGameTransaction($game,$json_data,"credit");
+                    $gameupdate = $this->updateGameTransaction($game,$json_data,"credit");
                 }
                 $gametransactionid = $game[0]->game_trans_id;
             }
             if(!$game_transaction){
-                $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,2);
+                $transactionId=$this->createFCGameTransactionExt($gametransactionid,$data,null,null,null,2);
             }
             $client_response = ClientRequestHelper::fundTransfer($client_details,$win_amount,$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
             $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
@@ -136,7 +134,7 @@ class FCController extends Controller
                     "Result"=>0,
                     "MainPoints" => $balance,
                 );
-                FCHelper::updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
+                $this->updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                 return response($response,200)
                     ->header('Content-Type', 'application/json');
             }
@@ -151,7 +149,7 @@ class FCController extends Controller
         //return $data;
         $client_details = ProviderHelper::getClientDetails("player_id",json_decode($datareq,TRUE)["MemberAccount"],1,'fachai');
         if($client_details){
-            $rollbackchecker = Helper::checkGameTransaction($data["BankID"]);
+            $rollbackchecker = $this->checkGameTransaction($data["BankID"]);
             if(!$rollbackchecker){
                 $response =array(
                     "Result"=>221,
@@ -161,7 +159,7 @@ class FCController extends Controller
                     ->header('Content-Type', 'application/json');
             }
             else{
-                $duplicatechecker = Helper::checkGameTransactionupdate($data["BankID"],3);
+                $duplicatechecker = $this->checkGameTransactionupdate($data["BankID"],3);
                 if(!$duplicatechecker){
                     $response =array(
                         "Result"=>205,
@@ -170,8 +168,8 @@ class FCController extends Controller
                     return response($response,200)
                         ->header('Content-Type', 'application/json');
                 }else{
-                    $game_transaction = FCHelper::checkGameTransaction($data["BankID"]);
-                    $refund_amount = empty($game_transaction) ? 0 : $game_transaction->amount;
+                    $game_transaction = $this->checkGameTransactionData($data["BankID"]);
+                    $refund_amount = empty($game_transaction) ? 0 : $game_transaction[0]->amount;
                     $refund_amount = $refund_amount < 0 ? 0 :$refund_amount;
                     $win = 0;
                     $game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
@@ -180,19 +178,19 @@ class FCController extends Controller
                         "amount" => round($refund_amount,2),
                         "roundid" => 0,
                     );
-                    $game = FCHelper::getGameTransactionupdate($client_details->player_token,$data["BankID"]);
+                    $game = $this->getGameTransactionupdate($client_details->player_token,$data["BankID"]);
                     if(!$game){
-                        $gametransactionid=Helper::createGameTransaction('refund', $json_data, $game_details, $client_details); 
+                        $gametransactionid=$this->createGameTransaction('refund', $json_data, $game_details, $client_details); 
                     }
                     else{
-                        $gameupdate = FCHelper::updateGameTransaction($game,$json_data,"refund");
+                        $gameupdate = $this->updateGameTransaction($game,$json_data,"refund");
                         $gametransactionid = $game[0]->game_trans_id;
 
                     }
                     if(!empty($game_transaction)){
-                        $data["RecordID"]= $game_transaction->round_id;
+                        $data["RecordID"]= $game_transaction[0]->round_id;
                         $data["Win"] = $refund_amount;
-                        $transactionId=FCHelper::createFCGameTransactionExt($gametransactionid,$data,null,null,null,3);
+                        $transactionId=$this->createFCGameTransactionExt($gametransactionid,$data,null,null,null,3);
                     }
                     $client_response = ClientRequestHelper::fundTransfer($client_details,round($refund_amount,2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
                     $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
@@ -203,7 +201,7 @@ class FCController extends Controller
                             "Result"=>0,
                             "MainPoints" => $balance,
                         );
-                        FCHelper::updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
+                        $this->updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                         return response($response,200)
                             ->header('Content-Type', 'application/json');
                     }
@@ -269,6 +267,140 @@ class FCController extends Controller
             );
             return response($msg,200)->header('Content-Type', 'application/json');
         }
+    }
+
+    private function checkGameTransactionupdate($round_id=false,$type=false){
+        $game = DB::select("SELECT game_trans_ext_id
+        FROM game_transaction_ext
+        where provider_trans_id='".$round_id."' and game_transaction_type = ".$type." limit 1");
+    return $game ? true :false;
+    }
+    private function checkGameTransactionData($provider_transaction_id){
+		$game = DB::select("SELECT game_trans_ext_id,mw_response,amount
+        FROM game_transaction_ext
+        where provider_trans_id='".$provider_transaction_id."' limit 1");
+		return $game;
+    }
+    private function checkGameTransaction($provider_transaction_id,$round_id=false,$type=false){
+		if($type&&$round_id){
+			// $game = DB::table('game_transaction_ext')
+			// 	->where('provider_trans_id',$provider_transaction_id)
+			// 	->where('round_id',$round_id)
+			// 	->where('game_transaction_type',$type)
+			// 	->first();
+			$game = DB::select("SELECT game_transaction_type
+								FROM game_transaction_ext
+								WHERE round_id = '".$round_id."' AND provider_trans_id='".$provider_transaction_id."' AND game_transaction_type = ".$type."");
+		}
+		else{
+			$game = DB::select("SELECT game_trans_ext_id
+			FROM game_transaction_ext
+			where provider_trans_id='".$provider_transaction_id."' limit 1");
+		}
+		return $game ? true :false;
+    }
+    private function createGameTransaction($method, $request_data, $game_data, $client_data){
+		$trans_data = [
+			"token_id" => $client_data->token_id,
+			"game_id" => $game_data->game_id,
+			"round_id" => $request_data["roundid"]
+		];
+
+		switch ($method) {
+			case "debit":
+					$trans_data["provider_trans_id"] = $request_data["transid"];
+					$trans_data["bet_amount"] = abs($request_data["amount"]);
+					$trans_data["win"] = 0;
+					$trans_data["pay_amount"] = 0;
+					$trans_data["entry_id"] = 1;
+					$trans_data["income"] = 0;
+				break;
+			case "credit":
+					$trans_data["provider_trans_id"] = $request_data["transid"];
+					$trans_data["bet_amount"] = 0;
+					$trans_data["win"] = $request_data["win"];
+					$trans_data["pay_amount"] = abs($request_data["amount"]);
+					$trans_data["entry_id"] = 2;
+					$trans_data["payout_reason"] = $request_data["payout_reason"];
+				break;
+			case "refund":
+					$trans_data["provider_trans_id"] = $request_data["transid"];
+					$trans_data["bet_amount"] = 0;
+					$trans_data["win"] = 0;
+					$trans_data["pay_amount"] = 0;
+					$trans_data["entry_id"] = 2;
+					$trans_data["payout_reason"] = "Refund of this transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"];
+				break;
+
+			default:
+		}
+		/*var_dump($trans_data); die();*/
+		return DB::table('game_transactions')->insertGetId($trans_data);			
+    }
+    private function getGameTransactionupdate($player_token,$game_round){
+		$game = DB::select("SELECT
+						entry_id,bet_amount,game_trans_id
+						FROM game_transactions g
+						INNER JOIN player_session_tokens USING (token_id)
+						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
+		return $game;
+    }
+    private function createFCGameTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type){
+		$gametransactionext = array(
+			"provider_trans_id" => $provider_request["BankID"],
+			"game_trans_id" => $gametransaction_id,
+			"round_id" =>$provider_request["RecordID"],
+			"amount" =>$game_transaction_type==1?round($provider_request["Bet"],2):round($provider_request["Win"],2),
+			"game_transaction_type"=>$game_transaction_type,
+			"provider_request" =>json_encode($provider_request),
+			"mw_request"=>json_encode($mw_request),
+			"mw_response" =>json_encode($mw_response),
+			"client_response" =>json_encode($client_response),
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		return $gamestransaction_ext_ID;
+    }
+    private function updateGameTransaction($existingdata,$request_data,$type){
+		switch ($type) {
+			case "debit":
+					$trans_data["win"] = 0;
+					$trans_data["pay_amount"] = 0;
+					$trans_data["income"]=$existingdata[0]->bet_amount-$request_data["amount"];
+					$trans_data["entry_id"] = 1;
+				break;
+			case "credit":
+					$trans_data["win"] = $request_data["win"];
+					$trans_data["pay_amount"] = abs($request_data["amount"]);
+					$trans_data["income"]=$existingdata[0]->bet_amount-$request_data["amount"];
+					$trans_data["entry_id"] = 2;
+					$trans_data["payout_reason"] = $request_data["payout_reason"];
+				break;
+			case "refund":
+					$trans_data["win"] = 4;
+					$trans_data["pay_amount"] = $request_data["amount"];
+					$trans_data["entry_id"] = 2;
+					$trans_data["income"]= $existingdata[0]->bet_amount-$request_data["amount"];
+					$trans_data["payout_reason"] = "Refund of this transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"];
+				break;
+			case "fail":
+				$trans_data["win"] = 2;
+				$trans_data["pay_amount"] = $request_data["amount"];
+				$trans_data["entry_id"] = 1;
+				$trans_data["income"]= 0;
+				$trans_data["payout_reason"] = "Fail  transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"] .":Insuffecient Balance";
+			break;
+			default:
+		}
+		/*var_dump($trans_data); die();*/
+		return DB::table('game_transactions')->where("game_trans_id",$existingdata[0]->game_trans_id)->update($trans_data);
+	}
+    private  function updateFCGameTransactionExt($gametransextid,$mw_request,$mw_response,$client_response){
+		$gametransactionext = array(
+			"mw_request"=>json_encode($mw_request),
+			"mw_response" =>json_encode($mw_response),
+			"client_response" =>json_encode($client_response),
+		);
+		DB::table('game_transaction_ext')->where("game_trans_ext_id",$gametransextid)->update($gametransactionext);
     }
     private function _getClientDetails($type = "", $value = "") {
 
