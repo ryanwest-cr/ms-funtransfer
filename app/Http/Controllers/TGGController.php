@@ -320,7 +320,7 @@ class TGGController extends Controller
 			$existing_bet = ProviderHelper::findGameTransaction($request['data']['round_id'], 'round_id', 1); // Find if win has bet record
 			if($existing_bet != 'false'): // Bet is existing, else the bet is already updated to win //temporary == make it !=
 					// No Bet was found check if this is a free spin and proccess it!
-
+				$this->saveLog('TGG Success WIN', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 				if(isset($string_to_obj->game->action) && $string_to_obj->game->action == 'freespin'):
 					$client_details = ProviderHelper::getClientDetails('token', $request['token']);
 					$game_transaction_type = 2; // 1 Bet, 2 Win
@@ -362,9 +362,10 @@ class TGGController extends Controller
 					$transaction_uuid = $request['callback_id'];
 					$reference_transaction_uuid = $request['data']['round_id'];
 
+					$this->saveLog('TGG win getClient', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					$client_details = ProviderHelper::getClientDetails('token', $request['token']);
 					// $bet_transaction = ProviderHelper::findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
-				
+					$this->saveLog('TGG win createGameTransExt', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					$game_trans_ext_id = $this->createGameTransExt($existing_bet->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $request, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
 					
 					//get game_trans_id and game_trans_ext
@@ -373,6 +374,7 @@ class TGGController extends Controller
 
 					$type = "credit";
 					$rollback = false;
+					$this->saveLog('TGG win fundTransfer', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
 					//reponse to provider
 					$response = array(
@@ -392,13 +394,16 @@ class TGGController extends Controller
 						'payout_reason' => $this->updateReason(1),
 					];
 					//update transaction
+					$this->saveLog('TGG win updateGameTransaction', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					Helper::updateGameTransaction($existing_bet,$request_data,$type);
+					$this->saveLog('TGG win updateGameTransactionExt', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');
 					$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
-					Helper::saveLog('TGG success '.$request["name"].' '.$request['data']['round_id'], $this->provider_db_id, json_encode($request), $response);   
+					Helper::saveLog('TGG success '.$request["name"].' '.$request['data']['round_id'], $this->provider_db_id, json_encode($request), $response); 
+					$this->saveLog('TGG win response', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');  
 					return $response;
 				endif;
 			else:
-
+				$this->saveLog('TGG win Player Call', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');  
 				$player_details = ProviderHelper::playerDetailsCall($request['token']);
 				$client_details = ProviderHelper::getClientDetails('token', $request['token']);
 				$response = array(
@@ -408,7 +413,8 @@ class TGGController extends Controller
 						'currency' => $client_details->default_currency,
 					],
 					);
-					Helper::saveLog('TGG second102 '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
+				Helper::saveLog('TGG second102 '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
+				$this->saveLog('TGG win Player Call Response', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');  
 				return $response;
 			
 			endif;
@@ -425,6 +431,7 @@ class TGGController extends Controller
 						'currency' => $client_details->default_currency,
 					],
 				);
+				$this->saveLog('TGG win no exist bet', $this->provider_db_id, json_encode($request), 'EXISTING BET WIN');  
 				Helper::saveLog('TGG second101 '.$request["name"].' '.$request['callback_id'], $this->provider_db_id, json_encode($request), $response);
 				return $response;
 			// else:
@@ -602,6 +609,48 @@ class TGGController extends Controller
 	}
 
 
+
+	/* LOCALIZED METHODDS FOR TESTING PERFORMANCE OPTIMAZTION */
+
+
+	public static function updateGameTransaction($existingdata,$request_data,$type){
+		DB::enableQueryLog();
+		switch ($type) {
+			case "debit":
+					$trans_data["win"] = 0;
+					$trans_data["pay_amount"] = 0;
+					$trans_data["income"]=$existingdata->bet_amount-$request_data["amount"];
+					$trans_data["entry_id"] = 1;
+				break;
+			case "credit":
+					$trans_data["win"] = $request_data["win"];
+					$trans_data["pay_amount"] = abs($request_data["amount"]);
+					$trans_data["income"]=$existingdata->bet_amount-$request_data["amount"];
+					$trans_data["entry_id"] = 2;
+					$trans_data["payout_reason"] = $request_data["payout_reason"];
+				break;
+			case "refund":
+					$trans_data["win"] = 4;
+					$trans_data["pay_amount"] = $request_data["amount"];
+					$trans_data["entry_id"] = 2;
+					$trans_data["income"]= $existingdata->bet_amount-$request_data["amount"];
+					$trans_data["payout_reason"] = "Refund of this transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"];
+				break;
+			case "fail":
+				$trans_data["win"] = 2;
+				$trans_data["pay_amount"] = $request_data["amount"];
+				$trans_data["entry_id"] = 1;
+				$trans_data["income"]= 0;
+				$trans_data["payout_reason"] = "Fail  transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"] .":Insuffecient Balance";
+			break;
+			default:
+		}
+		/*var_dump($trans_data); die();*/
+		Helper::saveLog('TIMEupdateGameTransaction(EVG)', 189, json_encode(DB::getQueryLog()), "DB TIME");
+		return DB::table('game_transactions')->where("game_trans_id",$existingdata->game_trans_id)->update($trans_data);
+	}
+
+
 	public function checkTransactionExist($identifier, $transaction_type){
 		$query = DB::select('select `game_transaction_type` from game_transaction_ext where `provider_trans_id`  = "'.$identifier.'" AND `game_transaction_type` = "'.$transaction_type.'" LIMIT 1');
     	$data = count($query);
@@ -656,6 +705,18 @@ class TGGController extends Controller
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
 		return $gametransactionext;
+	}
+
+
+	public  function saveLog($method, $provider_id = 0, $request_data, $response_data) {
+		$data = [
+				"method_name" => $method,
+				"provider_id" => $provider_id,
+				"request_data" => json_encode(json_decode($request_data)),
+				"response_data" => json_encode($response_data)
+			];
+		// return DB::table('seamless_request_logs')->insertGetId($data);
+		return DB::table('debug')->insertGetId($data);
 	}
 
 
