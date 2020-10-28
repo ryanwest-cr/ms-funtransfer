@@ -8,6 +8,7 @@ use App\Helpers\WazdanHelper;
 use GuzzleHttp\Client;
 use App\Helpers\ProviderHelper;
 use App\Helpers\ClientRequestHelper;
+use App\Helpers\TransactionHelper;
 use DB;
 class WazdanController extends Controller
 {
@@ -110,17 +111,6 @@ class WazdanController extends Controller
             $client_details = ProviderHelper::getClientDetails('token', $datadecoded["user"]["token"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($datadecoded["transactionId"]);
-                if(Helper::getBalance($client_details) < round($datadecoded["amount"],2)){
-                    $msg = array(
-                        "status" =>8,
-                        "message" => array(
-                            "text"=>"Insufficient funds",
-                        )
-                    ); 
-                    Helper::saveLog('betGameInsuficient(Wazdan)', 50, $data, $msg);
-                    return response($msg,200)
-                    ->header('Content-Type', 'application/json');
-                }
                 if(WazdanHelper::gameTransactionExtChecker($datadecoded["transactionId"])){
                     $msg = array(
                         "status" => 0,

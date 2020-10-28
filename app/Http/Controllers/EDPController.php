@@ -9,6 +9,7 @@ use App\Helpers\Helper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use App\Helpers\ClientRequestHelper;
+use App\Helpers\ProviderHelper;
 use DB;
 class EDPController extends Controller
 {
@@ -77,7 +78,7 @@ class EDPController extends Controller
         $sha1key = sha1($request->token.''.$this->secretkey);
         if($sha1key == $request->sign){
             $game = Helper::getInfoPlayerGameRound($request->token);
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             $sessions =array(
                 "player" => $game->username,
                 "currency"=> $client_details->default_currency,
@@ -103,7 +104,7 @@ class EDPController extends Controller
     public function getBalance(Request $request){
         $sha1key = sha1($request->token.''.$this->secretkey);
         if($sha1key == $request->sign){
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
@@ -156,7 +157,7 @@ class EDPController extends Controller
         Helper::saveLog('BetGame(EDP)', 2, json_encode($request->getContent()), "BEFORE BET");
         $sha1key = sha1($request->amount.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
         if($sha1key == $request->sign){
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($request->id);
                 $bet_amount = $game_transaction ? 0 : $request->amount;
@@ -196,6 +197,7 @@ class EDPController extends Controller
                     $response = array(
                         "code" =>"INSUFFICIENT_FUNDS",
                         "message"=>"Player has insufficient funds"
+
                     );
                     Helper::createGameTransactionExt($gametransactionid,$request,$client_response->requestoclient,$response,$client_response,1);
                     return response($response,402)
@@ -231,7 +233,7 @@ class EDPController extends Controller
             $payout_reason = null;
         }
         if($sha1key == $request->sign){
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
 
             GameRound::create($request->gameId, $client_details->token_id);
             if($client_details){
@@ -293,7 +295,7 @@ class EDPController extends Controller
         if($sha1key == $request->sign){
             $game_transaction = Helper::checkGameTransaction($request->id,$request->gameId,1);
             $request->amount = $game_transaction?$request->amount:0;
-            $client_details = $this->_getClientDetails('token', $request->token);
+            $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
                 $game_details = Helper::getInfoPlayerGameRound($request->token);
                 $json_data = array(
