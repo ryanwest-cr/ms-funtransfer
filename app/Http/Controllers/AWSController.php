@@ -265,7 +265,7 @@ class AWSController extends Controller
 
 		try {
 			AWSHelper::saveLog('AWS singleFundTransfer - D1 createGameTransaction', $this->provider_db_id, $data, Helper::datesent());
-			$gamerecord  = $this->createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
+			$gamerecord  = AWSHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
 			// AWS IS 1 WAY FLIGHT
 			
 			$bet_amount_2way = abs($details->betAmount);
