@@ -193,7 +193,7 @@ class TidyController extends Controller
 			//requesttosend, and responsetoclient client side
 			$type = "debit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_id,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
 			//response to provider				
 			$num = $client_response->fundtransferresponse->balance;
@@ -290,7 +290,7 @@ class TidyController extends Controller
 			//requesttosend, and responsetoclient client side
 			$type = "credit";
 			$rollback = false;
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_id,$game_details->game_name,$game_trans_ext_id,$bet_transaction->game_trans_id,$type,$rollback);
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_id,$game_details->game_name,$game_trans_ext_id,$bet_transaction->game_trans_id,$type,$rollback);
 		
 			//reponse to provider
 		    $num = $client_response->fundtransferresponse->balance;
