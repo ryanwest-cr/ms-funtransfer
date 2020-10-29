@@ -32,6 +32,7 @@ class ClientRequestHelper{
         return $data;
     }
     public static function fundTransfer($client_details,$amount,$game_code,$game_name,$transactionId,$roundId,$type,$rollback=false){
+        $sendtoclient =  microtime(true);
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',
@@ -71,6 +72,8 @@ class ClientRequestHelper{
             ['defaults' => [ 'exceptions' => false ]]
         );
         $client_reponse = json_decode($guzzle_response->getBody()->getContents());
+        $client_response_time = microtime(true) - $sendtoclient;
+        Helper::saveLog('fundTransfer(ClientRequestHelper)', 12, json_encode(["type"=>"funtransfer","game"=>$game_name]), ["clientresponse"=>$client_response_time]);
         $client_reponse->requestoclient = $requesttocient;
         //ClientRequestHelper::currencyRateConverter($client_details->default_currency,$roundId);
         return $client_reponse;

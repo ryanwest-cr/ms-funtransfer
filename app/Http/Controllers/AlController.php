@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Helpers\AlHelper;
 use App\Helpers\Helper;
 use App\Helpers\SAHelper;
+use App\Helpers\AWSHelper;
 use App\Helpers\ProviderHelper;
 use GuzzleHttp\Client;
 use App\Helpers\ClientRequestHelper;
@@ -267,6 +268,23 @@ class AlController extends Controller
 
 
     public function tapulan(Request $request){
+
+      // $client_key = DB::table('clients')->where('client_id', $client_id)->first();
+      // if(!$client_key){ return false; }
+      // $operator_id =  $client_key->operator_id;
+      // $aws_config = config('providerlinks.aws');
+
+      // if(array_key_exists(($operator_id.$client_key->default_currency), $aws_config)){
+      //   return $aws_config[$operator_id];
+      // }else{
+      //   return false;
+      // }
+
+      // $merchant_key = AWSHelper::findMerchantIdByClientId(1)['merchant_key'];
+      // $merchant_key = AWSHelper::findMerchantIdByClientId(1);
+
+      // return $merchant_key;
+
       // $client_details = Providerhelper::getClientDetails('player_id',  98);
       // $player= DB::table('players')->where('client_id', $client_details->client_id)
       //     ->where('player_id', $client_details->player_id)->first();
