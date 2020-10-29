@@ -770,10 +770,10 @@ class SolidGamingController extends Controller
 									$game_details = Game::findby('round_id', $json_data["roundid"], config("providerlinks.solid.PROVIDER_ID"));
 									
 									/*$game_transaction_id = GameTransaction::save('rollback', $json_data, $value, $client_details, $client_details);*/
+									$json_data['originaltransid'] = $value->provider_trans_id;
+									$game_transaction_id = GameTransaction::solid_rollback($json_data);
 
-									$game_transaction_id = GameTransaction::solid_rollback($value->provider_trans_id);
-
-									$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $value->game_trans_id, $value->round_id, $value->bet_amount, 3);
+									$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $value->provider_trans_id, $value->round_id, $value->bet_amount, 3);
 
 									// change $json_data['roundid'] to $game_transaction_id
 			               			$client_response = ClientRequestHelper::fundTransfer($client_details, $value->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit', true);
