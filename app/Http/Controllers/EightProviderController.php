@@ -361,16 +361,90 @@ class EightProviderController extends Controller
 							}
 				    endif;	
 			else: 
-				$this->saveLog('8Provider win Player Balance', $this->provider_db_id, json_encode($data), 1);
-				$response = array(
-					'status' => 'ok',
-					'data' => [
-						'balance' => (string)$player_details->playerdetailsresponse->balance,
-						'currency' => $client_details->default_currency,
-					],
-			 	);
-				$this->saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
-				return $response;  
+					$this->saveLog('8Provider LOG THE FP', $this->provider_db_id, json_encode($data), 1);
+				    if(isset($string_to_obj->game->action) && $string_to_obj->game->action == 'freespin'):
+				    	$this->saveLog('8Provider freespin 1', $this->provider_db_id, json_encode($data), 1);
+				  	    // $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+							try {
+								$this->saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), 'FREESPIN');
+								$payout_reason = 'Free Spin';
+						 		$win_or_lost = 1; // 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
+						 		$method = 2; // 1 bet, 2 win
+						 	    $token_id = $client_details->token_id;
+						 	    $provider_trans_id = $data['callback_id'];
+						 	    $round_id = $data['data']['round_id'];
+						
+						 	    $bet_payout = 0; // Bet always 0 payout!
+						 	    $income = '-'.$data['data']['amount']; // NEgative
+
+								$game_ext = ProviderHelper::findGameExt($round_id, 1, 'round_id');
+								if($game_ext != 'false'){
+									$game_trans = $game_ext->game_trans_id;
+									$existing_bet = $this->findGameTransID($game_ext->game_trans_id);
+									$payout = $existing_bet->pay_amount+$data['data']['amount'];
+									$this->updateBetTransaction($game_ext->game_trans_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
+								}else{
+
+									$game_ext = ProviderHelper::findGameExt($round_id, 2, 'round_id');
+									if($game_ext != 'false'){
+										$game_trans = $game_ext->game_trans_id;
+										$existing_bet = $this->findGameTransID($game_ext->game_trans_id);
+										$payout = $existing_bet->pay_amount+$data['data']['amount'];
+										$this->updateBetTransaction($game_ext->game_trans_id, $payout, $existing_bet->bet_amount-$payout, $existing_bet->win, $existing_bet->entry_id);
+									}else{
+										$game_trans = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, 0, $data['data']['amount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+									}
+									
+								}
+						 	    
+								$game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $round_id, $data['data']['amount'], $method); // method 5 freespin?
+
+								try {
+									$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'credit');
+								    $this->saveLog('8Provider Win Freespin CRID = '.$round_id, $this->provider_db_id, json_encode($data), $client_response);
+								} catch (\Exception $e) {
+									$msg = array("status" => 'error',"message" => $e->getMessage());
+									ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+									$this->saveLog('8Provider Freespin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+									return $msg;
+								}
+
+								if(isset($client_response->fundtransferresponse->status->code) 
+								    && $client_response->fundtransferresponse->status->code == "200"){
+									$response = array(
+										'status' => 'ok',
+										'data' => [
+											'balance' => (string)$client_response->fundtransferresponse->balance,
+											'currency' => $client_details->default_currency,
+										],
+								 	 );
+
+									ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+									$this->saveLog('8P FREESPIN', $this->provider_db_id, json_encode($data), $response);
+							  		return $response;
+								}
+
+
+							}catch(\Exception $e){
+								$msg = array(
+									"status" => 'error',
+									"message" => $e->getMessage(),
+								);
+								$this->saveLog('8P ERROR FREESPIN - FATAL ERROR', $this->provider_db_id, json_encode($data), $e->getMessage());
+								return $msg;
+							}
+				    else:
+					$this->saveLog('8Provider win Player Balance', $this->provider_db_id, json_encode($data), 1);
+					$response = array(
+						'status' => 'ok',
+						'data' => [
+							'balance' => (string)$player_details->playerdetailsresponse->balance,
+							'currency' => $client_details->default_currency,
+						],
+				 	);
+					$this->saveLog('8Provider'.$data['data']['round_id'], $this->provider_db_id, json_encode($data), $response);
+					return $response;  
+				endif;
 			endif;
 		else:
 			    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
