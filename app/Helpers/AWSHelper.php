@@ -242,8 +242,8 @@ class AWSHelper{
 				"request_data" => json_encode(json_decode($request_data)),
 				"response_data" => json_encode($response_data)
 			];
-		// return DB::table('seamless_request_logs')->insertGetId($data);
-		return DB::table('debug')->insertGetId($data);
+		return DB::table('seamless_request_logs')->insertGetId($data);
+		// return DB::table('debug')->insertGetId($data);
 	}
 
 
@@ -347,7 +347,7 @@ class AWSHelper{
 		$query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
 
 		 $client_details = count($query);
-		 return $client_details > 0 ? $query[0] : null;
+		 return $client_details > 0 ? $query[0] : 'false';
 	}
 
 

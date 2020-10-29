@@ -182,6 +182,8 @@ class AWSController extends Controller
 		}
 		// # 01 END
 
+
+		return 1;
 		$provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 		if($provider_reg_currency == 'false'){
 			$response = [
