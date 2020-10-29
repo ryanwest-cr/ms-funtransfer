@@ -542,5 +542,20 @@ class Helper
 		DB::table('seamless_request_logs')->insert($data);
 	}
 
+	public static function savePLayerGameRoundBooming($game_code,$player_token,$sub_provider_name){
+		$sub_provider_id = DB::table("sub_providers")->where("sub_provider_name",$sub_provider_name)->first();
+		$game = DB::table("games")->where("game_code",$game_code)->where("sub_provider_id",$sub_provider_id->sub_provider_id)->first();
+		$player_game_round = array(
+			"player_token" => $player_token,
+			"game_id" => $game->game_id,
+			"status_id" => 1
+		);
+		DB::table("player_game_rounds")->insert($player_game_round);
+	}
+	public static function getInfoPlayerGameRoundBooming($player_token){
+		$game = DB::select('select g.game_id, g.game_code, g.game_name FROM api_mw_v2.player_game_rounds inner join games g using(game_id) where player_token = "'.$player_token.'" ');
+		return $game ? $game : false;
+	}
+
 	
 }
