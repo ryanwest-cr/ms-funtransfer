@@ -496,11 +496,11 @@ class GameLobbyController extends Controller
                         "url" => $url->play_url,
                         "game_launch" => true
                     );
-                    // $array = [
-                    //     'game_code' => $request->input("game_code"),
-                    //     'url' =>  $url->play_url
-                    // ];
-                    // Helper::saveLogCode('Booming GameCode', 36, json_encode($array), $url->session_id);
+                    $array = [
+                        'game_code' => $request->input("game_code"),
+                        'url' =>  $url->play_url
+                    ];
+                    Helper::saveLogCode('Booming GameCode', 36, json_encode($array), $url->session_id);
 
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');

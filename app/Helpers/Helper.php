@@ -553,7 +553,7 @@ class Helper
 		DB::table("player_game_rounds")->insert($player_game_round);
 	}
 	public static function getInfoPlayerGameRoundBooming($player_token){
-		$game = DB::select('select g.game_id, g.game_code, g.game_name FROM api_mw_v2.player_game_rounds inner join games g using(game_id) where player_token = "'.$player_token.'" ');
+		$game = DB::select('select g.game_id, g.game_code, g.game_name FROM player_game_rounds inner join games g using(game_id) where player_token = "'.$player_token.'" ');
 		return $game ? $game : false;
 	}
 
