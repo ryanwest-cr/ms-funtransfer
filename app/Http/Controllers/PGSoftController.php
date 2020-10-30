@@ -79,21 +79,8 @@ class PGSoftController extends Controller
             if($game_ext == 'false'): // NO BET found mw
                 $player_id =  ProviderHelper::explodeUsername('_', $data["player_name"]);
                 $client_details = ProviderHelper::getClientDetails('player_id',$player_id);
-                $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
                 $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-
-                //if the amount is grater than to the bet amount  error message
-                if($player_details->playerdetailsresponse->balance < $data['transfer_amount']):
-                    $errormessage = array(
-                        'data' => null,
-                        'error' => [
-                        'code' 	=> '3202',
-                        'message'  	=> 'No enough cash balance to bet'
-                        ]
-                    );
-                    Helper::saveLog('PGSoft Bet error '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $errormessage);
-                    return json_encode($errormessage, JSON_FORCE_OBJECT); 
-                endif;
+                $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
 
                 //Initialize
                 $game_transaction_type = 1; // 1 Bet, 2 Win
@@ -109,15 +96,13 @@ class PGSoftController extends Controller
                 $provider_trans_id = $data['transaction_id'];
 
                 //Create GameTransaction, GameExtension
-                $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $data["bet_id"]);
-                $game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $data["bet_id"], $bet_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-
-                $transaction_id = ProviderHelper::findGameExt($provider_trans_id, 1,'transaction_id');
-                $round_id = ProviderHelper::findGameTransaction($provider_trans_id, 'transaction_id',1);
+                $game_trans_id  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $data["bet_id"]);
+               
+                $game_trans_ext_id = $this->createGameTransExt($game_trans_id,$provider_trans_id, $data["bet_id"], $bet_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
                 
                 $type = "debit";
                 $rollback = false;
-                $client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details->game_name,$transaction_id,$round_id,$type,$rollback);
+                $client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$data['game_id'],$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
                 $response =  [
                     "data" => [
@@ -128,7 +113,7 @@ class PGSoftController extends Controller
                     "error" => null
                 ];
                 //UPDATE gameExtension
-                $this->updateGameTransactionExt($transaction_id->game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
+                $this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
                 Helper::saveLog('PGSoft Bet Process '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
                 return json_encode($response, JSON_FORCE_OBJECT); 
             else:
@@ -164,27 +149,30 @@ class PGSoftController extends Controller
                 $client_details = ProviderHelper::getClientDetails('player_id',$player_id);
                 $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
                 $existing_bet = 'false';
+
                 if($request->has('bet_transaction_id')  && $data['bet_transaction_id'] != ''){
                     $bet_transation_id = $data['bet_transaction_id'];
-                    $existing_bet = ProviderHelper::findGameTransaction($bet_transation_id, 'transaction_id', 1); 
+                    $bet_transaction = ProviderHelper::findGameTransaction($bet_transation_id, 'transaction_id', 1); 
                 }
-                if($existing_bet != 'false'){// Bet is existing, else the bet is already updated to win
+
+                if($bet_transaction != 'false'){// Bet is existing, else the bet is already updated to win
                     //INITIALIZE DATA
                     $amount = abs($data['transfer_amount']);
                     $transaction_uuid = $data['transaction_id']; // MW PROVIDER
                     $reference_transaction_uuid = $bet_transation_id; //  MW -ROUND
 
-                    $bet_transaction = ProviderHelper::findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
-			        $game_transextension = $this->createGameTransExt($bet_transaction->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-                    
+                    // $bet_transaction = ProviderHelper::findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
+
+			        $game_trans_ext_id = $this->createGameTransExt($bet_transaction->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+                     
                     //get game_trans_id and game_trans_ext
-                    $transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
+                    // $transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
                     
                     //requesttosend, and responsetoclient client side
                     $round_id = $bet_transaction->game_trans_id;
                     $type = "credit";
                     $rollback = false;
-                    $client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$transaction_id->game_trans_ext_id,$round_id,$type,$rollback);
+                    $client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$round_id,$type,$rollback);
                     
                     //res
                     $response =  [
@@ -205,10 +193,10 @@ class PGSoftController extends Controller
                     ];
                     //update transaction
                     Helper::updateGameTransaction($bet_transaction,$request_data,$type);
-                    $this->updateGameTransactionExt($transaction_id->game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
+                    $this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
                     Helper::saveLog('PGSoft Win process', $this->provider_db_id, json_encode($request->all(), JSON_FORCE_OBJECT), $response);
                     return $response;
-                    } else {
+                } else {
                         //NO BET FOUND PROCESS BONUS
                         $explode = explode('-',$data['transaction_id']);
                         $transaction_type = $explode[2];
@@ -225,15 +213,15 @@ class PGSoftController extends Controller
                         $provider_trans_id = $data['transaction_id'];
         
                         //Create GameTransaction, GameExtension
-                        $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost,  $this->updateReason(1), $payout_reason, $income, $provider_trans_id, $data["bet_id"]);
-                        $game_transextension = $this->createGameTransExt($gamerecord,$provider_trans_id, $data["bet_id"], $pay_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-        
-                        $transaction_id = ProviderHelper::findGameExt($provider_trans_id, 2,'transaction_id');
-                        $round_id = ProviderHelper::findGameTransaction($provider_trans_id, 'transaction_id',2);
-                        
+                        $game_trans_id = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost,  $this->updateReason(1), $payout_reason, $income, $provider_trans_id, $data["bet_id"]);
+                        $game_trans_ext_id = $this->createGameTransExt($game_trans_id,$provider_trans_id, $data["bet_id"], $pay_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+                      
+                        // $transaction_id = ProviderHelper::findGameExt($provider_trans_id, 2,'transaction_id');
+                        // $round_id = ProviderHelper::findGameTransaction($provider_trans_id, 'transaction_id',2);
+                        // dd($transaction_id);
                         $type = "credit";
                         $rollback = false;
-                        $client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_code,$game_details->game_name,$transaction_id,$round_id,$type,$rollback);
+                        $client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_code,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
                         $response =  [
                             "data" => [
@@ -244,7 +232,7 @@ class PGSoftController extends Controller
                             "error" => null
                         ];
 
-                        $this->updateGameTransactionExt($transaction_id->game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
+                        $this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
                         Helper::saveLog('PGSoft Bonus Process '.$data["transaction_id"], $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
                         return json_encode($response, JSON_FORCE_OBJECT); 
                     }
