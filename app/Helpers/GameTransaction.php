@@ -80,14 +80,14 @@ class GameTransaction
 				 ->where("g.provider_trans_id", $request_data['originaltransid'])
 				 ->first();
 
-		/*$income = 0; 
-		$win = 0;
-		$pay_amount = $game_details->bet_amount;*/
-		$entry_id = 4;
+		/*$income = 0;*/
+		$win = 4;
+		/*$pay_amount = $game_details->bet_amount;*/
+		$entry_id = 2;
 
         $update = DB::table('game_transactions')
                 ->where('game_trans_id', $game_details->game_trans_id)
-                ->update([/*'pay_amount' => $pay_amount, 'income' => $income, 'win' => $win,*/ 'entry_id' => $entry_id]);
+                ->update([/*'pay_amount' => $pay_amount, 'income' => $income,*/ 'win' => $win, 'entry_id' => $entry_id]);
      
 		return ($update ? $game_details->game_trans_id : false);
 	}
