@@ -455,19 +455,20 @@ class GameLobby{
         $url = config('providerlinks.booming.api_url').'/v2/session';
         $client_details = ProviderHelper::getClientDetails('token',$data["token"]);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $get_previous = ProviderHelper::getNonceprevious(config('providerlinks.booming.provider_db_id'));
+      
+        // $get_previous = ProviderHelper::getNonceprevious(config('providerlinks.booming.provider_db_id'));
 
         try{
          
-            $nonce = date('YmdHis');
-            
-            if(!($get_previous == "false")){
-                $i = 0;
-                do{
-                    $nonce = date('YmdHis', strtotime('+'.$i.' hours'));
-                    $i++;
-                }while($get_previous->response_data > $nonce);
-            }   
+            $nonce = $client_details->token_id;
+
+            // if(!($get_previous == "false")){
+            //     $i = 0;
+            //     do{
+            //         $nonce = date('YmdHis', strtotime('+'.$i.' hours'));
+            //         $i++;
+            //     }while($get_previous->response_data > $nonce);
+            // }   
 
             $requesttosend = array (
                 'game_id' => $data["game_code"],
@@ -493,7 +494,7 @@ class GameLobby{
             ]);
             $guzzle_response = $client->post($url,  ['body' => json_encode($requesttosend)]);
             $client_response = json_decode($guzzle_response->getBody()->getContents());
-            Helper::saveLogCode('Booming nonce', config('providerlinks.booming.provider_db_id'), $nonce, $nonce);
+            // Helper::saveLogCode('Booming nonce', config('providerlinks.booming.provider_db_id'), $nonce, $nonce);
             // Helper::saveLog('Booming session process', config('providerlinks.booming.provider_db_id'), json_encode($data), $client_response);
             Helper::savePLayerGameRoundBooming($data["game_code"],$data["token"],$provider_name);
 

@@ -491,6 +491,7 @@ class GameLobbyController extends Controller
                 }
                 elseif($request->input('game_provider') == "Booming Games"){ 
                     $url = GameLobby::boomingGamingUrl($request->all(), $request->input('game_provider') );
+                    
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => $url->play_url,
@@ -500,7 +501,7 @@ class GameLobbyController extends Controller
                         'game_code' => $request->input("game_code"),
                         'url' =>  $url->play_url
                     ];
-                    Helper::saveLogCode('Booming GameCode', 36, json_encode($array), $url->session_id);
+                    // Helper::saveLogCode('Booming GameCode', 36, json_encode($array), $url->session_id);
 
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
