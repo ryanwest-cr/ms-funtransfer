@@ -386,6 +386,31 @@ class AlController extends Controller
       return ClientRequestHelper::currencyRateConverter("USD",12829967);
     }
 
+    public function uploadImgApi(Request $request){
+        if ($request->hasFile('image')) {
+            /** Make sure you will properly validate your file before uploading here */
+            /** Get the file data here */
+            $file = $request->file('image');
+           
 
+            
+            // return $file->getClientOriginalExtension();  
+            /** Generate random unique_name for file */
+            $fileName = "valz-example.".$file->getClientOriginalExtension();
+            // $path = '/var/www/betrnk.games/asset-dev.betrnk.games/images/games/casino/';
+            $path = "D:/valz/Middleware Backoffice/October/api_oct31/";
+            // // File::makeDirectory($path, $mode = 0777, true, true);
+            $file->move($path,$fileName);
+            // $file->move(public_path().'/uploads/test', $fileName);
+            /** Return data */
+            return response()->json([
+                'status'    => 'success',
+                'message'   => 'Your success message',
+                'data'      => [
+                    'uploadedFileName' => $fileName
+                ]
+            ], 200);   
+        }
+    }
 
 }

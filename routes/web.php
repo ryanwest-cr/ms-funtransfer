@@ -513,3 +513,4 @@ $app->post('api/fundtransferport','ClientPortController@fundTransferRequest');
 
 
 $app->post('api/currency','AlController@currency');
+$app->post('api/al/upload','AlController@uploadImgApi');
