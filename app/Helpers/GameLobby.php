@@ -686,7 +686,8 @@ class GameLobby{
                         "player_id" => $player_id
                     );
                     $encoded_data = $aes->AESencode(json_encode($data));
-                    return "https://play.betrnk.games/loadgame/goldenf?param=".urlencode($encoded_data);
+                    // return "https://play.betrnk.games/loadgame/goldenf?param=".urlencode($encoded_data);
+                    return "http://play.betrnk.games:81/loadgame/goldenf?param=".urlencode($encoded_data);
                 }else{
                     return 'false';
                 }
