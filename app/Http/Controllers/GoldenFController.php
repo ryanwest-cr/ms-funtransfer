@@ -67,18 +67,20 @@ class GoldenFController extends Controller
     }
 
 
-    public function getPlayerBalance(Request $request){
-        $http = new Client();
-        $response = $http->post($this->api_url."/GetPlayerBalance",[
-           'form_params' => [
-            'secret_key' => $this->secret_key,
-            'operator_token' => $this->operator_token,
-            'player_name' => "TG_".$client_details->player_id,
-            'wallet_code' => $this->wallet_code
-            ]
-        ]);
-        $golden_response_balance = json_decode((string) $response->getBody(), true);
-    }
+    // public function getPlayerBalance(Request $request){
+    //     $client_details = ProviderHelper::getClientDetails('token', $request->token);
+    //     $http = new Client();
+    //     $response = $http->post($this->api_url."/GetPlayerBalance",[
+    //        'form_params' => [
+    //         'secret_key' => $this->secret_key,
+    //         'operator_token' => $this->operator_token,
+    //         'player_name' => "TG_".$client_details->player_id,
+    //         'wallet_code' => $this->wallet_code
+    //         ]
+    //     ]);
+    //     $golden_response_balance = json_decode((string) $response->getBody(), true);
+    //     return json_encode($golden_response_balance);
+    // }
 
     // public static function gameLaunch(){
     //     $operator_token = config("providerlinks.goldenF.operator_token");
