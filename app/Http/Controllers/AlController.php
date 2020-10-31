@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Helpers\AlHelper;
 use App\Helpers\Helper;
 use App\Helpers\SAHelper;
+use App\Helpers\GoldenFHelper;
 use App\Helpers\AWSHelper;
 use App\Helpers\ProviderHelper;
 use GuzzleHttp\Client;
@@ -268,6 +269,9 @@ class AlController extends Controller
 
 
     public function tapulan(Request $request){
+
+
+      return GoldenFHelper::launchGame('n58ec5e159f769ae0b7b3a0774fdbf80',98,'GG');
 
       // $client_key = DB::table('clients')->where('client_id', $client_id)->first();
       // if(!$client_key){ return false; }
