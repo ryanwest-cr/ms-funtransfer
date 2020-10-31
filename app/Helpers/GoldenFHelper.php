@@ -16,7 +16,6 @@ class GoldenFHelper{
 				->first();
 		return $game ? $game : false;
 	}
-
 	public static function getGameTransaction($player_token,$game_round){
 		$game = DB::table("player_session_tokens as pst")
 				->leftJoin("game_transactions as gt","pst.token_id","=","gt.token_id")
@@ -25,6 +24,16 @@ class GoldenFHelper{
 				->first();
 		return $game;
     }
+    public static function saveLog($method, $provider_id = 0, $request_data, $response_data) {
+		$data = [
+				"method_name" => $method,
+				"provider_id" => $provider_id,
+				"request_data" => json_encode(json_decode($request_data)),
+				"response_data" => json_encode($response_data)
+			];
+		return DB::table('seamless_request_logs')->insertGetId($data);
+		// return DB::table('debug')->insertGetId($data);
+	}
     public static function updateGameTransactionExt($gametransextid,$amount,$mw_request,$mw_response,$client_response){
 		$gametransactionext = array(
             "amount" => $amount,
@@ -39,22 +48,22 @@ class GoldenFHelper{
 			case "debit":
                     $trans_data["win"] = 0;
                     $trans_data["bet_amount"] = $existingdata->bet_amount+$request_data["amount"];
-					$trans_data["pay_amount"] = 0;
-					$trans_data["income"]=0;
+					$trans_data["pay_amount"] = $existingdata->pay_amount;
+					$trans_data["income"]= $existingdata->bet_amount+$request_data["amount"]-$existingdata->pay_amount;
 					$trans_data["entry_id"] = 1;
 				break;
 			case "credit":
 					$trans_data["win"] = $request_data["win"];
-					$trans_data["pay_amount"] = abs($request_data["amount"]);
-					$trans_data["income"]=$existingdata->bet_amount-$request_data["amount"];
+					$trans_data["pay_amount"] =  $existingdata->pay_amount+abs($request_data["amount"]);
+					$trans_data["income"]=$existingdata->bet_amount-$existingdata->pay_amount+$request_data["amount"];
 					$trans_data["entry_id"] = 2;
 					$trans_data["payout_reason"] = $request_data["payout_reason"];
 				break;
 			case "refund":
 					$trans_data["win"] = 4;
-					$trans_data["pay_amount"] = $request_data["amount"];
+					$trans_data["pay_amount"] = $existingdata->pay_amount+$request_data["amount"];
 					$trans_data["entry_id"] = 2;
-					$trans_data["income"]= $existingdata->bet_amount-$request_data["amount"];
+					$trans_data["income"]= $existingdata->bet_amount-$existingdata->pay_amount+$request_data["amount"];
 					$trans_data["payout_reason"] = "Refund of this transaction ID: ".$request_data["transid"]."of GameRound ".$request_data["roundid"];
 				break;
 
