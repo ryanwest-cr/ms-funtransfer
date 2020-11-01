@@ -497,15 +497,16 @@ $app->post('/api/evogaming/internalrefund','EvolutionController@internalrefund')
 
 
 //Golden F Game System
-$app->post('api/gf/Player/Create','GoldenFController@auth');
+// $app->post('api/gf/Player/Create','GoldenFController@auth');
 $app->post('api/gf/GetPlayerBalance','GoldenFController@GetPlayerBalance');
+$app->post('api/gf/getPlayerWalletBalance','GoldenFController@getPlayerWalletBalance');
 $app->post('api/gf/TransferIn','GoldenFController@TransferIn');
 $app->post('api/gf/TransferOut','GoldenFController@TransferOut');
-$app->post('api/gf/Bet/Record/Get','GoldenFController@BetRecordGet');
-$app->post('api/gf/Bet/Record/Player/Get','GoldenFController@BetRecordPlayerGet');
-$app->post('api/gf/Transaction/Record/Get','GoldenFController@TransactionRecordGet');
-$app->post('api/gf/Transaction/Record/Player/Get','GoldenFController@TransactionRecordPlayerGet');
-$app->post('api/gf/Bet/Record/Detail','GoldenFController@BetRecordDetail');
+// $app->post('api/gf/Bet/Record/Get','GoldenFController@BetRecordGet');
+// $app->post('api/gf/Bet/Record/Player/Get','GoldenFController@BetRecordPlayerGet');
+// $app->post('api/gf/Transaction/Record/Get','GoldenFController@TransactionRecordGet');
+// $app->post('api/gf/Transaction/Record/Player/Get','GoldenFController@TransactionRecordPlayerGet');
+// $app->post('api/gf/Bet/Record/Detail','GoldenFController@BetRecordDetail');
 
 $app->post('api/playerdetailsport','ClientPortController@playerDetailsRequest');
 $app->post('api/fundtransferport','ClientPortController@fundTransferRequest');
@@ -513,3 +514,4 @@ $app->post('api/fundtransferport','ClientPortController@fundTransferRequest');
 
 
 $app->post('api/currency','AlController@currency');
+$app->post('api/al/upload','AlController@uploadImgApi');

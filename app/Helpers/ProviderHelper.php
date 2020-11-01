@@ -99,7 +99,7 @@ class ProviderHelper{
 	 * 
 	 */
     public static function getClientDetails($type = "", $value = "", $gg=1, $providerfilter='all') {
-    	DB::enableQueryLog();
+    	// DB::enableQueryLog();
 	    if ($type == 'token') {
 		 	$where = 'where pst.player_token = "'.$value.'"';
 		}
@@ -128,7 +128,7 @@ class ProviderHelper{
 		$query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
 
 		 $client_details = count($query);
-		 Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
+		 // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
 		 return $client_details > 0 ? $query[0] : null;
 	}
 
@@ -242,7 +242,7 @@ class ProviderHelper{
      * 
      */
     public  static function findGameTransaction($identifier, $type, $entry_type='') {
-    	DB::enableQueryLog();
+    	// DB::enableQueryLog();
         $transaction_db = DB::table('game_transactions as gt')
                         ->select('gt.*', 'gte.transaction_detail')
                         ->leftJoin("game_transaction_ext AS gte", "gte.game_trans_id", "=", "gt.game_trans_id");
@@ -272,7 +272,7 @@ class ProviderHelper{
         }
         $result= $transaction_db
             ->first();
-        Helper::saveLog('Find Game Transaction', 999, json_encode(DB::getQueryLog()), "TIME Find Game Transaction");
+        // Helper::saveLog('Find Game Transaction', 999, json_encode(DB::getQueryLog()), "TIME Find Game Transaction");
         return $result ? $result : 'false';
     }
 
@@ -285,7 +285,7 @@ class ProviderHelper{
 	 * 
 	 */
 	public  static function findGameExt($provider_identifier, $game_transaction_type, $type) {
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
 		$transaction_db = DB::table('game_transaction_ext as gte');
         if ($type == 'transaction_id') {
 			$transaction_db->where([
@@ -314,7 +314,7 @@ class ProviderHelper{
 		 	]);
 		} 
 		$result = $transaction_db->latest()->first(); // Added Latest (CQ9) 08-12-20 - Al
-		Helper::saveLog('Find Game Extension', 999, json_encode(DB::getQueryLog()), "TIME Find Game Extension");
+		// Helper::saveLog('Find Game Extension', 999, json_encode(DB::getQueryLog()), "TIME Find Game Extension");
 		return $result ? $result : 'false';
 	}
 
@@ -349,7 +349,7 @@ class ProviderHelper{
 	 * 
 	 */
 	public  static function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id) {
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
    	    $update = DB::table('game_transactions')
                 ->where('game_trans_id', $round_id)
                 // ->where('round_id', $round_id)
@@ -359,7 +359,7 @@ class ProviderHelper{
 	        		  'entry_id' => $entry_id,
 	        		  'transaction_reason' => ProviderHelper::updateReason($win),
 	    		]);
-	    Helper::saveLog('updateBetTransaction', 999, json_encode(DB::getQueryLog()), "TIME updateBetTransaction");
+	    // Helper::saveLog('updateBetTransaction', 999, json_encode(DB::getQueryLog()), "TIME updateBetTransaction");
 		return ($update ? true : false);
 	}
 
@@ -371,7 +371,7 @@ class ProviderHelper{
 	 * 
 	 */
 	public static function updateGameTransaction($identifier, $pay_amount, $income, $win, $entry_id,$type='game_trans_id',$bet_amount=0,$multi_bet=false) {
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
         $update = DB::table('game_transactions');
         if ($type == 'game_trans_id') {
             $update->where([
@@ -398,7 +398,7 @@ class ProviderHelper{
         if($multi_bet == true){
             $update->update(['bet_amount' => $bet_amount]);
         }
-        Helper::saveLog('updateGameTransaction', 999, json_encode(DB::getQueryLog()), "TIME updateGameTransaction");
+        // Helper::saveLog('updateGameTransaction', 999, json_encode(DB::getQueryLog()), "TIME updateGameTransaction");
         return ($update ? true : false);
     }
 
@@ -410,7 +410,7 @@ class ProviderHelper{
 	 * 
 	 */
 	public  static function updateGameTransactionStatus($game_trans_id, $win, $reason) {
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
    	    $update = DB::table('game_transactions')
                 ->where('game_trans_id', $game_trans_id)
                 ->update([
@@ -418,7 +418,7 @@ class ProviderHelper{
         		  'transaction_reason' => ProviderHelper::updateReason($win),
         		  'payout_reason' => ProviderHelper::updateReason($reason),
 	    		]);
-	    Helper::saveLog('updateGameTransactionStatus', 999, json_encode(DB::getQueryLog()), "TIME updateGameTransactionStatus");
+	    // Helper::saveLog('updateGameTransactionStatus', 999, json_encode(DB::getQueryLog()), "TIME updateGameTransactionStatus");
 		return ($update ? true : false);
 	}
 
@@ -468,7 +468,7 @@ class ProviderHelper{
 	 * 
 	 */
 	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
 		$data = [
 					"token_id" => $token_id,
 					"game_id" => $game_id,
@@ -483,7 +483,7 @@ class ProviderHelper{
 					"payout_reason" => $payout_reason
 				];
 		$data_saved = DB::table('game_transactions')->insertGetId($data);
-		Helper::saveLog('createGameTransaction', 999, json_encode(DB::getQueryLog()), "TIME createGameTransaction");
+		// Helper::saveLog('createGameTransaction', 999, json_encode(DB::getQueryLog()), "TIME createGameTransaction");
 		return $data_saved;
 	}
 
@@ -494,7 +494,7 @@ class ProviderHelper{
 	 * 
 	 */
 	public static function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail, $general_details=null){
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
 		$gametransactionext = array(
 			"game_trans_id" => $game_trans_id,
 			"provider_trans_id" => $provider_trans_id,
@@ -509,7 +509,7 @@ class ProviderHelper{
 			"general_details" =>json_encode($general_details)
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
-		Helper::saveLog('createGameTransExt', 999, json_encode(DB::getQueryLog()), "TIME createGameTransExt");
+		// Helper::saveLog('createGameTransExt', 999, json_encode(DB::getQueryLog()), "TIME createGameTransExt");
 		return $gamestransaction_ext_ID;
 	}
 
@@ -520,7 +520,7 @@ class ProviderHelper{
 	 * 
 	 */
 	public static function createGameTransExtV2($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request='FAILED', $mw_response='FAILED', $mw_request='FAILED', $client_response='FAILED', $transaction_detail='FAILED', $general_details=null){
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
 		$gametransactionext = array(
 			"game_trans_id" => $game_trans_id,
 			"provider_trans_id" => $provider_trans_id,
@@ -535,7 +535,7 @@ class ProviderHelper{
 			"general_details" =>json_encode($general_details)
 		);
 		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
-		Helper::saveLog('createGameTransExtV2', 999, json_encode(DB::getQueryLog()), "TIME createGameTransExtV2");
+		// Helper::saveLog('createGameTransExtV2', 999, json_encode(DB::getQueryLog()), "TIME createGameTransExtV2");
 		return $gamestransaction_ext_ID;
 	}
 
@@ -544,7 +544,7 @@ class ProviderHelper{
 	 * Update
 	 */
 	public  static function updatecreateGameTransExt($game_trans_ext_id, $provider_request, $mw_response, $mw_request, $client_response,$transaction_detail,$general_details='NO DATA') {
-		DB::enableQueryLog();
+		// DB::enableQueryLog();
    	    $update = DB::table('game_transaction_ext')
                 ->where('game_trans_ext_id', $game_trans_ext_id)
                 ->update([
@@ -555,7 +555,7 @@ class ProviderHelper{
 					"transaction_detail" =>json_encode($transaction_detail),
 					"general_details" =>json_encode($general_details)
 	    		]);
-	    Helper::saveLog('updatecreateGameTransExt', 999, json_encode(DB::getQueryLog()), "TIME updatecreateGameTransExt");
+	    // Helper::saveLog('updatecreateGameTransExt', 999, json_encode(DB::getQueryLog()), "TIME updatecreateGameTransExt");
 		return ($update ? true : false);
 	}
 

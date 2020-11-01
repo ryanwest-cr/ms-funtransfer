@@ -117,17 +117,17 @@ class GameLobbyController extends Controller
             // }
             
             // Filters
-            if(ClientHelper::checkClientID($request->all()) != 200){
-                $log_id = Helper::saveLog('GAME LAUNCH', 99, json_encode($request->all()), 'FAILED LAUNCH '.$request->client_id);
-                $msg = array(
-                    "error_code" => ClientHelper::checkClientID($request->all()),
-                    "message" => ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())),
-                    "url" => config('providerlinks.tigergames').'/tigergames/api?msg='.ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())).'&id='.$log_id,
-                    "game_launch" => false
-                );
-                return response($msg,200)
-                ->header('Content-Type', 'application/json');
-            }
+            // if(ClientHelper::checkClientID($request->all()) != 200){
+            //     $log_id = Helper::saveLog('GAME LAUNCH', 99, json_encode($request->all()), 'FAILED LAUNCH '.$request->client_id);
+            //     $msg = array(
+            //         "error_code" => ClientHelper::checkClientID($request->all()),
+            //         "message" => ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())),
+            //         "url" => config('providerlinks.tigergames').'/tigergames/api?msg='.ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())).'&id='.$log_id,
+            //         "game_launch" => false
+            //     );
+            //     return response($msg,200)
+            //     ->header('Content-Type', 'application/json');
+            // }
 
            $solid_gamings = ['Solid Gaming', 'Booongo', 'Concept', 'Espresso', 'EvoPlay', 'GameArt', 'Habanero', 'MultiSlot', 'NetEnt', 'Oryx Gaming', 'Omi Gaming', 'Push Gaming', 'Revolver Gaming', 'RTG Asia', 'TPG', '1X2 Network', 'BetSoft', 'Booming', 'Leander', 'Lotus Gaming', 'No Limit City', 'One Touch', 'Quick Fire', 'Relax', 'Wazdan', 'Yggdrasil', 'Evolution Gaming', 'Golden Hero'];
 
@@ -490,7 +490,8 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider') == "Booming Games"){ 
-                    $url = GameLobby::boomingGamingUrl($request->all());
+                    $url = GameLobby::boomingGamingUrl($request->all(), $request->input('game_provider') );
+                    
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => $url->play_url,
@@ -500,7 +501,8 @@ class GameLobbyController extends Controller
                         'game_code' => $request->input("game_code"),
                         'url' =>  $url->play_url
                     ];
-                    Helper::saveLogCode('Booming GameCode', 36, json_encode($array), $url->session_id);
+                    // Helper::saveLogCode('Booming GameCode', 36, json_encode($array), $url->session_id);
+
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Helpers\AlHelper;
 use App\Helpers\Helper;
 use App\Helpers\SAHelper;
+use App\Helpers\GoldenFHelper;
+use App\Helpers\AWSHelper;
 use App\Helpers\ProviderHelper;
 use GuzzleHttp\Client;
 use App\Helpers\ClientRequestHelper;
@@ -267,6 +269,26 @@ class AlController extends Controller
 
 
     public function tapulan(Request $request){
+
+
+      return GoldenFHelper::launchGame('n58ec5e159f769ae0b7b3a0774fdbf80',98,'GG');
+
+      // $client_key = DB::table('clients')->where('client_id', $client_id)->first();
+      // if(!$client_key){ return false; }
+      // $operator_id =  $client_key->operator_id;
+      // $aws_config = config('providerlinks.aws');
+
+      // if(array_key_exists(($operator_id.$client_key->default_currency), $aws_config)){
+      //   return $aws_config[$operator_id];
+      // }else{
+      //   return false;
+      // }
+
+      // $merchant_key = AWSHelper::findMerchantIdByClientId(1)['merchant_key'];
+      // $merchant_key = AWSHelper::findMerchantIdByClientId(1);
+
+      // return $merchant_key;
+
       // $client_details = Providerhelper::getClientDetails('player_id',  98);
       // $player= DB::table('players')->where('client_id', $client_details->client_id)
       //     ->where('player_id', $client_details->player_id)->first();
@@ -368,6 +390,31 @@ class AlController extends Controller
       return ClientRequestHelper::currencyRateConverter("USD",12829967);
     }
 
+    public function uploadImgApi(Request $request){
+        if ($request->hasFile('image')) {
+            /** Make sure you will properly validate your file before uploading here */
+            /** Get the file data here */
+            $file = $request->file('image');
+           
 
+            
+            // return $file->getClientOriginalExtension();  
+            /** Generate random unique_name for file */
+            $fileName = "valz-example.".$file->getClientOriginalExtension();
+            // $path = '/var/www/betrnk.games/asset-dev.betrnk.games/images/games/casino/';
+            $path = "D:/valz/Middleware Backoffice/October/api_oct31/";
+            // // File::makeDirectory($path, $mode = 0777, true, true);
+            $file->move($path,$fileName);
+            // $file->move(public_path().'/uploads/test', $fileName);
+            /** Return data */
+            return response()->json([
+                'status'    => 'success',
+                'message'   => 'Your success message',
+                'data'      => [
+                    'uploadedFileName' => $fileName
+                ]
+            ], 200);   
+        }
+    }
 
 }
