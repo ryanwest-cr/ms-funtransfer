@@ -1046,6 +1046,11 @@ class GameLobby{
         }
     }
 
+
+    public static function netEntDirect($request){
+        return 1;
+    }
+
 }
 
 ?>

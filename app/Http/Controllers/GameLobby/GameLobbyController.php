@@ -539,6 +539,25 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider')=="NetEnt Direct"){
+                    dd($request->all());
+                    $url = GameLobby::netEntDirect($request->all());
+                    if($url){
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $url,
+                            "game_launch" => true
+                        );
+                    }else{
+                        $msg = array(
+                            "game_code" => $request->input("game_code"),
+                            "url" => $this->createFallbackLink($request->all()),
+                            "game_launch" => false
+                        );
+                    }
+                    return $msg;
+                }
+                
                 elseif($request->input('game_provider')=="HabaneroGaming"){ 
                     // Helper::saveLog('DEMO CALL', 11, json_encode($request->all()), 'DEMO');
                     // $lang = GameLobby::getLanguage($request->game_provider,$request->lang);

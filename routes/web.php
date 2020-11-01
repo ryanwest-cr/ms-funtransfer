@@ -350,6 +350,18 @@ $app->post('api/spade_curacao/authorize','SpadeCuracaoController@authorize');
 $app->post('api/spade_curacao/getBalance','SpadeCuracaoController@getBalance');
 $app->post('api/spade_curacao/transfer','SpadeCuracaoController@makeTransfer');
 $app->post('api/spade_curacao/getgame','SpadeCuracaoController@getGameList');
+
+// Spade Curacao Gaming
+$app->get('api/netent/currency/walletserver/players/{player}/account/currency','NetEntController@currency');
+$app->get('api/netent/balance/walletserver/players/{player}/account/balance','NetEntController@balance');
+$app->post('api/netent/deposit/walletserver/players/{player}/account/deposit','NetEntController@deposit');
+$app->post('api/netent/withdraw','NetEntController@withdraw');
+// $app->post('api/spade_curacao/authorize','SpadeCuracaoController@authorize');
+// $app->post('api/spade_curacao/getBalance','SpadeCuracaoController@getBalance');
+// $app->post('api/spade_curacao/transfer','SpadeCuracaoController@makeTransfer');
+// $app->post('api/spade_curacao/getgame','SpadeCuracaoController@getGameList');
+
+
 // EPOINT CONTROLLER
 // $app->post('/api/epoint', 'EpointController@epointAuth'); #/
 // $app->post('/api/epoint/bitgo', 'EpointController@bitgo'); #/

@@ -69,7 +69,7 @@ class TGGController extends Controller
 	}
 
 	public function gameBet($request){
-
+		
 		$string_to_obj = json_decode($request['data']['details']);
 	    $game_id = $string_to_obj->game->game_id;
 
@@ -94,8 +94,10 @@ class TGGController extends Controller
 				$win_or_lost = 0; // 0 lost,  5 processing
 				$payout_reason = TGGHelper::updateReason(2);
 				$provider_trans_id = $request['callback_id'];
-				$bet_id = $request['data']['round_id'];
-				
+				$bet_id = $request['data']['action_id'];
+				if (array_key_exists('round_id', $request['data']) ) {
+					$bet_id = $request['data']['round_id'];
+				}
 				//Create GameTransaction, GameExtension
 				$game_trans_id  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
 				
