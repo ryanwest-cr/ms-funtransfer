@@ -155,8 +155,11 @@ class TGGController extends Controller
 
 		$game_ext = TGGHelper::checkTransactionExist($request['callback_id'], 2); 
 		if($game_ext == 'false'):
-
-			$existing_bet =TGGHelper::findGameTransaction($request['data']['round_id'], 'round_id', 1); 
+			$reference_transaction_uuid = $request['data']['action_id'];
+			if (array_key_exists('round_id', $request['data']) ) {
+				$reference_transaction_uuid = $request['data']['round_id'];
+			}
+			$existing_bet =TGGHelper::findGameTransaction($reference_transaction_uuid, 'round_id', 1); 
 
 			// No Bet was found check if this is a free spin and proccess it!
 			if($existing_bet != 'false'): 
@@ -173,7 +176,7 @@ class TGGController extends Controller
 					$win_or_lost =  $pay_amount == 0 ? 0 : 1;; // 0 lost,  5 processing
 					$payout_reason = 'Freespin';
 					$transaction_uuid = $request['callback_id'];
-					$reference_transaction_uuid = $request['data']['round_id'];
+					// $reference_transaction_uuid = $request['data']['round_id'];
 
 					//Create GameTransaction, GameExtension
 					$game_trans_id  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost,  TGGHelper::updateReason(1), $payout_reason, $income, $transaction_uuid, $reference_transaction_uuid);
@@ -200,7 +203,7 @@ class TGGController extends Controller
 					$game_code = $game_details[0]->game_id;
 					$amount = abs($request['data']['amount']);
 					$transaction_uuid = $request['callback_id'];
-					$reference_transaction_uuid = $request['data']['round_id'];
+					// $reference_transaction_uuid = $request['data']['round_id'];
 
 					// $bet_transaction = $this->findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
 					$game_trans_ext_id = TGGHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $request, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
