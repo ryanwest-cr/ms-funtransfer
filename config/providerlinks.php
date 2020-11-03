@@ -1,9 +1,19 @@
 <?php
 
+$middleware_url_api = 'https://api-test.betrnk.games/public/';
+$gamelobby_site = 'https://daddy.betrnk.games';
 
 return [
-    // 'tigergames' => '127.0.0.1:8000',
-    'tigergames' => 'https://daddy.betrnk.games',
+    'tigergames' => $gamelobby_site,
+    'oauth_mw_api' => [
+        'access_url' => $middleware_url_api.'oauth/access_token',
+        'mwurl' => $middleware_url_api,
+        'client_id' => 1,
+        'client_secret' => 'QPmdvSg3HGFXbsfhi8U2g5FzAOnjpRoF',
+        'username' => 'randybaby@gmail.com',
+        'password' => '_^+T3chSu4rt+^_',
+        'grant_type' => 'password',
+    ],
     'icgaminglogin' => 'https://admin-stage.iconic-gaming.com/service/login',
     'icgaminggames' => 'https://admin-stage.iconic-gaming.com/service/api/v1/games?type=all&lang=en',
     'icgagents'=>[

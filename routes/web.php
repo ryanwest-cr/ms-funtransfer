@@ -514,3 +514,8 @@ $app->post('api/fundtransferport','ClientPortController@fundTransferRequest');
 
 
 $app->post('api/currency','AlController@currency');
+
+
+// Transfer Wallet
+$app->post('api/transfer/wallet/renewsession','TransferWalletController@renewSession');
+$app->post('api/transfer/wallet/createsession','TransferWalletController@createWalletSession');
