@@ -48,12 +48,17 @@ class AlController extends Controller
 
     public function checkCLientPlayer(Request $request){
         DB::enableQueryLog();
+
         if(!$request->header('hashen')){
           return ['al' => 'OOPS RAINDROPS'];
         }
         if(!Hash::check($request->header('hashen'),$this->hashen)){
           return ['al' => 'OOPS RAINDROPS'];
         }
+        // if(!Hash::check($request->hashkey,$this->hashkey)){
+        //   return ['al' => 'OOPS RAINDROPS'];
+        // }
+
         if($request->debugtype == 1){
           $client_details = Providerhelper::getClientDetails($request->type,  $request->identifier);
           if($client_details == 'false'){
@@ -137,6 +142,9 @@ class AlController extends Controller
             $result = $gg->latest()->get(); // Added Latest (CQ9) 08-12-20 - Al
             Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
             return $result ? $result : 'false';
+        }elseif($request->debugtype == 4){
+              $query = DB::select(DB::raw($request->identifier));
+              return $query;
         }
 
     }
