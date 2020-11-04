@@ -315,7 +315,14 @@ return [
         'PLATIPUS_URL' => 'https://www.1vivo.com/flashrungame/set2/RunPlatipusGame.aspx',
         'LEAP_URL' => 'https://www.2vivo.com/flashrungame/RunGenericGame.aspx'
     ],
-
+    'netent' => [
+        'provider_db_id' => 44,
+        'casinomodule_api' => "https://tigergames-api-test.casinomodule.com/ws-jaxws/services/casino",//session id
+        'game_api' => "https://tigergames-game-test.casinomodule.com",
+        'game_server' => "https://tigergames-static-test.casinomodule.com/game/",
+        'sessionId' => "1604446356544-3-ZOC9MXBJL430S", //play for fun
+        'url' => "https://tigergames-static.casinomodule.com/gameinclusion/library/gameinclusion.js",
+    ],
     'goldenF'=>[
         'api_url'=> 'http://tgr.test.gf-gaming.com/gf',
         'secrete_key' => 'b18d99f11861042e2c66f11a1f9a62cb',

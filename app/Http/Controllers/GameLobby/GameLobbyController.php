@@ -540,7 +540,7 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider')=="NetEnt Direct"){
-                    dd($request->all());
+
                     $url = GameLobby::netEntDirect($request->all());
                     if($url){
                         $msg = array(

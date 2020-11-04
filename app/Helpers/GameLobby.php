@@ -14,8 +14,8 @@ use App\Helpers\FCHelper;
 use App\Helpers\ProviderHelper;
 use App\Helpers\MGHelper;
 use App\Helpers\EVGHelper;
-
-
+use App\Helpers\PNGHelper;
+use DOMDocument;
 use DB;             
 use Carbon\Carbon;
 class GameLobby{
@@ -1048,7 +1048,68 @@ class GameLobby{
 
 
     public static function netEntDirect($request){
-        return 1;
+        try {
+            $client_details = Providerhelper::getClientDetails('token', $request["token"]);
+            $game_code = $request["game_code"];
+            $userName = $request["username"];
+            
+            //process sessionID
+            $url = "https://tigergames-api-test.casinomodule.com/ws-jaxws/services/casino";
+            $game_link = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/xml'
+                    ]
+                ]);
+            $game_link_response = $game_link->post($url, 
+                ['body' => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:api="http://casinomodule.com/api">
+                                <soapenv:Header/>
+                                <soapenv:Body>
+                                    <api:loginUserDetailed>
+                                        <userName>'.$userName.'</userName>
+                                        <merchantId>testmerchant</merchantId>
+                                        <merchantPassword>testing</merchantPassword>
+                                        <currencyISOCode>'.$client_details->default_currency.'</currencyISOCode>
+                                    </api:loginUserDetailed>
+                                </soapenv:Body>
+                            </soapenv:Envelope>'
+            ]);
+            $response = $game_link_response->getBody();
+            $dom = new DOMDocument;
+            $dom->loadXML($response);
+            $sessionID = $dom->getElementsByTagName('loginUserDetailedReturn')->item(0)->nodeValue;
+
+            // $game_url = new Client([
+            //     'headers' => [ 
+            //         'username' => 'testmerchant',
+            //         'password' => 'testing'
+            //     ]
+            // ]);
+            // $game_link_response = $game_url->post("https://tigergames-api-test.casinomodule.com/ws-jaxws/services/casino",
+            //         ['body' => json_encode(
+            //             [
+            //                 'gameId' => $request["game_code"],
+            //                 'staticServerURL' => $game_server,
+            //                 'sessionId' => $sessionID,
+            //                 'lobbyURL' => '#',
+            //                 'launchType' => 'iframe',
+            //                 'iframeSandbox' => 'allow-scripts allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-top-navigation-by-user-activation allow-same-origin allow-forms allow-pointer-lock',
+            //                 'walletMode' => 'seamlesswallet',
+            //                 'casinoBrand' => 'tigergames',
+            //                 'targetElement' => 'netentgame',
+            //                 'allowHtmlEmbedFullScreen' => true,
+            //                 'enforceRatio' => false,
+            //                 'width' => '100%',
+            //                 'height' => '100%'
+            //             ]
+            //         )]
+            //     );
+            // $link_result = $game_link_response->getBody()->getContents();
+            // return $link_result;
+            $url = "https://tigergames-static-test.casinomodule.com/games/asgardianstones-client/game/asgardianstones-client.xhtml?lobbyURL=#&server=https%3A%2F%2Ftigergames-game-test.casinomodule.com%2F&operatorId=tigergames&gameId=".$game_code."&lang=en&sessId=".$sessionID;
+            return $url;
+        }catch (\Exception $e){
+            return false;
+        }
     }
 
 }
