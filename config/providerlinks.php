@@ -315,15 +315,7 @@ return [
     ],
     'oryx' => [
         'PROVIDER_ID' => 18,
-        'SERVER_ID' => '51681981',
-        'PASS_KEY' => '7f1c5d',
-        'VIVO_URL' => 'https://games.vivogaming.com/',
-        'BETSOFT_URL' => 'https://1vivo.com/FlashRunGame/RunRngGame.aspx',
-        'SPINOMENAL_URL' => 'https://www.1vivo.com/flashRunGame/RunSPNRngGame.aspx',
-        'TOMHORN_URL' => 'https:///www.1vivo.com/FlashRunGame/Prod/RunTomHornGame.aspx',
-        'NUCLEUS_URL' => 'https://2vivo.com/FlashRunGame/set2/RunNucGame.aspx',
-        'PLATIPUS_URL' => 'https://www.1vivo.com/flashrungame/set2/RunPlatipusGame.aspx',
-        'LEAP_URL' => 'https://www.2vivo.com/flashrungame/RunGenericGame.aspx'
+        'GAME_URL' => 'https://play-prodcopy.oryxgaming.com/agg_plus_public/launch/wallets/WELLTREASURETECH/games/'
     ],
     'netent' => [
         'provider_db_id' => 44,
