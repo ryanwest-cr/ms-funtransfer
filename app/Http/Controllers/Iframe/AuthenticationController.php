@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use DB;
 use App\Helpers\Helper;
+use App\Helpers\SessionWalletHelper;
+
 class AuthenticationController extends Controller
 {
     //
@@ -23,6 +25,11 @@ class AuthenticationController extends Controller
                     "message" => "Token Exist",
                     "exist" => true,
                 );
+
+                $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
+                if($token == false){
+                    SessionWalletHelper::createWalletSession($request->token, $request->all());
+                }
                 return response($response,200)
                 ->header('Content-Type', 'application/json');
             }
