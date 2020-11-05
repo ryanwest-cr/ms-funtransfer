@@ -221,8 +221,8 @@ class NetEntHelper{
 				"request_data" => json_encode(json_decode($request_data)),
 				"response_data" => json_encode($response_data)
 			];
-		return DB::table('seamless_request_logs')->insertGetId($data);
-		// return DB::table('debug')->insertGetId($data);
+		// return DB::table('seamless_request_logs')->insertGetId($data);
+		return DB::table('debug')->insertGetId($data);
 	}
 
 
