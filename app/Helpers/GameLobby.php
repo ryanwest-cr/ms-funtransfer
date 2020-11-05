@@ -1090,8 +1090,8 @@ class GameLobby{
                 "casinoID" => config("providerlinks.netent.casinoID")
             );
             $encoded_data = $aes->AESencode(json_encode($data));
-            // return "http://localhost:2020/loadgame/netent_direct?param=".urlencode($encoded_data);
-            return "http://play.betrnk.games:81/loadgame/netent_direct?param=".urlencode($encoded_data);
+            return "http://localhost:2020/loadgame/netent_direct?param=".urlencode($encoded_data);
+            // return "http://play.betrnk.games:81/loadgame/netent_direct?param=".urlencode($encoded_data);
         }catch (\Exception $e){
             return false;
         }
