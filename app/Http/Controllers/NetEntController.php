@@ -108,8 +108,35 @@ class NetEntController extends Controller
 		endif;
 
 		try {
-			// if($request["reason"] == "GAME_PLAY"){  //normal bet
-				$bet_amount = abs($request["amountToWithdraw"]);
+
+			$bet_amount = $request["amountToWithdraw"];
+			if($bet_amount > $player_details->playerdetailsresponse->balance){
+				$response = array (
+					'responseCode' => 1,
+					'responseMessage' => 'Not enough money in player account',
+					'balance' => 0,
+					'serverToken' => NULL,
+					'serverTransactionRef' => NULL,
+					'messagesToPlayer' => NULL,
+				);
+				NetEntHelper::saveLog('NetEnt Not enough money in player account', $this->provider_db_id,  json_encode($request->all()), $response);
+				return json_encode($response);
+			}
+
+			if($bet_amount < 0 ){
+
+				$response = array (
+					'responseCode' => 4,
+					'responseMessage' => 'Negative withdraw',
+					'balance' => 0,
+					'serverToken' => NULL,
+					'serverTransactionRef' => NULL,
+					'messagesToPlayer' => NULL,
+				);
+				NetEntHelper::saveLog('NetEnt Negative withdraw', $this->provider_db_id,  json_encode($request->all()), $response);
+				return json_encode($response);
+
+			}
 				$pay_amount = 0;
 				$income = 0;
 				$win_type = 0;
@@ -141,9 +168,9 @@ class NetEntController extends Controller
 				NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
 			    NetEntHelper::saveLog('NetEnt Withdraw success', $this->provider_db_id, json_encode($request->all()), $response);
 			    return $response;
+			// if($request["reason"] == "GAME_PLAY"){  //normal bet
+				
 			// }
-			
-
 		} catch(\Exception $e) {
 			$response = array (
 				'responseCode' => 99,
@@ -167,16 +194,28 @@ class NetEntController extends Controller
 		$playersid = explode('_', $player);
 		$client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
 		$player_details = NetEntHelper::playerDetailsCall($client_details->player_token);
-		
-		$existing_win =NetEntHelper::findGameExt($request['gameRoundRef'], 2, 'round_id'); 
+
+		$amount = $request['amountToDeposit'];
+		if($amount < 0 ){
+			$response = array (
+				'responseCode' => 3,
+				'responseMessage' => 'Negative deposit',
+				'balance' => 0,
+				'serverToken' => NULL,
+				'serverTransactionRef' => NULL,
+				'messagesToPlayer' => NULL,
+			);
+			NetEntHelper::saveLog('NetEnt Negative deposit', $this->provider_db_id,  json_encode($request->all()), $response);
+			return json_encode($response);
+		}
+
+		$existing_win =NetEntHelper::findGameExt($request['gameRoundRef'], 2, 'transaction_id'); 
 		if($existing_win == 'false'):
 
-			$existing_bet =NetEntHelper::findGameTransaction($request['gameRoundRef'], 'transaction_id', 1); 
-			
+			$existing_bet = NetEntHelper::findGameTransaction($request['gameRoundRef'], 'transaction_id', 1); 
 			// No Bet was found check if this is a free spin and proccess it!
 			if($existing_bet != 'false'): 
 				
-				$amount = abs($request['amountToDeposit']);
 				$transaction_uuid = $request['gameRoundRef'];
 				$reference_transaction_uuid = $request['transactionRef'];
 
@@ -212,14 +251,13 @@ class NetEntController extends Controller
 				return $response;
 			else:
 				$response = array (
-					'responseCode' => 3,
-					'responseMessage' => 'Negative deposit',
-					'balance' => 0,
-					'serverToken' => NULL,
-					'serverTransactionRef' => NULL,
-					'messagesToPlayer' => NULL,
+					'responseCode' => 0,
+					'responseMessage' => 'Success',
+					'serverTransactionRef' => $existing_bet->game_trans_id,
+					'serverToken' => $client_details->player_token,
+					'balance' => (float)$player_details->playerdetailsresponse->balance
 				);
-				NetEntHelper::saveLog('NetEnt Deposit No bet found', $this->provider_db_id,  json_encode($request->all()), $response);
+				NetEntHelper::saveLog('NetEnt Deposit Idom', $this->provider_db_id,  json_encode($request->all()), $response);
 				return json_encode($response);
 			endif;
 		
