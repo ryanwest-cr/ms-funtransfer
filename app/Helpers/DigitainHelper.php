@@ -32,8 +32,19 @@ class DigitainHelper{
         return $token;
     }
 
-
     
+    public static function increaseTokenLifeTime($seconds, $token){
+         $token = DB::table('player_session_tokens')
+                    ->select("*", DB::raw("NOW() as IMANTO"))
+                    ->where('player_token', $token)
+                    ->first();
+         $date_now = $token->created_at;
+         $newdate = date("Y-m-d H:i:s", (strtotime(date($date_now)) + $seconds));
+         $update = DB::table('player_session_tokens')
+            ->where('token_id', $token->token_id)
+            ->update(['created_at' => $newdate]);
+    }
+
 
 
      /**
@@ -63,6 +74,29 @@ class DigitainHelper{
                     ];
             // return DB::table('debug')->insertGetId($data);
             return DB::table('seamless_request_logs')->insertGetId($data);
+    }
+
+    public static function savePLayerGameRound($game_code,$player_token,$sub_provider_name){
+        $sub_provider_id = DB::table("sub_providers")->where("sub_provider_name",$sub_provider_name)->first();
+        Helper::saveLog('SAVEPLAYERGAME(ICG)', 12, json_encode($sub_provider_id), $sub_provider_name);
+        $game = DB::table("games")->where("game_code",$game_code)->where("sub_provider_id",$sub_provider_id->sub_provider_id)->first();
+        $player_game_round = array(
+            "player_token" => $player_token,
+            "game_id" => $game->game_id,
+            "status_id" => 1
+        );
+        DB::table("player_game_rounds")->insert($player_game_round);
+    }
+
+
+    public static function getInfoPlayerGameRound($player_token){
+        $game = DB::table("player_game_rounds as pgr")
+                ->leftJoin("player_session_tokens as pst","pst.player_token","=","pgr.player_token")
+                ->leftJoin("games as g" , "g.game_id","=","pgr.game_id")
+                ->leftJoin("players as ply" , "pst.player_id","=","ply.player_id")
+                ->where("pgr.player_token",$player_token)
+                ->first();
+        return $game ? $game : false;
     }
 
     /**
