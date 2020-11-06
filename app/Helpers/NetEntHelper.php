@@ -181,7 +181,7 @@ class NetEntHelper{
 		if ($type == "game_code") {
 			$details = "where g.provider_id = ".$provider_id." and g.game_code = '".$identification."' limit 1";
 		}
-		$game_details = DB::select('select g.game_name, g.game_code, g.game_id from games g left join providers as p using (provider_id) '.$details.' ');
+		$game_details = DB::select('select g.game_name, g.game_code, g.game_id from games g inner join providers as p using (provider_id) '.$details.' ');
 		
 	 	return $game_details ? $game_details : "false";
 	}
