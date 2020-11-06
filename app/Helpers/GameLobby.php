@@ -1086,10 +1086,12 @@ class GameLobby{
                 "gameId" => $request["game_code"],
                 "staticServerURL" => urlencode($staticServerURL),
                 "gameServerURL" => urlencode($gameServerURL),
-                "sessionId" => $sessionID,
-                "casinoID" => config("providerlinks.netent.casinoID")
+                "sessionId" => "DEMO-".$sessionID."-".$client_details->default_currency,
+                "casinoID" => config("providerlinks.netent.casinoID"),
+                "lobbyUrl" => urlencode($request["exitUrl"])
             );
             $encoded_data = $aes->AESencode(json_encode($data));
+            // return urlencode($encoded_data);
             // return "http://localhost:2020/loadgame/netent_direct?param=".urlencode($encoded_data);
             return "http://play.betrnk.games:81/loadgame/netent_direct?param=".urlencode($encoded_data);
         } catch (\Exception $e){
