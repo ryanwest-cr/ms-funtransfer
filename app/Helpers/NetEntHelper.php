@@ -12,10 +12,10 @@ class NetEntHelper{
 
 	public static function playerDetailsCall($player_token, $refreshtoken=false, $type=1){
 		if($type == 1){
-			$client_details = TGGHelper::getClientDetails('token', $player_token);
+			$client_details = NetEntHelper::getClientDetails('token', $player_token);
 			// return 1;
         }elseif($type == 2){
-			$client_details = TGGHelper::getClientDetails('token', $player_token, 2);
+			$client_details = NetEntHelper::getClientDetails('token', $player_token, 2);
 			// return 2;
 		}
 		if($client_details){

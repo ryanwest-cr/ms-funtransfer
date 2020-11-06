@@ -29,7 +29,7 @@ class NetEntController extends Controller
 				"currencyISOCode" => $getClientDetails->default_currency,
 				"responseMessage" => "Success"
 			];
-			NetEntHelper::saveLog('NetEnt Currency', $this->provider_db_id,  json_encode($request->all()), json_encode($response));
+			NetEntHelper::saveLog('NetEnt Currency', $this->provider_db_id,  json_encode($request->all()), $response);
 			return json_encode($response);
 		} catch(\Exception $e){
 			$reponse = array (
@@ -40,7 +40,7 @@ class NetEntController extends Controller
 				'serverTransactionRef' => 'NULL',
 				'messagesToPlayer' => 'NULL'
 			);
-			NetEntHelper::saveLog('NetEnt Currency Exception', $this->provider_db_id,  json_encode($request->all()), json_encode($response));
+			NetEntHelper::saveLog('NetEnt Currency Exception', $this->provider_db_id,  json_encode($request->all()), $response);
 			return json_encode($response);
 		}
 		
@@ -49,15 +49,29 @@ class NetEntController extends Controller
 	public function balance(Request $request, $player){
 		try{
 			$playersid = explode('_', $player);
-			$getClientDetails = ProviderHelper::getClientDetails('player_id',$playersid[1]);
-			$player_details = Providerhelper::playerDetailsCall($getClientDetails->player_token);
+			$getClientDetails = NetEntHelper::getClientDetails('player_id',$playersid[1]);
+			if ($getClientDetails->default_currency != $request["currency"]) {
+				$response = array (
+					'responseCode' => 2,
+					'responseMessage' => 'Invalid currency',
+					'balance' => 0,
+					'serverToken' => NULL,
+					'serverTransactionRef' => NULL,
+					'messagesToPlayer' => NULL
+				);
+				NetEntHelper::saveLog('NetEnt Balance Invalid currency', $this->provider_db_id,  json_encode($request->all()), $response);
+				return json_encode($response);
+			}
+			$player_details = NetEntHelper::playerDetailsCall($getClientDetails->player_token);
+			$num = $player_details->playerdetailsresponse->balance;
+			$balance = floatval(number_format((float)$num, 6, '.', ''));
 			$response = [
 				"responseCode" => 0,
-				"serverToken" =>$getClientDetails->player_token,
-				"balance" =>  $player_details->playerdetailsresponse->balance,
+				"serverToken" => $getClientDetails->player_token,
+				"balance" =>  $balance,
 				"responseMessage" => "Success"
 			];
-			Helper::saveLog('NetEnt Balance', $this->provider_db_id,  json_encode($request->all()), json_encode($response));
+			NetEntHelper::saveLog('NetEnt Balance', $this->provider_db_id,  json_encode($request->all()), $response);
 			return json_encode($response);
 		}catch(\Exception $e){
 			$response = array (
@@ -68,7 +82,7 @@ class NetEntController extends Controller
 				'serverTransactionRef' => NULL,
 				'messagesToPlayer' => NULL,
 			);
-			Helper::saveLog('NetEnt Balance Exception', $this->provider_db_id,  json_encode($request->all()), json_encode($response));
+			NetEntHelper::saveLog('NetEnt Balance Exception', $this->provider_db_id,  json_encode($request->all()), $response);
 			return json_encode($response);
 		}
 	}
