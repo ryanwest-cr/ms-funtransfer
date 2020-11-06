@@ -6,13 +6,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
-
 use GuzzleHttp\Client;
 use Carbon\Carbon;
 use App\Helpers\NetEntHelper;
 use App\Helpers\ClientRequestHelper;
 use DB;
-
 
 class NetEntController extends Controller
 {
@@ -89,12 +87,54 @@ class NetEntController extends Controller
 	}
 	//bet process
 	public function withdraw(Request $request, $player){
+		
 		$game_details = NetEntHelper::findGameDetails('game_code', $this->provider_db_id, $request["game"]); //get game details here
 		$playersid = explode('_', $player);
 		$client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
 		$player_details = NetEntHelper::playerDetailsCall($client_details->player_token);
-		
+
 		$existing_bet = NetEntHelper::findGameTransaction($request["gameRoundRef"], 'round_id', 1); 
+
+		if (!array_key_exists('amountToWithdraw', $request->all())) { //Rollback bet
+			
+			$transaction_uuid = $request['gameRoundRef'];
+			$reference_transaction_uuid = $request['transactionRef'];
+
+			// $bet_transaction = $this->findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
+			$game_trans_ext_id = NetEntHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $existing_bet->bet_amount, 4, $request->all(), $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+			
+			$type = "credit";
+			$rollback = true;
+			$client_response = ClientRequestHelper::fundTransfer($client_details,$existing_bet->bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
+			//reponse to provider
+			
+			$response = array (
+				'responseCode' => 0,
+				'responseMessage' => 'Success',
+				'serverTransactionRef' => $existing_bet->game_trans_id,
+				'serverToken' => $client_details->player_token,
+				'balance' => (float)$client_response->fundtransferresponse->balance
+			);
+			
+			//Initialize data to pass
+			$win = 4; /// 1win 0lost
+			$type = "refund" ;
+			$request_data = [
+				'win' => $win,
+				'amount' => $existing_bet->bet_amount,
+				'payout_reason' => NetEntHelper::updateReason(4),
+				'transid' => $reference_transaction_uuid,
+				'roundid' => $transaction_uuid,
+			];
+			//update transaction
+			Helper::updateGameTransaction($existing_bet,$request_data,$type);
+			NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
+			NetEntHelper::saveLog('NetEnt Deposit success', $this->provider_db_id, json_encode($request->all()), $response);
+			return json_encode($response);
+		}
+
+		
+		
 		if($existing_bet != 'false'):
 			$response = array (
 				'responseCode' => 0,
@@ -162,7 +202,7 @@ class NetEntController extends Controller
 					'responseMessage' => 'Success',
 					'serverTransactionRef' => $game_trans_id,
 					'serverToken' => $client_details->player_token,
-					'balance' => $client_response->fundtransferresponse->balance
+					'balance' => (float)$client_response->fundtransferresponse->balance
 				);
 				//UPDATE gameExtension
 				NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
@@ -209,10 +249,13 @@ class NetEntController extends Controller
 			return json_encode($response);
 		}
 
-		$existing_win =NetEntHelper::findGameExt($request['gameRoundRef'], 2, 'transaction_id'); 
+		// $existing_win =NetEntHelper::findGameExt($request['gameRoundRef'], 2, 'transaction_id'); 
+		$existing_win = NetEntHelper::findGameTransaction($request['gameRoundRef'], 'round_id', 2); 
+	
+		// $existing_win = NetEntHelper::findGameTransaction($request["gameRoundRef"], 'round_id', 2); 
 		if($existing_win == 'false'):
 
-			$existing_bet = NetEntHelper::findGameTransaction($request['gameRoundRef'], 'transaction_id', 1); 
+			$existing_bet = NetEntHelper::findGameTransaction($request['gameRoundRef'], 'round_id', 1); 
 			// No Bet was found check if this is a free spin and proccess it!
 			if($existing_bet != 'false'): 
 				
@@ -220,7 +263,7 @@ class NetEntController extends Controller
 				$reference_transaction_uuid = $request['transactionRef'];
 
 				// $bet_transaction = $this->findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
-				$game_trans_ext_id = NetEntHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $request, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+				$game_trans_ext_id = NetEntHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $request->all(), $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
 				
 				$type = "credit";
 				$rollback = false;
@@ -253,7 +296,7 @@ class NetEntController extends Controller
 				$response = array (
 					'responseCode' => 0,
 					'responseMessage' => 'Success',
-					'serverTransactionRef' => $existing_bet->game_trans_id,
+					'serverTransactionRef' => NULL,
 					'serverToken' => $client_details->player_token,
 					'balance' => (float)$player_details->playerdetailsresponse->balance
 				);
