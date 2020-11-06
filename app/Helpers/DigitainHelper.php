@@ -11,6 +11,7 @@ use DB;
 
 class DigitainHelper{
 
+    public static $timeout = 2; // Seconds
 
     public static function tokenCheck($token){
         $token = DB::table('player_session_tokens')
@@ -33,18 +34,34 @@ class DigitainHelper{
     }
 
     
-    public static function increaseTokenLifeTime($seconds, $token){
+    public static function increaseTokenLifeTime($seconds, $token,$type=1){
          $token = DB::table('player_session_tokens')
                     ->select("*", DB::raw("NOW() as IMANTO"))
                     ->where('player_token', $token)
                     ->first();
          $date_now = $token->created_at;
-         $newdate = date("Y-m-d H:i:s", (strtotime(date($date_now)) + $seconds));
-         $update = DB::table('player_session_tokens')
+
+         if($type==1){
+            $newdate = date("Y-m-d H:i:s", (strtotime(date($date_now)) + $seconds));
+            $update = DB::table('player_session_tokens')
             ->where('token_id', $token->token_id)
             ->update(['created_at' => $newdate]);
+        }else{
+           $newdate = date('Y-m-d H:i:s', strtotime($date_now .' -1 day'));
+           $update = DB::table('player_session_tokens')
+            ->where('token_id', $token->token_id)
+            ->update(['created_at' => $newdate]); 
+        }
     }
 
+
+    public static function SaveRefreshToken(){
+        DB::table('player_session_tokens')->insert(
+        array('player_id' => $client_details->player_id, 
+              'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
+              'status_id' => '1')
+        );
+    }
 
 
      /**
@@ -171,6 +188,39 @@ class DigitainHelper{
             ->first();
         // Helper::saveLog('Find Game Transaction', 999, json_encode(DB::getQueryLog()), "TIME Find Game Transaction");
         return $result ? $result : 'false';
+    }
+
+
+    public static function playerDetailsCall($client_details, $refreshtoken=false){
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$client_details->client_access_token
+            ]
+        ]);
+        $datatosend = ["access_token" => $client_details->client_access_token,
+            "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+            "type" => "playerdetailsrequest",
+            "datesent" => Helper::datesent(),
+            "clientid" => $client_details->client_id,
+            "playerdetailsrequest" => [
+                "player_username"=>$client_details->username,
+                "client_player_id" => $client_details->client_player_id,
+                "token" => $client_details->player_token,
+                "gamelaunch" => true,
+                "refreshtoken" => $refreshtoken
+            ]
+        ];
+        try{    
+            $guzzle_response = $client->post($client_details->player_details_url,
+                ['body' => json_encode($datatosend)]
+            );
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            return $client_response;
+        }catch (\Exception $e){
+           Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
+           return 'false';
+        }
     }
 
     public static function getClientDetails($type = "", $value = "", $gg=1, $providerfilter='all') {
