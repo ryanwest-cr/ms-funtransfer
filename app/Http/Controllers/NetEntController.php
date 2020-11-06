@@ -63,19 +63,6 @@ class NetEntController extends Controller
 				return json_encode($response);
 			}
 
-			// if ($player_details->playerdetailsresponse->balance < 0) {
-			// 	$response = array (
-			// 		'responseCode' => 1,
-			// 		'responseMessage' => 'Not enough money in player account',
-			// 		'balance' => 0,
-			// 		'serverToken' => NULL,
-			// 		'serverTransactionRef' => NULL,
-			// 		'messagesToPlayer' => NULL
-			// 	);
-			// 	NetEntHelper::saveLog('NetEnt Balance Not enough money', $this->provider_db_id,  json_encode($request->all()), $response);
-			// 	return json_encode($response);
-			// }
-
 			$player_details = NetEntHelper::playerDetailsCall($getClientDetails->player_token);
 			$num = $player_details->playerdetailsresponse->balance;
 			$balance = floatval(number_format((float)$num, 6, '.', ''));
@@ -251,10 +238,5 @@ class NetEntController extends Controller
 		endif;
 	}
 
-	
-
-	public function rollback(Request $request){
-		return 20;
-	}
 
 }

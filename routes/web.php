@@ -356,7 +356,7 @@ $app->get('api/netent/walletserver/players/{player}/account/currency','NetEntCon
 $app->get('api/netent/walletserver/players/{player}/account/balance','NetEntController@balance');
 $app->post('api/netent/walletserver/players/{player}/account/withdraw','NetEntController@withdraw');//debit
 $app->post('api/netent/walletserver/players/{player}/account/deposit','NetEntController@deposit');
-// $app->delete('api/netent/withdraw/walletserver/players/{player}/account/withdraw','NetEntController@withdraw');//debit
+$app->delete('api/netent/walletserver/players/{player}/account/withdraw','NetEntController@withdraw');//debit
 // $app->post('api/spade_curacao/authorize','SpadeCuracaoController@authorize');
 // $app->post('api/spade_curacao/getBalance','SpadeCuracaoController@getBalance');
 // $app->post('api/spade_curacao/transfer','SpadeCuracaoController@makeTransfer');
