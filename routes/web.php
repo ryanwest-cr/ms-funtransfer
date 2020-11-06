@@ -533,3 +533,12 @@ $app->post('api/al/upload','AlController@uploadImgApi');
 // Transfer Wallet
 $app->post('api/transfer/wallet/renewsession','TransferWalletController@renewSession');
 $app->post('api/transfer/wallet/createsession','TransferWalletController@createWalletSession');
+
+
+$app->post('bo/provider-update','BackOffice\BackOfficeController@setProvider');
+$app->post('bo/sub-provider-update','BackOffice\BackOfficeController@setSubProvider');
+$app->post('bo/games-update','BackOffice\BackOfficeController@setGames');
+$app->post('bo/game-type-update','BackOffice\BackOfficeController@setGameType');
+$app->post('bo/operator-update','BackOffice\BackOfficeController@setOperator');
+
+
