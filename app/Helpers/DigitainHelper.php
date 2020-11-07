@@ -11,6 +11,7 @@ use DB;
 
 class DigitainHelper{
 
+    public static $timeout = 2; // Seconds
 
     public static function tokenCheck($token){
         $token = DB::table('player_session_tokens')
@@ -33,18 +34,59 @@ class DigitainHelper{
     }
 
     
-    public static function increaseTokenLifeTime($seconds, $token){
+    public static function increaseTokenLifeTime($seconds, $token,$type=1){
          $token = DB::table('player_session_tokens')
                     ->select("*", DB::raw("NOW() as IMANTO"))
                     ->where('player_token', $token)
                     ->first();
          $date_now = $token->created_at;
-         $newdate = date("Y-m-d H:i:s", (strtotime(date($date_now)) + $seconds));
-         $update = DB::table('player_session_tokens')
+
+         if($type==1){
+            $newdate = date("Y-m-d H:i:s", (strtotime(date($date_now)) + $seconds));
+            $update = DB::table('player_session_tokens')
             ->where('token_id', $token->token_id)
             ->update(['created_at' => $newdate]);
+        }else{
+           $newdate = date('Y-m-d H:i:s', strtotime($date_now .' -1 day'));
+           $update = DB::table('player_session_tokens')
+            ->where('token_id', $token->token_id)
+            ->update(['created_at' => $newdate]); 
+        }
     }
 
+
+    public static function SaveRefreshToken(){
+        DB::table('player_session_tokens')->insert(
+        array('player_id' => $client_details->player_id, 
+              'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
+              'status_id' => '1')
+        );
+    }
+
+
+    public  static function updateBetToWin($game_trans_id, $pay_amount, $income, $win, $entry_id, $type=1,$bet_amount=0) {
+        if($type == 1){
+            $update = DB::table('game_transactions')
+            ->where('game_trans_id', $game_trans_id)
+            ->update(['pay_amount' => $pay_amount, 
+                  'income' => $income, 
+                  'win' => $win, 
+                  'entry_id' => $entry_id,
+                  'transaction_reason' => 'Bet updated to win'
+            ]);
+        }else{
+            $update = DB::table('game_transactions')
+            ->where('game_trans_id', $game_trans_id)
+            ->update(['pay_amount' => $pay_amount, 
+                  'income' => $income, 
+                  'bet_amount' => $bet_amount, 
+                  'win' => $win, 
+                  'entry_id' => $entry_id,
+                  'transaction_reason' => 'Bet updated to win'
+            ]);
+        }
+        return ($update ? true : false);
+    }
 
 
      /**
@@ -110,14 +152,14 @@ class DigitainHelper{
             $transaction_db->where([
                 ["gte.provider_trans_id", "=", $provider_identifier],
                 ["gte.game_transaction_type", "=", $game_transaction_type],
-                ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
+                // ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
             ]);
         }
         if ($type == 'round_id') {
             $transaction_db->where([
                 ["gte.round_id", "=", $provider_identifier],
                 ["gte.game_transaction_type", "=", $game_transaction_type],
-                ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
+                // ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
             ]);
         }  
         if ($type == 'game_transaction_ext_id') {
@@ -173,6 +215,39 @@ class DigitainHelper{
         return $result ? $result : 'false';
     }
 
+
+    public static function playerDetailsCall($client_details, $refreshtoken=false){
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$client_details->client_access_token
+            ]
+        ]);
+        $datatosend = ["access_token" => $client_details->client_access_token,
+            "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+            "type" => "playerdetailsrequest",
+            "datesent" => Helper::datesent(),
+            "clientid" => $client_details->client_id,
+            "playerdetailsrequest" => [
+                "player_username"=>$client_details->username,
+                "client_player_id" => $client_details->client_player_id,
+                "token" => $client_details->player_token,
+                "gamelaunch" => true,
+                "refreshtoken" => $refreshtoken
+            ]
+        ];
+        try{    
+            $guzzle_response = $client->post($client_details->player_details_url,
+                ['body' => json_encode($datatosend)]
+            );
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            return $client_response;
+        }catch (\Exception $e){
+           Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
+           return 'false';
+        }
+    }
+
     public static function getClientDetails($type = "", $value = "", $gg=1, $providerfilter='all') {
         // DB::enableQueryLog();
         if ($type == 'token') {
@@ -207,5 +282,12 @@ class DigitainHelper{
          return $client_details > 0 ? $query[0] : null;
     }
 
+    public  function gameTransactionEXTLog($trans_type,$trans_identifier,$type=false){
+        $where = 'where `'.$trans_type.'` = "'.$trans_identifier.'"';
+        $filter = 'LIMIT 1';
+        $query = DB::select('select game_trans_ext_id, game_trans_id, provider_trans_id, round_id, amount, game_transaction_type, transaction_detail from `game_transaction_ext` '.$where.' '.$filter.'');
+        $client_details = count($query);
+        return $client_details > 0 ? $query[0] : false;
+    }
 
 }
