@@ -64,6 +64,31 @@ class DigitainHelper{
     }
 
 
+    public  static function updateBetToWin($game_trans_id, $pay_amount, $income, $win, $entry_id, $type=1,$bet_amount=0) {
+        if($type == 1){
+            $update = DB::table('game_transactions')
+            ->where('game_trans_id', $game_trans_id)
+            ->update(['pay_amount' => $pay_amount, 
+                  'income' => $income, 
+                  'win' => $win, 
+                  'entry_id' => $entry_id,
+                  'transaction_reason' => 'Bet updated to win'
+            ]);
+        }else{
+            $update = DB::table('game_transactions')
+            ->where('game_trans_id', $game_trans_id)
+            ->update(['pay_amount' => $pay_amount, 
+                  'income' => $income, 
+                  'bet_amount' => $bet_amount, 
+                  'win' => $win, 
+                  'entry_id' => $entry_id,
+                  'transaction_reason' => 'Bet updated to win'
+            ]);
+        }
+        return ($update ? true : false);
+    }
+
+
      /**
      * [isolated helper class helper for digitain]
      * 
@@ -127,14 +152,14 @@ class DigitainHelper{
             $transaction_db->where([
                 ["gte.provider_trans_id", "=", $provider_identifier],
                 ["gte.game_transaction_type", "=", $game_transaction_type],
-                ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
+                // ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
             ]);
         }
         if ($type == 'round_id') {
             $transaction_db->where([
                 ["gte.round_id", "=", $provider_identifier],
                 ["gte.game_transaction_type", "=", $game_transaction_type],
-                ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
+                // ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
             ]);
         }  
         if ($type == 'game_transaction_ext_id') {
@@ -257,5 +282,12 @@ class DigitainHelper{
          return $client_details > 0 ? $query[0] : null;
     }
 
+    public  function gameTransactionEXTLog($trans_type,$trans_identifier,$type=false){
+        $where = 'where `'.$trans_type.'` = "'.$trans_identifier.'"';
+        $filter = 'LIMIT 1';
+        $query = DB::select('select game_trans_ext_id, game_trans_id, provider_trans_id, round_id, amount, game_transaction_type, transaction_detail from `game_transaction_ext` '.$where.' '.$filter.'');
+        $client_details = count($query);
+        return $client_details > 0 ? $query[0] : false;
+    }
 
 }
