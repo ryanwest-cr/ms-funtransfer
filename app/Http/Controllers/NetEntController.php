@@ -167,8 +167,8 @@ class NetEntController extends Controller
 
 			if($bet_amount > $player_details->playerdetailsresponse->balance){ // Not Enough money return success
 				$response = array (
-					'responseCode' => 0,
-					'responseMessage' => 'Success',
+					'responseCode' => 1,
+					'responseMessage' => 'Not enough money in player account',
 					'serverToken' => $client_details->player_token,
 					'balance' => (float)$player_details->playerdetailsresponse->balance
 				);
@@ -303,16 +303,64 @@ class NetEntController extends Controller
 				NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
 				NetEntHelper::saveLog('NetEnt Deposit success', $this->provider_db_id, json_encode($request->all()), $response);
 				return json_encode($response);
-			else: // NO BET FOUND RETURN SUCESS
-				$response = array (
-					'responseCode' => 0,
-					'responseMessage' => 'Success',
-					'serverTransactionRef' => NULL,
-					'serverToken' => $client_details->player_token,
-					'balance' => (float)$player_details->playerdetailsresponse->balance
-				);
-				NetEntHelper::saveLog('NetEnt Deposit Idom', $this->provider_db_id,  json_encode($request->all()), $response);
-				return json_encode($response);
+			else: 
+
+				//TOURNAMENT PROCESS
+				if ($request["reason"] == "AWARD_TOURNAMENT_WIN") {
+					//TEMPORARY RESPONSE
+					$response = array (
+						'responseCode' => 0,
+						'responseMessage' => 'Success',
+						'serverTransactionRef' => NULL,
+						'serverToken' => $client_details->player_token,
+						'balance' => (float)$player_details->playerdetailsresponse->balance
+					);
+					NetEntHelper::saveLog('NetEnt Deposit Idom', $this->provider_db_id,  json_encode($request->all()), $response);
+					return json_encode($response);
+					// $pay_amount = $amount;
+					// $income = 0 - $amount;
+					// $method = 2;
+					// $win_or_lost = 1; // 0 lost,  5 processing
+					// $payout_reason = NetEntHelper::updateReason(1);
+					// $provider_trans_id = $request["transactionRef"];
+					// $bet_id = $request["transactionRef"];
+					// $bet_amount = 0;
+					// //Create GameTransaction, GameExtension
+					// $game_trans_id  = ProviderHelper::createGameTransaction($client_details->token_id, $game_details[0]->game_id,$bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
+					
+					// $game_trans_ext_id = NetEntHelper::createGameTransExt($game_trans_id,$provider_trans_id, $bet_id, $bet_amount, 2, $request->all(), $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+					
+					// //requesttosend, and responsetoclient client side
+					// $type = "credit";
+					// $rollback = false;
+					
+					// $client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
+					
+					// $response = array (
+					// 	'responseCode' => 0,
+					// 	'responseMessage' => 'Success',
+					// 	'serverTransactionRef' => $game_trans_id,
+					// 	'serverToken' => $client_details->player_token,
+					// 	'balance' => round($client_response->fundtransferresponse->balance,3)
+					// );
+					// //UPDATE gameExtension
+					// NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
+				 //    NetEntHelper::saveLog('NetEnt Deposit TOURNAMENT WIN', $this->provider_db_id, json_encode($request->all()), $response);
+				 //    return $response;
+
+				} else {
+					// NO BET FOUND RETURN SUCESS
+					$response = array (
+						'responseCode' => 0,
+						'responseMessage' => 'Success',
+						'serverTransactionRef' => NULL,
+						'serverToken' => $client_details->player_token,
+						'balance' => (float)$player_details->playerdetailsresponse->balance
+					);
+					NetEntHelper::saveLog('NetEnt Deposit Idom', $this->provider_db_id,  json_encode($request->all()), $response);
+					return json_encode($response);
+				}
+				
 			endif;
 		
 		else:	
