@@ -1750,6 +1750,16 @@ class DigitainController extends Controller
 
 					if($key['refundRound'] == true){  // Use round id always
 						$datatrans = $this->findTransactionRefund($key['roundId'], 'round_id');
+						if($datatrans == false){
+							$items_array[] = [
+								 "info" => $key['info'],
+								 "errorCode" => 7, // this transaction is not found
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+						    ]; 
+							$global_error = $global_error == 1 ? 7 : $global_error;
+							$error_encounter = 1;
+							continue;
+						}
 						$transaction_identifier = $key['roundId'];
 						$transaction_identifier_type = 'round_id';
 						$player_id = $key['playerId'];
@@ -1988,6 +1998,14 @@ class DigitainController extends Controller
 
 			if($key['refundRound'] == true){  // Use round id always
 				$datatrans = $this->findTransactionRefund($key['roundId'], 'round_id');
+				if($datatrans == false){
+					$items_array[] = [
+						 "info" => $key['info'],
+						 "errorCode" => 7, // this transaction is not found
+						 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+				    ]; 
+					continue;
+				}
 				$transaction_identifier = $key['roundId'];
 				$transaction_identifier_type = 'round_id';
 				$db_provider_request_data = $this->findObjDataItem($datatrans->provider_request, $key['roundId'], 'playerId');
@@ -2451,16 +2469,16 @@ class DigitainController extends Controller
 								if($checkLog != 'false'){
 									$db_operation_type = 1;
 									$debit_operation_type = 37;  // if this is credit operation type must be 37
-									// if($debit_operation_type != $key['operationType']){
-									// 	$items_array[] = [
-									// 		 "info" => $key['info'], 
-									// 		 "errorCode" => 18, 
-									// 		 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
-						   //      	    ]; 
-						   //      	    $global_error = $global_error == 1 ? 18 : $global_error;
-									// 	$error_encounter= 1;
-									// 	continue;
-									// }
+									if($debit_operation_type != $key['operationType']){
+										$items_array[] = [
+											 "info" => $key['info'], 
+											 "errorCode" => 19, 
+											 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+						        	    ]; 
+						        	    $global_error = $global_error == 1 ? 19 : $global_error;
+										$error_encounter= 1;
+										continue;
+									}
 									if($checkLog->amount < $key['amendAmount']){
 										$items_array[] = [
 											 "info" => $key['info'], 
@@ -2498,16 +2516,16 @@ class DigitainController extends Controller
 									if($checkLog != 'false'){
 										$db_operation_type = 1;
 										$debit_operation_type = 38;  // if this is debit operation type must be 38
-										// if($debit_operation_type != $key['operationType']){
-										// 	$items_array[] = [
-										// 		 "info" => $key['info'], 
-										// 		 "errorCode" => 18, 
-										// 		 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
-							   //      	    ]; 
-							   //      	    $global_error = $global_error == 1 ? 18 : $global_error;
-										// 	$error_encounter= 1;
-										// 	continue;
-										// }
+										if($debit_operation_type != $key['operationType']){
+											$items_array[] = [
+												 "info" => $key['info'], 
+												 "errorCode" => 19, 
+												 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+							        	    ]; 
+							        	    $global_error = $global_error == 1 ? 19 : $global_error;
+											$error_encounter= 1;
+											continue;
+										}
 										if($checkLog->amount < $key['amendAmount']){
 											$items_array[] = [
 												 "info" => $key['info'], 
@@ -2629,16 +2647,16 @@ class DigitainController extends Controller
 					if($checkLog != 'false'){
 						$db_operation_type = 1;
 						$debit_operation_type = 37;  // if this is credit operation type must be 37
-						// if($debit_operation_type != $key['operationType'] || $checkLog->amount < $key['amendAmount']){
-						// 	$items_array[] = [
-						// 		 "info" => $key['info'], 
-						// 		 "errorCode" => 18, 
-						// 		 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
-			   //      	    ]; 
-			   //      	    $global_error = $global_error == 1 ? 18 : $global_error;
-						// 	$error_encounter= 1;
-						// 	continue;
-						// }
+						if($debit_operation_type != $key['operationType']){
+							$items_array[] = [
+								 "info" => $key['info'], 
+								 "errorCode" => 19, 
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+			        	    ]; 
+			        	    $global_error = $global_error == 1 ? 19 : $global_error;
+							$error_encounter= 1;
+							continue;
+						}
 						if($checkLog->amount < $key['amendAmount']){
 							$items_array[] = [
 								 "info" => $key['info'], 
@@ -2679,16 +2697,16 @@ class DigitainController extends Controller
 						if($checkLog != 'false'){
 							$db_operation_type = 1;
 							$debit_operation_type = 38;  // if this is debit operation type must be 38
-							// if($debit_operation_type != $key['operationType'] || $checkLog->amount < $key['amendAmount']){
-							// 	$items_array[] = [
-							// 		 "info" => $key['info'], 
-							// 		 "errorCode" => 18, 
-							// 		 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
-				   //      	    ]; 
-				   //      	    $global_error = $global_error == 1 ? 18 : $global_error;
-							// 	$error_encounter= 1;
-							// 	continue;
-							// }
+							if($debit_operation_type != $key['operationType']){
+								$items_array[] = [
+									 "info" => $key['info'], 
+									 "errorCode" => 19, 
+									 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+				        	    ]; 
+				        	    $global_error = $global_error == 1 ? 19 : $global_error;
+								$error_encounter= 1;
+								continue;
+							}
 							if($checkLog->amount < $key['amendAmount']){
 								$items_array[] = [
 									 "info" => $key['info'], 
@@ -2713,6 +2731,8 @@ class DigitainController extends Controller
 				}
 			}
 
+
+			return 1;
 
 			if($key['currencyId'] != $client_details->default_currency){
 				$items_array[] = [
