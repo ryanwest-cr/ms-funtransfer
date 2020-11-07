@@ -2469,7 +2469,7 @@ class DigitainController extends Controller
 								if($checkLog != 'false'){
 									$db_operation_type = 1;
 									$debit_operation_type = 37;  // if this is credit operation type must be 37
-									if($debit_operation_type != $key['operationType']){
+									if($key['operationType'] != 37 || $key['operationType'] != 38){
 										$items_array[] = [
 											 "info" => $key['info'], 
 											 "errorCode" => 19, 
@@ -2516,7 +2516,7 @@ class DigitainController extends Controller
 									if($checkLog != 'false'){
 										$db_operation_type = 1;
 										$debit_operation_type = 38;  // if this is debit operation type must be 38
-										if($debit_operation_type != $key['operationType']){
+										if($key['operationType'] != 37 || $key['operationType'] != 38){
 											$items_array[] = [
 												 "info" => $key['info'], 
 												 "errorCode" => 19, 
@@ -2647,7 +2647,7 @@ class DigitainController extends Controller
 					if($checkLog != 'false'){
 						$db_operation_type = 1;
 						$debit_operation_type = 37;  // if this is credit operation type must be 37
-						if($debit_operation_type != $key['operationType']){
+						if($key['operationType'] != 37 && $key['operationType'] != 38){
 							$items_array[] = [
 								 "info" => $key['info'], 
 								 "errorCode" => 19, 
@@ -2697,7 +2697,7 @@ class DigitainController extends Controller
 						if($checkLog != 'false'){
 							$db_operation_type = 1;
 							$debit_operation_type = 38;  // if this is debit operation type must be 38
-							if($debit_operation_type != $key['operationType']){
+							if($key['operationType'] != 37 && $key['operationType'] != 38){
 								$items_array[] = [
 									 "info" => $key['info'], 
 									 "errorCode" => 19, 
@@ -2730,9 +2730,6 @@ class DigitainController extends Controller
 						}
 				}
 			}
-
-
-			return 1;
 
 			if($key['currencyId'] != $client_details->default_currency){
 				$items_array[] = [
