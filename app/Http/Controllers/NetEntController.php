@@ -287,7 +287,7 @@ class NetEntController extends Controller
 					'responseMessage' => 'Success',
 					'serverTransactionRef' => $existing_bet->game_trans_id,
 					'serverToken' => $client_details->player_token,
-					'balance' => round($client_response->fundtransferresponse->balance,1)
+					'balance' => round($client_response->fundtransferresponse->balance,3)
 				);
 				
 				//Initialize data to pass
