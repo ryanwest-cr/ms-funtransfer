@@ -101,7 +101,7 @@ class GoldenFHelper{
                     $trans_data["bet_amount"] = $existingdata->bet_amount+$request_data["amount"];
 					$trans_data["pay_amount"] = $existingdata->pay_amount;
 					$trans_data["income"]= ($existingdata->bet_amount+$request_data["amount"])-$existingdata->pay_amount;
-					$trans_data["entry_id"] = 1;
+					$trans_data["entry_id"] = $existingdata->entry_id;
 				break;
 			case "credit":
 					$trans_data["win"] = $request_data["win"];
