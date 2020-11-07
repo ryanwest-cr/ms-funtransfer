@@ -97,7 +97,7 @@ class NetEntController extends Controller
 
 		if (!array_key_exists('amountToWithdraw', $request->all())) { //Rollback bet
 			
-			if ($existing_bet != "false") { // ROLLBACK WITH A WITHDRAW TRANSACTION
+			if ($existing_bet != "false") { // ROLLBACK A WITHDRAW TRANSACTION
 				$transaction_uuid = $request['gameRoundRef'];
 				$reference_transaction_uuid = $request['transactionRef'];
 
@@ -114,7 +114,7 @@ class NetEntController extends Controller
 					'responseMessage' => 'Success',
 					'serverTransactionRef' => $existing_bet->game_trans_id,
 					'serverToken' => $client_details->player_token,
-					'balance' => (float)$client_response->fundtransferresponse->balance
+					'balance' => round($client_response->fundtransferresponse->balance,3)
 				);
 				
 				//Initialize data to pass
@@ -139,7 +139,7 @@ class NetEntController extends Controller
 					'responseCode' => 0,
 					'responseMessage' => 'Success',
 					'serverToken' => $client_details->player_token,
-					'balance' => (float)$player_details->playerdetailsresponse->balance
+					'balance' => round($player_details->playerdetailsresponse->balance,3)
 				);
 				NetEntHelper::saveLog('NetEnt Withdraw transactionRef does not exist ', $this->provider_db_id,  json_encode($request->all()), $response);
 				return json_encode($response);
@@ -215,7 +215,7 @@ class NetEntController extends Controller
 					'responseMessage' => 'Success',
 					'serverTransactionRef' => $game_trans_id,
 					'serverToken' => $client_details->player_token,
-					'balance' => (float)$client_response->fundtransferresponse->balance
+					'balance' => round($client_response->fundtransferresponse->balance,3)
 				);
 				//UPDATE gameExtension
 				NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
