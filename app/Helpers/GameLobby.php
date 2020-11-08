@@ -1086,7 +1086,7 @@ class GameLobby{
                 "gameId" => $request["game_code"],
                 "staticServerURL" => urlencode($staticServerURL),
                 "gameServerURL" => urlencode($gameServerURL),
-                "sessionId" => "DEMO-".$sessionID."-".$client_details->default_currency,
+                "sessionId" => $sessionID,
                 "casinoID" => config("providerlinks.netent.casinoID"),
                 "lobbyUrl" => urlencode($request["exitUrl"])
             );
