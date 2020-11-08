@@ -60,8 +60,7 @@ class NetEntController extends Controller
 				NetEntHelper::saveLog('NetEnt Balance Invalid currency', $this->provider_db_id,  json_encode($request->all()), $response);
 				return json_encode($response);
 			}
-
-			$player_details = NetEntHelper::playerDetailsCall($getClientDetails->player_token);
+			$player_details = NetEntHelper::playerDetailsCall($getClientDetails);
 			$num = $player_details->playerdetailsresponse->balance;
 			$balance = floatval(number_format((float)$num, 6, '.', ''));
 			$response = [
@@ -91,7 +90,7 @@ class NetEntController extends Controller
 		$game_details = NetEntHelper::findGameDetails('game_code', $this->provider_db_id, $request["game"]); //get game details here
 		$playersid = explode('_', $player);
 		$client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
-		$player_details = NetEntHelper::playerDetailsCall($client_details->player_token);
+		$player_details = NetEntHelper::playerDetailsCall($client_details);
 
 		$existing_bet = NetEntHelper::findGameTransaction($request["gameRoundRef"], 'round_id', 1); 
 
@@ -190,19 +189,25 @@ class NetEntController extends Controller
 				return json_encode($response);
 
 			}
+
 				$pay_amount = 0;
 				$income = 0;
-				$win_type = 0;
+				$win_type = 1;
 				$method = 1;
 				$win_or_lost = 5; // 0 lost,  5 processing
 				$payout_reason = NetEntHelper::updateReason(2);
 				$provider_trans_id = $request["transactionRef"];
 				$bet_id = $request["gameRoundRef"];
 				//Create GameTransaction, GameExtension
-				
+				if ($request["reason"] == "GAME_PLAY_FINAL") {
+					$income = $request["amountToWithdraw"];
+					$win_or_lost = 0;
+					$payout_reason = NetEntHelper::updateReason(1);
+					$win_type = 2;
+				}
 				$game_trans_id  = ProviderHelper::createGameTransaction($client_details->token_id, $game_details[0]->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
 				
-				$game_trans_ext_id = NetEntHelper::createGameTransExt($game_trans_id,$provider_trans_id, $bet_id, $bet_amount, 1, $request->all(), $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+				$game_trans_ext_id = NetEntHelper::createGameTransExt($game_trans_id,$provider_trans_id, $bet_id, $bet_amount, $win_type, $request->all(), $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
 				
 				//requesttosend, and responsetoclient client side
 				$type = "debit";
@@ -245,7 +250,7 @@ class NetEntController extends Controller
 		$game_details = NetEntHelper::findGameDetails('game_code', $this->provider_db_id, $request["game"]); //get game details here
 		$playersid = explode('_', $player);
 		$client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
-		$player_details = NetEntHelper::playerDetailsCall($client_details->player_token);
+		$player_details = NetEntHelper::playerDetailsCall($client_details);
 
 		$amount = $request['amountToDeposit'];
 		if($amount < 0 ){
