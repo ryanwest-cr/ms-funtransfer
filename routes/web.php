@@ -543,6 +543,8 @@ $app->post('bo/game-type-update','BackOffice\BackOfficeController@setGameType');
 $app->post('bo/operator-update','BackOffice\BackOfficeController@setOperator');
 $app->post('bo/clients-update','BackOffice\BackOfficeController@setClients');
 $app->post('bo/players-update','BackOffice\BackOfficeController@setPlayers');
+$app->post('bo/subscribe-update','BackOffice\BackOfficeController@subscribeUpdate');
+
 
 //client BO
 $app->post('bo/client-sub-provider-update','BackOffice\ClientBOController@subProviderSettings');

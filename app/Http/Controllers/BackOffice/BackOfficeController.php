@@ -134,4 +134,77 @@ class BackOfficeController extends Controller
     public function setPlayers(Request $request){
         $update = DB::table('players')->where('player_id','=',$request->player_id)->update(['player_status' => $request->status]);
     }
+
+    public function subscribeUpdate(Request $request){
+        DB::table('seamless_request_logs')->insert([
+            "method_name" => "subscribe",
+            "provider_id" => "1",
+            "request_data" => json_encode($request->all()),
+            "response_data" => "a"
+        ]);
+        $cgs = DB::table("client_game_subscribe")->where("client_id","=",$request->client_id)->get();
+        if(count($cgs) > 0){
+            $esp = DB::table("excluded_sub_provider")->where("cgs_id","=",$cgs[0]->cgs_id)->get();
+
+            if($request->has('spid')){
+
+                foreach($request->spid as $spid){
+                    $chck_esp = DB::table("excluded_sub_provider")->where("cgs_id","=",$cgs[0]->cgs_id)->where("sub_provider_id","=",$spid)->get();
+                    if(!count($chck_esp) > 0){
+                        $insert = DB::table("excluded_sub_provider")->insert([ 'cgs_id' => $cgs[0]->cgs_id, 'sub_provider_id' => $spid ]);
+                    }
+                }
+            }
+            if($request->has('del_spid')){
+                foreach($request->del_spid as $del_spid){
+                    $chck_esp = DB::table("excluded_sub_provider")->where("cgs_id","=",$cgs[0]->cgs_id)->where("sub_provider_id","=",$del_spid)->get();
+                    if(count($chck_esp) > 0){
+                        $del = DB::table("excluded_sub_provider")->where("cgs_id","=",$cgs[0]->cgs_id)->where("sub_provider_id","=",$del_spid)->delete();
+                    }
+                }
+            }
+            if($request->has('gid')){
+                foreach($request->gid as $gid){
+                    $check_ge = DB::table("game_exclude")->where("cgs_id","=",$cgs[0]->cgs_id)->where("game_id","=",$gid)->get();
+                    if(!count($check_ge) > 0){
+                        $insert = DB::table("game_exclude")->insert([ 'cgs_id' => $cgs[0]->cgs_id, 'game_id' => $gid ]);
+                    }
+                }
+            }
+            if($request->has('del_gid')){
+                foreach($request->del_gid as $del_gid){
+                    $check_ge = DB::table("game_exclude")->where("cgs_id","=",$cgs[0]->cgs_id)->where("game_id","=",$del_gid)->get();
+                    if(count($check_ge) > 0){
+
+                       $del = DB::table("game_exclude")->where("cgs_id","=",$cgs[0]->cgs_id)->where("game_id","=",$del_gid)->delete();
+                    }
+                }
+            }
+
+
+       }else{
+
+            $add_cgs = DB::table("client_game_subscribe")->insert(['client_id' => $request->client_id, 'provider_selection_type' => 'all', 'status_id' => '1']);
+
+            $cgs = DB::table("client_game_subscribe")->where("client_id","=",$request->client_id)->get();
+            $esp = DB::table("excluded_sub_provider")->where("cgs_id","=",$cgs[0]->cgs_id)->get();
+
+            if($request->has('spid')){
+                foreach($request->spid as $spid){
+                    $chck_esp = DB::table("excluded_sub_provider")->where("cgs_id","=",$cgs[0]->cgs_id)->where("sub_provider_id","=",$spid)->get();
+                    if(!count($chck_esp) > 0){
+                        $insert = DB::table("excluded_sub_provider")->insert([ 'cgs_id' => $cgs[0]->cgs_id, 'sub_provider_id' => $spid ]);
+                    }
+                }
+            }
+            if($request->has('del_spid')){
+                foreach($request->del_spid as $del_spid){
+                    $chck_esp = DB::table("excluded_sub_provider")->where("cgs_id","=",$cgs[0]->cgs_id)->where("sub_provider_id","=",$del_spid)->get();
+                    if(count($chck_esp) > 0){
+                        $del = DB::table("excluded_sub_provider")->where("cgs_id","=",$cgs[0]->cgs_id)->where("sub_provider_id","=",$del_spid)->delete();
+                    }
+                }
+            }
+       }
+    }
 }
