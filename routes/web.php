@@ -352,11 +352,11 @@ $app->post('api/spade_curacao/transfer','SpadeCuracaoController@makeTransfer');
 $app->post('api/spade_curacao/getgame','SpadeCuracaoController@getGameList');
 
 // NETENT Curacao Gaming
-$app->get('api/netent/walletserver/players/{player}/account/currency','NetEntController@currency');
-$app->get('api/netent/walletserver/players/{player}/account/balance','NetEntController@balance');
-$app->post('api/netent/walletserver/players/{player}/account/withdraw','NetEntController@withdraw');//debit
-$app->post('api/netent/walletserver/players/{player}/account/deposit','NetEntController@deposit');
-$app->delete('api/netent/walletserver/players/{player}/account/withdraw','NetEntController@withdraw');//debit
+$app->get('api/netent/currency/walletserver/players/{player}/account/currency','NetEntController@currency');
+$app->get('api/netent/balance/walletserver/players/{player}/account/balance','NetEntController@balance');
+$app->post('api/netent/withdraw/walletserver/players/{player}/account/withdraw','NetEntController@withdraw');//debit
+$app->post('api/netent/deposit/walletserver/players/{player}/account/deposit','NetEntController@deposit');
+
 // $app->post('api/spade_curacao/authorize','SpadeCuracaoController@authorize');
 // $app->post('api/spade_curacao/getBalance','SpadeCuracaoController@getBalance');
 // $app->post('api/spade_curacao/transfer','SpadeCuracaoController@makeTransfer');
@@ -535,6 +535,7 @@ $app->post('api/transfer/wallet/renewsession','TransferWalletController@renewSes
 $app->post('api/transfer/wallet/createsession','TransferWalletController@createWalletSession');
 
 
+//manage BO
 $app->post('bo/provider-update','BackOffice\BackOfficeController@setProvider');
 $app->post('bo/sub-provider-update','BackOffice\BackOfficeController@setSubProvider');
 $app->post('bo/games-update','BackOffice\BackOfficeController@setGames');
@@ -543,4 +544,8 @@ $app->post('bo/operator-update','BackOffice\BackOfficeController@setOperator');
 $app->post('bo/clients-update','BackOffice\BackOfficeController@setClients');
 $app->post('bo/players-update','BackOffice\BackOfficeController@setPlayers');
 
+//client BO
+$app->post('bo/client-sub-provider-update','BackOffice\ClientBOController@subProviderSettings');
+$app->post('bo/client-game-setting-update','BackOffice\ClientBOController@gameSettings');
+$app->post('bo/client-setting-update','BackOffice\ClientBOController@clientSettings');
 
