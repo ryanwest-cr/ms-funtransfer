@@ -30,11 +30,20 @@ use DB;
  */
 class DigitainController extends Controller
 {
-    private $digitain_key = "BetRNK3184223";
-    private $operator_id = 'B9EC7C0A';
-    private $provider_db_id = 14;
-    private $provider_and_sub_name = 'Digitain'; // nothing todo with the provider
+    // private $digitain_key = "BetRNK3184223";
+    // private $operator_id = 'B9EC7C0A';
+    // private $provider_db_id = 14;
+    // private $provider_and_sub_name = 'Digitain'; // nothing todo with the provider
 
+
+    public $digitain_key, $operator_id, $provider_db_id, $provider_and_sub_name = '';
+
+    public function __construct(){
+    	$this->digitain_key = config('providerlinks.digitain.digitain_key');
+    	$this->operator_id = config('providerlinks.digitain.operator_id');
+    	$this->provider_db_id = config('providerlinks.digitain.provider_db_id');
+    	$this->provider_and_sub_name = config('providerlinks.digitain.provider_and_sub_name');
+    }
 
     /**
 	 *	Verify Signature
@@ -100,6 +109,7 @@ class DigitainController extends Controller
 	 */
     public function authenticate(Request $request)
     {	
+
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		DigitainHelper::saveLog('RSG authenticate - EH', $this->provider_db_id, file_get_contents("php://input"), 'ENDPOINT HIT');
 		if($json_data == null){
@@ -132,7 +142,7 @@ class DigitainController extends Controller
 			DigitainHelper::saveLog('RSG authenticate', $this->provider_db_id, file_get_contents("php://input"), $response);
 			return $response;
 		}
-		$client_response = ProviderHelper::playerDetailsCall($json_data["token"]);
+		$client_response = DigitainHelper::playerDetailsCall($client_details);
 		if($client_response == 'false'){
 			$response = [
 				"timestamp" => date('YmdHisms'),
@@ -209,7 +219,7 @@ class DigitainController extends Controller
 			DigitainHelper::saveLog('RSG getBalance', $this->provider_db_id, file_get_contents("php://input"), $response);
 			return $response;
 		}
-		$client_response = ProviderHelper::playerDetailsCall($json_data["token"]);
+		$client_response = DigitainHelper::playerDetailsCall($client_details);
 		if($client_response == 'false'){
 			$response = [
 				"timestamp" => date('YmdHisms'),
@@ -222,7 +232,7 @@ class DigitainController extends Controller
 			$response = [
 				"timestamp" => date('YmdHisms'),
 				"signature" => $this->createSignature(date('YmdHisms')),
-				"errorCode" => 4, // client cannot be reached! http errors etc!
+				"errorCode" => 4, 
 			];
 			return $response;
 		}
@@ -269,23 +279,39 @@ class DigitainController extends Controller
 			DigitainHelper::saveLog('RSG refreshtoken', $this->provider_db_id, file_get_contents("php://input"), $response);
 			return $response;
 		}
+
 		$token_check = DigitainHelper::tokenCheck($json_data["token"]);
 		if($token_check != true){ // SessionExpired!
 			$response = ["timestamp" => date('YmdHisms'),"signature" => $this->createSignature(date('YmdHisms')),"errorCode" => 3];
 			DigitainHelper::saveLog('RSG refreshtoken', $this->provider_db_id, file_get_contents("php://input"), $response);
 			return $response;
 		}
+
+
+		if($json_data["changeToken"] == false){
+			if($json_data["timestamp"] != null){
+				if($json_data["tokenLifeTime"] == 0){
+					DigitainHelper::increaseTokenLifeTime($json_data["tokenLifeTime"], $json_data["token"], 2);
+				}else{
+					DigitainHelper::increaseTokenLifeTime($json_data["tokenLifeTime"], $json_data["token"]);
+				}
+			}
+		}
+
 		if($json_data['changeToken']): // IF TRUE REQUEST ADD NEW TOKEN
-			$client_response = ProviderHelper::playerDetailsCall($json_data["token"], true);
+			$client_response = DigitainHelper::playerDetailsCall($client_details, true);
 			if($client_response):
-				$game_details = Helper::getInfoPlayerGameRound($json_data["token"]);
-				Helper::savePLayerGameRound($game_details->game_code, $client_response->playerdetailsresponse->refreshtoken, $this->provider_and_sub_name);
 
 				DB::table('player_session_tokens')->insert(
-	                        array('player_id' => $client_details->player_id, 
-	                        	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
-	                        	  'status_id' => '1')
-	            );
+                array('player_id' => $client_details->player_id, 
+                	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
+                	  'status_id' => '1')
+                );
+
+				$game_details = DigitainHelper::getInfoPlayerGameRound($json_data["token"]);
+				// dd($game_details);
+				DigitainHelper::savePLayerGameRound($game_details->game_code, $client_response->playerdetailsresponse->refreshtoken, $this->provider_and_sub_name);
+
 				$response = [
 					"timestamp" => date('YmdHisms'),
 					"signature" => $this->createSignature(date('YmdHisms')),
@@ -424,7 +450,7 @@ class DigitainController extends Controller
 							$error_encounter= 1; 
 							continue;
 						}
-						$client_player = ProviderHelper::playerDetailsCall($key["token"]);
+						$client_player = DigitainHelper::playerDetailsCall($client_details);
 						if($client_player == 'false'){ // client cannot be reached! http errors etc!
 							$items_array[] = [
 								 "info" => isset($key['info']) ? $key['info'] : '', // Info from RSG, MW Should Return it back!
@@ -462,10 +488,26 @@ class DigitainController extends Controller
 					// $check_win_exist = $this->findGameTransaction($key['txId']);
 					$check_bet_exist = DigitainHelper::findGameExt($key['txId'], 1,'transaction_id');
 					if($check_bet_exist != 'false'){ // Bet Exist!
+						$items_array[] = [
+							 "info" => $key['info'],
+							 "errorCode" => 8, // this transaction is not found
+							 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+					    ]; 
 						$global_error = 8;
 						$error_encounter = 1;
 						continue;
 					} 
+					$is_round_has_refunded = $this->checkTransactionExt('round_id', $key['roundId'], 3);
+					if($is_round_has_refunded != null){
+						$items_array[] = [
+							 "info" => $key['info'],
+							 "errorCode" => 14, // this transaction is not found
+							 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+					    ]; 
+					    $global_error = $global_error == 1 ? 14 : $global_error;
+						$error_encounter = 1;
+						continue;
+					}
 					if($this->array_has_dupes($duplicate_txid_request)){
 						$global_error = 8; // Duplicate TxId in the call
 						$error_encounter = 1;
@@ -532,7 +574,7 @@ class DigitainController extends Controller
 	        	    ];  
 	        	    continue;
 				}
-				$client_player = ProviderHelper::playerDetailsCall($key["token"]);
+				$client_player = DigitainHelper::playerDetailsCall($client_details);
 				if($client_player == 'false'){ 
 					$items_array[] = [
 						 "info" => $key['info'], 
@@ -584,6 +626,16 @@ class DigitainController extends Controller
         	    ];  
         	    continue;
 			} 
+
+			$is_round_has_refunded = $this->checkTransactionExt('round_id', $key['roundId'], 3);
+			if($is_round_has_refunded != null){
+				$items_array[] = [
+					 "info" => $key['info'],
+					 "errorCode" => 14, // this transaction is not found
+					 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+			    ]; 
+				continue;
+			}
 
 			$operation_type = isset($key['operationType']) ? $key['operationType'] : 1;
 	 		$payout_reason = 'Bet : '.$this->getOperationType($operation_type);
@@ -643,8 +695,9 @@ class DigitainController extends Controller
 			    	}
 			    	if($refund_arrived == true){
 			    		$refund_ext_id = $check_refund_exist_transaction->game_trans_ext_id;
-			    		$bet_info_for_this_refund = ProviderHelper::findGameTransaction($game_trans, 'game_transaction');
-			    		$updateTheBet = $this->updateBetToWin($bet_info_for_this_refund->round_id, 0, 0, 4, $bet_info_for_this_refund->entry_id);
+			    		$bet_info_for_this_refund = DigitainHelper::findGameTransaction($game_trans, 'game_transaction');
+			    		// $updateTheBet = $this->updateBetToWin($bet_info_for_this_refund->round_id, 0, 0, 4, $bet_info_for_this_refund->entry_id);
+			    		$updateTheBet = DigitainHelper::updateBetToWin($bet_info_for_this_refund->game_trans_id, 0, 0, 4, $bet_info_for_this_refund->entry_id);
 			    		$client_response_refund = ClientRequestHelper::fundTransfer($client_details,abs($key['betAmount']),$game_details->game_code,$game_details->game_name,$refund_ext_id,$game_trans,'credit', true);
 			    		$general_details['client']['afterbalance'] = $this->formatBalance(abs($client_response_refund->fundtransferresponse->balance));
 			    		$general_details['aggregator']['externalTxId'] = $refund_ext_id;
@@ -880,7 +933,7 @@ class DigitainController extends Controller
 							continue;
 						}
 					}
-					$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+					$client_player = DigitainHelper::playerDetailsCall($client_details);
 					if($client_player == 'false'){ // client cannot be reached! http errors etc!
 						$response = array(
 							 "timestamp" => date('YmdHisms'),
@@ -1005,7 +1058,7 @@ class DigitainController extends Controller
 						continue;
 					}
 				}
-				$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+				$client_player = DigitainHelper::playerDetailsCall($client_details);
 				if($client_player == 'false'){ // client cannot be reached! http errors etc!
 					$response = array(
 						 "timestamp" => date('YmdHisms'),
@@ -1016,6 +1069,7 @@ class DigitainController extends Controller
 					return $response;
 				}
 		 		$check_win_exist = $this->gameTransactionEXTLog('provider_trans_id',$key['txId'], 2); 
+				// dd($check_win_exist);
 	 			if($check_win_exist != false){
 	 				$items_array[] = [
 						 "info" => $key['info'], 
@@ -1024,7 +1078,27 @@ class DigitainController extends Controller
 	        	    ];  
 	        	    continue;
 	 			}
- 				$game_details = DigitainHelper::findGameDetails('game_code', $this->provider_db_id, $key["gameId"]);
+
+	 			if(isset($key['betTxId']) && $key['betTxId'] != null){
+	 				$db_bet_full_request = json_decode($datatrans->provider_request);
+		 			$bet_previous_count = count($db_bet_full_request->items);
+		 			if($bet_previous_count < 1){
+		 				foreach ($db_bet_full_request->items as $key) {
+		 					if($key->txId == $key['betTxId']){
+		 						$gameId = $key->gameId;
+		 					}
+		 				}
+		 			}else{
+		 				$gameId = $db_bet_full_request->items[0]->gameId;
+		 			}
+	 			}else{
+	 				$gameId = $key["gameId"];
+	 			}
+	 			// if(isset($key['betTxId']) && $key['betTxId'] != null){
+	 			// 	$gameId = $this->findObjDataItem($datatrans->provider_request, $key['betTxId'], 'gameId');
+	 			// }
+
+ 				$game_details = DigitainHelper::findGameDetails('game_code', $this->provider_db_id, $gameId);
 				if($game_details == null){ // Game not found
 					$items_array[] = [
 						 "info" => $key['info'],
@@ -1033,6 +1107,7 @@ class DigitainController extends Controller
 	        	    ]; 
 	        	    continue;
 				}
+
 				if($key['currencyId'] != $client_details->default_currency){
 					$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
@@ -1041,7 +1116,7 @@ class DigitainController extends Controller
 	        	    ];   
 	        	    continue;
 				}
-				$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+				$client_player = DigitainHelper::playerDetailsCall($client_details);
 				if($client_player == 'false'){ // client cannot be reached! http errors etc!
 					$items_array[] = [
 						 "info" => $key['info'], // Info from RSG, MW Should Return it back!
@@ -1093,11 +1168,12 @@ class DigitainController extends Controller
 		 	  				$entry_id = 2; //win
 		 	  				$income = $datatrans->bet_amount - $key['winAmount'];
 		 	  			}
-	 	  				$updateTheBet = $this->updateBetToWin($datatrans->round_id, $key['winAmount'], $income, $win, $entry_id);
+	 	  				$updateTheBet = DigitainHelper::updateBetToWin($datatrans->game_trans_id, $key['winAmount'], $income, $win, $entry_id);
 		 	  		}else{
-		 	  			$updateTheBet = $this->updateBetToWin($datatrans->round_id, $datatrans->pay_amount, $datatrans->income, 0, $datatrans->entry_id);
+		 	  			$updateTheBet = DigitainHelper::updateBetToWin($datatrans->game_trans_id, $datatrans->pay_amount, $datatrans->income, 0, $datatrans->entry_id);
 		 	  		}
 		 	  		
+
 		 	  		ProviderHelper::updatecreateGameTransExt($game_transextension,  $json_data, $items_array, $client_response->requestoclient, $client_response, 'SUCCESS', $general_details);
 
 		 	  		if(isset($key['returnBetsAmount']) && $key['returnBetsAmount'] == true){
@@ -1271,7 +1347,7 @@ class DigitainController extends Controller
 							$error_encounter= 1; 
 							continue;
 						}
-						$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+						$client_player = DigitainHelper::playerDetailsCall($client_details);
 						if($client_player == 'false'){ // client cannot be reached! http errors etc!
 							$items_array[] = [
 								 "betInfo" => isset($key['betInfo']) ? $key['betInfo'] : '', 
@@ -1426,7 +1502,7 @@ class DigitainController extends Controller
 	        	    ]; 
 	        	    continue;
 	 			}
-	 			$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+	 			$client_player = DigitainHelper::playerDetailsCall($client_details);
 				if(abs($client_player->playerdetailsresponse->balance) < $key['betAmount']){
 					$items_array[] = [
 						 "betInfo" => $key['betInfo'], // Betinfo
@@ -1531,7 +1607,7 @@ class DigitainController extends Controller
 			 	    }else{
 			 	    	$provider_trans_id = null;
 			 	    }
-			 	    if(isset($key['betTxId'])){
+			 	    if(isset($key['betTxId'])){  // Bet TxtID Removed in RSG
         	    		$bet_transaction_detail = $this->findGameTransaction($key['betTxId']);
         	    		$bet_transaction = $bet_transaction_detail->bet_amount;
         	    	}else{
@@ -1550,7 +1626,8 @@ class DigitainController extends Controller
 		 	  				$entry_id = 2; //win
 		 	  				$income = $bet_transaction_detail->bet_amount - $key['winAmount'];
 		 	  			}
-		 	  				$updateTheBet = $this->updateBetToWin($key['roundId'], $key['winAmount'], $income, $win, $entry_id);
+		 	  				// $updateTheBet = $this->updateBetToWin($key['roundId'], $key['winAmount'], $income, $win, $entry_id);
+		 	  				$updateTheBet = DigitainHelper::updateBetToWin($game_trans, $key['winAmount'], $income, $win, $entry_id);
 		 	  		}
 					# CREDIT
 					$items_array[] = [
@@ -1649,30 +1726,72 @@ class DigitainController extends Controller
 		$error_encounter = 0;
 		$global_error = 1;
 
+  		// Outside the loop
+		$transaction_to_refund = array();
+ 		$is_bet = array();
+ 		$is_win = array();
+ 		$refund_duplicate_txid_request = array();
+
 		foreach ($json_data['items'] as $key) { // #1 FOREACH CHECK
-			if(isset($key['originalTxId']) && $key['originalTxId'] != ''){// if both playerid and roundid is missing
-			    $datatrans = $this->findTransactionRefund($key['originalTxId'], 'transaction_id');
-				$transaction_identifier = $key['originalTxId'];
-				$transaction_identifier_type = 'provider_trans_id';
-				if($datatrans != false){
-			        $player_id = DigitainHelper::getClientDetails('token_id', $datatrans->token_id)->player_id; // IF EXIT
-				}else{
-					$player_id = $key['playerId']; // IF NOT DID NOT EXIST
-				}
-	 		}else{ // use originalTxid instead
-	 		 	$datatrans = $this->findTransactionRefund($key['roundId'], 'round_id');
-				$transaction_identifier = $key['roundId'];
-				$transaction_identifier_type = 'round_id';
-				$player_id = $key['playerId'];
-	 		}
-	 		$transaction_to_refund = array();
-	 		$is_bet = array();
-	 		$is_win = array();
 			if($json_data['allOrNone'] == 'true'){ // #2 IF ANY ITEM FAILED DONT PROCESS IT
- 		    	if($transaction_identifier_type == 'provider_trans_id'){  // originalTxt, no need to filter playerID
-					if($datatrans != false){
-						$entry_type = $datatrans->game_transaction_type == 1 ? 'debit' : 'credit';
-			    		$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 1,'round_id');
+
+					// Duplicate Checker
+					array_push($refund_duplicate_txid_request, $key['txId']);
+					if($this->array_has_dupes($refund_duplicate_txid_request)){
+						$items_array[] = [
+							 "info" => $key['info'],
+							 "errorCode" =>8, 
+							 "metadata" => isset($key['metadata']) ? $key['metadata'] : ''
+					    ];
+						$global_error = $global_error == 1 ? 8 : $global_error;
+						$error_encounter = 1; 
+						continue;
+			   		}
+
+					if($key['refundRound'] == true){  // Use round id always
+						$datatrans = $this->findTransactionRefund($key['roundId'], 'round_id');
+						if($datatrans == false){
+							$items_array[] = [
+								 "info" => $key['info'],
+								 "errorCode" => 7, // this transaction is not found
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+						    ]; 
+							$global_error = $global_error == 1 ? 7 : $global_error;
+							$error_encounter = 1;
+							continue;
+						}
+						$transaction_identifier = $key['roundId'];
+						$transaction_identifier_type = 'round_id';
+						$player_id = $key['playerId'];
+					}else{ // use both round id and orignaltxtid
+						$datatrans = $this->findTransactionRefund($key['originalTxId'], 'transaction_id');
+						$transaction_identifier = $key['originalTxId'];
+						$transaction_identifier_type = 'provider_trans_id';
+						if($datatrans != false){
+					        $player_id = DigitainHelper::getClientDetails('token_id', $datatrans->token_id)->player_id; // IF EXIT
+					        if(isset($key['roundId']) && $key['roundId'] != $datatrans->round_id){
+					        	$items_array[] = [
+									 "info" => $key['info'],
+									 "errorCode" => 7, // this transaction is not found
+									 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+							    ]; 
+						    	$global_error = $global_error == 1 ? 7 : $global_error;
+								$error_encounter = 1;
+								continue;
+					        }
+						}else{
+							$player_id = $key['playerId']; // IF NOT DID NOT EXIST
+						}
+					}
+
+				// Inside the loop
+		 		// $transaction_to_refund = array();
+		 		// $is_bet = array();
+		 		// $is_win = array();
+				if($datatrans != false){
+					$entry_type = $datatrans->game_transaction_type == 1 ? 'debit' : 'credit';
+		    		if($key['refundRound'] == true){
+		    			$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 1,'round_id');
 			    		if($check_bet_exist_transaction != 'false'){
 			    			$bet_item = [
 								"game_trans_id" => $check_bet_exist_transaction->game_trans_id,
@@ -1694,13 +1813,11 @@ class DigitainController extends Controller
 							$is_win[] = $win_item;
 							$transaction_to_refund[] = $win_item;
 			    		}
-					}
-				}else{  // RoundID, if round ID filter Player ID, and round ID
-					if($datatrans != false){
-						$entry_type = $datatrans->game_transaction_type == 1 ? 'debit' : 'credit';
-			    		$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 1,'round_id');
-			    		if($check_bet_exist_transaction != 'false'){
-			    			$bet_item = [
+		    		}else{
+		    			$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, $datatrans->game_transaction_type,'round_id');
+		    			// its a bet round
+		    			if($datatrans->game_transaction_type == 1){
+		    				$bet_item = [
 								"game_trans_id" => $check_bet_exist_transaction->game_trans_id,
 								"game_trans_ext_id"  => $check_bet_exist_transaction->game_trans_ext_id,
 								"amount" => $check_bet_exist_transaction->amount,
@@ -1708,10 +1825,21 @@ class DigitainController extends Controller
 							];
 							$is_bet[] = $bet_item;
 							$transaction_to_refund[] = $bet_item;
-			    		}
-			    	    $check_win_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 2,'round_id');
-			    		if($check_win_exist_transaction != 'false'){
-			    			$win_item = [
+
+							$is_bet_has_won = $this->checkTransactionExt('round_id', $datatrans->round_id, 2);
+							if($is_bet_has_won != null){
+								$items_array[] = [
+									 "info" => $key['info'],
+									 "errorCode" => 20, // this transaction is not found
+									 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+							    ]; 
+							    $global_error = $global_error == 1 ? 20 : $global_error;
+								$error_encounter = 1;
+								continue;
+							}
+		    			}else{
+		    			// its a win round
+		    				$win_item = [
 								"game_trans_id" => $check_win_exist_transaction->game_trans_id,
 								"game_trans_ext_id"  => $check_win_exist_transaction->game_trans_ext_id,
 								"amount" => $check_win_exist_transaction->amount,
@@ -1719,9 +1847,10 @@ class DigitainController extends Controller
 							];
 							$is_win[] = $win_item;
 							$transaction_to_refund[] = $win_item;
-			    		}
-					}
+		    			}
+		    		}
 				}
+
 				# FILTER IF THE ITEMS SHOULD BE PROCESSED
 				if($key['holdEarlyRefund'] == false){
 					if($datatrans == false){
@@ -1782,6 +1911,7 @@ class DigitainController extends Controller
 						}
 					}
 				}
+
 				# IF BET IS ALREADY WON WHEN REFUNDROUND IS FALSE
 				if(count($transaction_to_refund) > 0){
 					if($key['refundRound'] == false){
@@ -1820,7 +1950,7 @@ class DigitainController extends Controller
 					$error_encounter = 1;
 					continue;
 	 		    }
-				$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+				$client_player = DigitainHelper::playerDetailsCall($client_details);
 				if($client_player == 'false'){ // client cannot be reached! http errors etc!
 					$items_array[] = [
 						 "info" => $key['info'],
@@ -1836,6 +1966,9 @@ class DigitainController extends Controller
 			} // #2 ALL OR NONE
 		} // #1 END FOREACH CHECK
 
+
+
+
 		if($error_encounter != 0){ // ELSE PROCEED TO CLIENT TRANSFERING
 			$response = array(
 					 "timestampa" => date('YmdHisms'),
@@ -1845,89 +1978,137 @@ class DigitainController extends Controller
    			);	
 			return $response;
 		}
-		// transaction_identifier
-		// dd($items_array);
-		// dd($is_bet);
-		// dd($entry_type);
-		// dd($transaction_to_refund);
-		// return 1;	
+			
 
-		// ALL GOOD
+		// return json_encode($transaction_to_refund);
+		// return $error_encounter;
+		// return 1;
+
+		// ALL GOOD PROCESS EVERYTHING
 		$items_array = array();
 		$transaction_to_refund = array();
+
+		$transaction_to_refund = array();
+ 		$is_bet = array();
+ 		$is_win = array();
+
 		foreach ($json_data['items'] as $key) { 
 			$general_details = ["aggregator" => [], "provider" => [], "client" => []];
-			if(isset($key['originalTxId']) && $key['originalTxId'] != ''){// if both playerid and roundid is missing
-			    $datatrans = $this->findTransactionRefund($key['originalTxId'], 'transaction_id');
+
+
+			if($key['refundRound'] == true){  // Use round id always
+				$datatrans = $this->findTransactionRefund($key['roundId'], 'round_id');
+				if($datatrans == false){
+					$items_array[] = [
+						 "info" => $key['info'],
+						 "errorCode" => 7, // this transaction is not found
+						 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+				    ]; 
+					continue;
+				}
+				$transaction_identifier = $key['roundId'];
+				$transaction_identifier_type = 'round_id';
+				$db_provider_request_data = $this->findObjDataItem($datatrans->provider_request, $key['roundId'], 'playerId');
+				if(isset($key['playerId']) && $key['playerId'] != $db_provider_request_data){
+		        	$items_array[] = [
+						 "info" => $key['info'],
+						 "errorCode" => 7, // this transaction is not found
+						 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+				    ]; 
+					continue;
+		        }
+				$player_id = $key['playerId'];
+			}else{ // use both round id and orignaltxtid
+				$datatrans = $this->findTransactionRefund($key['originalTxId'], 'transaction_id');
 				$transaction_identifier = $key['originalTxId'];
 				$transaction_identifier_type = 'provider_trans_id';
 				if($datatrans != false){
 			        $player_id = DigitainHelper::getClientDetails('token_id', $datatrans->token_id)->player_id; // IF EXIT
+			        if(isset($key['roundId']) && $key['roundId'] != $datatrans->round_id){
+			        	$items_array[] = [
+							 "info" => $key['info'],
+							 "errorCode" => 7, // this transaction is not found
+							 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+					    ]; 
+						continue;
+			        }
 				}else{
 					$player_id = $key['playerId']; // IF NOT DID NOT EXIST
 				}
-	 		}else{ // use originalTxid instead
-	 		 	$datatrans = $this->findTransactionRefund($key['roundId'], 'round_id');
-				$transaction_identifier = $key['roundId'];
-				$transaction_identifier_type = 'round_id';
-				$player_id = $key['playerId'];
-	 		}
-	 		$transaction_to_refund = array();
-	 		$is_bet = array();
-	 		$is_win = array();
-		    	if($transaction_identifier_type == 'provider_trans_id'){  // originalTxt, no need to filter playerID
-				if($datatrans != false){
-					$entry_type = $datatrans->game_transaction_type == 1 ? 'debit' : 'credit';
-		    		$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 1,'round_id');
-		    		if($check_bet_exist_transaction != 'false'){
-		    			$bet_item = [
-							"game_trans_id" => $check_bet_exist_transaction->game_trans_id,
-							"game_trans_ext_id"  => $check_bet_exist_transaction->game_trans_ext_id,
-							"amount" => $check_bet_exist_transaction->amount,
-							"game_transaction_type" => $check_bet_exist_transaction->game_transaction_type,
-						];
-						$is_bet[] = $bet_item;
-						$transaction_to_refund[] = $bet_item;
-		    		}
-		    	    $check_win_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 2,'round_id');
-		    		if($check_win_exist_transaction != 'false'){
-		    			$win_item = [
-							"game_trans_id" => $check_win_exist_transaction->game_trans_id,
-							"game_trans_ext_id"  => $check_win_exist_transaction->game_trans_ext_id,
-							"amount" => $check_win_exist_transaction->amount,
-							"game_transaction_type" => $check_win_exist_transaction->game_transaction_type,
-						];
-						$is_win[] = $win_item;
-						$transaction_to_refund[] = $win_item;
-		    		}
-				}
-			}else{  // RoundID, if round ID filter Player ID, and round ID
-				if($datatrans != false){
-					$entry_type = $datatrans->game_transaction_type == 1 ? 'debit' : 'credit';
-		    		$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 1,'round_id');
-		    		if($check_bet_exist_transaction != 'false'){
-		    			$bet_item = [
-							"game_trans_id" => $check_bet_exist_transaction->game_trans_id,
-							"game_trans_ext_id"  => $check_bet_exist_transaction->game_trans_ext_id,
-							"amount" => $check_bet_exist_transaction->amount,
-							"game_transaction_type" => $check_bet_exist_transaction->game_transaction_type,
-						];
-						$is_bet[] = $bet_item;
-						$transaction_to_refund[] = $bet_item;
-		    		}
-		    	    $check_win_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 2,'round_id');
-		    		if($check_win_exist_transaction != 'false'){
-		    			$win_item = [
-							"game_trans_id" => $check_win_exist_transaction->game_trans_id,
-							"game_trans_ext_id"  => $check_win_exist_transaction->game_trans_ext_id,
-							"amount" => $check_win_exist_transaction->amount,
-							"game_transaction_type" => $check_win_exist_transaction->game_transaction_type,
-						];
-						$is_win[] = $win_item;
-						$transaction_to_refund[] = $win_item;
-		    		}
-				}
 			}
+
+
+			// dd($db_provider_request); // DEBUG
+			// dd($datatrans); // DEBUG
+	 		// return $transaction_identifier_type; // DEBUG
+	 		// return $datatrans->game_transaction_type; // DEBUG
+	 		// return json_encode($datatrans); // DEBUG
+	 		
+	 		// $transaction_to_refund = array();
+	 		// $is_bet = array();
+	 		// $is_win = array();
+	    	if($datatrans != false){
+				$entry_type = $datatrans->game_transaction_type == 1 ? 'debit' : 'credit';
+	    		if($key['refundRound'] == true){
+	    			$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 1,'round_id');
+		    		if($check_bet_exist_transaction != 'false'){
+		    			$bet_item = [
+							"game_trans_id" => $check_bet_exist_transaction->game_trans_id,
+							"game_trans_ext_id"  => $check_bet_exist_transaction->game_trans_ext_id,
+							"amount" => $check_bet_exist_transaction->amount,
+							"game_transaction_type" => $check_bet_exist_transaction->game_transaction_type,
+						];
+						$is_bet[] = $bet_item;
+						$transaction_to_refund[] = $bet_item;
+		    		}
+		    	    $check_win_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, 2,'round_id');
+		    		if($check_win_exist_transaction != 'false'){
+		    			$win_item = [
+							"game_trans_id" => $check_win_exist_transaction->game_trans_id,
+							"game_trans_ext_id"  => $check_win_exist_transaction->game_trans_ext_id,
+							"amount" => $check_win_exist_transaction->amount,
+							"game_transaction_type" => $check_win_exist_transaction->game_transaction_type,
+						];
+						$is_win[] = $win_item;
+						$transaction_to_refund[] = $win_item;
+		    		}
+	    		}else{
+	    			$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, $datatrans->game_transaction_type,'round_id');
+	    			// its a bet round
+	    			if($datatrans->game_transaction_type == 1){
+	    				$bet_item = [
+							"game_trans_id" => $check_bet_exist_transaction->game_trans_id,
+							"game_trans_ext_id"  => $check_bet_exist_transaction->game_trans_ext_id,
+							"amount" => $check_bet_exist_transaction->amount,
+							"game_transaction_type" => $check_bet_exist_transaction->game_transaction_type,
+						];
+						$is_bet[] = $bet_item;
+						$transaction_to_refund[] = $bet_item;
+
+						$is_bet_has_won = $this->checkTransactionExt('round_id', $datatrans->round_id, 2);
+						if($is_bet_has_won != null){
+							$items_array[] = [
+								 "info" => $key['info'],
+								 "errorCode" => 20,
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+						    ]; 
+							continue;
+						}
+
+	    			}else{
+	    			// its a win round
+	    				$win_item = [
+							"game_trans_id" => $check_bet_exist_transaction->game_trans_id,
+							"game_trans_ext_id"  => $check_bet_exist_transaction->game_trans_ext_id,
+							"amount" => $check_bet_exist_transaction->amount,
+							"game_transaction_type" => $check_bet_exist_transaction->game_transaction_type,
+						];
+						$is_win[] = $win_item;
+						$transaction_to_refund[] = $win_item;
+	    			}
+	    		}
+			}
+
 			# FILTER IF THE ITEMS SHOULD BE PROCESSED
 			if($key['holdEarlyRefund'] == false){
 				if($datatrans == false){
@@ -1978,6 +2159,11 @@ class DigitainController extends Controller
 					}
 				}
 			}
+
+			// return $entry_type; // DEBUG
+			// return json_encode($entry_type);
+			// return json_encode($transaction_to_refund);
+
 			# IF BET IS ALREADY WON WHEN REFUNDROUND IS FALSE
 			if(count($transaction_to_refund) > 0){
 				if($key['refundRound'] == false){
@@ -1993,6 +2179,7 @@ class DigitainController extends Controller
 					}
 				}
 			}
+
 			$client_details = DigitainHelper::getClientDetails('player_id', $player_id);
  		    if($client_details == null){
  		    	$items_array[] = [
@@ -2002,6 +2189,7 @@ class DigitainController extends Controller
 			    ];  
 				continue;
  		    }
+
  		    if($key['operationType'] != 3){
  		    	$items_array[] = [
 					 "info" => $key['info'],
@@ -2010,7 +2198,7 @@ class DigitainController extends Controller
 			    ];  
 				continue;
  		    }
-			$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+			$client_player = DigitainHelper::playerDetailsCall($client_details);
 			if($client_player == 'false'){ // client cannot be reached! http errors etc!
 				$items_array[] = [
 					 "info" => $key['info'],
@@ -2020,15 +2208,16 @@ class DigitainController extends Controller
 				continue;
 			}
 
+
 			if($datatrans != false){ // TRANSACTION IS FOUND
-					$game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
+					$game_details = DigitainHelper::getInfoPlayerGameRound($client_details->player_token);
 					$round_id = $transaction_identifier;
 					$bet_amount = $datatrans->bet_amount;
 					$entry_id = $datatrans->entry_id;
 					$win = 4; //3 draw, 4 refund, 1 lost win is refunded
 					$pay_amount = 0;
   				    $income = 0;
-			 		
+			 			
 					if($key['refundRound'] == false){ // 1 Transaction to refund
 						if($entry_type == 'credit'){ 
 							$is_win_amount = count($is_win) > 0 ? $is_win[0]['amount'] : 0;
@@ -2074,7 +2263,6 @@ class DigitainController extends Controller
 					// $pay_amount = $transactiontype == 'credit' ? $datatrans->pay_amount + $amount : $datatrans->pay_amount - $amount;
   					// $income = $bet_amount - $pay_amount;
   				    
-	  				
 	  				$game_transextension = ProviderHelper::createGameTransExtV2($datatrans->game_trans_id, $key['txId'], $round_id, abs($amount), 3);
 								 	
 					try {
@@ -2107,7 +2295,8 @@ class DigitainController extends Controller
 							$general_details['aggregator']['externalTxId'] = $game_transextension;
 							$general_details['aggregator']['transaction_status'] = 'SUCCESS';
 
-							$updateTheBet = $this->updateBetToWin($datatrans->round_id, $pay_amount, $income, $win, $entry_id);
+							// $updateTheBet = $this->updateBetToWin($datatrans->round_id, $pay_amount, $income, $win, $entry_id);
+							$updateTheBet = DigitainHelper::updateBetToWin($datatrans->game_trans_id, $pay_amount, $income, $win, $entry_id);
 							$items_array[] = [
 			        	    	 "externalTxId" => $game_transextension, // MW Game Transaction Id
 								 "balance" => $this->formatBalance($client_response->fundtransferresponse->balance),
@@ -2280,15 +2469,35 @@ class DigitainController extends Controller
 								if($checkLog != 'false'){
 									$db_operation_type = 1;
 									$debit_operation_type = 37;  // if this is credit operation type must be 37
-									if($debit_operation_type != $key['operationType']){
+									if($key['operationType'] != 37 || $key['operationType'] != 38){
 										$items_array[] = [
 											 "info" => $key['info'], 
-											 "errorCode" => 182, 
+											 "errorCode" => 19, 
+											 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+						        	    ]; 
+						        	    $global_error = $global_error == 1 ? 19 : $global_error;
+										$error_encounter= 1;
+										continue;
+									}
+									if($checkLog->amount < $key['amendAmount']){
+										$items_array[] = [
+											 "info" => $key['info'], 
+											 "errorCode" => 18, 
 											 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
 						        	    ]; 
 						        	    $global_error = $global_error == 1 ? 18 : $global_error;
 										$error_encounter= 1;
 										continue;
+									}
+									if($checkLog->round_id != $key['roundId']){
+											$items_array[] = [
+												 "info" => $key['info'], 
+												 "errorCode" => 7, 
+												 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+							        	    ]; 
+							        	    $global_error = $global_error == 1 ? 7 : $global_error;
+											$error_encounter= 1;
+											continue;
 									}
 								}else{
 									// Not found bet or win go away!
@@ -2307,10 +2516,20 @@ class DigitainController extends Controller
 									if($checkLog != 'false'){
 										$db_operation_type = 1;
 										$debit_operation_type = 38;  // if this is debit operation type must be 38
-										if($debit_operation_type != $key['operationType']){
+										if($key['operationType'] != 37 || $key['operationType'] != 38){
 											$items_array[] = [
 												 "info" => $key['info'], 
-												 "errorCode" => 181, 
+												 "errorCode" => 19, 
+												 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+							        	    ]; 
+							        	    $global_error = $global_error == 1 ? 19 : $global_error;
+											$error_encounter= 1;
+											continue;
+										}
+										if($checkLog->amount < $key['amendAmount']){
+											$items_array[] = [
+												 "info" => $key['info'], 
+												 "errorCode" => 18, 
 												 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
 							        	    ]; 
 							        	    $global_error = $global_error == 1 ? 18 : $global_error;
@@ -2404,7 +2623,6 @@ class DigitainController extends Controller
         	    ];
 				continue;
 			}
-
 			if($isset_allbets_amount == 0){ # Calculate all total bets
 				foreach ($json_data['items'] as $key) {
 					array_push($duplicate_txid_request, $key['txId']);
@@ -2422,20 +2640,40 @@ class DigitainController extends Controller
 			// 	$error_encounter = 1;
    //      	    continue;
 			// }
-			
+				
 			if(isset($key['winTxId'])){
 				if($key['winOperationType'] == 2){
 					$checkLog = DigitainHelper::findGameExt($key['winTxId'], 2, 'transaction_id'); // iswin?
 					if($checkLog != 'false'){
 						$db_operation_type = 1;
 						$debit_operation_type = 37;  // if this is credit operation type must be 37
-						if($debit_operation_type != $key['operationType']){
+						if($key['operationType'] != 37 && $key['operationType'] != 38){
+							$items_array[] = [
+								 "info" => $key['info'], 
+								 "errorCode" => 19, 
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+			        	    ]; 
+			        	    $global_error = $global_error == 1 ? 19 : $global_error;
+							$error_encounter= 1;
+							continue;
+						}
+						if($checkLog->amount < $key['amendAmount']){
 							$items_array[] = [
 								 "info" => $key['info'], 
 								 "errorCode" => 18, 
 								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
 			        	    ]; 
 			        	    $global_error = $global_error == 1 ? 18 : $global_error;
+							$error_encounter= 1;
+							continue;
+						}
+						if($checkLog->round_id != $key['roundId']){
+							$items_array[] = [
+								 "info" => $key['info'], 
+								 "errorCode" => 7, 
+								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+			        	    ]; 
+			        	    $global_error = $global_error == 1 ? 7 : $global_error;
 							$error_encounter= 1;
 							continue;
 						}
@@ -2451,12 +2689,25 @@ class DigitainController extends Controller
 						continue;
 					}
 				}
+
+
+		
 				if($key['winOperationType'] == 1){
 					$checkLog = DigitainHelper::findGameExt($key['winTxId'], 1, 'transaction_id'); // isbet?
 						if($checkLog != 'false'){
 							$db_operation_type = 1;
 							$debit_operation_type = 38;  // if this is debit operation type must be 38
-							if($debit_operation_type != $key['operationType']){
+							if($key['operationType'] != 37 && $key['operationType'] != 38){
+								$items_array[] = [
+									 "info" => $key['info'], 
+									 "errorCode" => 19, 
+									 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+				        	    ]; 
+				        	    $global_error = $global_error == 1 ? 19 : $global_error;
+								$error_encounter= 1;
+								continue;
+							}
+							if($checkLog->amount < $key['amendAmount']){
 								$items_array[] = [
 									 "info" => $key['info'], 
 									 "errorCode" => 18, 
@@ -2497,7 +2748,7 @@ class DigitainController extends Controller
         	    ]; 
 				continue;
 			}
-			$client_response = ProviderHelper::playerDetailsCall($client_details->player_token);
+			$client_response = DigitainHelper::playerDetailsCall($client_details);
 			if($client_response == 'false'){
 				$items_array[] = [
 					 "info" => $key['info'],
@@ -2506,8 +2757,9 @@ class DigitainController extends Controller
         	    ]; 
 				continue;
 			}
+
 			$general_details['client']['beforebalance'] = $this->formatBalance($client_response->playerdetailsresponse->balance);
-			$gametransaction_details = ProviderHelper::findGameTransaction($checkLog->game_trans_id,'game_transaction');
+			$gametransaction_details = DigitainHelper::findGameTransaction($checkLog->game_trans_id,'game_transaction');
 			// 37 Amend correction withdrawing money
 			// 38 Amend  correction depositing money.
 			if(isset($key['operationType'])){
@@ -2524,6 +2776,8 @@ class DigitainController extends Controller
 					continue;
 				}
 			}
+
+
 	 		$amount = $key['amendAmount'];
 
  		    $token_id = $client_details->token_id;
@@ -2595,9 +2849,11 @@ class DigitainController extends Controller
 				$general_details['aggregator']['transaction_status'] = 'SUCCESS';
 
 				if($key['winOperationType'] == 1){
-					$updateTheBet = $this->updateBetToWin($gametransaction_details->round_id, $pay_amount, $income, $win, $entry_id, 2, $the_transaction_bet);
+					$updateTheBet = DigitainHelper::updateBetToWin($gametransaction_details->game_trans_id, $pay_amount, $income, $win, $entry_id, 2, $the_transaction_bet);
+					// $updateTheBet = $this->updateBetToWin($gametransaction_details->round_id, $pay_amount, $income, $win, $entry_id, 2, $the_transaction_bet);
 				}else{
-					$updateTheBet = $this->updateBetToWin($gametransaction_details->round_id, $pay_amount, $income, $win, $entry_id);
+					$updateTheBet = DigitainHelper::updateBetToWin($gametransaction_details->game_trans_id, $pay_amount, $income, $win, $entry_id);
+					// $updateTheBet = $this->updateBetToWin($gametransaction_details->round_id, $pay_amount, $income, $win, $entry_id);
 				}
 
 				$items_array[] = [
@@ -2705,7 +2961,7 @@ class DigitainController extends Controller
     	    ]; 
 			return $response;
 		}
-		$client_response = ProviderHelper::playerDetailsCall($client_details->player_token);
+		$client_response = DigitainHelper::playerDetailsCall($client_details);
 		if($client_response == 'false'){
 			$response = [
 				 "info" => $json_data['info'], // Info from RSG, MW Should Return it back!
@@ -2716,7 +2972,7 @@ class DigitainController extends Controller
 		}
 		$general_details['client']['beforebalance'] = $this->formatBalance($client_response->playerdetailsresponse->balance);
 
-		$game_details = Helper::getInfoPlayerGameRound($client_details->player_token);
+		$game_details = DigitainHelper::getInfoPlayerGameRound($client_details->player_token);
 
 		$token_id = $client_details->token_id;
 		$bet_amount = 0;
@@ -2780,7 +3036,8 @@ class DigitainController extends Controller
 		 	ProviderHelper::updatecreateGameTransExt($game_transextension,  $json_data, $response, $client_response->requestoclient, $client_response, 'SUCCESS', $general_details);
     	    ProviderHelper::updatecreateGameTransExt($game_transextension2,  $json_data, $response, $client_response2->requestoclient, $client_response2, 'SUCCESS', $general_details);
 
-			$updateTheBet = $this->updateBetToWin($round_id, $promo_amount, '-'.$promo_amount, 1, 2);
+			// $updateTheBet = $this->updateBetToWin($round_id, $promo_amount, '-'.$promo_amount, 1, 2);
+			$updateTheBet = DigitainHelper::updateBetToWin($game_trans, $promo_amount, '-'.$promo_amount, 1, 2);
 
 		}
 
@@ -2852,6 +3109,16 @@ class DigitainController extends Controller
 		return $response;
 	}
 
+
+
+
+	public function checkTransactionExt($column, $identifier,$type){
+		$query = DB::select('select game_trans_ext_id from game_transaction_ext where `'.$column.'` = "'.$identifier.'" AND game_transaction_type = '.$type.'');
+		$data = count($query);
+		return $data > 0 ? $query[0] : null;
+	}
+
+
 	/**
 	 * Pull out data from the Game exstension logs!
 	 * 
@@ -2880,7 +3147,6 @@ class DigitainController extends Controller
 	 * 
 	 */
 	public  function gameTransactionEXTLog($trans_type,$trans_identifier,$type=false){
-
 		$game = DB::table('game_transaction_ext')
 				   ->where($trans_type, $trans_identifier)
 				   ->where('game_transaction_type',$type)
@@ -2982,46 +3248,82 @@ class DigitainController extends Controller
 	 */
     public  function findTransactionRefund($transaction_id, $type) {
 
-    		$transaction_db = DB::table('game_transactions as gt')
-					    	// ->select('gt.*', 'gte.transaction_detail')
-					    	->select('*')
-						    ->leftJoin("game_transaction_ext AS gte", "gte.game_trans_id", "=", "gt.game_trans_id");
-		  
-		    if ($type == 'transaction_id') {
-				$transaction_db->where([
-			 		["gte.provider_trans_id", "=", $transaction_id],
-			 	]);
-			}
-			if ($type == 'game_trans_ext_id') {
-				$transaction_db->where([
-			 		["gte.game_trans_ext_id", "=", $transaction_id],
-			 	]);
-			}
-			if ($type == 'round_id') {
-				$transaction_db->where([
-			 		["gte.round_id", "=", $transaction_id],
-			 	]);
-			}
-			if ($type == 'bet') { // TEST
-				$transaction_db->where([
-			 		["gt.round_id", "=", $transaction_id],
-			 		["gt.payout_reason",'like', '%BET%'],
-			 	]);
-			}
-			if ($type == 'refundbet') { // TEST
-				$transaction_db->where([
-			 		["gt.round_id", "=", $transaction_id],
-			 	]);
-			}
-			$result= $transaction_db
-	 			->latest('token_id')
-	 			->first();
 
-			if($result){
-				return $result;
-			}else{
-				return false;
+    	if ($type == 'transaction_id') {
+		 	$where = 'where gte.provider_trans_id = "'.$transaction_id.'"';
+		}
+		if ($type == 'game_trans_ext_id') {
+		 	$where = 'where gte.game_trans_ext_id = "'.$transaction_id.'"';
+		}
+		if ($type == 'round_id') {
+			$where = 'where gte.round_id = "'.$transaction_id.'"';
+		}
+
+	 	$filter = 'LIMIT 1';
+
+		$query = DB::select('select `gt`.`game_trans_id`, `gt`.`provider_trans_id`, `gt`.`token_id`, `gt`.`game_id`, `gt`.`round_id`, `gt`.`bet_amount`, `gt`.`win`, `gt`.`pay_amount`, `gt`.`income`, `gt`.`entry_id`, `gte`.`game_trans_ext_id`, `gte`.`amount`, `gte`.`game_transaction_type`, `gte`.`provider_request` from `game_transactions` as `gt` left join `game_transaction_ext` as `gte` on `gte`.`game_trans_id` = `gt`.`game_trans_id` '.$where.' '.$filter.'');
+		$client_details = count($query);
+		return $client_details > 0 ? $query[0] : false;
+
+
+		// $transaction_db = DB::table('game_transactions as gt')
+		// 		    	// ->select('gt.*', 'gte.transaction_detail')
+		// 		    	->select('gt.game_trans_id', 'gt.provider_trans_id', 'gt.token_id', 'gt.game_id', 'gt.round_id', 'gt.bet_amount', 'gt.win', 'gt.pay_amount', 'gt.income','gt.entry_id','gte.game_trans_ext_id','gte.amount','gte.game_transaction_type', 'gte.provider_request')
+		// 			    ->leftJoin("game_transaction_ext AS gte", "gte.game_trans_id", "=", "gt.game_trans_id");
+	    //    if ($type == 'transaction_id') {
+		// 	$transaction_db->where([
+		//  		["gte.provider_trans_id", "=", $transaction_id],
+		//  	]);
+		// }
+		// if ($type == 'game_trans_ext_id') {
+		// 	$transaction_db->where([
+		//  		["gte.game_trans_ext_id", "=", $transaction_id],
+		//  	]);
+		// }
+		// if ($type == 'round_id') {
+		// 	$transaction_db->where([
+		//  		["gte.round_id", "=", $transaction_id],
+		//  	]);
+		// }
+		// if ($type == 'bet') { // TEST
+		// 	$transaction_db->where([
+		//  		["gt.round_id", "=", $transaction_id],
+		//  		["gt.payout_reason",'like', '%BET%'],
+		//  	]);
+		// }
+		// if ($type == 'refundbet') { // TEST
+		// 	$transaction_db->where([
+		//  		["gt.round_id", "=", $transaction_id],
+		//  	]);
+		// }
+		// $result= $transaction_db
+	 	// 		->latest('token_id')
+	 	// 		->first();
+
+		// if($result){
+		// 	return $result;
+		// }else{
+		// 	return false;
+		// }
+	}
+
+	/**
+	 * Get data to the bet item (inside the provider request)
+	 * 
+	 */
+	public function findObjDataItem($items_json_data, $if_selector, $dato_to_get){
+		$item = json_decode($items_json_data);
+		$item_count = count($item->items);
+		if($item_count < 1){
+			foreach ($item->items as $key) {
+				if($key->$if_selector == $key[$if_selector]){
+					return $data = $key->$dato_to_get;
+				}
 			}
+		}else{
+			$data = $item->items[0]->$dato_to_get;
+		}
+		return $data;
 	}
 
 	/**
@@ -3029,11 +3331,11 @@ class DigitainController extends Controller
 	 * 
 	 */
 	public  function findGameTransaction($transaction_id) {
-    		$transaction_db = DB::table('game_transactions as gt')
-		 				   ->where('gt.provider_trans_id', $transaction_id)
-		 				   ->latest()
-		 				   ->first();
-		   	return $transaction_db ? $transaction_db : false;
+		$transaction_db = DB::table('game_transactions as gt')
+	 				   ->where('gt.provider_trans_id', $transaction_id)
+	 				   ->latest()
+	 				   ->first();
+	   	return $transaction_db ? $transaction_db : false;
 	}
 
 	/**
@@ -3055,29 +3357,29 @@ class DigitainController extends Controller
 	 * Find bet and update to win 
 	 *
 	 */
-	public  function updateBetToWin($round_id, $pay_amount, $income, $win, $entry_id, $type=1,$bet_amount=0) {
-   	    if($type == 1){
-   	    	$update = DB::table('game_transactions')
-            ->where('round_id', $round_id)
-            ->update(['pay_amount' => $pay_amount, 
-        		  'income' => $income, 
-        		  'win' => $win, 
-        		  'entry_id' => $entry_id,
-        		  'transaction_reason' => 'Bet updated to win'
-    		]);
-   	    }else{
-   	    	$update = DB::table('game_transactions')
-            ->where('round_id', $round_id)
-            ->update(['pay_amount' => $pay_amount, 
-        		  'income' => $income, 
-        		  'bet_amount' => $bet_amount, 
-        		  'win' => $win, 
-        		  'entry_id' => $entry_id,
-        		  'transaction_reason' => 'Bet updated to win'
-    		]);
-   	    }
-		return ($update ? true : false);
-	}
+	// public  function updateBetToWin($round_id, $pay_amount, $income, $win, $entry_id, $type=1,$bet_amount=0) {
+ //   	    if($type == 1){
+ //   	    	$update = DB::table('game_transactions')
+ //            ->where('round_id', $round_id)
+ //            ->update(['pay_amount' => $pay_amount, 
+ //        		  'income' => $income, 
+ //        		  'win' => $win, 
+ //        		  'entry_id' => $entry_id,
+ //        		  'transaction_reason' => 'Bet updated to win'
+ //    		]);
+ //   	    }else{
+ //   	    	$update = DB::table('game_transactions')
+ //            ->where('round_id', $round_id)
+ //            ->update(['pay_amount' => $pay_amount, 
+ //        		  'income' => $income, 
+ //        		  'bet_amount' => $bet_amount, 
+ //        		  'win' => $win, 
+ //        		  'entry_id' => $entry_id,
+ //        		  'transaction_reason' => 'Bet updated to win'
+ //    		]);
+ //   	    }
+	// 	return ($update ? true : false);
+	// }
 
 
 	public  function updateRSGRefund($game_trans_ext_id, $game_trans_id, $amount, $provider_request, $mw_response, $mw_request, $client_response,$transaction_detail,$general_details='NO DATA') {
@@ -3290,47 +3592,3 @@ class DigitainController extends Controller
 	// }
 
 }
-
-
-// NOTES DONT DELETE!
-
-// UPDATE ERROR CODES!
-// Error code Error description
-// 1 No errors were encountered
-// 2 Session Not Found
-// 3 Session Expired
-// 4 Wrong Player Id
-// 5 Player Is Blocked
-// 6 Low Balance
-// 7 Transaction Not Found
-// 8 Transaction Already Exists
-// 9 Provider Not Allowed For Partner
-// 10 Provider's Action Not Found
-// 11 Game Not Found
-// 12 Wrong API Credentials
-// 13 Invalid Method
-// 14 Transaction Already Rolled Back
-// 15 Wrong Operator Id
-// 16 Wrong Currency Id
-// 17 Request Parameter Missing
-// 18 Invalid Data
-// 19 Incorrect Operation Type
-// 20 Transaction already won
-// 999 General Error
-
-
-// PREVIOUS AUTH CREDENTIALS
-// private $apikey ="321dsfjo34j5olkdsf";
-// private $access_token = "123iuysdhfb09875v9hb9pwe8f7yu439jvoiefjs";
-
-// private $digitain_key = "rgstest";
-// private $operator_id = '5FB4E74E';
-
-// private $digitain_key = "rgstest";
-// private $operator_id = 'D233911A';
-
-// "operatorId":111,
-// "timestamp":"202003092113371560",
-// "signature":"ba328e6d2358f6d77804e3d342cdee06c2afeba96baada218794abfd3b0ac926",
-// "token":"90dbbb443c9b4b3fbcfc59643206a123"
-// $digitain_key = "P5rWDliAmIYWKq6HsIPbyx33v2pkZq7l";

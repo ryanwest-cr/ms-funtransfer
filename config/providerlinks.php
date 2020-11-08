@@ -169,6 +169,12 @@ return [
         'merchant_data' => 'TIGERGAMESU',
         'merchant_password' => 'LmJfpioowcD8gspb',
     ],
+    'digitain' => [
+        'provider_db_id' => 14, // Database ID nothing todo with the provider!
+        'provider_and_sub_name' => 'Digitain', // Nothing todo with the provider
+        'digitain_key' => 'BetRNK3184223',
+        'operator_id' => 'B9EC7C0A',
+    ],
     'payment'=>[
         'catpay'=>[
             'url_order'=>'http://celpay.vip/platform/submit/order',
@@ -318,12 +324,10 @@ return [
         'GAME_URL' => 'https://play-prodcopy.oryxgaming.com/agg_plus_public/launch/wallets/WELLTREASURETECH/games/'
     ],
     'netent' => [
-        'provider_db_id' => 44,
-        'casinomodule_api' => "https://tigergames-api-test.casinomodule.com/ws-jaxws/services/casino",//session id
-        'game_api' => "https://tigergames-game-test.casinomodule.com",
-        'game_server' => "https://tigergames-static-test.casinomodule.com/game/",
-        'sessionId' => "1604446356544-3-ZOC9MXBJL430S", //play for fun
-        'url' => "https://tigergames-static.casinomodule.com/gameinclusion/library/gameinclusion.js",
+        'provider_db_id' => 45,
+        'casinoID' => "tigergames",//casinoID
+        'merchantId' => "testmerchant",//soap api login
+        'merchantPassword' => "testing",//soap api login
     ],
     'goldenF'=>[
         'api_url'=> 'http://tgr.test.gf-gaming.com/gf',

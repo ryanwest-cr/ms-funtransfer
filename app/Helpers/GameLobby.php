@@ -1053,10 +1053,9 @@ class GameLobby{
         try {
             $client_details = Providerhelper::getClientDetails('token', $request["token"]);
             $game_code = $request["game_code"];
-            $userName = $request["username"];
             
             //process sessionID
-            $url = "https://tigergames-api-test.casinomodule.com/ws-jaxws/services/casino";
+            $url = "https://".config("providerlinks.netent.casinoID")."-api-test.casinomodule.com/ws-jaxws/services/casino";
             $game_link = new Client([
                     'headers' => [ 
                         'Content-Type' => 'application/xml'
@@ -1067,9 +1066,9 @@ class GameLobby{
                                 <soapenv:Header/>
                                 <soapenv:Body>
                                     <api:loginUserDetailed>
-                                        <userName>'.$userName.'</userName>
-                                        <merchantId>testmerchant</merchantId>
-                                        <merchantPassword>testing</merchantPassword>
+                                        <userName>TG_'.$client_details->player_id.'</userName>
+                                        <merchantId>'.config("providerlinks.netent.merchantId").'</merchantId>
+                                        <merchantPassword>'.config("providerlinks.netent.merchantPassword").'</merchantPassword>
                                         <currencyISOCode>'.$client_details->default_currency.'</currencyISOCode>
                                     </api:loginUserDetailed>
                                 </soapenv:Body>
@@ -1080,36 +1079,22 @@ class GameLobby{
             $dom->loadXML($response);
             $sessionID = $dom->getElementsByTagName('loginUserDetailedReturn')->item(0)->nodeValue;
 
-            // $game_url = new Client([
-            //     'headers' => [ 
-            //         'username' => 'testmerchant',
-            //         'password' => 'testing'
-            //     ]
-            // ]);
-            // $game_link_response = $game_url->post("https://tigergames-api-test.casinomodule.com/ws-jaxws/services/casino",
-            //         ['body' => json_encode(
-            //             [
-            //                 'gameId' => $request["game_code"],
-            //                 'staticServerURL' => $game_server,
-            //                 'sessionId' => $sessionID,
-            //                 'lobbyURL' => '#',
-            //                 'launchType' => 'iframe',
-            //                 'iframeSandbox' => 'allow-scripts allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-top-navigation-by-user-activation allow-same-origin allow-forms allow-pointer-lock',
-            //                 'walletMode' => 'seamlesswallet',
-            //                 'casinoBrand' => 'tigergames',
-            //                 'targetElement' => 'netentgame',
-            //                 'allowHtmlEmbedFullScreen' => true,
-            //                 'enforceRatio' => false,
-            //                 'width' => '100%',
-            //                 'height' => '100%'
-            //             ]
-            //         )]
-            //     );
-            // $link_result = $game_link_response->getBody()->getContents();
-            // return $link_result;
-            $url = "https://tigergames-static-test.casinomodule.com/games/asgardianstones-client/game/asgardianstones-client.xhtml?lobbyURL=#&server=https%3A%2F%2Ftigergames-game-test.casinomodule.com%2F&operatorId=tigergames&gameId=".$game_code."&lang=en&sessId=".$sessionID;
-            return $url;
-        }catch (\Exception $e){
+            $staticServerURL = "https://".config("providerlinks.netent.casinoID")."-static-test.casinomodule.com";
+            $gameServerURL = "https://".config("providerlinks.netent.casinoID")."-game-test.casinomodule.com";
+            $aes = new AES();
+            $data = array(
+                "gameId" => $request["game_code"],
+                "staticServerURL" => urlencode($staticServerURL),
+                "gameServerURL" => urlencode($gameServerURL),
+                "sessionId" => "DEMO-".$sessionID."-".$client_details->default_currency,
+                "casinoID" => config("providerlinks.netent.casinoID"),
+                "lobbyUrl" => urlencode($request["exitUrl"])
+            );
+            $encoded_data = $aes->AESencode(json_encode($data));
+            // return urlencode($encoded_data);
+            // return "http://localhost:2020/loadgame/netent_direct?param=".urlencode($encoded_data);
+            return "http://play.betrnk.games:81/loadgame/netent_direct?param=".urlencode($encoded_data);
+        } catch (\Exception $e){
             return false;
         }
     }

@@ -10,14 +10,14 @@ class NetEntHelper{
 	/* ISOLATION METHODDS FOR TESTING PERFORMANCE OPTIMAZTION */
 	/* PROVIDER HELPERS */
 
-	public static function playerDetailsCall($player_token, $refreshtoken=false, $type=1){
-		if($type == 1){
-			$client_details = TGGHelper::getClientDetails('token', $player_token);
-			// return 1;
-        }elseif($type == 2){
-			$client_details = TGGHelper::getClientDetails('token', $player_token, 2);
-			// return 2;
-		}
+	public static function playerDetailsCall($client_details, $refreshtoken=false, $type=1){
+		// if($type == 1){
+		// 	$client_details = NetEntHelper::getClientDetails('token', $player_token);
+		// 	// return 1;
+  //       }elseif($type == 2){
+		// 	$client_details = NetEntHelper::getClientDetails('token', $player_token, 2);
+		// 	// return 2;
+		// }
 		if($client_details){
 			$client = new Client([
 			    'headers' => [ 
@@ -35,12 +35,11 @@ class NetEntHelper{
 				"playerdetailsrequest" => [
 					"player_username"=>$client_details->username,
 					"client_player_id" => $client_details->client_player_id,
-					"token" => $player_token,
+					"token" => $client_details->player_token,
 					"gamelaunch" => true,
 					"refreshtoken" => $refreshtoken
 				]
 			];
-			
 			// Filter Player If Disabled
 			// $player= DB::table('players')->where('client_id', $client_details->client_id)
 			// 		->where('player_id', $client_details->player_id)->first();
@@ -59,7 +58,9 @@ class NetEntHelper{
 				    ['body' => json_encode($datatosend)]
 				);
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
-				Helper::saveLog('ALDEBUG REQUEST SEND = '.$player_token,  99, json_encode($client_response), $datatosend);
+				
+				// Helper::saveLog('ALDEBUG REQUEST SEND = '.$player_token,  99, json_encode($client_response), $datatosend);
+				
 				if(isset($client_response->playerdetailsresponse->status->code) && $client_response->playerdetailsresponse->status->code != 200 || $client_response->playerdetailsresponse->status->code != '200'){
 					if($refreshtoken == true){
 						if(isset($client_response->playerdetailsresponse->refreshtoken) &&
@@ -89,7 +90,7 @@ class NetEntHelper{
 				}
 
             }catch (\Exception $e){
-               Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
+               // Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
                return 'false';
             }
 		}else{
@@ -181,7 +182,7 @@ class NetEntHelper{
 		if ($type == "game_code") {
 			$details = "where g.provider_id = ".$provider_id." and g.game_code = '".$identification."' limit 1";
 		}
-		$game_details = DB::select('select g.game_name, g.game_code, g.game_id from games g left join providers as p using (provider_id) '.$details.' ');
+		$game_details = DB::select('select g.game_name, g.game_code, g.game_id from games g inner join providers as p using (provider_id) '.$details.' ');
 		
 	 	return $game_details ? $game_details : "false";
 	}

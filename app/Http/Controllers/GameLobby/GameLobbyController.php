@@ -540,7 +540,6 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif($request->input('game_provider')=="NetEnt Direct"){
-
                     $url = GameLobby::netEntDirect($request->all());
                     if($url){
                         $msg = array(
@@ -555,7 +554,8 @@ class GameLobbyController extends Controller
                             "game_launch" => false
                         );
                     }
-                    return $msg;
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
                 }
                 
                 elseif($request->input('game_provider')=="HabaneroGaming"){ 
