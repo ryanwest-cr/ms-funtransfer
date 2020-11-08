@@ -80,20 +80,58 @@ class BackOfficeController extends Controller
         
     }
     public function setOperator(Request $request){
+        // return $request->all();
+        DB::table('seamless_request_logs')->insert([
+                    "method_name" => "api",
+                    "provider_id" => "1",
+                    "request_data" => json_encode($request->all()),
+                    "response_data" => "a"
+                ]);
         if($request->type == 'add'){
             $add_operator = DB::table("operator")->insert(["operator_id" => $request->operator['operator_id'], "client_name" => $request->operator['client_name'], "client_code" => $request->operator['client_code'], "client_api_key" => $request->operator['client_api_key'], "client_access_token" => $request->operator['client_access_token'], "status_id" => $request->operator['status_id'] ]);
             $add_user = DB::table("users")->insert(["id" => $request->users['id'], "name" => $request->users['name'], "email" => $request->users['email'], "password" => $request->users['password'], "username" => $request->users['username'], "is_admin" => $request->users['is_admin'], "user_type" => $request->users['user_type'], "image" => $request->users['image'] ]);
             $add_clients = DB::table("clients")->insert(["client_id" => $request->clients['client_id'], "operator_id" => $request->clients['operator_id'], "client_name" => $request->clients['client_name'], "client_code" => $request->clients['client_code'], "client_pass" => $request->clients['client_pass'], "default_currency" => $request->clients['default_currency'], "default_language" => $request->clients['default_language'], "icon" => $request->clients['icon'], "status_id" => $request->clients['status_id']]);
             $add_oauth_clients = DB::table("oauth_clients")->insert(["id" => $request->oauth_clients['id'], "secret" => $request->oauth_clients['secret'], "name" => $request->oauth_clients['name'] ]);
-            $add_client_endpoints = DB::table("client_endpoints")->insert([ "id" => $request->client_endpoints['id'], "player_details_url" => $request->client_endpoints['player_details_url'], "fund_transfer_url" => $request->client_endpoints['fund_transfer_url'] ]);
+            $add_client_endpoints = DB::table("client_endpoints")->insert([ "id" => $request->client_endpoints['id'], "client_id" => $request->client_endpoints['client_id'], "player_details_url" => $request->client_endpoints['player_details_url'], "fund_transfer_url" => $request->client_endpoints['fund_transfer_url'] ]);
         }
         if($request->type == 'update'){
             $add_operator = DB::table("operator")->where("operator_id","=",$request->operator['operator_id'])->update([ "client_api_key" => $request->operator['client_api_key'], "client_access_token" => $request->operator['client_access_token'] ]);
-            $add_user = DB::table("users")->insert(["id" => $request->users['id'], "name" => $request->users['name'], "email" => $request->users['email'], "password" => $request->users['password'], "username" => $request->users['username'], "is_admin" => $request->users['is_admin'], "user_type" => $request->users['user_type'], "image" => $request->users['image'] ]);
-            $add_clients = DB::table("clients")->insert(["client_id" => $request->clients['client_id'], "operator_id" => $request->clients['operator_id'], "client_name" => $request->clients['client_name'], "client_code" => $request->clients['client_code'], "client_pass" => $request->clients['client_pass'], "default_currency" => $request->clients['default_currency'], "default_language" => $request->clients['default_language'], "icon" => $request->clients['icon'], "status_id" => $request->clients['status_id']]);
-            $add_oauth_clients = DB::table("oauth_clients")->insert(["id" => $request->oauth_clients['id'], "secret" => $request->oauth_clients['secret'], "name" => $request->oauth_clients['name'] ]);
+            if($request->has('password')){
+                $add_user = DB::table("users")->where("id","=",$request->users["id"])->update([ "email" => $request->users['email'], "password" => $request->users['password'], "username" => $request->users['username'] ]);
+            }else{
+                $add_user = DB::table("users")->where("id","=",$request->users["id"])->update([ "email" => $request->users['email'], "username" => $request->users['username'] ]);
+            }
+            $add_clients = DB::table("clients")->where("client_id","=",$request->clients['client_id'])->update([ "client_name" => $request->clients['client_name'], "client_pass" => $request->clients['client_pass'] ]);
+            $add_oauth_clients = DB::table("oauth_clients")->where("id","=",$request->oauth_clients['id'])->update([ "secret" => $request->oauth_clients['secret'], "name" => $request->oauth_clients['name'] ]);
             
         }
     }
 
+    public function setClients(Request $request){
+        DB::table('seamless_request_logs')->insert([
+            "method_name" => "clients",
+            "provider_id" => "1",
+            "request_data" => json_encode($request->all()),
+            "response_data" => "a"
+        ]);
+        if($request->type == 'add'){
+            $add_clients = DB::table("clients")->insert(["client_id" => $request->clients['client_id'], "operator_id" => $request->clients['operator_id'], "client_name" => $request->clients['client_name'], "default_currency" => $request->clients['default_currency'], "default_language" => $request->clients['default_language'], "icon" => $request->clients['icon'], "status_id" => $request->clients['status_id']]);
+            $add_client_endpoints = DB::table("client_endpoints")->insert([ "id" => $request->client_endpoints['id'], "client_id" => $request->client_endpoints['client_id'], "player_details_url" => $request->client_endpoints['player_details_url'], "fund_transfer_url" => $request->client_endpoints['fund_transfer_url'] ]);
+        }
+        if($request->type == 'update'){
+            $add_clients = DB::table("clients")->where("client_id","=",$request->clients['client_id'])->update([ "icon" => $request->clients['icon'] ]);
+            $update_client_endpoints = DB::table("client_endpoints")->where("id","=",$request->client_endpoints['id'])->update(["player_details_url" => $request->client_endpoints['player_details_url'], "fund_transfer_url" => $request->client_endpoints['fund_transfer_url'] ]);
+        }
+        if($request->type == 'status'){
+            $update_status = DB::table("clients")->where("client_id","=",$request->clients['client_id'])->update([ "status_id" => $request->clients['status_id'] ]);
+        }
+        if($request->type == 'delete'){
+            $delete_clietns = DB::table('clients')->where('client_id','=',$request->clients['client_id'])->delete();
+            $delete_client_endpoints = DB::table('client_endpoints')->where('client_id','=',$request->clients['client_id'])->delete();
+        }
+    }
+
+    public function setPlayers(Request $request){
+        $update = DB::table('players')->where('player_id','=',$request->player_id)->update(['player_status' => $request->status]);
+    }
 }

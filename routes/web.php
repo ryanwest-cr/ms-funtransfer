@@ -540,5 +540,7 @@ $app->post('bo/sub-provider-update','BackOffice\BackOfficeController@setSubProvi
 $app->post('bo/games-update','BackOffice\BackOfficeController@setGames');
 $app->post('bo/game-type-update','BackOffice\BackOfficeController@setGameType');
 $app->post('bo/operator-update','BackOffice\BackOfficeController@setOperator');
+$app->post('bo/clients-update','BackOffice\BackOfficeController@setClients');
+$app->post('bo/players-update','BackOffice\BackOfficeController@setPlayers');
 
 
