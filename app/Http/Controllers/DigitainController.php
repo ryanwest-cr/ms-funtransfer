@@ -1068,6 +1068,7 @@ class DigitainController extends Controller
 		   			);	
 					return $response;
 				}
+
 		 		$check_win_exist = $this->gameTransactionEXTLog('provider_trans_id',$key['txId'], 2); 
 				// dd($check_win_exist);
 	 			if($check_win_exist != false){
@@ -1172,7 +1173,13 @@ class DigitainController extends Controller
 		 	  		}else{
 		 	  			$updateTheBet = DigitainHelper::updateBetToWin($datatrans->game_trans_id, $datatrans->pay_amount, $datatrans->income, 0, $datatrans->entry_id);
 		 	  		}
-		 	  		
+					
+					// Update this bet that it has won
+					if($transaction_identifier_type == 'provider_trans_id'){
+						$this->updateGameExtTransDetails('BETWON','provider_trans_id', $key['betTxId'],1);
+					}else{
+						$this->updateGameExtTransDetails('BETWON','round_id', $key['roundId'],1);
+					}
 
 		 	  		ProviderHelper::updatecreateGameTransExt($game_transextension,  $json_data, $items_array, $client_response->requestoclient, $client_response, 'SUCCESS', $general_details);
 
@@ -1637,7 +1644,9 @@ class DigitainController extends Controller
 						 "winInfo" => $key['winInfo'], // IWininfo
 						 "errorCode" => 1,
 						 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
-	        	    ];
+					];
+					
+					$this->updateGameExtTransDetails('BETWON','game_trans_ext_id', $game_transextension,1);
 	        	    ProviderHelper::updatecreateGameTransExt($game_transextension,  $json_data, $items_array, $client_response->requestoclient, $client_response, 'SUCCESS', $general_details);
 	        	    ProviderHelper::updatecreateGameTransExt($game_transextension2,  $json_data, $items_array, $client_response2->requestoclient, $client_response2, 'SUCCESS', $general_details2);
 
@@ -1826,7 +1835,8 @@ class DigitainController extends Controller
 							$is_bet[] = $bet_item;
 							$transaction_to_refund[] = $bet_item;
 
-							$is_bet_has_won = $this->checkTransactionExt('round_id', $datatrans->round_id, 2);
+							// $is_bet_has_won = $this->checkTransactionExt('round_id', $datatrans->round_id, 2);
+							$is_bet_has_won = $this->checkIfBetHasWon('provider_trans_id', $key['originalTxId'], 1);
 							if($is_bet_has_won != null){
 								$items_array[] = [
 									 "info" => $key['info'],
@@ -2073,7 +2083,8 @@ class DigitainController extends Controller
 						$transaction_to_refund[] = $win_item;
 		    		}
 	    		}else{
-	    			$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, $datatrans->game_transaction_type,'round_id');
+					$check_bet_exist_transaction = DigitainHelper::findGameExt($datatrans->round_id, $datatrans->game_transaction_type,'round_id');
+					// dd($check_bet_exist_transaction);
 	    			// its a bet round
 	    			if($datatrans->game_transaction_type == 1){
 	    				$bet_item = [
@@ -2085,7 +2096,8 @@ class DigitainController extends Controller
 						$is_bet[] = $bet_item;
 						$transaction_to_refund[] = $bet_item;
 
-						$is_bet_has_won = $this->checkTransactionExt('round_id', $datatrans->round_id, 2);
+						// $is_bet_has_won = $this->checkTransactionExt('round_id', $datatrans->round_id, 2);
+						$is_bet_has_won = $this->checkIfBetHasWon('provider_trans_id', $key['originalTxId'], 1);
 						if($is_bet_has_won != null){
 							$items_array[] = [
 								 "info" => $key['info'],
@@ -2108,6 +2120,7 @@ class DigitainController extends Controller
 	    			}
 	    		}
 			}
+
 
 			# FILTER IF THE ITEMS SHOULD BE PROCESSED
 			if($key['holdEarlyRefund'] == false){
@@ -3118,6 +3131,18 @@ class DigitainController extends Controller
 		return $data > 0 ? $query[0] : null;
 	}
 
+	public function updateGameExtTransDetails($data, $column, $identifier,$type){
+		$query = DB::select('update game_transaction_ext SET transaction_detail = "'.$data.'" where `'.$column.'` = "'.$identifier.'" AND game_transaction_type = '.$type.'');
+		$data = count($query);
+		return $data > 0 ? $query[0] : null;
+	}
+
+
+	public function checkIfBetHasWon($column, $identifier,$type){
+		$query = DB::select('select game_trans_ext_id from game_transaction_ext where `'.$column.'` = "'.$identifier.'" AND  transaction_detail = "BETWON" AND game_transaction_type = '.$type.'');
+		$data = count($query);
+		return $data > 0 ? $query[0] : null;
+	}
 
 	/**
 	 * Pull out data from the Game exstension logs!
