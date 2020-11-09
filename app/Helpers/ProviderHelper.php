@@ -233,6 +233,40 @@ class ProviderHelper{
 		}
 	}
 
+
+
+	public static function clientPlayerDetailsCall($client_details, $refreshtoken=false){
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$client_details->client_access_token
+            ]
+        ]);
+        $datatosend = ["access_token" => $client_details->client_access_token,
+            "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+            "type" => "playerdetailsrequest",
+            "datesent" => Helper::datesent(),
+            "clientid" => $client_details->client_id,
+            "playerdetailsrequest" => [
+                "player_username"=>$client_details->username,
+                "client_player_id" => $client_details->client_player_id,
+                "token" => $client_details->player_token,
+                "gamelaunch" => true,
+                "refreshtoken" => $refreshtoken
+            ]
+        ];
+        try{    
+            $guzzle_response = $client->post($client_details->player_details_url,
+                ['body' => json_encode($datatosend)]
+            );
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            return $client_response;
+        }catch (\Exception $e){
+           Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
+           return 'false';
+        }
+    }
+
 	/**
 	 * GLOBAL
      * Find Game Transaction

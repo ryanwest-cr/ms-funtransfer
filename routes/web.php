@@ -543,9 +543,19 @@ $app->post('bo/game-type-update','BackOffice\BackOfficeController@setGameType');
 $app->post('bo/operator-update','BackOffice\BackOfficeController@setOperator');
 $app->post('bo/clients-update','BackOffice\BackOfficeController@setClients');
 $app->post('bo/players-update','BackOffice\BackOfficeController@setPlayers');
+<<<<<<< HEAD
+=======
+$app->post('bo/subscribe-update','BackOffice\BackOfficeController@subscribeUpdate');
+
+>>>>>>> 681a9f73894c76e3205ea99001575a082be94b64
 
 //client BO
 $app->post('bo/client-sub-provider-update','BackOffice\ClientBOController@subProviderSettings');
 $app->post('bo/client-game-setting-update','BackOffice\ClientBOController@gameSettings');
 $app->post('bo/client-setting-update','BackOffice\ClientBOController@clientSettings');
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 681a9f73894c76e3205ea99001575a082be94b64
