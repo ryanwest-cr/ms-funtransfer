@@ -97,7 +97,7 @@ class GoldenFHelper{
     public static function updateGameTransaction($existingdata,$request_data,$type){
 		switch ($type) {
 			case "debit":
-                    $trans_data["win"] = 0;
+                    $trans_data["win"] = $existingdata->win;
                     $trans_data["bet_amount"] = $existingdata->bet_amount+$request_data["amount"];
 					$trans_data["pay_amount"] = $existingdata->pay_amount;
 					$trans_data["income"]= ($existingdata->bet_amount+$request_data["amount"])-$existingdata->pay_amount;
