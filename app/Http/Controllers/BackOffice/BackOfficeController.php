@@ -134,8 +134,6 @@ class BackOfficeController extends Controller
     public function setPlayers(Request $request){
         $update = DB::table('players')->where('player_id','=',$request->player_id)->update(['player_status' => $request->status]);
     }
-<<<<<<< HEAD
-=======
 
     public function subscribeUpdate(Request $request){
         DB::table('seamless_request_logs')->insert([
@@ -209,5 +207,4 @@ class BackOfficeController extends Controller
             }
        }
     }
->>>>>>> 681a9f73894c76e3205ea99001575a082be94b64
 }
