@@ -2477,7 +2477,7 @@ class DigitainController extends Controller
 							continue;
 						}
     					if(isset($key['winTxId'])){
-							if($key['winOperationType'] == 2){
+							// if($key['winOperationType'] == 2){
 								$checkLog = DigitainHelper::findGameExt($key['winTxId'], 2, 'transaction_id'); // iswin?
 								if($checkLog != 'false'){
 									$db_operation_type = 1;
@@ -2512,6 +2512,21 @@ class DigitainController extends Controller
 											$error_encounter= 1;
 											continue;
 									}
+									if(isset($checkLog->general_details)){
+										$db_general_details = json_decode($checkLog->general_details);
+										if(isset($db_general_details->provider->operationType)){
+											if($key['winOperationType'] != $db_general_details->provider->operationType){
+												$items_array[] = [
+													"info" => $key['info'], 
+													"errorCode" => 19, 
+													"metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+												]; 
+												$global_error = $global_error == 1 ? 19 : $global_error;
+												$error_encounter= 1;
+												continue;
+											}
+										}
+									}
 								}else{
 									// Not found bet or win go away!
 									$items_array[] = [
@@ -2523,44 +2538,44 @@ class DigitainController extends Controller
 									$error_encounter= 1;
 									continue;
 								}
-							}
-							if($key['winOperationType'] == 1){
-								$checkLog = DigitainHelper::findGameExt($key['winTxId'], 1, 'transaction_id'); // isbet?
-									if($checkLog != 'false'){
-										$db_operation_type = 1;
-										$debit_operation_type = 38;  // if this is debit operation type must be 38
-										if($key['operationType'] != 37 || $key['operationType'] != 38){
-											$items_array[] = [
-												 "info" => $key['info'], 
-												 "errorCode" => 19, 
-												 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
-							        	    ]; 
-							        	    $global_error = $global_error == 1 ? 19 : $global_error;
-											$error_encounter= 1;
-											continue;
-										}
-										if($checkLog->amount < $key['amendAmount']){
-											$items_array[] = [
-												 "info" => $key['info'], 
-												 "errorCode" => 18, 
-												 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
-							        	    ]; 
-							        	    $global_error = $global_error == 1 ? 18 : $global_error;
-											$error_encounter= 1;
-											continue;
-										}
-									}else{
-										// Not found bet or win go away!
-										$items_array[] = [
-											 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-											 "errorCode" => 7, // Win Transaction not found
-											 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
-						        	    ]; 
-						        	    $global_error = $global_error == 1 ? 7 : $global_error;
-										$error_encounter= 1;
-										continue;
-									}
-							}
+							// }
+							// if($key['winOperationType'] == 1){
+							// 	$checkLog = DigitainHelper::findGameExt($key['winTxId'], 1, 'transaction_id'); // isbet?
+							// 		if($checkLog != 'false'){
+							// 			$db_operation_type = 1;
+							// 			$debit_operation_type = 38;  // if this is debit operation type must be 38
+							// 			if($key['operationType'] != 37 || $key['operationType'] != 38){
+							// 				$items_array[] = [
+							// 					 "info" => $key['info'], 
+							// 					 "errorCode" => 19, 
+							// 					 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+							//         	    ]; 
+							//         	    $global_error = $global_error == 1 ? 19 : $global_error;
+							// 				$error_encounter= 1;
+							// 				continue;
+							// 			}
+							// 			if($checkLog->amount < $key['amendAmount']){
+							// 				$items_array[] = [
+							// 					 "info" => $key['info'], 
+							// 					 "errorCode" => 18, 
+							// 					 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+							//         	    ]; 
+							//         	    $global_error = $global_error == 1 ? 18 : $global_error;
+							// 				$error_encounter= 1;
+							// 				continue;
+							// 			}
+							// 		}else{
+							// 			// Not found bet or win go away!
+							// 			$items_array[] = [
+							// 				 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+							// 				 "errorCode" => 7, // Win Transaction not found
+							// 				 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
+						    //     	    ]; 
+						    //     	    $global_error = $global_error == 1 ? 7 : $global_error;
+							// 			$error_encounter= 1;
+							// 			continue;
+							// 		}
+							// }
 						}
 						
 						$is_refunded = DigitainHelper::findGameExt($key['txId'], 3, 'transaction_id');
@@ -2655,7 +2670,7 @@ class DigitainController extends Controller
 			// }
 				
 			if(isset($key['winTxId'])){
-				if($key['winOperationType'] == 2){
+				// if($key['winOperationType'] == 2){
 					$checkLog = DigitainHelper::findGameExt($key['winTxId'], 2, 'transaction_id'); // iswin?
 					if($checkLog != 'false'){
 						$db_operation_type = 1;
@@ -2690,6 +2705,21 @@ class DigitainController extends Controller
 							$error_encounter= 1;
 							continue;
 						}
+						if(isset($checkLog->general_details)){
+							$db_general_details = json_decode($checkLog->general_details);
+							if(isset($db_general_details->provider->operationType)){
+								if($key['winOperationType'] != $db_general_details->provider->operationType){
+									$items_array[] = [
+										"info" => $key['info'], 
+										"errorCode" => 19, 
+										"metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+									]; 
+									$global_error = $global_error == 1 ? 19 : $global_error;
+									$error_encounter= 1;
+									continue;
+								}
+							}
+						}
 					}else{
 						// Not found bet or win go away!
 						$items_array[] = [
@@ -2701,47 +2731,46 @@ class DigitainController extends Controller
 						$error_encounter= 1;
 						continue;
 					}
-				}
+				// }
 
-
-		
-				if($key['winOperationType'] == 1){
-					$checkLog = DigitainHelper::findGameExt($key['winTxId'], 1, 'transaction_id'); // isbet?
-						if($checkLog != 'false'){
-							$db_operation_type = 1;
-							$debit_operation_type = 38;  // if this is debit operation type must be 38
-							if($key['operationType'] != 37 && $key['operationType'] != 38){
-								$items_array[] = [
-									 "info" => $key['info'], 
-									 "errorCode" => 19, 
-									 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
-				        	    ]; 
-				        	    $global_error = $global_error == 1 ? 19 : $global_error;
-								$error_encounter= 1;
-								continue;
-							}
-							if($checkLog->amount < $key['amendAmount']){
-								$items_array[] = [
-									 "info" => $key['info'], 
-									 "errorCode" => 18, 
-									 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
-				        	    ]; 
-				        	    $global_error = $global_error == 1 ? 18 : $global_error;
-								$error_encounter= 1;
-								continue;
-							}
-						}else{
-							// Not found bet or win go away!
-							$items_array[] = [
-								 "info" => $key['info'], // Info from RSG, MW Should Return it back!
-								 "errorCode" => 7, // Win Transaction not found
-								 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
-			        	    ]; 
-			        	    $global_error = $global_error == 1 ? 7 : $global_error;
-							$error_encounter= 1;
-							continue;
-						}
-				}
+				
+				// if($key['winOperationType'] == 1){
+				// 	$checkLog = DigitainHelper::findGameExt($key['winTxId'], 1, 'transaction_id'); // isbet?
+				// 		if($checkLog != 'false'){
+				// 			$db_operation_type = 1;
+				// 			$debit_operation_type = 38;  // if this is debit operation type must be 38
+				// 			if($key['operationType'] != 37 && $key['operationType'] != 38){
+				// 				$items_array[] = [
+				// 					 "info" => $key['info'], 
+				// 					 "errorCode" => 19, 
+				// 					 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+				//         	    ]; 
+				//         	    $global_error = $global_error == 1 ? 19 : $global_error;
+				// 				$error_encounter= 1;
+				// 				continue;
+				// 			}
+				// 			if($checkLog->amount < $key['amendAmount']){
+				// 				$items_array[] = [
+				// 					 "info" => $key['info'], 
+				// 					 "errorCode" => 18, 
+				// 					 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' 
+				//         	    ]; 
+				//         	    $global_error = $global_error == 1 ? 18 : $global_error;
+				// 				$error_encounter= 1;
+				// 				continue;
+				// 			}
+				// 		}else{
+				// 			// Not found bet or win go away!
+				// 			$items_array[] = [
+				// 				 "info" => $key['info'], // Info from RSG, MW Should Return it back!
+				// 				 "errorCode" => 7, // Win Transaction not found
+				// 				 "metadata" => isset($key['metadata']) ? $key['metadata'] : '' // Optional but must be here!
+			    //     	    ]; 
+			    //     	    $global_error = $global_error == 1 ? 7 : $global_error;
+				// 			$error_encounter= 1;
+				// 			continue;
+				// 		}
+				// }
 			}
 
 			if($key['currencyId'] != $client_details->default_currency){
