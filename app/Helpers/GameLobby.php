@@ -1059,7 +1059,7 @@ class GameLobby{
             $url = "https://".config("providerlinks.netent.casinoID")."-api-test.casinomodule.com/ws-jaxws/services/casino";
             $game_link = new Client([
                     'headers' => [ 
-                        'Content-Type' => 'application/xml'
+                        'Content-Type' => 'application/json'
                     ]
                 ]);
             $game_link_response = $game_link->post($url, 
@@ -1079,7 +1079,7 @@ class GameLobby{
             $dom = new DOMDocument;
             $dom->loadXML($response);
             $sessionID = $dom->getElementsByTagName('loginUserDetailedReturn')->item(0)->nodeValue;
-
+           
             $staticServerURL = "https://".config("providerlinks.netent.casinoID")."-static-test.casinomodule.com";
             $gameServerURL = "https://".config("providerlinks.netent.casinoID")."-game-test.casinomodule.com";
             $aes = new AES();
