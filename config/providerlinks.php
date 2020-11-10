@@ -1,6 +1,6 @@
 <?php
 
-$middleware_url_api = 'https://api-test.betrnk.games/public/';
+$middleware_url_api = 'https://api-test.betrnk.games/public';
 $gamelobby_site = 'https://daddy.betrnk.games';
 $play_betrnk = 'https://play.betrnk.games:446';
 
@@ -8,7 +8,7 @@ return [
     'play_betrnk' => $play_betrnk,
     'tigergames' => $gamelobby_site,
     'oauth_mw_api' => [
-        'access_url' => $middleware_url_api.'oauth/access_token',
+        'access_url' => $middleware_url_api.'/oauth/access_token',
         'mwurl' => $middleware_url_api,
         'client_id' => 1,
         'client_secret' => 'QPmdvSg3HGFXbsfhi8U2g5FzAOnjpRoF',
@@ -143,19 +143,32 @@ return [
         "partner_name" => "TIGER",
     ],
     'iagaming' => [
-        'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
-        'pch' => 'BRNK', 
-        'prefix' => 'TGAMES', // Nothing todo with the provider
-        'iv' => '45b80556382b48e5',
-        'url_lunch' => 'http://api.ilustretest.com/user/lunch',
-        'url_register' => 'http://api.ilustretest.com/user/register',
-        'url_withdraw' => 'http://api.ilustretest.com/user/withdraw',
-        'url_deposit' => 'http://api.ilustretest.com/user/deposit',
-        'url_balance' => 'http://api.ilustretest.com/user/balance',
-        'url_wager' => 'http://api.ilustretest.com/user/getproject',
-        'url_hotgames' => 'http://api.ilustretest.com/user/gethotgame',
-        'url_orders' => 'http://api.ilustretest.com/user/searchprders',
-        'url_activity_logs' => 'http://api.ilustretest.com/user/searchprders',
+        'auth_key' => '6230204245ebbf14dfdc0ee40960134d',
+        'pch' => 'TG01',
+        'prefix' => 'TGAMES',
+        'iv' => '1650cbec4319180b',
+        'url_lunch' => 'https://api.ilustre-analysis.net/user/lunch',
+        'url_register' => 'https://api.ilustre-analysis.net/user/register',
+        'url_withdraw' => 'https://api.ilustre-analysis.net/user/withdraw',
+        'url_deposit' => 'https://api.ilustre-analysis.net/user/deposit',
+        'url_balance' => 'https://api.ilustre-analysis.net/user/balance',
+        'url_wager' => 'https://api.ilustre-analysis.net/user/getproject',
+        'url_hotgames' => 'https://api.ilustre-analysis.net/user/gethotgame',
+        'url_orders' => 'https://api.ilustre-analysis.net/user/searchprders',
+        'url_activity_logs' => 'https://api.ilustre-analysis.net/user/searchprders',
+        // 'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
+        // 'pch' => 'BRNK', 
+        // 'prefix' => 'TGAMES', // Nothing todo with the provider
+        // 'iv' => '45b80556382b48e5',
+        // 'url_lunch' => 'http://api.ilustretest.com/user/lunch',
+        // 'url_register' => 'http://api.ilustretest.com/user/register',
+        // 'url_withdraw' => 'http://api.ilustretest.com/user/withdraw',
+        // 'url_deposit' => 'http://api.ilustretest.com/user/deposit',
+        // 'url_balance' => 'http://api.ilustretest.com/user/balance',
+        // 'url_wager' => 'http://api.ilustretest.com/user/getproject',
+        // 'url_hotgames' => 'http://api.ilustretest.com/user/gethotgame',
+        // 'url_orders' => 'http://api.ilustretest.com/user/searchprders',
+        // 'url_activity_logs' => 'http://api.ilustretest.com/user/searchprders',
     ],
     'tidygaming' => [
         'url_lunch' => 'http://staging-v1-api.tidy.zone/api/game/outside/link',
