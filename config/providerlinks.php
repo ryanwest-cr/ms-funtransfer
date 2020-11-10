@@ -149,6 +149,13 @@ return [
         'iv' => '45b80556382b48e5',
         'url_lunch' => 'http://api.ilustretest.com/user/lunch',
         'url_register' => 'http://api.ilustretest.com/user/register',
+        'url_withdraw' => 'http://api.ilustretest.com/user/withdraw',
+        'url_deposit' => 'http://api.ilustretest.com/user/deposit',
+        'url_balance' => 'http://api.ilustretest.com/user/balance',
+        'url_wager' => 'http://api.ilustretest.com/user/getproject',
+        'url_hotgames' => 'http://api.ilustretest.com/user/gethotgame',
+        'url_orders' => 'http://api.ilustretest.com/user/searchprders',
+        'url_activity_logs' => 'http://api.ilustretest.com/user/searchprders',
     ],
     'tidygaming' => [
         'url_lunch' => 'http://staging-v1-api.tidy.zone/api/game/outside/link',
