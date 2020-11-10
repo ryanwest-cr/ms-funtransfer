@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
+use App\Helpers\IAHelper;
 use App\Helpers\ProviderHelper;
 // use App\Helpers\CryptAES;
 use App\Helpers\ClientRequestHelper;
@@ -19,6 +20,7 @@ use DB;
  * IA ESports Controller (Seamless Setup)
  *
  * @version 1.1
+ * @author's note please dont remove commented line of codes
  * @var username = MW player_id (NOT THE CLIENT PLAYER ID/USERNAME) ,prefixed with BETRNK_{$mw_id}
  * @method lunch 
  * @method register
@@ -40,19 +42,23 @@ class IAESportsController extends Controller
     
 	// public $url = 'https://middleware.freebetrnk.com/public/game/launchurl';
 
-	public $auth_key = '54bc08c471ae3d656e43735e6ffc9bb6';
-	public $pch = 'BRNK';
-	public $iv = '45b80556382b48e5';
-	public $url_lunch = 'http://api.ilustretest.com/user/lunch';
-	public $url_register = 'http://api.ilustretest.com/user/register';
-	public $url_withdraw = 'http://api.ilustretest.com/user/withdraw';
-	public $url_deposit = 'http://api.ilustretest.com/user/deposit';
-	public $url_balance = 'http://api.ilustretest.com/user/balance';
-	public $url_wager = 'http://api.ilustretest.com/wager/getproject';
-	public $url_hotgames = 'http://api.ilustretest.com/index/gethotgame';
-	public $url_orders = 'http://api.ilustretest.com/user/searchprders';
-	public $url_activity_logs = 'http://api.ilustretest.com/user/searchprders';
+	// public $auth_key = '54bc08c471ae3d656e43735e6ffc9bb6';
+	// public $pch = 'BRNK';
+	// public $iv = '45b80556382b48e5';
+	// public $url_lunch = 'http://api.ilustretest.com/user/lunch';
+	// public $url_register = 'http://api.ilustretest.com/user/register';
+	// public $url_withdraw = 'http://api.ilustretest.com/user/withdraw';
+	// public $url_deposit = 'http://api.ilustretest.com/user/deposit';
+	// public $url_balance = 'http://api.ilustretest.com/user/balance';
+	// public $url_wager = 'http://api.ilustretest.com/wager/getproject';
+	// public $url_hotgames = 'http://api.ilustretest.com/index/gethotgame';
+	// public $url_orders = 'http://api.ilustretest.com/user/searchprders';
+	// public $url_activity_logs = 'http://api.ilustretest.com/user/searchprders';
 
+
+	public $auth_key, $pch, $iv,  $url_lunch, $url_register, $url_withdraw, $url_deposit, $url_balance, $url_wager, $url_hotgames, $url_orders, $url_activity_logs = '';
+
+	// Static Info From The Database
 	public $game_code = 'ia-lobby';
 	public $game_name = 'IA Gaming';
 	public $provider_db_id = 15;
@@ -63,6 +69,18 @@ class IAESportsController extends Controller
 	public function __construct(){
 		// $this->middleware('oauth', ['except' => ['index','seamlessDeposit','seamlessWithdrawal','seamlessBalance','seamlessSearchOrder','userlaunch']]);
 		// $this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);
+    	$this->auth_key = config('providerlinks.iagaming.auth_key');
+    	$this->pch = config('providerlinks.iagaming.pch');
+    	$this->iv = config('providerlinks.iagaming.iv');
+    	$this->url_lunch = config('providerlinks.iagaming.url_lunch');
+    	$this->url_register = config('providerlinks.iagaming.url_register');
+    	$this->url_withdraw = config('providerlinks.iagaming.url_withdraw');
+    	$this->url_deposit = config('providerlinks.iagaming.url_deposit');
+    	$this->url_balance = config('providerlinks.iagaming.url_balance');
+    	$this->url_wager = config('providerlinks.iagaming.url_wager');
+    	$this->url_hotgames = config('providerlinks.iagaming.url_hotgames');
+    	$this->url_orders = config('providerlinks.iagaming.url_orders');
+    	$this->url_activity_logs = config('providerlinks.iagaming.url_activity_logs');
 	}
 
 	/**
@@ -184,6 +202,7 @@ class IAESportsController extends Controller
 
 	/**
 	 * Deposit, Deposit Win/Credit From The Client add as debit to our system!
+	 * Update Code 18, November 11 2020
 	 *
 	 */
 	public function seamlessDeposit(Request $request)
@@ -192,12 +211,11 @@ class IAESportsController extends Controller
 		$data = file_get_contents("php://input");
 		$cha = json_decode($this->rehashen($data, true)); // DECODE THE ENCRYPTION
 		$desc_json = json_decode($cha->desc,JSON_UNESCAPED_SLASHES); // REMOVE SLASHES
-		$transaction_code = $desc_json['code']; // 13,15 refund, 
-		$rollback = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 ? true : false;
+		$transaction_code = $desc_json['code']; // 13,15,18 refund, 
+		$rollback = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 || $transaction_code == 18 ? true : false;
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
 		Helper::saveLog('IA seamlessDeposit EH', $this->provider_db_id,json_encode($cha), $data);
-		// dd($cha);
 		if(empty($client_details)):
 			$params = [
 	            "code" => 111003,
@@ -236,7 +254,8 @@ class IAESportsController extends Controller
 		$income = 0;	
 		$provider_trans_id = $cha->orderId;
 	
-		$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+		$client_player = $this->playerDetailsCall($client_details);
+		// $client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
 		if($client_player == 'false'){
 			$params = ["code" => 111006,"data" => [],"message" => "deposit failed client error"];
 			Helper::saveLog('IA seamlessWithdrawal - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
@@ -325,7 +344,7 @@ class IAESportsController extends Controller
 				return $params;
 	        }else{
 	        	// $bet_details = $this->getOrderData($cha->projectId);
-	        	$is_exist_bet = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
+				$is_exist_bet = ProviderHelper::findGameExt($cha->projectId, 1,'round_id');
 	        	if($is_exist_bet == 'false'){
 	        		$params = [
 			            "code" => 111006,
@@ -333,13 +352,23 @@ class IAESportsController extends Controller
 						"message" => "Deposit Failed, Order number dont exist!",
 			        ];	
 					return $params;
+				}
+				
+				$is_exist_bet_refunded = ProviderHelper::findGameExt($cha->projectId, 3,'round_id');
+	        	if($is_exist_bet_refunded != 'false'){
+	        		$params = [
+			            "code" => 111007,
+			            "data" => [],
+						"message" => "Order number already exists",
+			        ];	
+					return $params;
 	        	}
 	        	$bet_details = ProviderHelper::findGameTransaction($is_exist_bet->game_trans_id,'game_transaction');
   				$win = 1; //win
   				$entry_id = 2; //win
   				$income = $bet_details->bet_amount - $cha->money;
-	        	$win = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 ? 4 : $win; // 4 to refund!
- 	  			$is_refunded = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 ? 3 : 2; // 3 to refund!
+	        	$win = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 || $transaction_code == 18 ? 4 : $win; // 4 to refund!
+ 	  			$is_refunded = $transaction_code == 13 || $transaction_code == 15 || $transaction_code == 14 || $transaction_code == 18 ? 3 : 2; // 3 to refund!
 
 	        	$mw_request_data = json_decode($is_exist_bet->mw_request);
 	        	$gamerecord = $mw_request_data->fundtransferrequest->fundinfo->roundId;
@@ -461,7 +490,8 @@ class IAESportsController extends Controller
 		$income = $cha->money;	
 		$provider_trans_id = $cha->orderId;
 
-		$client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
+		$client_player = $this->playerDetailsCall($client_details);
+		// $client_player = ProviderHelper::playerDetailsCall($client_details->player_token);
 		if($client_player == 'false'){
 			$params = ["code" => 111005,"data" => [],"message" => "withdrawal failed client error"];
 			Helper::saveLog('IA seamlessWithdrawal - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
@@ -632,7 +662,8 @@ class IAESportsController extends Controller
 		Helper::saveLog('IA Balance', $this->provider_db_id, json_encode($cha), 'IA CALL DECODED');
 		$prefixed_username = explode("_", $cha->username);
 		$client_details = ProviderHelper::getClientDetails('player_id', $prefixed_username[1]);
-		$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
+		$client_response = $this->playerDetailsCall($client_details);
+		// $client_response = Providerhelper::playerDetailsCall($client_details->player_token);
 		if($client_response == 'false'){
 			$params = ["code" => 111003,"data" => [],"message" => "User does not exist"];
 		}else{
@@ -1089,6 +1120,39 @@ class IAESportsController extends Controller
 	}
 
 
+	public  function playerDetailsCall($client_details, $refreshtoken=false){
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$client_details->client_access_token
+            ]
+        ]);
+        $datatosend = ["access_token" => $client_details->client_access_token,
+            "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+            "type" => "playerdetailsrequest",
+            "datesent" => Helper::datesent(),
+            "clientid" => $client_details->client_id,
+            "playerdetailsrequest" => [
+                "player_username"=>$client_details->username,
+                "client_player_id" => $client_details->client_player_id,
+                "token" => $client_details->player_token,
+                "gamelaunch" => true,
+                "refreshtoken" => $refreshtoken
+            ]
+        ];
+        try{    
+            $guzzle_response = $client->post($client_details->player_details_url,
+                ['body' => json_encode($datatosend)]
+            );
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+            return $client_response;
+        }catch (\Exception $e){
+           Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
+           return 'false';
+        }
+    }
+
+
     /**
 	 * Find Game Transaction Ext
 	 * @param [string] $[round_ids] [<round id for bets>]
@@ -1197,7 +1261,11 @@ class IAESportsController extends Controller
 				case 17:
 					$type = 'IA Auto Chess Winning Payouts';
 					break;
-				default:		  
+				case 18:
+					$type = 'Bet Rejected Slip';
+					break;
+				default:		
+					$type = 'Unknown operation type '.$getCodeType;
 			}	
 				return $type;
 	}
