@@ -152,14 +152,14 @@ class DigitainHelper{
             $transaction_db->where([
                 ["gte.provider_trans_id", "=", $provider_identifier],
                 ["gte.game_transaction_type", "=", $game_transaction_type],
-                // ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
+                ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
             ]);
         }
         if ($type == 'round_id') {
             $transaction_db->where([
                 ["gte.round_id", "=", $provider_identifier],
                 ["gte.game_transaction_type", "=", $game_transaction_type],
-                // ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
+                ["gte.transaction_detail", "!=", '"FAILED"'], // TEST OVER ALL
             ]);
         }  
         if ($type == 'game_transaction_ext_id') {

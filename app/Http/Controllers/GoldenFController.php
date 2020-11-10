@@ -46,7 +46,7 @@ class GoldenFController extends Controller
         }
 
         try {
-            $client_response = Providerhelper::clientPlayerDetailsCall($client_details);  
+            $client_response = GoldenFHelper::clientPlayerDetailsCall($client_details);  
             // $client_response = Providerhelper::playerDetailsCall($client_details->player_token);  
             $balance = round($client_response->playerdetailsresponse->balance,2);
             $msg = array(
@@ -124,7 +124,7 @@ class GoldenFController extends Controller
         $data = $request->all();
         $game_details = GoldenFHelper::getInfoPlayerGameRound($request->token);
         $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client_response = Providerhelper::clientPlayerDetailsCall($client_details); 
+        $client_response = GoldenFHelper::clientPlayerDetailsCall($client_details); 
         $balance = round($client_response->playerdetailsresponse->balance,2);
 
         if(!is_numeric($request->amount)){
