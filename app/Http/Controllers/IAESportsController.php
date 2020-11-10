@@ -289,15 +289,15 @@ class IAESportsController extends Controller
 	        		$params = ["code" => 111006,"data" => [],"message" => "deposit failed client error"];
 	        		if(isset($gamerecord1)){
 		        		ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
-		        		ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $params, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-		        	}
+					}
+					ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $params, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
             	    Helper::saveLog('IA seamlessDeposit - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
             	    return $params;
 	        	}
 
         		if(isset($client_response1->fundtransferresponse->status->code) 
                 && $client_response1->fundtransferresponse->status->code == "200"){
-
+			        ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $data, $client_response1->requestoclient, $client_response1,$data);
 		        	// SECOND CALL ACTUAL WINNING
 		        	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord1,$cha->orderId, $cha->projectId, $cha->money, 2);
 		        	try {
@@ -307,8 +307,8 @@ class IAESportsController extends Controller
 		        		$params = ["code" => 111006,"data" => [],"message" => "deposit failed client error"];
 		        		if(isset($gamerecord1)){
 		        			ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
-                 	   		ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $params, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-		        		}
+						}
+						ProviderHelper::updatecreateGameTransExt($game_transextension2, 'FAILED', $params, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
             	        Helper::saveLog('IA seamlessDeposit - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
             	        return $params;
 		        	}
@@ -320,7 +320,6 @@ class IAESportsController extends Controller
 			            ],
 						"message" => "Success",
 			        ];	
-			        ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $params, $client_response1->requestoclient, $client_response1,$params);
 		       		ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response2->requestoclient, $client_response2,$params);
 	        		$this->updateBetToWin($cha->projectId, $pay_amount, $income, 1, 2);
 	        		
@@ -512,7 +511,6 @@ class IAESportsController extends Controller
 		        		ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
 		        	}
 		        	$params = ["code" => 111005,"data" => [],"message" => "withdrawal failed client error"];
-		        	ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
 	         	    ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $params, 'FAILED', $e->getMessage(), false, 'FAILED');
 	    	        Helper::saveLog('IA seamlessWithdrawal - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
 	    	        return $params;
@@ -520,7 +518,8 @@ class IAESportsController extends Controller
 
 		 	    if(isset($client_response->fundtransferresponse->status->code) 
                   && $client_response->fundtransferresponse->status->code == "200"){
-		 	   
+					
+		 	    	ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $data, $client_response->requestoclient, $client_response,$data);
 		 	    	// AUTO MATIC 0 WIN AMOUNT
 		 	    	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord1,$cha->orderId, $cha->projectId, 0, 2);
 
@@ -528,12 +527,14 @@ class IAESportsController extends Controller
 			        	$client_response2 = ClientRequestHelper::fundTransfer($client_details,0,$this->game_code,$this->game_name,$game_transextension2,$gamerecord1,'credit');
 			        	Helper::saveLog('IA seamlessWithdrawal CRID',  $this->provider_db_id, json_encode($cha), $client_response2);
 			        } catch (\Exception $e) {
-			        	$params = ["code" => 111005,"data" => [],"message" => "withdrawal failed client error"];
+						if(isset($gamerecord1)){
+							ProviderHelper::updateGameTransactionStatus($gamerecord1, 2, 99);
+						}
+						$params = ["code" => 111005,"data" => [],"message" => "withdrawal failed client error"];
 		         	    ProviderHelper::updatecreateGameTransExt($game_transextension2, 'FAILED', $params, 'FAILED', $e->getMessage(), false, 'FAILED');
 		    	        Helper::saveLog('IA seamlessWithdrawal - FATAL ERROR', $this->provider_db_id, json_encode($cha), Helper::datesent());
 		    	        return $params;
 			        }
-
               	 	$params = [
 			            "code" => $status_code,
 			            "data" => [
@@ -542,9 +543,6 @@ class IAESportsController extends Controller
 			            ],
 						"message" => "Success",
 			        ];	
-
-		 	    	ProviderHelper::updatecreateGameTransExt($game_transextension1, $cha, $params, $client_response->requestoclient, $client_response,$params);
-
                   	ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response2->requestoclient, $client_response2,$params);
                 
 		 	    }elseif(isset($client_response->fundtransferresponse->status->code) 
