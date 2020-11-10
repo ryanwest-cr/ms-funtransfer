@@ -478,7 +478,7 @@ class TGGController extends Controller
 		$token = $data['token'];
 		$client_details = TGGHelper::getClientDetails('token',$token);
 		if($client_details != null){
-			$player_details = TGGHelper::playerDetailsCall($client_details->player_token);
+			$player_details = TGGHelper::playerDetailsCall($client_details);
 				$data_response = [
 					'status' => 'ok',
 					'data' => [
