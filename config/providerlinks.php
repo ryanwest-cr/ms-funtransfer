@@ -2,8 +2,10 @@
 
 $middleware_url_api = 'https://api-test.betrnk.games/public/';
 $gamelobby_site = 'https://daddy.betrnk.games';
+$play_betrnk = 'https://play.betrnk.games:446';
 
 return [
+    'play_betrnk' => $play_betrnk,
     'tigergames' => $gamelobby_site,
     'oauth_mw_api' => [
         'access_url' => $middleware_url_api.'oauth/access_token',
