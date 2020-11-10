@@ -102,7 +102,7 @@ class PGSoftController extends Controller
                 
                 $type = "debit";
                 $rollback = false;
-                $client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$data['game_id'],$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
+                $client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
                 $response =  [
                     "data" => [
@@ -221,7 +221,7 @@ class PGSoftController extends Controller
                         // dd($transaction_id);
                         $type = "credit";
                         $rollback = false;
-                        $client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_code,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
+                        $client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
                         $response =  [
                             "data" => [
