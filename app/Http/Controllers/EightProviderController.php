@@ -97,8 +97,8 @@ class EightProviderController extends Controller
 		$data = $request->all();
 		if($request->name == 'init'){
 
-			$player_details = ProviderHelper::playerDetailsCall($data['token']);
 			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$player_details = $this->playerDetailsCall($client_details);
 			$response = array(
 				'status' => 'ok',
 				'data' => [
@@ -116,17 +116,18 @@ class EightProviderController extends Controller
 				$string_to_obj = json_decode($data['data']['details']);
 			    $game_id = $string_to_obj->game->game_id;
 			    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);	
-			    $player_details = ProviderHelper::playerDetailsCall($data['token']);
-			   	if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
-			   		$msg = array(
-						"status" => 'error',
-						"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
-					);
+			   
+
+				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$player_details = $this->playerDetailsCall($client_details);
+				if ($player_details->playerdetailsresponse->balance < $data['data']['amount']) :
+					$msg = array(
+							"status" => 'error',
+							"error" => ["scope" => "user", "no_refund" => 1, "message" => "Not enough money"]
+						);
 					$this->saveLog('8Provider gameBet PC', $this->provider_db_id, json_encode($player_details), $msg);
 					return $msg;
-			   	endif;
-
-			    $client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				endif;
 				try {
 					$this->saveLog('8Provider gameBet 1', $this->provider_db_id, json_encode($data), 1);
 					$payout_reason = 'Bet';
@@ -193,8 +194,8 @@ class EightProviderController extends Controller
 		    else:
 		    	// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 		    	$this->saveLog('8Provider gameBet 3', $this->provider_db_id, json_encode($data), 3);
-		    	$player_details = ProviderHelper::playerDetailsCall($data['token']);
 				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+				$player_details = $this->playerDetailsCall($client_details);
 				// dd($client_details);
 				$response = array(
 					'status' => 'ok',
@@ -212,8 +213,9 @@ class EightProviderController extends Controller
 		$string_to_obj = json_decode($data['data']['details']);
 		$game_id = $string_to_obj->game->game_id;
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
-		$player_details = ProviderHelper::playerDetailsCall($data['token']);
 		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+		$player_details = $this->playerDetailsCall($client_details);
+
 
 		$game_ext = $this->checkTransactionExist($data['callback_id'], 2); // Find if this callback in game extension
 		// $game_ext = ProviderHelper::findGameExt($data['callback_id'], 2, 'transaction_id'); // Find if this callback in game extension
@@ -469,16 +471,18 @@ class EightProviderController extends Controller
 			$game_refund = ProviderHelper::findGameExt($data['callback_id'], 4, 'transaction_id'); // Find if this callback in game extension	
 			if($game_refund == 'false'): // NO REFUND WAS FOUND PROCESS IT!
 
-			$player_details = ProviderHelper::playerDetailsCall($data['token']);
-			if($player_details == 'false'){
-				$msg = array("status" => 'error',"message" => $e->getMessage());
+			
+			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+			$player_details = $this->playerDetailsCall($client_details);
+			if ($player_details == 'false') {
+				$msg = array("status" => 'error', "message" => $e->getMessage());
 				$this->saveLog('8Provider gameRefund - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
 				return $msg;
 			}
-			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
+
 			$game_transaction_ext = ProviderHelper::findGameExt($data['data']['refund_round_id'], 1, 'round_id'); // Find GameEXT
 			if($game_transaction_ext == 'false'):
-				// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $player_details = $this->playerDetailsCall($data['token']);
 				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				$response = array(
 					'status' => 'ok',
@@ -493,7 +497,7 @@ class EightProviderController extends Controller
 
 			$game_transaction_ext_refund = ProviderHelper::findGameExt($data['data']['refund_round_id'], 4, 'round_id'); // Find GameEXT
 			if($game_transaction_ext_refund != 'false'):
-				// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $player_details = $this->playerDetailsCall($data['token']);
 				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				$response = array(
 					'status' => 'ok',
@@ -512,7 +516,7 @@ class EightProviderController extends Controller
 				$transaction_type = $game_transaction_ext->game_transaction_type == 1 ? 'credit' : 'debit'; // 1 Bet
 				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				if($transaction_type == 'debit'):
-					// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+					// $player_details = $this->playerDetailsCall($data['token']);
 					if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
 						$msg = array(
 							"status" => 'error',
@@ -564,7 +568,7 @@ class EightProviderController extends Controller
 				}
 			else:
 				// NO BET WAS FOUND DO NOTHING
-				// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $player_details = $this->playerDetailsCall($data['token']);
 				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				$response = array(
 					'status' => 'ok',
@@ -578,7 +582,7 @@ class EightProviderController extends Controller
 			endif;
 			else:
 				// NOTE IF CALLBACK WAS ALREADY PROCESS/DUPLICATE PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
-				// $player_details = ProviderHelper::playerDetailsCall($data['token']);
+				// $player_details = $this->playerDetailsCall($data['token']);
 				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				$response = array(
 					'status' => 'ok',
@@ -703,6 +707,43 @@ class EightProviderController extends Controller
     	}else{
     		return 'Transaction Was Updated!';
     	}
+	}
+
+
+
+	public  function playerDetailsCall($client_details, $refreshtoken = false)
+	{
+		$client = new Client([
+			'headers' => [
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . $client_details->client_access_token
+			]
+		]);
+		$datatosend = [
+			"access_token" => $client_details->client_access_token,
+			"hashkey" => md5($client_details->client_api_key . $client_details->client_access_token),
+			"type" => "playerdetailsrequest",
+			"datesent" => Helper::datesent(),
+			"clientid" => $client_details->client_id,
+			"playerdetailsrequest" => [
+				"player_username" => $client_details->username,
+				"client_player_id" => $client_details->client_player_id,
+				"token" => $client_details->player_token,
+				"gamelaunch" => true,
+				"refreshtoken" => $refreshtoken
+			]
+		];
+		try {
+			$guzzle_response = $client->post(
+				$client_details->player_details_url,
+				['body' => json_encode($datatosend)]
+			);
+			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			return $client_response;
+		} catch (\Exception $e) {
+			Helper::saveLog('ALDEBUG client_player_id = ' . $client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
+			return 'false';
+		}
 	}
 
 	 public function getClientDetails($type = "", $value = "", $gg=1, $providerfilter='all') {

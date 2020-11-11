@@ -247,76 +247,37 @@ class AWSHelper{
 	}
 
 
-	public static function playerDetailsCall($player_token, $refreshtoken=false, $type=1){
-		if($type == 1){
-			$client_details = AWSHelper::getClientDetails('token', $player_token);
-			// return 1;
-        }elseif($type == 2){
-			$client_details = AWSHelper::getClientDetails('token', $player_token, 2);
-			// return 2;
-		}
-		if($client_details){
-			$client = new Client([
-			    'headers' => [ 
-			    	'Content-Type' => 'application/json',
-			    	'Authorization' => 'Bearer '.$client_details->client_access_token
-			    ]
-			]);
-			$datatosend = [
-				"access_token" => $client_details->client_access_token,
-				"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-				"type" => "playerdetailsrequest",
-				"datesent" => Helper::datesent(),
-                "gameid" => "",
-				"clientid" => $client_details->client_id,
-				"playerdetailsrequest" => [
-					"player_username"=>$client_details->username,
-					"client_player_id" => $client_details->client_player_id,
-					"token" => $player_token,
-					"gamelaunch" => true,
-					"refreshtoken" => $refreshtoken
-				]
-			];
-
-			try{	
-				$guzzle_response = $client->post($client_details->player_details_url,
-				    ['body' => json_encode($datatosend)]
-				);
-				$client_response = json_decode($guzzle_response->getBody()->getContents());
-				Helper::saveLog('ALDEBUG REQUEST SEND = '.$player_token,  99, json_encode($client_response), $datatosend);
-				if(isset($client_response->playerdetailsresponse->status->code) && $client_response->playerdetailsresponse->status->code != 200 || $client_response->playerdetailsresponse->status->code != '200'){
-					if($refreshtoken == true){
-						if(isset($client_response->playerdetailsresponse->refreshtoken) &&
-					    $client_response->playerdetailsresponse->refreshtoken != false || 
-					    $client_response->playerdetailsresponse->refreshtoken != 'false'){
-							DB::table('player_session_tokens')->insert(
-	                        array('player_id' => $client_details->player_id, 
-	                        	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
-	                        	  'status_id' => '1')
-	                        );
-						}
-					}
-					return 'false';
-				}else{
-					if($refreshtoken == true){
-						if(isset($client_response->playerdetailsresponse->refreshtoken) &&
-					    $client_response->playerdetailsresponse->refreshtoken != false || 
-					    $client_response->playerdetailsresponse->refreshtoken != 'false'){
-							DB::table('player_session_tokens')->insert(
-		                        array('player_id' => $client_details->player_id, 
-		                        	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
-		                        	  'status_id' => '1')
-		                    );
-						}
-					}
-			 		return $client_response;
-				}
-
-            }catch (\Exception $e){
-               Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
-               return 'false';
-            }
-		}else{
+	public static function playerDetailsCall($client_details, $refreshtoken = false)
+	{
+		$client = new Client([
+			'headers' => [
+				'Content-Type' => 'application/json',
+				'Authorization' => 'Bearer ' . $client_details->client_access_token
+			]
+		]);
+		$datatosend = [
+			"access_token" => $client_details->client_access_token,
+			"hashkey" => md5($client_details->client_api_key . $client_details->client_access_token),
+			"type" => "playerdetailsrequest",
+			"datesent" => Helper::datesent(),
+			"clientid" => $client_details->client_id,
+			"playerdetailsrequest" => [
+				"player_username" => $client_details->username,
+				"client_player_id" => $client_details->client_player_id,
+				"token" => $client_details->player_token,
+				"gamelaunch" => true,
+				"refreshtoken" => $refreshtoken
+			]
+		];
+		try {
+			$guzzle_response = $client->post(
+				$client_details->player_details_url,
+				['body' => json_encode($datatosend)]
+			);
+			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			return $client_response;
+		} catch (\Exception $e) {
+			Helper::saveLog('ALDEBUG client_player_id = ' . $client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
 			return 'false';
 		}
 	}

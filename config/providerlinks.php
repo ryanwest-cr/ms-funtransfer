@@ -147,6 +147,8 @@ return [
         'pch' => 'BRNK', 
         'prefix' => 'TGAMES', // Nothing todo with the provider
         'iv' => '45b80556382b48e5',
+        // 'url_lunch' => 'http://apitest.ilustretest.com/user/lunch',
+        // 'url_register' => 'http://apitest.ilustretest.com/user/register',
         'url_lunch' => 'http://api.ilustretest.com/user/lunch',
         'url_register' => 'http://api.ilustretest.com/user/register',
         'url_withdraw' => 'http://api.ilustretest.com/user/withdraw',
