@@ -306,7 +306,8 @@ class IAESportsController extends Controller
 								"message" => "Success",
 							];	
 							ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response2->requestoclient, $client_response2,$params);
-							$this->updateBetToWin($cha->projectId, $pay_amount, $income, 1, 2);
+							// $this->updateBetToWin($cha->projectId, $pay_amount, $income, 1, 2);
+							$this->updateBetToWin($gamerecord1, $pay_amount, $income, 1, 2);
 							return $params;
 					}elseif(isset($client_response2->fundtransferresponse->status->code) 
 						&& $client_response2->fundtransferresponse->status->code == "402"){
@@ -355,7 +356,8 @@ class IAESportsController extends Controller
 								"message" => "Success",
 							];	
 							ProviderHelper::updatecreateGameTransExt($game_transextension2, $cha, $params, $client_response2->requestoclient, $client_response2,$params);
-							$this->updateBetToWin($cha->projectId, $pay_amount, $income, 1, 2);
+							$this->updateBetToWin($gamerecord1, $pay_amount, $income, 1, 2);
+							// $this->updateBetToWin($cha->projectId, $pay_amount, $income, 1, 2);
 						}elseif(isset($client_response->fundtransferresponse->status->code) 
 							&& $client_response->fundtransferresponse->status->code == "402"){
 							if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
@@ -1176,7 +1178,8 @@ class IAESportsController extends Controller
 	 */
 	public  function updateBetToWin($round_id, $pay_amount, $income, $win, $entry_id) {
    	    $update = DB::table('game_transactions')
-                ->where('round_id', $round_id)
+                ->where('game_trans_id', $round_id)
+				// ->where('round_id', $round_id)
                 ->update(['pay_amount' => $pay_amount, 
 	        		  'income' => $income, 
 	        		  'win' => $win, 
