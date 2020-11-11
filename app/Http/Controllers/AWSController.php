@@ -119,7 +119,8 @@ class AWSController extends Controller
 			return $response;
 		}
 
-		$player_details = AWSHelper::playerDetailsCall($client_details->player_token);
+		// $player_details = AWSHelper::playerDetailsCall($client_details->player_token);
+		$player_details = AWSHelper::playerDetailsCall($client_details);
 		if($player_details != 'false'){
 			$response = [
 				"msg"=> "success",
@@ -196,7 +197,8 @@ class AWSController extends Controller
 		}
 
 		AWSHelper::saveLog('AWS singleFundTransfer - D1 PlayerDetails', $this->provider_db_id, $data, Helper::datesent());
-		$player_details = AWSHelper::playerDetailsCall($client_details->player_token);
+		$player_details = AWSHelper::playerDetailsCall($client_details);
+		// $player_details = AWSHelper::playerDetailsCall($client_details->player_token);
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $details->gameId);
 		if($game_details == null){
 			$response = [
@@ -389,7 +391,8 @@ class AWSController extends Controller
 
 		$prefixed_username = explode("_TG", $details->accountId);
 		$client_details = AWSHelper::getClientDetails('player_id', $prefixed_username[1]);
-		$player_details = AWSHelper::playerDetailsCall($client_details->player_token);
+		$player_details = AWSHelper::playerDetailsCall($client_details);
+		// $player_details = AWSHelper::playerDetailsCall($client_details->player_token);
 
 		if(!AWSHelper::findMerchantIdByClientId($client_details->client_id)){
             $response = [
