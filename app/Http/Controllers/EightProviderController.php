@@ -137,11 +137,19 @@ class EightProviderController extends Controller
 			 	    $bet_payout = 0; // Bet always 0 payout!
 			 	    $income = $data['data']['amount'];
 			 	    $provider_trans_id = $data['callback_id'];
-			 	    $round_id = $data['data']['round_id'];
+					$round_id = $data['data']['round_id'];
 
-					$game_trans = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, $data['data']['amount'],  $data['data']['amount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+					$check_round_exist = ProviderHelper::findGameExt($round_id, 1, 'round_id');
+					if ($check_round_exist == 'false') {
+						$game_trans = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, $data['data']['amount'],  $data['data']['amount'], $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
+						$game_transextension = ProviderHelper::createGameTransExtV2($game_trans, $provider_trans_id, $round_id, $data['data']['amount'], 1);
+					} else {
+						$game_transaction = ProviderHelper::findGameTransaction($check_round_exist->game_trans_id, 'game_transaction');
+						$bet_amount = $game_transaction->bet_amount + $data['data']['amount'];
+						$game_trans = $check_round_exist->game_trans_id;
+						$game_transextension = ProviderHelper::createGameTransExtV2($game_trans, $provider_trans_id, $round_id, $data['data']['amount'], 1);
+					}
 
-					$game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $round_id, $data['data']['amount'], 1);
 
 					try {
 						$client_response = ClientRequestHelper::fundTransfer($client_details,ProviderHelper::amountToFloat($data['data']['amount']),$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
@@ -157,6 +165,13 @@ class EightProviderController extends Controller
 
 					if(isset($client_response->fundtransferresponse->status->code) 
 					             && $client_response->fundtransferresponse->status->code == "200"){
+
+						if ($check_round_exist != 'false') {
+							$income = $bet_amount - ($game_transaction->pay_amount + $game_transaction->income);
+							$win_lost = $income < 0 ? 0 : 1;
+							$this->updateBetTransactionWithBet($game_trans, $game_transaction->pay_amount, $bet_amount, $income, $win_lost, $game_transaction->entry_id);
+						}			
+
 						$this->saveLog('8Provider gameBet 2', $this->provider_db_id, json_encode($data), 2);
 						$response = array(
 							'status' => 'ok',
@@ -678,7 +693,7 @@ class EightProviderController extends Controller
 	public  function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id) {
    	    $update = DB::table('game_transactions')
                 // ->where('round_id', $round_id)
-   	    ->where('game_trans_id', $round_id)
+   	  		    ->where('game_trans_id', $round_id)
                 ->update(['pay_amount' => $pay_amount, 
 	        		  'income' => $income, 
 	        		  'win' => $win, 
@@ -688,6 +703,20 @@ class EightProviderController extends Controller
 		return ($update ? true : false);
 	}
 
+
+	public function updateBetTransactionWithBet($round_id, $pay_amount, $bet_amount, $income, $win, $entry_id)
+	{
+		DB::table('game_transactions')
+			->where('game_trans_id', $round_id)
+			->update([
+				'pay_amount' => $pay_amount,
+				'bet_amount' => $bet_amount,
+				'income' => $income,
+				'win' => $win,
+				'entry_id' => $entry_id,
+				'transaction_reason' => $this->updateReason($win),
+			]);
+	}
 
 	/**
 	 * Find bet and update to win 
