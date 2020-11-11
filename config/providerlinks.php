@@ -97,15 +97,15 @@ return [
             'merchant_id' => 'TG',
             'merchant_key' => '5819e7a6d0683606e60cd6294edfc4c557a2dd8c9128dd6fbe1d58e77cd8067fead68c48cdb3ea85dcb2e05518bac60412a0914d156a36b4a2ecab359c7adfad',
         ], 
-        '2THB' => [ // ASK THB
+        '6THB' => [ // ASK THB
             'merchant_id' => 'ASKME',
             'merchant_key' => 'a44c3ca52ef01f55b0a8b3859610f554b05aa57ca36e4a508addd9ddae539a84d43f9407c72d555bc3093bf3516663d504e98b989f3ec3e3ff8407171f43ccdc',
         ],
-        '3XIGOLO' => [ // XIGOLO USD
+        '5USD' => [ // XIGOLO USD
             'merchant_id' => 'XIGOLO',
             'merchant_key' => 'b7943fc2e48c3b74a2c31514aebdce25364bd2b1a97855f290c01831052b25478c35bdebdde8aa7a963e140a8c1e6401102321a2bd237049f9e675352c35c4cc',
         ],
-        '4TGC' => [  // ASK ME THB
+        '7USD' => [  // ASK ME USD
             'merchant_id' => 'TGC',
             'merchant_key' => 'cb1bc0a2fc16bddfd549bdd8aae0954fba28c9b11c6a25e6ef886b56e846b033ae5fe29880be69fd8741ab400e6c4cb2f8c0f05e49dcc4568362370278ba044d',
         ]
