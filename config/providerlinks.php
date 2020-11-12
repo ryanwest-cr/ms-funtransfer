@@ -222,6 +222,8 @@ return [
         'gamelaunch_url' => 'https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do',
         'secureLogin' => 'tg_tigergames', //or stylename
         'secret_key' => 'testKey',
+        'casinoId' => 'ppcdk00000004874',
+        'wsUri' => 'wss://prelive-dga.pragmaticplaylive.net/ws',
     ],
     'wazdan'=>[
         'operator' => 'tigergames',
