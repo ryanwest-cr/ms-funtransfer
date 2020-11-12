@@ -7,7 +7,7 @@ use GuzzleHttp\Client;
 use DB;
 class GoldenFHelper{
 
-	public static function clientPlayerDetailsCall($client_details, $refreshtoken=false){
+	public static function playerDetailsCall($client_details, $refreshtoken=false){
         $client = new Client([
             'headers' => [ 
                 'Content-Type' => 'application/json',

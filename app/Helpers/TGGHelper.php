@@ -10,14 +10,15 @@ class TGGHelper{
 	/* ISOLATION METHODDS FOR TESTING PERFORMANCE OPTIMAZTION */
 	/* PROVIDER HELPERS */
 
-	public static function playerDetailsCall($player_token, $refreshtoken=false, $type=1){
-		if($type == 1){
-			$client_details = TGGHelper::getClientDetails('token', $player_token);
-			// return 1;
-        }elseif($type == 2){
-			$client_details = TGGHelper::getClientDetails('token', $player_token, 2);
-			// return 2;
-		}
+	public static function playerDetailsCall($client_details, $refreshtoken=false, $type=1){
+		// if($type == 1){
+		// 	$client_details = TGGHelper::getClientDetails('token', $player_token);
+		// 	// return 1;
+  //       }elseif($type == 2){
+		// 	$client_details = TGGHelper::getClientDetails('token', $player_token, 2);
+		// 	// return 2;
+		// }
+		
 		if($client_details){
 			$client = new Client([
 			    'headers' => [ 
@@ -35,7 +36,7 @@ class TGGHelper{
 				"playerdetailsrequest" => [
 					"player_username"=>$client_details->username,
 					"client_player_id" => $client_details->client_player_id,
-					"token" => $player_token,
+					"token" => $client_details->player_token,
 					"gamelaunch" => true,
 					"refreshtoken" => $refreshtoken
 				]
@@ -59,7 +60,7 @@ class TGGHelper{
 				    ['body' => json_encode($datatosend)]
 				);
 				$client_response = json_decode($guzzle_response->getBody()->getContents());
-				Helper::saveLog('ALDEBUG REQUEST SEND = '.$player_token,  99, json_encode($client_response), $datatosend);
+				Helper::saveLog('ALDEBUG REQUEST SEND = '.$client_details->player_token,  99, json_encode($client_response), $datatosend);
 				if(isset($client_response->playerdetailsresponse->status->code) && $client_response->playerdetailsresponse->status->code != 200 || $client_response->playerdetailsresponse->status->code != '200'){
 					if($refreshtoken == true){
 						if(isset($client_response->playerdetailsresponse->refreshtoken) &&

@@ -28,7 +28,9 @@ class NetEntController extends Controller
 				"responseMessage" => "Success"
 			];
 			NetEntHelper::saveLog('NetEnt Currency', $this->provider_db_id,  json_encode($request->all()), $response);
-			return json_encode($response);
+			// return json_encode($response);
+			return response($response,200)
+				->header('Content-Type', 'application/json');
 		} catch(\Exception $e){
 			$reponse = array (
 				'responseCode' => 99,
@@ -39,7 +41,8 @@ class NetEntController extends Controller
 				'messagesToPlayer' => 'NULL'
 			);
 			NetEntHelper::saveLog('NetEnt Currency Exception', $this->provider_db_id,  json_encode($request->all()), $response);
-			return json_encode($response);
+			return response($response,200)
+				->header('Content-Type', 'application/json');
 		}
 		
 	}
@@ -58,7 +61,8 @@ class NetEntController extends Controller
 					'messagesToPlayer' => NULL
 				);
 				NetEntHelper::saveLog('NetEnt Balance Invalid currency', $this->provider_db_id,  json_encode($request->all()), $response);
-				return json_encode($response);
+				return response($response,200)
+				->header('Content-Type', 'application/json');
 			}
 			$player_details = NetEntHelper::playerDetailsCall($getClientDetails);
 			$num = $player_details->playerdetailsresponse->balance;
@@ -70,7 +74,8 @@ class NetEntController extends Controller
 				"responseMessage" => "Success"
 			];
 			NetEntHelper::saveLog('NetEnt Balance', $this->provider_db_id,  json_encode($request->all()), $response);
-			return json_encode($response);
+			return response($response,200)
+				->header('Content-Type', 'application/json');
 		}catch(\Exception $e){
 			$response = array (
 				'responseCode' => 99,
@@ -81,9 +86,11 @@ class NetEntController extends Controller
 				'messagesToPlayer' => NULL,
 			);
 			NetEntHelper::saveLog('NetEnt Balance Exception', $this->provider_db_id,  json_encode($request->all()), $response);
-			return json_encode($response);
+			return response($response,200)
+				->header('Content-Type', 'application/json');
 		}
 	}
+	
 	//bet process
 	public function withdraw(Request $request, $player){
 		
@@ -130,7 +137,8 @@ class NetEntController extends Controller
 				Helper::updateGameTransaction($existing_bet,$request_data,$type);
 				NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
 				NetEntHelper::saveLog('NetEnt Deposit success', $this->provider_db_id, json_encode($request->all()), $response);
-				return json_encode($response);
+				return response($response,200)
+				->header('Content-Type', 'application/json');
 			
 			} else { 
 			//ROLLBACK AN UNKNOWN TRANSACTION and IDOM
@@ -141,7 +149,8 @@ class NetEntController extends Controller
 					'balance' => round($player_details->playerdetailsresponse->balance,3)
 				);
 				NetEntHelper::saveLog('NetEnt Withdraw transactionRef does not exist ', $this->provider_db_id,  json_encode($request->all()), $response);
-				return json_encode($response);
+				return response($response,200)
+				->header('Content-Type', 'application/json');
 			}
 			
 		}
@@ -157,7 +166,8 @@ class NetEntController extends Controller
 				'balance' => (float)$player_details->playerdetailsresponse->balance
 			);
 			NetEntHelper::saveLog('NetEnt Withdraw Idom', $this->provider_db_id,  json_encode($request->all()), $response);
-			return json_encode($response);
+			return response($response,200)
+				->header('Content-Type', 'application/json');
 		endif;
 
 		try {
@@ -172,7 +182,8 @@ class NetEntController extends Controller
 					'balance' => (float)$player_details->playerdetailsresponse->balance
 				);
 				NetEntHelper::saveLog('NetEnt Withdraw Not Enough money', $this->provider_db_id,  json_encode($request->all()), $response);
-				return json_encode($response);
+				return response($response,200)
+				->header('Content-Type', 'application/json');
 			}
 
 			if($bet_amount < 0 ){ // NEGATIVE DEPOSIT RESPONSE
@@ -186,7 +197,8 @@ class NetEntController extends Controller
 					'messagesToPlayer' => NULL,
 				);
 				NetEntHelper::saveLog('NetEnt Negative withdraw', $this->provider_db_id,  json_encode($request->all()), $response);
-				return json_encode($response);
+				return response($response,200)
+				->header('Content-Type', 'application/json');
 
 			}
 
@@ -225,7 +237,8 @@ class NetEntController extends Controller
 				//UPDATE gameExtension
 				NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
 			    NetEntHelper::saveLog('NetEnt Withdraw success', $this->provider_db_id, json_encode($request->all()), $response);
-			    return $response;
+			    return response($response,200)
+				->header('Content-Type', 'application/json');
 			
 		} catch(\Exception $e) { // ERROR HANDLING
 			$response = array (
@@ -237,7 +250,8 @@ class NetEntController extends Controller
 				'messagesToPlayer' => NULL,
 			);
 			NetEntHelper::saveLog('NetEnt Withdraw Exception '.$e->getMessage(), $this->provider_db_id, json_encode($request->all()), $response);
-			return json_encode($response);
+			return response($response,200)
+				->header('Content-Type', 'application/json');
 		}
 
 
@@ -263,7 +277,8 @@ class NetEntController extends Controller
 				'messagesToPlayer' => NULL,
 			);
 			NetEntHelper::saveLog('NetEnt Negative deposit', $this->provider_db_id,  json_encode($request->all()), $response);
-			return json_encode($response);
+			return response($response,200)
+				->header('Content-Type', 'application/json');
 		}
 
 		// $existing_win =NetEntHelper::findGameExt($request['gameRoundRef'], 2, 'transaction_id'); 
@@ -307,7 +322,8 @@ class NetEntController extends Controller
 				Helper::updateGameTransaction($existing_bet,$request_data,$type);
 				NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
 				NetEntHelper::saveLog('NetEnt Deposit success', $this->provider_db_id, json_encode($request->all()), $response);
-				return json_encode($response);
+				return response($response,200)
+				->header('Content-Type', 'application/json');
 			else: 
 
 				//TOURNAMENT PROCESS
@@ -321,7 +337,8 @@ class NetEntController extends Controller
 						'balance' => (float)$player_details->playerdetailsresponse->balance
 					);
 					NetEntHelper::saveLog('NetEnt Deposit Idom', $this->provider_db_id,  json_encode($request->all()), $response);
-					return json_encode($response);
+					return response($response,200)
+						->header('Content-Type', 'application/json');
 					// $pay_amount = $amount;
 					// $income = 0 - $amount;
 					// $method = 2;
@@ -363,7 +380,8 @@ class NetEntController extends Controller
 						'balance' => (float)$player_details->playerdetailsresponse->balance
 					);
 					NetEntHelper::saveLog('NetEnt Deposit Idom', $this->provider_db_id,  json_encode($request->all()), $response);
-					return json_encode($response);
+					return response($response,200)
+						->header('Content-Type', 'application/json');
 				}
 				
 			endif;
@@ -378,7 +396,8 @@ class NetEntController extends Controller
 				'balance' => (float)$player_details->playerdetailsresponse->balance
 			);
 			NetEntHelper::saveLog('NetEnt Deposit Idom', $this->provider_db_id,  json_encode($request->all()), $response);
-			return json_encode($response);
+			return response($response,200)
+				->header('Content-Type', 'application/json');
 			
 		endif;
 	}

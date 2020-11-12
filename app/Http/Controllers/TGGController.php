@@ -76,8 +76,10 @@ class TGGController extends Controller
 		$game_details = TGGHelper::findGameDetails('game_code', $this->provider_db_id, $game_id); //get game details here
 		// $game_ext = $this->findGameExt($request['callback_id'], 1, 'transaction_id'); // Find if this callback in game extension
 		
-		$player_details = TGGHelper::playerDetailsCall($request['token']);
+		
 		$client_details = TGGHelper::getClientDetails('token', $request['token']);
+		$player_details = TGGHelper::playerDetailsCall($client_details);
+
 		$game_ext = TGGHelper::checkTransactionExist($request['callback_id'], 1);
 		if($game_ext == 'false'): // NO BET
 			// TGGHelper::saveLog('TGG new Bet Arrived', $this->provider_db_id, json_encode($request), 'bet process');
@@ -107,7 +109,7 @@ class TGGController extends Controller
 				$type = "debit";
 				$rollback = false;
 				
-				$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
+				$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_id,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 				$response = array(
 					'status' => 'ok',
 					'data' => [
@@ -150,8 +152,8 @@ class TGGController extends Controller
 	    $game_id = $string_to_obj->game->game_id;
 		$game_details = TGGHelper::findGameDetails('game_code', $this->provider_db_id, $game_id); //get game details here
 		
-		$player_details = TGGHelper::playerDetailsCall($request['token']);
 		$client_details = TGGHelper::getClientDetails('token', $request['token']);
+		$player_details = TGGHelper::playerDetailsCall($client_details);
 
 		$game_ext = TGGHelper::checkTransactionExist($request['callback_id'], 2); 
 		if($game_ext == 'false'):
@@ -186,7 +188,7 @@ class TGGController extends Controller
 					
 					$type = "credit";
 					$rollback = false;
-					$client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
+					$client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_id,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
 
 					$response = array(
 					'status' => 'ok',
@@ -210,7 +212,7 @@ class TGGController extends Controller
 					
 					$type = "credit";
 					$rollback = false;
-					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details[0]->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
+					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_id,$game_details[0]->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
 					//reponse to provider
 					
 					$response = array(
@@ -269,8 +271,8 @@ class TGGController extends Controller
 		
 	    $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		
-		$player_details = TGGHelper::playerDetailsCall($data['token']);
 		$client_details = TGGHelper::getClientDetails('token', $data['token']);
+		$player_details = TGGHelper::playerDetailsCall($client_details);
 
 		$game_refund = TGGHelper::findGameExt($data['callback_id'], 4, 'transaction_id'); // Find if this callback in game extension	
 		if($game_refund == 'false'): // NO REFUND WAS FOUND PROCESS IT!
@@ -289,7 +291,7 @@ class TGGController extends Controller
 						"type" => "fundtransferrequest",
 						"datesent" => Helper::datesent(),
 						"gamedetails" => [
-						   "gameid" => $game_details->game_code, // $game_details->game_code
+						   "gameid" => $game_id, // $game_details->game_code
 						   "gamename" => $game_details->game_name
 						],
 						"fundtransferrequest" => [
@@ -317,7 +319,6 @@ class TGGController extends Controller
 						['body' => json_encode($requesttosend)]
 					);
 					$client_response = json_decode($guzzle_response->getBody()->getContents());
-					
 					$response = array(
 					'status' => 'ok',
 					'data' => [
@@ -327,7 +328,7 @@ class TGGController extends Controller
 					  );
 					// $this->updateBetTransaction($data['data']['refund_round_id'], $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
 					TGGHelper::updateBetTransaction($existing_transaction->game_trans_id, $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
-					TGGHelper::creteTGGtransaction($existing_transaction->game_trans_id, $data, $requesttosend, $client_response, $client_response,$data, 4, $data['data']['amount'], $data['callback_id'], $data['data']['refund_round_id']);
+					TGGHelper::creteTGGtransaction($existing_transaction->game_trans_id, $data, $requesttosend, $client_response->fundtransferresponse, $response,NULL, 4, $existing_transaction->bet_amount, $data['callback_id'], $data['data']['refund_round_id']);
 					
 					TGGHelper::saveLog('TGG gameRefund success '.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), 'success refund');
 				  	return $response;
@@ -477,7 +478,7 @@ class TGGController extends Controller
 		$token = $data['token'];
 		$client_details = TGGHelper::getClientDetails('token',$token);
 		if($client_details != null){
-			$player_details = TGGHelper::playerDetailsCall($client_details->player_token);
+			$player_details = TGGHelper::playerDetailsCall($client_details);
 				$data_response = [
 					'status' => 'ok',
 					'data' => [
