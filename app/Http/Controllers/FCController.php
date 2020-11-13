@@ -434,7 +434,7 @@ class FCController extends Controller
 		return DB::table('game_transactions')->where("game_trans_id",$existingdata[0]->game_trans_id)->update($trans_data);
     }
     private function findGameDetails($type,$provider_id,$game_code){
-        $query = DB::Select("SELECT * FROM games WHERE game_code = ".$game_code." AND provider_id = ".$provider_id."");
+        $query = DB::Select("SELECT game_id,game_code,game_name FROM games WHERE game_code = ".$game_code." AND provider_id = ".$provider_id."");
         $result = count($query);
         return $result > 0 ? $query[0] : null;
     }
