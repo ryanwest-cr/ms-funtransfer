@@ -158,6 +158,7 @@ class NetEntController extends Controller
 		}
 		
 		if($existing_bet != 'false'): // this will be IDOM
+			
 			$response = array (
 				'responseCode' => 0,
 				'responseMessage' => 'Success',
