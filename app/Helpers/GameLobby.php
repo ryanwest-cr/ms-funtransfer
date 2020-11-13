@@ -596,39 +596,40 @@ class GameLobby{
         $stylename = config('providerlinks.tpp.secureLogin');
         $key = config('providerlinks.tpp.secret_key');
         $gameluanch_url = config('providerlinks.tpp.gamelaunch_url');
+        $casinoId = config('providerlinks.tpp.casinoId');
+        $wsUri = config('providerlinks.tpp.wsUri');
 
         $client_details = Providerhelper::getClientDetails('token', $token);
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        
+        // $game_details = DB::select("SELECT * FROM games WHERE provider_id = '26' AND game_code = '".$game_code."' order by created  ");
+        $game_details = DB::table('games')->where('provider_id','=',26)->where('game_code','=',$game_code)->orderBy('created_at','desc')->first();
+        // $game_details = Helper::findGameDetails('game_code', 26, $game_code);
+
         $userid = "TGaming_".$client_details->player_id;
         $currency = $client_details->default_currency;
         $hashCreatePlayer = md5('currency='.$currency.'&externalPlayerId='.$userid.'&secureLogin='.$stylename.$key);
-        
-
-        // $createPlayer = "https://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/player/account/create/?secureLogin=$stylename&externalPlayerId=$userid&currency=$currency&hash=$hashCreatePlayer";
-        // $createP = file_get_contents($createPlayer);
-        // $createP = json_encode($createP);
-        // $createP = json_decode(json_decode($createP));
-
-        
-
-        // $hashCurrentBalance =  md5("externalPlayerId=".$userid."&secureLogin=".$stylename.$key);
-        // $currentBalance = "https://api.prerelease-env.biz/IntegrationService/v3/http/CasinoGameAPI/balance/current/?externalPlayerId=$userid&secureLogin=$stylename&hash=$hashCurrentBalance";
 
         $paramEncoded = urlencode("token=".$token."&symbol=".$game_code."&technology=H5&platform=WEB&language=en&lobbyUrl=daddy.betrnk.games");
         $url = "$gameluanch_url?key=$paramEncoded&stylename=$stylename";
-        // $result = file_get_contents($url);
         $result = json_encode($url);
-        
-        // $result = json_decode(json_decode($result));
-        Helper::saveLog('start game url PP', 26, $result,"$result");
-        return $url;
 
-        // return isset($result->gameURL) ? $result->gameURL : false;
-
-        // $url = "https://tigergames-sg0.prerelease-env.biz/gs2c/playGame.do?key=$token&stylename=$stylename&symbol=$game_code&technology=H5&platform=WEB&language=en";
-        
-        // return $url;
+        $aes = new AES();
+        $data = array(
+            'url' => $url,
+            'wsUri' => $wsUri,
+            'tableId' => $game_code,
+            'casinoId' => $casinoId,
+        );
+        $encoded_data = $aes->AESencode(json_encode($data));
+        if($game_details->game_type_id == '15'){
+            Helper::saveLog('start game url PP DGA', 26, $result,"$result");
+            // return "http://play.betrnk.games:81/loadgame/pragmatic-play-dga?param=".urlencode($encoded_data);
+            $url = config("providerlinks.play_betrnk")."/loadgame/pragmatic-play-dga?param=".urlencode($encoded_data);
+            return $url;
+        }else{
+            Helper::saveLog('start game url PP', 26, $result,"$result");
+            return $url;
+        }
     }
 
     public static function yggdrasillaunchUrl($data){
