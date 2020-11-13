@@ -161,7 +161,7 @@ class FCController extends Controller
                 $updateFCGameTransactionExtinit =  microtime(true);
                 $this->updateFCGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                 $endupdateFCGameTransaction = microtime(true) - $updateFCGameTransactionExtinit;
-                Helper::saveLog('responseTime(FC)', 12, json_encode(["type"=>"winsuccess","stating"=>$this->startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $this->startTime,"clientresponse"=>$client_response_time,"checkGameTransaction"=>$endcheckGameTransaction,"findgamedetails" =>$endfindGameDetailsinit,"getGameTransaction"=>$endgetGameTransaction,"updateGameTransaction"=>$endupdateGameTransaction,"udpateGamtransactionExt"=>$$endupdateFCGameTransaction]);
+                Helper::saveLog('responseTime(FC)', 12, json_encode(["type"=>"winsuccess","stating"=>$this->startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $this->startTime,"clientresponse"=>$client_response_time,"checkGameTransaction"=>$endcheckGameTransaction,"findgamedetails" =>$endfindGameDetailsinit,"getGameTransaction"=>$endgetGameTransaction,"updateGameTransaction"=>$endupdateGameTransaction,"udpateGamtransactionExt"=>$endupdateFCGameTransaction]);
                 return response($response,200)
                     ->header('Content-Type', 'application/json');
             }
