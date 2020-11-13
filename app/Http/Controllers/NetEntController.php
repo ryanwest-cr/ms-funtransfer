@@ -16,6 +16,7 @@ class NetEntController extends Controller
 {
 	public function __construct(){
 		$this->provider_db_id = 44;//mw operator sub_provider 76
+		
 	}
 
 	public function currency(Request $request, $player){
