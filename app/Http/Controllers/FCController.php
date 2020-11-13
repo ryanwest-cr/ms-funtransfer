@@ -119,7 +119,7 @@ class FCController extends Controller
             $win_amount = $win_amount < 0 ? 0 :$win_amount;
             $win = $data["Win"] == 0 ? 0 : 1;
             $findGameDetailsinit =  microtime(true);
-            $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data["GameID"]);
+            $game_details = $this->findGameDetails('game_code', $this->provider_db_id, $data["GameID"]);
             $endfindGameDetailsinit = microtime(true) - $findGameDetailsinit;
             $json_data = array(
                 "transid" => $data["BankID"],
