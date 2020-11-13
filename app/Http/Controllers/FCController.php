@@ -61,7 +61,7 @@ class FCController extends Controller
             $bet_amount = $game_transaction ? 0 : round($data["Bet"],2);
             $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
             $findGameDetailsinit =  microtime(true);
-            $game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $data["GameID"]);
+            $game_details = $this->findGameDetails('game_code', $this->provider_db_id, $data["GameID"]);
             $endfindGameDetailsinit = microtime(true) - $findGameDetailsinit;
             $json_data = array(
                 "transid" => $data["BankID"],
@@ -432,7 +432,12 @@ class FCController extends Controller
 		}
 		/*var_dump($trans_data); die();*/
 		return DB::table('game_transactions')->where("game_trans_id",$existingdata[0]->game_trans_id)->update($trans_data);
-	}
+    }
+    private function findGameDetails($type,$provider_id,$game_code){
+        $query = DB::Select("SELECT * FROM games WHERE game_code = ".$game_code." AND provider_id = ".$provider_id."");
+        $result = count($query);
+        return $result > 0 ? $query[0] : null;
+    }
     private  function updateFCGameTransactionExt($gametransextid,$mw_request,$mw_response,$client_response){
 		$gametransactionext = array(
 			"mw_request"=>json_encode($mw_request),
