@@ -99,7 +99,7 @@ class AWSHelper{
 		);
 
 	    $client_response = json_decode($guzzle_response->getBody()->getContents());
-	    Helper::saveLog('AWS BO Register Resp', 21, json_encode($client_response), $requesttosend);
+	    AWSHelper::saveLog('AWS BO Register Resp', 21, json_encode($client_response), $requesttosend);
 	    return $client_response;
 	}
 
@@ -152,7 +152,7 @@ class AWSHelper{
 		);
 
 	    $client_response = json_decode($guzzle_response->getBody()->getContents());
-	    Helper::saveLog('AWS BO Player Check Resp', 21, json_encode($client_response), $requesttosend);
+	    AWSHelper::saveLog('AWS BO Player Check Resp', 21, json_encode($client_response), $requesttosend);
 	    return $client_response;
 	}
 
@@ -208,7 +208,6 @@ class AWSHelper{
 
 	/* PROVIDER HELPER GLOBAL FUNCTION BUT ISOLATED FOR MANUAL UPDATING THE PROVIDER */
 
-
 	public static function saveLog($method, $provider_id = 0, $request_data, $response_data) {
 		$data = [
 				"method_name" => $method,
@@ -220,35 +219,10 @@ class AWSHelper{
 		return DB::table('debug')->insertGetId($data);
 	}
 
-
-
-	/**
-	 * HELPER
-	 * Create Game Transaction
-	 * 
-	 */
-	// public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
-	// 	$data = [
-	// 				"token_id" => $token_id,
-	// 				"game_id" => $game_id,
-	// 				"round_id" => $round_id,
-	// 				"bet_amount" => $bet_amount,
-	// 				"provider_trans_id" => $provider_trans_id,
-	// 				"pay_amount" => $payout,
-	// 				"income" => $income,
-	// 				"entry_id" => $entry_id,
-	// 				"win" => $win,
-	// 				"transaction_reason" => $transaction_reason,
-	// 				"payout_reason" => $payout_reason
-	// 			];
-	// 	$data_saved = DB::table('game_transactions')->insertGetId($data);
-	// 	return $data_saved;
-	// }
-		
 	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win = 0, $transaction_reason = null, $payout_reason = null, $income = null, $provider_trans_id = null, $round_id = 1)
 	{
 
-		$query = DB::select("insert into `game_transactions` (`token_id`, `game_id`, `round_id`, `bet_amount`, `provider_trans_id`, `pay_amount`, `income`, `entry_id`, `win`, `transaction_reason`, `payout_reason`) values ($token_id, $game_id, $round_id, $bet_amount, '$provider_trans_id', $payout, '$income', $entry_id, $win, '$transaction_reason', '$payout_reason')");
+		$query = DB::select("insert into `game_transactions` (`token_id`, `game_id`, `round_id`, `bet_amount`, `provider_trans_id`, `pay_amount`, `income`, `entry_id`, `win`, `transaction_reason`, `payout_reason`) values ($token_id, $game_id, '$round_id', $bet_amount, '$provider_trans_id', $payout, '$income', $entry_id, $win, '$transaction_reason', '$payout_reason')");
 
 		return DB::connection()->getPdo()->lastInsertId();
 	}
@@ -275,7 +249,7 @@ class AWSHelper{
 		$transaction_detail = json_encode($transaction_detail);
 		$general_details = json_encode($general_details);
 
-		$query = DB::select("insert into `game_transaction_ext` (`game_trans_id`, `provider_trans_id`, `round_id`, `amount`, `game_transaction_type`, `provider_request`, `mw_response`, `mw_request`, `client_response`, `transaction_detail`, `general_details`) values ($game_trans_id,$provider_trans_id,$round_id,$amount,$game_type,$provider_request,$mw_response,$mw_request,$client_response,$transaction_detail,'$general_details')");
+		$query = DB::select("insert into `game_transaction_ext` (`game_trans_id`, `provider_trans_id`, `round_id`, `amount`, `game_transaction_type`, `provider_request`, `mw_response`, `mw_request`, `client_response`, `transaction_detail`, `general_details`) values ($game_trans_id,'$provider_trans_id','$round_id',$amount,$game_type,$provider_request,$mw_response,$mw_request,$client_response,$transaction_detail,'$general_details')");
 
 		return DB::connection()->getPdo()->lastInsertId();
 	}
@@ -288,11 +262,12 @@ class AWSHelper{
 		$client_response = json_encode($client_response);
 		$transaction_detail = json_encode($transaction_detail);
 		$general_details = json_encode($general_details);
-		$query = DB::select("update `game_transaction_ext` set `provider_request` = '$provider_request', `mw_response` = '$mw_response', `mw_request` = '$mw_request', `client_response` = '$client_response', `transaction_detail` = $transaction_detail, `general_details` = $general_details where `game_trans_ext_id` = $game_trans_ext_id");
+		$query = DB::select("update `game_transaction_ext` set `provider_request` = '$provider_request', `mw_response` = '$mw_response', `mw_request` = '$mw_request', `client_response` = '$client_response', `transaction_detail` = '$transaction_detail', `general_details` = '$general_details' where `game_trans_ext_id` = $game_trans_ext_id");
 	}
 
 	public static function playerDetailsCall($client_details, $refreshtoken = false)
 	{
+		$sendtoclient =  microtime(true);
 		$client = new Client([
 			'headers' => [
 				'Content-Type' => 'application/json',
@@ -319,9 +294,11 @@ class AWSHelper{
 				['body' => json_encode($datatosend)]
 			);
 			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			$client_response_time = microtime(true) - $sendtoclient;
+			AWSHelper::saveLog('playerDetailsCall(HELPER)', 12, json_encode($datatosend), ["sendtoclient" => $sendtoclient,"clientresponse" => $client_response_time]);
 			return $client_response;
 		} catch (\Exception $e) {
-			Helper::saveLog('ALDEBUG client_player_id = ' . $client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
+			AWSHelper::saveLog('ALDEBUG client_player_id = ' . $client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
 			return 'false';
 		}
 	}
@@ -429,14 +406,31 @@ class AWSHelper{
 	// }
 
 
-	public static function findGameDetails($type, $provider_id, $identification) {
-		if ($type == "game_code") {
-			$details = "where g.provider_id = ".$provider_id." and g.game_code = ".$identification." limit 1";
-		}
-		$game_details = DB::select('select g.game_name, g.game_code, g.game_id from games g left join providers as p using (provider_id) '.$details.' ');
+	// public static function findGameDetails($type, $provider_id, $identification) {
+	// 	if ($type == "game_code") {
+	// 		$details = "where g.provider_id = ".$provider_id." and g.game_code = '".$identification."' limit 1";
+	// 	}
+	// 	$game_details = DB::select('select g.game_name, g.game_code, g.game_id from games g left join providers as p using (provider_id) '.$details.' ');
 		
-	 	return $game_details ? $game_details : "false";
+	//  	return $game_details ? $game_details : "false";
+	// }
+
+	public static function findGameDetails($type, $provider_id, $game_code)
+	{
+		$query = DB::Select("SELECT game_id,game_code,game_name FROM games WHERE game_code = '" . $game_code . "' AND provider_id = '" . $provider_id . "'");
+		$result = count($query);
+		return $result > 0 ? $query[0] : null;
 	}
 
+	public static function getProviderCurrency($provider_id, $currency)
+	{
+		$provider_currencies = DB::table("providers")->where("provider_id", $provider_id)->first();
+		$currencies = json_decode($provider_currencies[0]->currencies, TRUE);
+		if (array_key_exists($currency, $currencies)) {
+			return $currencies[$currency];
+		} else {
+			return 'false';
+		}
+	}
 
 }
