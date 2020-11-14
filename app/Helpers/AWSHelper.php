@@ -210,13 +210,10 @@ class AWSHelper{
 	/* PROVIDER HELPER GLOBAL FUNCTION BUT ISOLATED FOR MANUAL UPDATING THE PROVIDER */
 
 	public static function saveLog($method, $provider_id = 0, $request_data, $response_data) {
-
 		// $micro_date = microtime();
 		// $date_array = explode(" ", $micro_date);
 		// $date = date("Y-m-d H:i:s", $date_array[1]);
-
 		$now = DateTime::createFromFormat('U.u', microtime(true));
-
 		$data = [
 				"method_name" => $method,
 				"provider_id" => $provider_id,
