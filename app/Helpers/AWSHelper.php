@@ -195,32 +195,6 @@ class AWSHelper{
 		return (int)$currenttime = round(microtime(true) * 1000);
 	}
 
-
-	/**
-	 * HELPER
-	 * Create Game Transaction
-	 * 
-	 */
-	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
-		$data = [
-					"token_id" => $token_id,
-					"game_id" => $game_id,
-					"round_id" => $round_id,
-					"bet_amount" => $bet_amount,
-					"provider_trans_id" => $provider_trans_id,
-					"pay_amount" => $payout,
-					"income" => $income,
-					"entry_id" => $entry_id,
-					"win" => $win,
-					"transaction_reason" => $transaction_reason,
-					"payout_reason" => $payout_reason
-				];
-		$data_saved = DB::table('game_transactions')->insertGetId($data);
-		return $data_saved;
-	}
-
-
-
 	/***************************************************  END  AWS MAIN HELPER   *************************************************** */
 
 
@@ -246,6 +220,76 @@ class AWSHelper{
 		return DB::table('debug')->insertGetId($data);
 	}
 
+
+
+	/**
+	 * HELPER
+	 * Create Game Transaction
+	 * 
+	 */
+	// public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win=0, $transaction_reason = null, $payout_reason = null , $income=null, $provider_trans_id=null, $round_id=1) {
+	// 	$data = [
+	// 				"token_id" => $token_id,
+	// 				"game_id" => $game_id,
+	// 				"round_id" => $round_id,
+	// 				"bet_amount" => $bet_amount,
+	// 				"provider_trans_id" => $provider_trans_id,
+	// 				"pay_amount" => $payout,
+	// 				"income" => $income,
+	// 				"entry_id" => $entry_id,
+	// 				"win" => $win,
+	// 				"transaction_reason" => $transaction_reason,
+	// 				"payout_reason" => $payout_reason
+	// 			];
+	// 	$data_saved = DB::table('game_transactions')->insertGetId($data);
+	// 	return $data_saved;
+	// }
+		
+	public function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win = 0, $transaction_reason = null, $payout_reason = null, $income = null, $provider_trans_id = null, $round_id = 1)
+	{
+
+		$query = DB::select("insert into `game_transactions` (`token_id`, `game_id`, `round_id`, `bet_amount`, `provider_trans_id`, `pay_amount`, `income`, `entry_id`, `win`, `transaction_reason`, `payout_reason`) values ($token_id, $game_id, $round_id, $bet_amount, '$provider_trans_id', $payout, '$income', $entry_id, $win, '$transaction_reason', '$payout_reason')");
+
+		return DB::connection()->getPdo()->lastInsertId();
+	}
+
+	public  function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id)
+	{
+		$reason = ProviderHelper::updateReason($win);
+		$update = DB::select("update `game_transactions` set `pay_amount` = $pay_amount, `income` = $income, `win` = $win, `entry_id` = $entry_id, `transaction_reason` = '$reason' where `game_trans_id` = $round_id");
+	}
+
+
+	public  static function updateGameTransactionStatus($game_trans_id, $win, $reason)
+	{
+		$reason = ProviderHelper::updateReason($reason);
+		$update = DB::select("update `game_transactions` set `win` = $win, `transaction_reason` = '$reason' where `game_trans_id` = $game_trans_id");
+	}
+
+	public static function createGameTransExtV2($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request = 'FAILED', $mw_response = 'FAILED', $mw_request = 'FAILED', $client_response = 'FAILED', $transaction_detail = 'FAILED', $general_details = null)
+	{
+		$provider_request = json_encode($provider_request);
+		$mw_response = json_encode($mw_response);
+		$mw_request = json_encode($mw_request);
+		$client_response = json_encode($client_response);
+		$transaction_detail = json_encode($transaction_detail);
+		$general_details = json_encode($general_details);
+
+		$query = DB::select("insert into `game_transaction_ext` (`game_trans_id`, `provider_trans_id`, `round_id`, `amount`, `game_transaction_type`, `provider_request`, `mw_response`, `mw_request`, `client_response`, `transaction_detail`, `general_details`) values ($game_trans_id,$provider_trans_id,$round_id,$amount,$game_type,$provider_request,$mw_response,$mw_request,$client_response,$transaction_detail,'$general_details')");
+
+		return DB::connection()->getPdo()->lastInsertId();
+	}
+
+	public  static function updatecreateGameTransExt($game_trans_ext_id, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail, $general_details = 'NO DATA')
+	{
+		$provider_request = json_encode($provider_request);
+		$mw_response = json_encode($mw_response);
+		$mw_request = json_encode($mw_request);
+		$client_response = json_encode($client_response);
+		$transaction_detail = json_encode($transaction_detail);
+		$general_details = json_encode($general_details);
+		$query = DB::select("update `game_transaction_ext` set `provider_request` = '$provider_request', `mw_response` = '$mw_response', `mw_request` = '$mw_request', `client_response` = '$client_response', `transaction_detail` = $transaction_detail, `general_details` = $general_details where `game_trans_ext_id` = $game_trans_ext_id");
+	}
 
 	public static function playerDetailsCall($client_details, $refreshtoken = false)
 	{
@@ -343,24 +387,46 @@ class AWSHelper{
 		return $data > 0 ? $query[0] : 'false';
 	}
 
+	public  static function findGameExt($provider_identifier, $game_transaction_type, $type)
+	{
 
-	public static function findGameExt($provider_transaction_id, $game_transaction_type, $type) {
-		$transaction_db = DB::table('game_transaction_ext as gte');
-        if ($type == 'transaction_id') {
-			$transaction_db->where([
-		 		["gte.provider_trans_id", "=", $provider_transaction_id],
-		 		["gte.game_transaction_type", "=", $game_transaction_type],
-		 	]);
+		if ($type == 'transaction_id') {
+			$where = 'where gte.provider_trans_id = "' . $provider_identifier . '" AND gte.game_transaction_type = ' . $game_transaction_type . ' AND gte.transaction_detail != "FAILED"';
 		}
 		if ($type == 'round_id') {
-			$transaction_db->where([
-		 		["gte.round_id", "=", $provider_transaction_id],
-		 		["gte.game_transaction_type", "=", $game_transaction_type],
-		 	]);
-		}  
-		$result= $transaction_db->first();
-		return $result ? $result : 'false';
+			$where = 'where gte.round_id = "' . $provider_identifier . '" AND gte.game_transaction_type = ' . $game_transaction_type . ' AND gte.transaction_detail != "FAILED"';
+		}
+		if ($type == 'game_transaction_ext_id') {
+			$where = 'where gte.provider_trans_id = "' . $provider_identifier . '"';
+		}
+		if ($type == 'game_trans_id') {
+			$where = 'where gte.game_trans_id = "' . $provider_identifier . '"';
+		}
+
+		$filter = 'LIMIT 1';
+
+		$query = DB::select('select * from game_transaction_ext as gte ' . $where . ' ' . $filter . '');
+		$data = count($query);
+		return $data > 0 ? $query[0] : 'false';
 	}
+
+	// public static function findGameExt($provider_transaction_id, $game_transaction_type, $type) {
+	// 	$transaction_db = DB::table('game_transaction_ext as gte');
+    //     if ($type == 'transaction_id') {
+	// 		$transaction_db->where([
+	// 	 		["gte.provider_trans_id", "=", $provider_transaction_id],
+	// 	 		["gte.game_transaction_type", "=", $game_transaction_type],
+	// 	 	]);
+	// 	}
+	// 	if ($type == 'round_id') {
+	// 		$transaction_db->where([
+	// 	 		["gte.round_id", "=", $provider_transaction_id],
+	// 	 		["gte.game_transaction_type", "=", $game_transaction_type],
+	// 	 	]);
+	// 	}  
+	// 	$result= $transaction_db->first();
+	// 	return $result ? $result : 'false';
+	// }
 
 
 	public static function findGameDetails($type, $provider_id, $identification) {
