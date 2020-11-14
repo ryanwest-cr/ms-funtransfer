@@ -424,7 +424,7 @@ class AWSHelper{
 
 	public static function getProviderCurrency($provider_id, $currency)
 	{
-		$provider_currencies = DB::table("providers")->where("provider_id", $provider_id)->first();
+		$provider_currencies = DB::table("providers")->where("provider_id", $provider_id)->get();
 		$currencies = json_decode($provider_currencies[0]->currencies, TRUE);
 		if (array_key_exists($currency, $currencies)) {
 			return $currencies[$currency];
