@@ -5,7 +5,8 @@ use GuzzleHttp\Client;
 use App\Helpers\Helper;
 use App\Helpers\GameLobby;
 use App\Helpers\ProviderHelper;
-use DB; 
+use DB;
+use DateTime;
 
 class AWSHelper{
 
@@ -210,20 +211,22 @@ class AWSHelper{
 
 	public static function saveLog($method, $provider_id = 0, $request_data, $response_data) {
 
-		$micro_date = microtime();
-		$date_array = explode(" ", $micro_date);
-		$date = date("Y-m-d H:i:s", $date_array[1]);
+		// $micro_date = microtime();
+		// $date_array = explode(" ", $micro_date);
+		// $date = date("Y-m-d H:i:s", $date_array[1]);
+
+		$now = DateTime::createFromFormat('U.u', microtime(true));
 
 		$data = [
 				"method_name" => $method,
 				"provider_id" => $provider_id,
 				"request_data" => json_encode(json_decode($request_data)),
 				"response_data" => json_encode($response_data),
-				"created_at" => "$date: ". $date_array[0],
+				"created_at" => $now->format("m-d-Y H:i:s.u"),
 			];
-		// return DB::table('seamless_request_logs')->insertGetId($data);
+		return DB::table('seamless_request_logs')->insertGetId($data);
 		// return DB::table('debug')->insertGetId($data);
-		return DB::table('debug')->insert($data);
+		// return DB::table('debug')->insert($data);
 	}
 
 	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win = 0, $transaction_reason = null, $payout_reason = null, $income = null, $provider_trans_id = null, $round_id = 1)
