@@ -245,7 +245,7 @@ class AWSHelper{
 	// 	return $data_saved;
 	// }
 		
-	public function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win = 0, $transaction_reason = null, $payout_reason = null, $income = null, $provider_trans_id = null, $round_id = 1)
+	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win = 0, $transaction_reason = null, $payout_reason = null, $income = null, $provider_trans_id = null, $round_id = 1)
 	{
 
 		$query = DB::select("insert into `game_transactions` (`token_id`, `game_id`, `round_id`, `bet_amount`, `provider_trans_id`, `pay_amount`, `income`, `entry_id`, `win`, `transaction_reason`, `payout_reason`) values ($token_id, $game_id, $round_id, $bet_amount, '$provider_trans_id', $payout, '$income', $entry_id, $win, '$transaction_reason', '$payout_reason')");
@@ -253,7 +253,7 @@ class AWSHelper{
 		return DB::connection()->getPdo()->lastInsertId();
 	}
 
-	public  function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id)
+	public static function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id)
 	{
 		$reason = ProviderHelper::updateReason($win);
 		$update = DB::select("update `game_transactions` set `pay_amount` = $pay_amount, `income` = $income, `win` = $win, `entry_id` = $entry_id, `transaction_reason` = '$reason' where `game_trans_id` = $round_id");
