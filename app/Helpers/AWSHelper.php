@@ -221,9 +221,9 @@ class AWSHelper{
 				"response_data" => json_encode($response_data),
 				"created_at" => $now->format("m-d-Y H:i:s.u"),
 			];
-		return DB::table('seamless_request_logs')->insertGetId($data);
+		// return DB::table('seamless_request_logs')->insertGetId($data);
 		// return DB::table('debug')->insertGetId($data);
-		// return DB::table('debug')->insert($data);
+		return DB::table('debug')->insert($data);
 	}
 
 	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win = 0, $transaction_reason = null, $payout_reason = null, $income = null, $provider_trans_id = null, $round_id = 1)
