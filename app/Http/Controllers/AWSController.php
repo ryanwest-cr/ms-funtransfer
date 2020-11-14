@@ -172,16 +172,16 @@ class AWSController extends Controller
 		$merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
 		$merchant_key = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_key'];
 
-		// $signature = md5($merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($merchant_key));
+		$signature = md5($merchant_id.$details->currentTime.$amount_in_string.$details->accountId.$details->currency.$details->txnId.$details->txnTypeId.$details->gameId.base64_encode($merchant_key));
 
-		// if($signature != $details->sign){
-		// 	$response = [
-		// 		"msg"=> "Sign check encountered error, please verify sign is correct",
-		// 		"code"=> 9200
-		// 	];
-		// 	AWSHelper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
-		// 	return $response;
-		// }
+		if($signature != $details->sign){
+			$response = [
+				"msg"=> "Sign check encountered error, please verify sign is correct",
+				"code"=> 9200
+			];
+			AWSHelper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
+			return $response;
+		}
 		// # 01 END
 
 		AWSHelper::saveLog('AWS singleFundTransfer - HIT 2 Sign Passed', $this->provider_db_id, $data, Helper::datesent());
