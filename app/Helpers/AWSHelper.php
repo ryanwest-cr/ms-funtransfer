@@ -209,11 +209,17 @@ class AWSHelper{
 	/* PROVIDER HELPER GLOBAL FUNCTION BUT ISOLATED FOR MANUAL UPDATING THE PROVIDER */
 
 	public static function saveLog($method, $provider_id = 0, $request_data, $response_data) {
+
+		$micro_date = microtime();
+		$date_array = explode(" ", $micro_date);
+		$date = date("Y-m-d H:i:s", $date_array[1]);
+
 		$data = [
 				"method_name" => $method,
 				"provider_id" => $provider_id,
 				"request_data" => json_encode(json_decode($request_data)),
-				"response_data" => json_encode($response_data)
+				"response_data" => json_encode($response_data),
+				"created_at" => "$date: ". $date_array[0],
 			];
 		// return DB::table('seamless_request_logs')->insertGetId($data);
 		// return DB::table('debug')->insertGetId($data);
