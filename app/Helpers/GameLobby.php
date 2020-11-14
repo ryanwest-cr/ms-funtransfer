@@ -687,6 +687,7 @@ class GameLobby{
                         "url" => urlencode($get_url->data->game_url),
                         "token" => $client_details->player_token,
                         "player_id" => $player_id,
+                        // "system_player_id" => $client_details->player_id,
                         "exitUrl" => $data['exitUrl'],
                     );
                     $encoded_data = $aes->AESencode(json_encode($data));

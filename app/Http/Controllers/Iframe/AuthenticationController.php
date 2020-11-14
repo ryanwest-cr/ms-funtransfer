@@ -29,15 +29,16 @@ class AuthenticationController extends Controller
                 $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
                 if($token == false){
                     SessionWalletHelper::createWalletSession($request->token, $request->all());
-                }else{
-                    if($request->token != $token->token){
-                        $response = array(
-                            "status" => "error",
-                            "message" => "Multiple Session Detected!",
-                            "exist" => true,
-                        );
-                    }
                 }
+                // else{
+                //     if($request->token != $token->token){
+                //         $response = array(
+                //             "status" => "error",
+                //             "message" => "Multiple Session Detected!",
+                //             "exist" => true,
+                //         );
+                //     }
+                // }
                 return response($response,200)
                 ->header('Content-Type', 'application/json');
             }
