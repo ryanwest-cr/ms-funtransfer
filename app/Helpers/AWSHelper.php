@@ -249,7 +249,7 @@ class AWSHelper{
 		$transaction_detail = json_encode($transaction_detail);
 		$general_details = json_encode($general_details);
 
-		$query = DB::select("insert into `game_transaction_ext` (`game_trans_id`, `provider_trans_id`, `round_id`, `amount`, `game_transaction_type`, `provider_request`, `mw_response`, `mw_request`, `client_response`, `transaction_detail`, `general_details`) values ($game_trans_id,'$provider_trans_id','$round_id',$amount,$game_type,$provider_request,$mw_response,$mw_request,$client_response,$transaction_detail,'$general_details')");
+		$query = DB::select("insert into `game_transaction_ext` (`game_trans_id`, `provider_trans_id`, `round_id`, `amount`, `game_transaction_type`, `provider_request`, `mw_response`, `mw_request`, `client_response`, `transaction_detail`, `general_details`) values ($game_trans_id,'$provider_trans_id','$round_id',$amount,$game_type,'$provider_request','$mw_response','$mw_request','$client_response','$transaction_detail','$general_details')");
 
 		return DB::connection()->getPdo()->lastInsertId();
 	}
