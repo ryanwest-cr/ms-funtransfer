@@ -117,6 +117,7 @@ $app->post('/api/edp/bet','EDPController@betGame');
 $app->post('/api/edp/win','EDPController@winGame');
 $app->post('/api/edp/refund','EDPController@refundGame');
 $app->post('/api/edp/endSession','EDPController@endGameSession');
+$app->post('/api/edp/freespin','EDPController@freeSpin');
 // Lottery Gaming Endpoints
 $app->post('/api/lottery/authenticate', 'LotteryController@authPlayer');
 $app->post('/api/lottery/balance', 'LotteryController@getBalance'); #/
