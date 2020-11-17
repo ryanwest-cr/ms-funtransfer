@@ -58,7 +58,7 @@ $app->post('/api/fundtransferrequest/', 'FundTransferController@process');
 $app->post('/api/solid/{brand_code}/authenticate', 'SolidGamingController@authPlayer');
 $app->post('/api/solid/{brand_code}/playerdetails', 'SolidGamingController@getPlayerDetails');
 $app->post('/api/solid/{brand_code}/balance', 'SolidGamingController@getBalance');
-$app->post('/api/solid/{brand_code}/debit', 'SolidGamingController@debitProcess');
+$app->post('/api/solid/{brand_code}/debit', 'SolidGamingController@debitProcess'); //UPDATE 2020/11/17
 $app->post('/api/solid/{brand_code}/credit', 'SolidGamingController@creditProcess');
 $app->post('/api/solid/{brand_code}/debitandcredit', 'SolidGamingController@debitAndCreditProcess');
 $app->post('/api/solid/{brand_code}/rollback', 'SolidGamingController@rollbackTransaction');
