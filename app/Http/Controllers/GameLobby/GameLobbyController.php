@@ -191,7 +191,7 @@ class GameLobbyController extends Controller
                 elseif($request->input('game_provider')=="UPG"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::microgamingLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
+                        "url" => GameLobby::upgLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
                         "game_launch" => true
                     );
                     return response($msg,200)
