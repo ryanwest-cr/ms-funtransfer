@@ -13,12 +13,12 @@ class FreeSpinHelper{
         $bonusdata= array();
         if($result > 0 ){
             $bonusfreespin["spins"] = array(
-                "id" => "code:".$query[0]->freespin_id.":FREESPIN ".$query[0]->total_spin,
+                "id" => "code_".$query[0]->freespin_id."_FREESPIN ".$query[0]->total_spin,
                 "amount" => $query[0]->spin_remaining,
                 "options" => array(
                     "gambleEnabled" => true,
                     "betPerLine" => $query[0]->coins,
-                    "denomination" => $query[0]->denominations
+                    "denomination" => $query[0]->denominations * 1000
                 )
             );
             // foreach($query as $freespin){
