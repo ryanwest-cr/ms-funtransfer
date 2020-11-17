@@ -143,7 +143,7 @@ class SpadeCuracaoController extends Controller
 			$acctId =  ProviderHelper::explodeUsername('_', $details->acctId);
 			$client_details = Providerhelper::getClientDetails('player_id', $acctId);
 			$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
-			$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $details->gameCode);
+			$game_details = $this->findGameDetails('game_code', $this->provider_db_id, $details->gameCode);
 
 			//Initialize
 			$game_transaction_type = 1; // 1 Bet, 2 Win
@@ -225,7 +225,7 @@ class SpadeCuracaoController extends Controller
 			$acctId =  ProviderHelper::explodeUsername('_', $details->acctId);
 			$client_details = Providerhelper::getClientDetails('player_id', $acctId);
 			$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
-			$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $details->gameCode);
+			$game_details = $this->findGameDetails('game_code', $this->provider_db_id, $details->gameCode);
 
 			//get details on game_transaction
 			// $bet_transaction = ProviderHelper::findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
@@ -338,4 +338,18 @@ class SpadeCuracaoController extends Controller
             return 'Transaction Was Updated!';
         }   
     }
+
+    public static function findGameDetails($type, $provider_id, $identification) {
+		    $game_details = DB::table("games as g")
+				->leftJoin("providers as p","g.provider_id","=","p.provider_id");
+				
+		    if ($type == 'game_code') {
+				$game_details->where([
+			 		["g.sub_provider_id", "=", $provider_id],
+			 		["g.game_code",'=', $identification],
+			 	]);
+			}
+			$result= $game_details->first();
+	 		return $result;
+	}
 }
