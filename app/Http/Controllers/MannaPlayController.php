@@ -135,7 +135,7 @@ class MannaPlayController extends Controller
 					GameRound::create($json_data['round_id'], $client_details->token_id);
 
 					// Check if the game is available for the client
-					$subscription = new GameSubscription();
+					/*$subscription = new GameSubscription();
 					$client_game_subscription = $subscription->check($client_details->client_id, 16, $json_data['game_id']);
 					
 					if(!$client_game_subscription) {
@@ -146,7 +146,7 @@ class MannaPlayController extends Controller
 							];
 					}
 					else
-					{
+					{*/
 						if(!GameRound::check($json_data['round_id'])) {
 							$http_status = 200;
 							$response = [
@@ -193,7 +193,7 @@ class MannaPlayController extends Controller
 
 							ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 						}
-					}
+					/*}*/
 				}
 			}
 		}
@@ -249,7 +249,7 @@ class MannaPlayController extends Controller
 				if ($client_details/* && $player_details != NULL*/) {
 
 					// Check if the game is available for the client
-					$subscription = new GameSubscription();
+					/*$subscription = new GameSubscription();
 					$client_game_subscription = $subscription->check($client_details->client_id, 16, $json_data['game_id']);
 
 					if(!$client_game_subscription) {
@@ -260,7 +260,7 @@ class MannaPlayController extends Controller
 							];
 					}
 					else
-					{
+					{*/
 						if(!GameRound::check($json_data['round_id'])) {
 							$http_status = 200;
 								$response = [
@@ -315,7 +315,7 @@ class MannaPlayController extends Controller
 								}
 							}
 						}
-					}
+					/*}*/
 				}
 			}
 		}
