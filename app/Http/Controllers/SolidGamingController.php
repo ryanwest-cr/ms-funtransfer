@@ -197,6 +197,7 @@ class SolidGamingController extends Controller
 	// BALANCE UPDATED 2020/11/17
 	public function getBalance(Request $request) 
 	{
+		$get_balance =  microtime(true);
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
@@ -216,11 +217,15 @@ class SolidGamingController extends Controller
 						];
 
 			// Find the player and client details
+			$get_client_details =  microtime(true);
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
-			
+			$endget_client_details = microtime(true) - $get_client_details;
+			Helper::saveLog(' BALANCE client_details MicroTime', 2, file_get_contents("php://input"), $endget_client_details);
 			if ($client_details) {
+					$get_client_response =  microtime(true);
 					$client_response = $this->playerDetailsCall($client_details);
-					
+					$endget_client_response = microtime(true) - $get_client_response;
+					Helper::saveLog(' BALANCE client_response MicroTime', 2, file_get_contents("php://input"), $endget_client_response);
 					// if(isset($client_response->playerdetailsresponse->status->code) 
 					// && $client_response->playerdetailsresponse->status->code == "200") {
 
@@ -234,7 +239,8 @@ class SolidGamingController extends Controller
 				/*}*/
 			}
 		}
-
+		$endget_balance = microtime(true) - $get_balance;
+		Helper::saveLog(' BALANCE WHOLE  MicroTime', 2, file_get_contents("php://input"), $endget_balance);
 		Helper::saveLog('SOLID_GAMING_BALANCE', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -252,7 +258,7 @@ class SolidGamingController extends Controller
 			return $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
 		$endget_isIdempotent = microtime(true) - $get_isIdempotent;
-		$hi = Helper::saveLog(' BET _isIdempotent MicroTime', 2, file_get_contents("php://input"), $endget_isIdempotent);
+		Helper::saveLog(' BET _isIdempotent MicroTime', 2, file_get_contents("php://input"), $endget_isIdempotent);
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 				$http_status = 400;
 				$response = [
