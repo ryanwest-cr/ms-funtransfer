@@ -58,38 +58,39 @@ class GameTransaction
 
 	public static function update_rollback($method, $request_data, $game_data, $client_data, $player_data) {
 
-		$game_details = DB::table("game_transactions AS g")
-				 ->where("g.provider_trans_id", $request_data['transactionId'])
-				 ->first();
-
+		// $game_details = DB::table("game_transactions AS g")
+		// 		 ->where("g.provider_trans_id", $request_data['transactionId'])
+		// 		 ->first();
+		$game_details = DB::select('select g.bet_amount, g.game_trans_id from game_transactions g where g.provider_trans_id = '.$request_data['transactionId'].' limit 1');
+		
 		$income = 0; 
 		$win = 0;
-		$pay_amount = $game_details->bet_amount;
+		$pay_amount = $game_details[0]->bet_amount;
 		$entry_id = 3;
 
         $update = DB::table('game_transactions')
-                ->where('game_trans_id', $game_details->game_trans_id)
+                ->where('game_trans_id', $game_details[0]->game_trans_id)
                 ->update(['pay_amount' => $pay_amount, 'income' => $income, 'win' => $win, 'entry_id' => $entry_id]);
      
-		return ($update ? $game_details->game_trans_id : false);
+		return ($update ? $game_details[0]->game_trans_id : false);
 	}
 
-	public static function solid_rollback($request_data) {
+	public static function solid_rollback($request_data, $game_trans_id = false) {
 
-		$game_details = DB::table("game_transactions AS g")
-				 ->where("g.provider_trans_id", $request_data['originaltransid'])
-				 ->first();
-
+		// $game_details = DB::table("game_transactions AS g")
+		// 		 ->where("g.provider_trans_id", $request_data['originaltransid'])
+		// 		 ->first();
+		// $game_details = DB::select('select g.bet_amount, g.game_trans_id from game_transactions g where g.provider_trans_id = '.$request_data['originaltransid'].' limit 1');
 		/*$income = 0;*/
 		$win = 4;
 		/*$pay_amount = $game_details->bet_amount;*/
 		$entry_id = 2;
 
         $update = DB::table('game_transactions')
-                ->where('game_trans_id', $game_details->game_trans_id)
+                ->where('game_trans_id', $game_trans_id)
                 ->update([/*'pay_amount' => $pay_amount, 'income' => $income,*/ 'win' => $win, 'entry_id' => $entry_id]);
      
-		return ($update ? $game_details->game_trans_id : false);
+		return ($update ? $game_trans_id : false);
 	}
 
 	public static function update($method, $request_data, $game_data, $client_data, $player_data) {
@@ -118,27 +119,30 @@ class GameTransaction
 	}
 
 	public static function find($original_trans_id) {
-		$transaction_id = DB::table('game_transactions')
-								->where('provider_trans_id', $original_trans_id)
-								->first();
+		// $transaction_id = DB::table('game_transactions')
+		// 						->where('provider_trans_id', $original_trans_id)
+		// 						->first();
 
-		return ($transaction_id ? $transaction_id : false);
+		$transaction_id = DB::select('select gt.bet_amount, gt.game_trans_id, gt.game_id, g.game_code,g.game_name from game_transactions gt inner join games as g using(game_id) where gt.provider_trans_id = "'.$original_trans_id.'" limit 1');
+		return ($transaction_id ? $transaction_id[0] : false);
 	}
 
 	public static function find_refund($original_trans_id) {
-		$transaction_result = DB::table('game_transactions')
-								->where('provider_trans_id', $original_trans_id)
-								->where('entry_id', 3)
-								->first();
+		// $transaction_result = DB::table('game_transactions')
+		// 						->where('provider_trans_id', $original_trans_id)
+		// 						->where('entry_id', 3)
+		// 						->first();
+		$transaction_result = DB::select('select g.game_trans_id from game_transactions g where g.provider_trans_id = '.$original_trans_id.' and g.entry_id = 3 limit 1');
 
-		return ($transaction_result ? $transaction_result->game_trans_id : false);
+		return ($transaction_result ? $transaction_result[0]->game_trans_id : false);
 	}
 
 	public static function rollback($original_trans_id) {
-		$end_round_result = DB::table('game_transactions')
-                ->where('provider_trans_id', $original_trans_id)
-                ->update(['entry_id' => 3]);
-                
+		// $end_round_result = DB::table('game_transactions')
+  //               ->where('provider_trans_id', $original_trans_id)
+  //               ->update(['entry_id' => 3]);
+        $end_round_result = DB::select('select g.game_trans_id from game_transactions g where g.provider_trans_id = '.$original_trans_id.' and g.entry_id = 3 limit 1');
+
 		return ($end_round_result ? true : false);
 	}
 
