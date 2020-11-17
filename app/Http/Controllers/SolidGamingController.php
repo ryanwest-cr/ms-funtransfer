@@ -218,7 +218,7 @@ class SolidGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			
 			if ($client_details) {
-					$client_response = self::playerDetailsCall($client_details);
+					$client_response = $this->playerDetailsCall($client_details);
 					
 					// if(isset($client_response->playerdetailsresponse->status->code) 
 					// && $client_response->playerdetailsresponse->status->code == "200") {
@@ -269,24 +269,9 @@ class SolidGamingController extends Controller
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
-				 GameRound::create($json_data['roundid'], $client_details->token_id);
-				 dd($client_details);
-				// Check if the game is available for the client
-				/*$subscription = new GameSubscription();
-				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
 
-				if(!$client_game_subscription) {
-					$http_status = 404;
-					$response = [
-							"errorcode" =>  "GAME_NOT_FOUND",
-							"errormessage" => "Game not found",
-							"httpstatus" => "404"
-						];
-				}
-				else
-				{*/
-
-					if(!GameRound::check($json_data['roundid'])) {
+					// if(!GameRound::check($json_data['roundid'])) {
+					if (!$this->create_Check($json_data['roundid'], $client_details->token_id)) {
 						$http_status = 400;
 						$response = [
 							"errorcode" =>  "ROUND_ENDED",
@@ -296,9 +281,10 @@ class SolidGamingController extends Controller
 					}
 					else
 					{
+						
 						$json_data['income'] = $json_data['amount'];
 
-						$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
+						$game_details = $this->findGameDetails($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 
 						$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 						//		
@@ -322,7 +308,7 @@ class SolidGamingController extends Controller
 
 								if(array_key_exists("roundended", $json_data)) {
 									if ($json_data["roundended"] == "true") {
-										GameRound::end($json_data['roundid']);
+										GameRound::end($json_data['roundid']); // UPDATE
 									}
 								}
 
@@ -349,9 +335,9 @@ class SolidGamingController extends Controller
 	public function creditProcess(Request $request)
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$body = [];
-		$response = [];
-		$client_response = [];
+		// $body = [];
+		// $response = [];
+		// $client_response = [];
 
 		if($this->_isIdempotent($json_data['transid'])) {
 			return $this->_isIdempotent($json_data['transid'])->mw_response;
@@ -375,13 +361,13 @@ class SolidGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
-			if ($client_details/* && $player_details != NULL*/) {
+			if ($client_details) {
 				// If free round create round id
-				if(isset($json_data['payoutreason'])) {
-					if($json_data['payoutreason'] == 'FREEROUND_WIN') {
-						GameRound::create($json_data['roundid'], $client_details->token_id);
-					}
-				}
+				// if(isset($json_data['payoutreason'])) {
+				// 	if($json_data['payoutreason'] == 'FREEROUND_WIN') {
+				// 		$this->create_Check($json_data['roundid'], $client_details->token_id);
+				// 	}
+				// }
 
 				// Check if the game is available for the client
 				/*$subscription = new GameSubscription();
@@ -396,17 +382,19 @@ class SolidGamingController extends Controller
 				}
 				else
 				{*/
-					if(!GameRound::check($json_data['roundid'])) {
+					if (!$this->create_Check($json_data['roundid'], $client_details->token_id)) {
 						$http_status = 400;
 						$response = [
 							"errorcode" =>  "ROUND_ENDED",
 							"errormessage" => "Game round have already been closed",
 						];
+
 					}
 					else
 					{
-						$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
-						
+						// $game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
+						$game_details = $this->findGameDetails($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
+
 						$json_data['income'] = $json_data["amount"];
 
 						if(isset($json_data['payoutreason'])) {
@@ -429,7 +417,7 @@ class SolidGamingController extends Controller
 
 							if(array_key_exists("roundended", $json_data)) {
 								if ($json_data["roundended"] == "true") {
-									GameRound::end($json_data['roundid']);
+									GameRound::end($json_data['roundid']); //UPDATE
 								}
 							}
 							
@@ -448,21 +436,20 @@ class SolidGamingController extends Controller
 		}
 		
 		
-		Helper::saveLog('solid_credit', 2, file_get_contents("php://input"), $response);
+		Helper::saveLog('SOLID_GAMING_CREDIT', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 	}
 
 	public function debitAndCreditProcess(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$body = [];
-		$response = [];
-		$client_response = [];
+		// $body = [];
+		// $response = [];
+		// $client_response = [];
 
-		if($this->_isIdempotent($json_data['transid'])) {
-			return $this->_isIdempotent($json_data['transid'])->mw_response;
+		if($this->_isIdempotent($json_data['transid'], "false", "credit_idom" )) {
+			return $this->_isIdempotent($json_data['transid'], "false", "credit_idom" )->mw_response;
 		}
-
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'betamount', 'winamount', 'roundended')) {
 
 				$http_status = 400;
@@ -483,11 +470,11 @@ class SolidGamingController extends Controller
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details/* && $player_details != NULL*/) {
-				GameRound::create($json_data['roundid'], $client_details->token_id);
+				// GameRound::create($json_data['roundid'], $client_details->token_id);
 				
 				// Check if the game is available for the client
-				$subscription = new GameSubscription();
-				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
+				// $subscription = new GameSubscription();
+				// $client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
 
 				/*if(!$client_game_subscription) {
 					$http_status = 404;
@@ -498,7 +485,7 @@ class SolidGamingController extends Controller
 				}
 				else
 				{*/
-					if(!GameRound::find($json_data['roundid'])) {
+					if (!$this->create_Check($json_data['roundid'], $client_details->token_id)) {
 					
 						// If round is not found
 						$http_status = 404;
@@ -509,21 +496,22 @@ class SolidGamingController extends Controller
 					}
 					else
 					{
-						if(!GameRound::check($json_data['roundid'])) {
-							$http_status = 400;
-							$response = [
-								"errorcode" =>  "ROUND_ENDED",
-								"errormessage" => "Game round have already been closed",
-							];
-						}
-						else
-						{
+						// if(!GameRound::check($json_data['roundid'])) {
+						// 	$http_status = 400;
+						// 	$response = [
+						// 		"errorcode" =>  "ROUND_ENDED",
+						// 		"errormessage" => "Game round have already been closed",
+						// 	];
+						// }
+						// else
+						// {
 							/*DEBIT*/
 
 							$json_data['income'] = $json_data['betamount'];
 							$json_data['amount'] = $json_data['betamount'];
 
-							$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
+							// $game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
+							$game_details = $this->findGameDetails($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 
 							$debit_game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
@@ -585,7 +573,7 @@ class SolidGamingController extends Controller
 							}
 				
 							ProviderHelper::updatecreateGameTransExt($credit_game_trans_ext_id, $json_data, $response, $credit_client_response->requestoclient, $credit_client_response, $json_data);
-						}
+						// }
 					}
 				/*}*/
 			}
@@ -858,7 +846,7 @@ class SolidGamingController extends Controller
 
 	}
 
-	private function _isIdempotent($transaction_id, $is_rollback = false) {
+	private function _isIdempotent($transaction_id, $is_rollback = false,$credit_debit = false) {
 		$result = false;
 		/*$query = DB::table('game_transaction_ext')
 								->select('mw_response')
@@ -870,6 +858,9 @@ class SolidGamingController extends Controller
 			$query_str = "SELECT mw_response FROM game_transaction_ext WHERE provider_trans_id = '".$transaction_id."' AND game_transaction_type = 3 AND mw_response NOT LIKE '%FAILED%' LIMIT 1" ;
 		}
 
+		if($credit_debit == "credit_idom") {
+			$query_str = "SELECT mw_response FROM game_transaction_ext WHERE provider_trans_id = '".$transaction_id."' AND game_transaction_type = 2 LIMIT 1" ;
+		}
 
          $transaction_exist = DB::select($query_str);
 
@@ -931,7 +922,7 @@ class SolidGamingController extends Controller
     }
 
 
-    public static function create($round_id, $token_id) {
+    public function create_Check($round_id, $token_id) {
 		// $check_if_round_exist = DB::table('game_rounds')
 		// 						->where('round_id', $round_id)
 		// 						->first();
@@ -940,13 +931,30 @@ class SolidGamingController extends Controller
 		// 	DB::table('game_rounds')->insert($data);
 		// }
 		
-		$check_if_round_exist = DB::select("SELECT * FROM game_rounds WHERE round_id = ".$round_id." and status_id = 1");		
+		$check_if_round_exist = DB::select("SELECT * FROM game_rounds WHERE round_id = '".$round_id."' ");
 		$count = count($check_if_round_exist);
-		if($count < 0) {
+		if($count == 0) { // INSERT
 			$data = ["round_id" => $round_id, "token_id" => $token_id];
 			DB::table('game_rounds')->insert($data);
+			return true;
+		} else {
+
+			if ($check_if_round_exist[0]->status_id == 5) {
+				return false; // means the process done
+			}else {
+				return true;
+			}
+
 		}
 
+		
+
 	}
+
+	public function findGameDetails($game_code, $provider_id = 0) {
+		$game_details = DB::select("SELECT game_name, game_code, game_id FROM games WHERE game_code = '".$game_code."' AND provider_id = '".$provider_id."'  LIMIT 1");
+		return count($game_details) > 0 ? $game_details[0] : false;
+	}
+
 
 }
