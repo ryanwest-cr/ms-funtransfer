@@ -11,6 +11,7 @@ use GuzzleHttp\Exception\ClientException;
 use App\Helpers\ClientRequestHelper;
 use App\Helpers\ProviderHelper;
 use App\Helpers\TransactionHelper;
+use App\Helpers\FreeSpinHelper;
 use DB;
 class EDPController extends Controller
 {
@@ -355,7 +356,12 @@ class EDPController extends Controller
 				 $result= $query->first();
 
 		return $result;
-
-	}
+    }
+    
+    public function freeSpin(){
+        $freespin = FreeSpinHelper::getFreeSpinBalance(10225,1102);
+        return json_encode($freespin);
+    }
 
 }
+

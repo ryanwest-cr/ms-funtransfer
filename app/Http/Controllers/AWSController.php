@@ -95,6 +95,7 @@ class AWSController extends Controller
 			return $response;
         }
 
+		// AWSHelper::saveLog('AWS singleBalance - CURRENCY CHECK', $this->provider_db_id, $data, 'CHECK');
         $merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
 		$merchant_key = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_key'];
 
@@ -108,8 +109,10 @@ class AWSController extends Controller
 			AWSHelper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
 			return $response;
 		}
-	
-		$provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
+		// AWSHelper::saveLog('AWS singleBalance - KEY CHECK', $this->provider_db_id, $data, 'CHECK DONE');
+
+		// AWSHelper::saveLog('AWS singleBalance - CURRENCY CHECK', $this->provider_db_id, $data, 'CHECK');
+		$provider_reg_currency = AWSHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 		if($provider_reg_currency == 'false'){
 			$response = [
 				"msg"=> "Currency not found",
@@ -118,8 +121,10 @@ class AWSController extends Controller
 			AWSHelper::saveLog('AWS Single Currency Not Found', $this->provider_db_id, $data, $response);
 			return $response;
 		}
+		// AWSHelper::saveLog('AWS singleBalance - CURRENCY CHECK', $this->provider_db_id, $data, 'CHECK DONE');
 
 		// $player_details = AWSHelper::playerDetailsCall($client_details->player_token);
+		AWSHelper::saveLog('AWS singleBalance - playerDetailsCall', $this->provider_db_id, $data, 'CHECK');
 		$player_details = AWSHelper::playerDetailsCall($client_details);
 		if($player_details != 'false'){
 			$response = [
@@ -153,6 +158,8 @@ class AWSController extends Controller
 		$details = json_decode($data);
 		AWSHelper::saveLog('AWS singleFundTransfer - HIT 1', $this->provider_db_id, file_get_contents("php://input"), Helper::datesent());
 		$prefixed_username = explode("_TG", $details->accountId);
+		
+		AWSHelper::saveLog('AWS singleFundTransfer - getClientDetails CHECK', $this->provider_db_id, $data, 'CHECK');
 		$client_details = AWSHelper::getClientDetails('player_id', $prefixed_username[1]);
 		if($client_details == 'false'){
 		   $response = [
@@ -162,6 +169,7 @@ class AWSController extends Controller
 			AWSHelper::saveLog('AWS singleFundTransfer - client_details not found', $this->provider_db_id, $data, $response);
 			return $response;
 		}
+		AWSHelper::saveLog('AWS singleFundTransfer - getClientDetails CHECK', $this->provider_db_id, $data, 'DONE');
 
 		// # 01 COMMENT THIS OUT WHEN DEBUGGING IN LOCAL
 		$explode1 = explode('"betAmount":', $data);
@@ -169,6 +177,7 @@ class AWSController extends Controller
 		$amount_in_string = trim(str_replace(',', '', $explode2[1]));
 		$amount_in_string = trim(str_replace('"', '', $amount_in_string));
 
+		AWSHelper::saveLog('AWS singleFundTransfer - KEY CHECK', $this->provider_db_id, $data, 'CHECK');
 		$merchant_id = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_id'];
 		$merchant_key = AWSHelper::findMerchantIdByClientId($client_details->client_id)['merchant_key'];
 
@@ -182,10 +191,11 @@ class AWSController extends Controller
 			AWSHelper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
 			return $response;
 		}
+		AWSHelper::saveLog('AWS singleFundTransfer - KEY CHECK', $this->provider_db_id, $data, 'DONE');
 		// # 01 END
 
-		AWSHelper::saveLog('AWS singleFundTransfer - HIT 2 Sign Passed', $this->provider_db_id, $data, Helper::datesent());
 
+		AWSHelper::saveLog('AWS singleFundTransfer - KEgetProviderCurrencyY CHECK', $this->provider_db_id, $data, 'CHECK');
 		$provider_reg_currency = Providerhelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
 		if($provider_reg_currency == 'false'){
 			$response = [
@@ -195,11 +205,15 @@ class AWSController extends Controller
 			AWSHelper::saveLog('AWS singleFundTransfer - Currency Not Found', $this->provider_db_id, $data, $response);
 			return $response;
 		}
+		AWSHelper::saveLog('AWS singleFundTransfer - KEgetProviderCurrencyY CHECK', $this->provider_db_id, $data, 'DONE');
 
-		AWSHelper::saveLog('AWS singleFundTransfer - D1 PlayerDetails', $this->provider_db_id, $data, Helper::datesent());
+
+		AWSHelper::saveLog('AWS singleFundTransfer - playerDetailsCall CHECK', $this->provider_db_id, $data, 'CHECK');
 		$player_details = AWSHelper::playerDetailsCall($client_details);
+		AWSHelper::saveLog('AWS singleFundTransfer - playerDetailsCall CHECK', $this->provider_db_id, $data, 'DONE');
 		// $player_details = AWSHelper::playerDetailsCall($client_details->player_token);
-		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $details->gameId);
+		AWSHelper::saveLog('AWS singleFundTransfer - findGameDetails CHECK', $this->provider_db_id, $data, 'CHECK');
+		$game_details = AWSHelper::findGameDetails('game_code', $this->provider_db_id, $details->gameId);
 		if($game_details == null){
 			$response = [
 			"msg"=> "Game not found",
@@ -208,7 +222,7 @@ class AWSController extends Controller
 			AWSHelper::saveLog('AWS singleFundTransfer - Game Not Found', $this->provider_db_id, $data, $response);
 			return $response;
 		}
-
+		AWSHelper::saveLog('AWS singleFundTransfer - findGameDetails CHECK', $this->provider_db_id, $data, 'DONE');
 		$transaction_type = $details->winAmount > 0 ? 'credit' : 'debit';
 		// $transaction_type = $details->amount > 0 ? 'credit' : 'debit';
 		// return $transaction_type;
@@ -239,7 +253,7 @@ class AWSController extends Controller
 		$payout_reason = AWSHelper::getOperationType($details->txnTypeId);
 		$provider_trans_id = $details->txnId;
 
-		AWSHelper::saveLog('AWS singleFundTransfer - D1 findGameExt', $this->provider_db_id, $data, Helper::datesent());
+		AWSHelper::saveLog('AWS singleFundTransfer - findGameExt CHECK', $this->provider_db_id, $data, 'CHECK');
 		$game_ext_check = AWSHelper::findGameExt($details->txnId, $game_transaction_type, 'transaction_id');
 		if($game_ext_check != 'false'){
 			$response = [
@@ -264,44 +278,46 @@ class AWSController extends Controller
 				return $response;
 			}
 		}
-
+		AWSHelper::saveLog('AWS singleFundTransfer - findGameExt CHECK', $this->provider_db_id, $data, 'DONE');
 		try {
-			AWSHelper::saveLog('AWS singleFundTransfer - D1 createGameTransaction', $this->provider_db_id, $data, Helper::datesent());
+			AWSHelper::saveLog('AWS singleFundTransfer - createGameTransaction CHECK', $this->provider_db_id, $data, 'CHECK');
 			$gamerecord  = AWSHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $provider_trans_id);
+			AWSHelper::saveLog('AWS singleFundTransfer - createGameTransaction CHECK', $this->provider_db_id, $data, 'DONE');
 			// AWS IS 1 WAY FLIGHT
 			
 			$bet_amount_2way = abs($details->betAmount);
 			$win_amount_2way = abs($details->winAmount);
-			AWSHelper::saveLog('AWS singleFundTransfer - D1 createGameTransExtV2', $this->provider_db_id, $data, Helper::datesent());
-		    $game_transextension1 = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $bet_amount_2way, 1);
+			AWSHelper::saveLog('AWS singleFundTransfer - createGameTransExtV2 CHECK', $this->provider_db_id, $data, 'CHECK');
+		    $game_transextension1 = AWSHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $bet_amount_2way, 1);
+			AWSHelper::saveLog('AWS singleFundTransfer - createGameTransExtV2 CHECK', $this->provider_db_id, $data, 'DONE');
 
            try {
-           	AWSHelper::saveLog('AWS singleFundTransfer - D1 fundTransfer request', $this->provider_db_id, $data, Helper::datesent());
+			 AWSHelper::saveLog('AWS singleFundTransfer - fundTransfer CHECK', $this->provider_db_id, $data, 'CHECK');
            	 $client_response = ClientRequestHelper::fundTransfer($client_details,abs($bet_amount_2way),$game_details->game_code,$game_details->game_name,$game_transextension1,$gamerecord,'debit');
-       	 	 AWSHelper::saveLog('AWS singleFundTransfer - D1 fundTransfer responded', $this->provider_db_id, $data, Helper::datesent());
+				AWSHelper::saveLog('AWS singleFundTransfer - fundTransfer CHECK', $this->provider_db_id, $data, 'DONE');
            	 AWSHelper::saveLog('AWS CR ID = '.$provider_trans_id, $this->provider_db_id, $data, $client_response);
            } catch (\Exception $e) {
            	    $response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
             	if(isset($gamerecord)){
-	        		ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-            	    ProviderHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $response, 'FAILED', $e->getMessage(), false, 'FAILED');
+	        		AWSHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+            	    AWSHelper::updatecreateGameTransExt($game_transextension1, 'FAILED', $response, 'FAILED', $e->getMessage(), false, 'FAILED');
 	        	}
-            	AWSHelper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
+            	AWSHelper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, json_encode($response), $e->getMessage());
             	return $response;
            }
 
             if(isset($client_response->fundtransferresponse->status->code) 
              && $client_response->fundtransferresponse->status->code == "200"){
             	AWSHelper::saveLog('AWS singleFundTransfer - C1 createGameTransExtV2', $this->provider_db_id, $data, Helper::datesent());
-            	$game_transextension2 = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $win_amount_2way, 2);
+            	$game_transextension2 = AWSHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $win_amount_2way, 2);
 
             	try {
-            		AWSHelper::saveLog('AWS singleFundTransfer - C1 fundTransfer Request', $this->provider_db_id, $data, Helper::datesent());
+					AWSHelper::saveLog('AWS singleFundTransfer - fundTransfer II CHECK', $this->provider_db_id, $data, 'CHECK');
             		$client_response2 = ClientRequestHelper::fundTransfer($client_details,abs($win_amount_2way),$game_details->game_code,$game_details->game_name,$game_transextension2,$gamerecord,'credit');
-            		AWSHelper::saveLog('AWS singleFundTransfer - C1 fundTransfer Responded', $this->provider_db_id, $data, Helper::datesent());
+					AWSHelper::saveLog('AWS singleFundTransfer - fundTransfer II CHECK', $this->provider_db_id, $data, 'DONE');
             	} catch (\Exception $e) {
             		$response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
-            		ProviderHelper::updatecreateGameTransExt($game_transextension2, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+            		AWSHelper::updatecreateGameTransExt($game_transextension2, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
             		AWSHelper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
             		return $response;
             	}
@@ -322,17 +338,16 @@ class AWSController extends Controller
 							"bonusBalance" => 0
 						]
 					];
-					AWSHelper::saveLog('AWS singleFundTransfer - C1 updatecreateGameTransExt', $this->provider_db_id, $data, Helper::datesent());
-					ProviderHelper::updatecreateGameTransExt($game_transextension1, $details, $response, $client_response->requestoclient, $client_response,$response);
-
-					ProviderHelper::updatecreateGameTransExt($game_transextension2, $details, $response, $client_response2->requestoclient, $client_response,$response);
-					AWSHelper::saveLog('AWS singleFundTransfer - C1 updatecreateGameTransExt UPDATED', $this->provider_db_id, $data, Helper::datesent());
+					AWSHelper::saveLog('AWS singleFundTransfer - updatecreateGameTransExt  CHECK', $this->provider_db_id, $data, 'CHECK');
+					AWSHelper::updatecreateGameTransExt($game_transextension1, $details, $response, $client_response->requestoclient, $client_response,$response);
+					AWSHelper::updatecreateGameTransExt($game_transextension2, $details, $response, $client_response2->requestoclient, $client_response,$response);
+					AWSHelper::saveLog('AWS singleFundTransfer - updatecreateGameTransExt  CHECK', $this->provider_db_id, $data, 'DONE');
             	}elseif(isset($client_response2->fundtransferresponse->status->code) 
            		 && $client_response2->fundtransferresponse->status->code == "402"){
             		if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
-		          	   ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+		          	   AWSHelper::updateGameTransactionStatus($gamerecord, 2, 6);
 		            else:
-		               ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+		               AWSHelper::updateGameTransactionStatus($gamerecord, 2, 99);
 		            endif;
 		            $response = [
 						"msg"=> "Insufficient balance",
@@ -343,9 +358,9 @@ class AWSController extends Controller
 			}elseif(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "402"){
             	if(ProviderHelper::checkFundStatus($client_response->fundtransferresponse->status->status)):
-	          	   ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 6);
+	          	   AWSHelper::updateGameTransactionStatus($gamerecord, 2, 6);
 	            else:
-	               ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+	               AWSHelper::updateGameTransactionStatus($gamerecord, 2, 99);
 	            endif;
 	            // $response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
 				$response = [
@@ -353,13 +368,12 @@ class AWSController extends Controller
 					"code"=> 1201
 				];
 			}
-			AWSHelper::saveLog('AWS singleFundTransfer - C1 BETWIN Processed', $this->provider_db_id, $data, Helper::datesent());
 			AWSHelper::saveLog('AWS singleFundTransfer SUCCESS = '.$gamerecord, $this->provider_db_id, $data, $response);
 			return $response;
 			
 		} catch (\Exception $e) {
 			$response = ["msg"=> "Fund transfer encountered error","code"=> 2205];
-			AWSHelper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, $data, $response);
+			AWSHelper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, $data, $e->getMessage());
 			return $response;
 		}
 	}
