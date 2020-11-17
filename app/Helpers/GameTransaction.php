@@ -4,7 +4,6 @@ use DB;
 
 class GameTransaction
 {
-	
 	public static function save($method, $request_data, $game_data, $client_data, $player_data) {
 		/*var_dump($request_data); die();*/
 		$trans_data = [

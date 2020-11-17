@@ -4,7 +4,6 @@ use DB;
 
 class GameRound
 {
-	
 	public static function find($round_id) {
 		$search_result = DB::table('game_rounds')
 								->where('round_id', $round_id)
