@@ -317,7 +317,7 @@ return [
         'lobby_url'=> 'https://lobby-egame-staging.spadecasino777.com/TIGEREU/auth/?',
         'merchantCode' => 'TIGEREU',
         'siteId' => 'SITE_EU1',
-        'provider_id' => 37,
+        'provider_id' => 73,
     ],
     'vivo' => [
         'PROVIDER_ID' => 34,

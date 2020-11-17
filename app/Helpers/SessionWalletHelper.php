@@ -28,20 +28,35 @@ class SessionWalletHelper
 	 * 
 	 */
     public static function deductSession(){
-		DB::select('UPDATE wallet_session SET session_time = session_time-'.self::$time_deduction.'');
+	  	DB::select('UPDATE wallet_session SET session_time = session_time-'.self::$time_deduction.'');
     }
+
+    // public static function checkIfExistWalletSession($token){
+    //     // $token = DB::select('SELECT * FROM wallet_session WHERE token = "'.$request->token.'"');
+    // 	$query = DB::select('SELECT * FROM wallet_session WHERE token = "'.$token.'"');
+    //     $data = count($query);
+	// 	return $data > 0 ? $query[0] : false;
+    // }
 
     public static function checkIfExistWalletSession($token){
         // $token = DB::select('SELECT * FROM wallet_session WHERE token = "'.$request->token.'"');
     	$query = DB::select('SELECT * FROM wallet_session WHERE token = "'.$token.'"');
         $data = count($query);
+        // if($data>0){
+        //     $player_wallet_session = DB::select('SELECT * FROM wallet_session WHERE player_id = "' . $query[0]['player_id'] . '"');
+        //     $wallet_sessions = count($player_wallet_session);
+        //     if($wallet_sessions > 1){
+        //         return false; // morethan 1 session detected
+        //     }
+        // }
 		return $data > 0 ? $query[0] : false;
     }
 
 
     public static function createWalletSession($token, $metadata){
     	$query = DB::table('wallet_session')->insert(
-        array('token' => $token, 
+        array('token' => $token,
+            //   'system_player_id' => 1,
               'metadata' =>  json_encode($metadata))
         );
         return $query ? $query : false;

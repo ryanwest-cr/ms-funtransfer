@@ -13,11 +13,9 @@ class EvolutionController extends Controller
     //
 
     public function authentication(Request $request){
-        Helper::saveLog('Authentication(EVG)', 74, json_encode($request->getContent()), "test");
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
             $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
-            Helper::saveLog('Authentication(EVG)', 74, json_encode($data), $client_details);
             if($client_details){
                 $client_response=ClientRequestHelper::playerDetailsCall($client_details->player_token);
                 $msg = array(
@@ -25,7 +23,6 @@ class EvolutionController extends Controller
                     "sid" => $data["sid"],
                     "uuid"=>$data["uuid"],
                 );
-                Helper::saveLog('Authentication(EVGOK)', 74, json_encode($data), $msg);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
             else{
@@ -33,7 +30,6 @@ class EvolutionController extends Controller
                     "status"=>"INVALID_PARAMETER",
                     "uuid"=>$data["uuid"],
                 );
-                Helper::saveLog('Authentication(EVGINVALID_PARAMETER)', 74, json_encode($data), $msg);
                 return response($msg,200)->header('Content-Type', 'application/json');
             }
         }
@@ -43,7 +39,6 @@ class EvolutionController extends Controller
                 "status"=>"INVALID_TOKEN_ID",
                 "uuid"=>$data["uuid"],
             );
-            Helper::saveLog('Authentication(EVGINVALID_TOKEN_ID)', 74, json_encode($data), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
         }
     }
@@ -108,9 +103,9 @@ class EvolutionController extends Controller
         }
     }
     public function debit(Request $request){
+        $startTime =  microtime(true);
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
-            Helper::saveLog('debitrequest(EVG)', 50, json_encode($data), "debit");
             $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"]);
@@ -135,7 +130,7 @@ class EvolutionController extends Controller
                         "amount" => round($data["transaction"]["amount"],2),
                         "roundid" => $data["transaction"]["refId"]
                     );
-                    $game = Helper::getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
+                    $game = $this->getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
                     if(!$game){
                         $gametransactionid=EVGHelper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
                     }
@@ -144,8 +139,10 @@ class EvolutionController extends Controller
                     }
                     if(!$game_transaction){
                         $transactionId=EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,1);
-                    } 
+                    }
+                    $sendtoclient =  microtime(true); 
                     $client_response = ClientRequestHelper::fundTransfer($client_details,round($data["transaction"]["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
+                    $client_response_time = microtime(true) - $sendtoclient;
                     $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                     if(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "200"){
@@ -155,13 +152,13 @@ class EvolutionController extends Controller
                             "uuid"=>$data["uuid"],
                         );
                         Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
+                        Helper::saveLog('responseTime(EVG)', 12, json_encode(["type"=>"debitproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
                         return response($msg,200)
                             ->header('Content-Type', 'application/json');
                     }
                     elseif(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "402"){
-                        $game = Helper::getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
-                        Helper::saveLog('debitrequestInsufficient(EVG)', 50, json_encode($game), $transactionId);
+                        $game = $this->getGameTransaction($client_details->player_token,$data["transaction"]["refId"]);
                         Helper::updateGameTransaction($game,$json_data,"fail");
                         $msg = array(
                             "status"=>"INSUFFICIENT_FUNDS",
@@ -191,9 +188,9 @@ class EvolutionController extends Controller
         }
     }
     public function credit(Request $request){
+        $startTime =  microtime(true);
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
-            Helper::saveLog('creditrequest(EVG)', 50, json_encode($data), "credit");
             $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"]);
@@ -219,7 +216,7 @@ class EvolutionController extends Controller
                         "payout_reason" => null,
                         "win" => $win,
                     );
-                    $game = EVGHelper::getGameTransaction($data["transaction"]["refId"]);
+                    $game = $this->getGameTransactionbyround($data["transaction"]["refId"]);
                     if(!$game){
                         //$gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
                         $msg = array(
@@ -236,8 +233,10 @@ class EvolutionController extends Controller
                         }
                         $gametransactionid = $game->game_trans_id;
                     }
-                    $transactionId= EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,2); 
+                    $transactionId= EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,2);
+                    $sendtoclient =  microtime(true);  
                     $client_response = ClientRequestHelper::fundTransfer($client_details,round($data["transaction"]["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
+                    $client_response_time = microtime(true) - $sendtoclient;
                     $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                     if(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "200"){
@@ -247,6 +246,7 @@ class EvolutionController extends Controller
                             "uuid"=>$data["uuid"],
                         );
                         Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
+                        Helper::saveLog('responseTime(EVG)', 12, json_encode(["type"=>"creditproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
                         return response($msg,200)
                             ->header('Content-Type', 'application/json');
                     }
@@ -270,9 +270,9 @@ class EvolutionController extends Controller
         }
     }
     public function cancel(Request $request){
+        $startTime =  microtime(true);
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
-            Helper::saveLog('cancelrequest(EVG)', 50, json_encode($data), "cancel");
             $client_details = ProviderHelper::getClientDetails("player_id",$data["userId"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["transaction"]["id"],$data["transaction"]["refId"],3);
@@ -314,7 +314,9 @@ class EvolutionController extends Controller
                             $gametransactionid = $game->game_trans_id;
                         }
                         $transactionId= EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,3); 
+                        $sendtoclient =  microtime(true);
                         $client_response = ClientRequestHelper::fundTransfer($client_details,round($data["transaction"]["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit",true);
+                        $client_response_time = microtime(true) - $sendtoclient;
                         $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                         if(isset($client_response->fundtransferresponse->status->code) 
                         && $client_response->fundtransferresponse->status->code == "200"){
@@ -324,6 +326,7 @@ class EvolutionController extends Controller
                                 "uuid"=>$data["uuid"],
                             );
                             Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
+                            Helper::saveLog('responseTime(EVG)', 12, json_encode(["type"=>"creditproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
                             return response($msg,200)
                                 ->header('Content-Type', 'application/json');
                         }
@@ -448,4 +451,20 @@ class EvolutionController extends Controller
 
 		return $result;
     }
+
+    public  function getGameTransaction($player_token,$game_round){
+        DB::enableQueryLog();
+		$game = DB::select("SELECT
+						entry_id,bet_amount,game_trans_id,pay_amount
+						FROM game_transactions g
+						INNER JOIN player_session_tokens USING (token_id)
+						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
+        $result = count($game);
+		return $result > 0 ? $game[0] : null;
+    }
+    public function getGameTransactionbyround($game_round){
+		$game = DB::select("SELECT * FROM game_transactions WHERE round_id = '".$game_round."'");
+        $result = count($game);
+		return $result > 0 ? $game[0] : null;
+	}
 }
