@@ -842,7 +842,6 @@ class GameLobby{
 
         $client_details = Providerhelper::getClientDetails('token', $token); // New
         $url = $launch_url.$client_code.'/'.$game_code.'?language=en&currency='.$client_details->default_currency.'&token='.$token.'&exiturl='.$exitUrl.'';
-        Helper::saveLog('solid gamelaunch', 2, json_decode($url),  'launch');
         return $url;
     }
 

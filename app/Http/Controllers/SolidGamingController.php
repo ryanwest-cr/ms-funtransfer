@@ -55,7 +55,7 @@ class SolidGamingController extends Controller
 						];
 			
 			$client_details = ProviderHelper::getClientDetails('token', $json_data['token']);
-
+			
 			if ($client_details) {
 				/*$client = new Client([
 				    'headers' => [ 
@@ -197,7 +197,6 @@ class SolidGamingController extends Controller
 	// BALANCE UPDATED 2020/11/17
 	public function getBalance(Request $request) 
 	{
-		$get_balance =  microtime(true);
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
@@ -217,15 +216,11 @@ class SolidGamingController extends Controller
 						];
 
 			// Find the player and client details
-			$get_client_details =  microtime(true);
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
-			$endget_client_details = microtime(true) - $get_client_details;
-			Helper::saveLog(' BALANCE client_details MicroTime', 2, file_get_contents("php://input"), $endget_client_details);
+			
 			if ($client_details) {
-					$get_client_response =  microtime(true);
 					$client_response = $this->playerDetailsCall($client_details);
-					$endget_client_response = microtime(true) - $get_client_response;
-					Helper::saveLog(' BALANCE client_response MicroTime', 2, file_get_contents("php://input"), $endget_client_response);
+					
 					// if(isset($client_response->playerdetailsresponse->status->code) 
 					// && $client_response->playerdetailsresponse->status->code == "200") {
 
@@ -239,8 +234,7 @@ class SolidGamingController extends Controller
 				/*}*/
 			}
 		}
-		$endget_balance = microtime(true) - $get_balance;
-		Helper::saveLog(' BALANCE WHOLE  MicroTime', 2, file_get_contents("php://input"), $endget_balance);
+
 		Helper::saveLog('SOLID_GAMING_BALANCE', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -248,7 +242,7 @@ class SolidGamingController extends Controller
 
 	public function debitProcess(Request $request) 
 	{
-		$get_whole_bet =  microtime(true);
+		
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		// $body = [];
 		// $response = [];
@@ -258,7 +252,7 @@ class SolidGamingController extends Controller
 			return $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
 		$endget_isIdempotent = microtime(true) - $get_isIdempotent;
-		Helper::saveLog(' BET _isIdempotent MicroTime', 2, file_get_contents("php://input"), $endget_isIdempotent);
+		
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 				$http_status = 400;
 				$response = [
@@ -270,13 +264,12 @@ class SolidGamingController extends Controller
 		{
 			$http_status = 404;
 			$response = [
-				"errorcode" =>  "PLAYER_NOT_FOUND",
-				"errormessage" => "Player not found",
-			];
+							"errorcode" =>  "PLAYER_NOT_FOUND",
+							"errormessage" => "Player not found",
+						];
 			$get_client_details =  microtime(true);
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			$endget_client_details = microtime(true) - $get_client_details;
-			Helper::saveLog(' BET client_details MicroTime', 2, file_get_contents("php://input"), $endget_client_details);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
@@ -297,7 +290,6 @@ class SolidGamingController extends Controller
 						$get_game_details =  microtime(true);
 						$game_details = $this->findGameDetails($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 						$endget_game_details = microtime(true) - $get_game_details;
-						Helper::saveLog('BET client_response MicroTime', 2, file_get_contents("php://input"), $endget_game_details);
 						$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 						//		
 						$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
@@ -306,7 +298,6 @@ class SolidGamingController extends Controller
 						$get_client_response =  microtime(true);
 		                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
 						$endget_client_response = microtime(true) - $get_client_response;
-						Helper::saveLog('BET client_response MicroTime', 2, file_get_contents("php://input"), $endget_client_response);
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "402") {
 							$http_status = 402;
@@ -340,8 +331,7 @@ class SolidGamingController extends Controller
 				/*}*/
 			}
 		}
-		$endget_whole_bet = microtime(true) - $get_whole_bet;
-		Helper::saveLog('SOLID WHOLE BET ', 2, file_get_contents("php://input"), $endget_whole_bet);
+		
 		Helper::saveLog('SOLID_GAMING_DEBIT', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -349,17 +339,15 @@ class SolidGamingController extends Controller
 
 	public function creditProcess(Request $request)
 	{
-		$get_whole_win =  microtime(true);
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		// $body = [];
 		// $response = [];
 		// $client_response = [];
-		$get_isIdempotent =  microtime(true);
+
 		if($this->_isIdempotent($json_data['transid'])) {
 			return $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
-		$endget_isIdempotent = microtime(true) - $get_isIdempotent;
-		Helper::saveLog(' WIN _isIdempotent MicroTime', 2, file_get_contents("php://input"), $endget_isIdempotent);
+
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 				$http_status = 404;
 				$response = [
@@ -374,10 +362,8 @@ class SolidGamingController extends Controller
 							"errorcode" =>  "PLAYER_NOT_FOUND",
 							"errormessage" => "Player not found",
 						];
-			$get_client_details =  microtime(true);
+
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
-			$endget_client_details = microtime(true) - $get_client_details;
-			Helper::saveLog('WIN client_details MicroTime', 2, file_get_contents("php://input"), $endget_client_details);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
@@ -412,10 +398,8 @@ class SolidGamingController extends Controller
 					else
 					{
 						// $game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
-						$get_game_details =  microtime(true);
 						$game_details = $this->findGameDetails($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
-						$endget_game_details = microtime(true) - $get_game_details;
-						Helper::saveLog('WIN game_details MicroTime', 2, file_get_contents("php://input"), $endget_game_details);
+
 						$json_data['income'] = $json_data["amount"];
 
 						if(isset($json_data['payoutreason'])) {
@@ -431,10 +415,8 @@ class SolidGamingController extends Controller
 						$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
 
 						// change $json_data['roundid'] to $game_transaction_id
-						$get_client_response =  microtime(true);
                			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
-						$endget_client_response = microtime(true) - $get_client_response;
-						Helper::saveLog('WIN client_response MicroTime', 2, file_get_contents("php://input"), $endget_client_response);
+
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "200") {
 
@@ -458,8 +440,7 @@ class SolidGamingController extends Controller
 			}
 		}
 		
-		$endget_whole_win = microtime(true) - $get_whole_win;
-		Helper::saveLog('SOLID WHOLE win ', 2, file_get_contents("php://input"), $endget_whole_win);
+		
 		Helper::saveLog('SOLID_GAMING_CREDIT', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 	}
