@@ -13,6 +13,8 @@ use App\Helpers\ProviderHelper;
 use App\Helpers\TransactionHelper;
 use App\Helpers\FreeSpinHelper;
 use DB;
+use Illuminate\Support\Facades\DB as FacadesDB;
+
 class EDPController extends Controller
 {
      
@@ -133,15 +135,17 @@ class EDPController extends Controller
                     )]
                 );
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
-                // return (array)$client_response;
                 $sessions =array(
                     "balance"=>round($client_response->playerdetailsresponse->balance * 1000,2)
-                ); 
-                $data2 = array(
-                    "token" => $request->token,
-                    "sign" => $request->sign
                 );
-                Helper::saveLog('PlayerSession(EDP)', 2, json_encode($data2), $sessions);
+                $game_details = $this->getInfoPlayerGameRound($request->token);
+                $freespin_balance = FreeSpinHelper::getFreeSpinBalance($client_details->player_id,$game_details->game_id);
+                if($freespin_balance != null){
+                    $sessions =array(
+                        "balance"=>round($client_response->playerdetailsresponse->balance * 1000,2),
+                        "spins"=>$freespin_balance
+                    );
+                } 
                 return response($sessions,200)
                        ->header('Content-Type', 'application/json');
             }
@@ -358,10 +362,16 @@ class EDPController extends Controller
 		return $result;
     }
     
-    public function freeSpin(){
-        $freespin = FreeSpinHelper::getFreeSpinBalance(10225,1102);
-        return json_encode($freespin);
+    public function freeSpin(Request $request){
+        $games = DB::select("SELECT g.game_name,g.game_id,g.game_code FROM player_game_rounds as pgr JOIN player_session_tokens as pst ON pst.player_token = pgr.player_token JOIN games as g ON g.game_id = pgr.game_id JOIN players as ply ON pst.player_id = ply.player_id WHERE pgr.player_token = '".$request->player_token."'");
+		dd($games[0]);//? $games : false;
     }
+
+    public function getInfoPlayerGameRound($player_token){
+        $games = DB::select("SELECT g.game_name,g.game_id,g.game_code FROM player_game_rounds as pgr JOIN player_session_tokens as pst ON pst.player_token = pgr.player_token JOIN games as g ON g.game_id = pgr.game_id JOIN players as ply ON pst.player_id = ply.player_id WHERE pgr.player_token = '".$player_token."'");
+        $count = count($games);
+        return $count > 0 ? $games[0] : null;
+	}
 
 }
 
