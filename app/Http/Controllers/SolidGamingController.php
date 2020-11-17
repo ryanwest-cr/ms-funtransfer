@@ -935,12 +935,18 @@ class SolidGamingController extends Controller
 		// $check_if_round_exist = DB::table('game_rounds')
 		// 						->where('round_id', $round_id)
 		// 						->first();
-		$check_if_round_exist = DB::select('select * from game_rounds where round_id ='.$round_id);
-		if(!$check_if_round_exist) {
+		// if(!$check_if_round_exist) {
+		// 	$data = ["round_id" => $round_id, "token_id" => $token_id];
+		// 	DB::table('game_rounds')->insert($data);
+		// }
+		
+		$check_if_round_exist = DB::select("SELECT * FROM game_rounds WHERE round_id = ".$round_id." and status_id = 1");		
+		$count = count($check_if_round_exist);
+		if($count < 0) {
 			$data = ["round_id" => $round_id, "token_id" => $token_id];
 			DB::table('game_rounds')->insert($data);
 		}
-		
+
 	}
 
 }
