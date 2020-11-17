@@ -129,7 +129,7 @@ class MannaPlayController extends Controller
 				$game_transaction_id = 0;
 				$client_response = ['error' => 'true'];
 
-				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				$client_details = ProviderHelper::getClientDetails('token', $json_data['sessionId']);
 
 				if ($client_details/* && $player_details != NULL*/) {
 					GameRound::create($json_data['round_id'], $client_details->token_id);
@@ -244,7 +244,7 @@ class MannaPlayController extends Controller
 				$game_transaction_id = 0;
 				$client_response = ['error' => 'true'];
 
-				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				$client_details = ProviderHelper::getClientDetails('token', $json_data['sessionId']);
 
 				if ($client_details/* && $player_details != NULL*/) {
 
@@ -363,7 +363,7 @@ class MannaPlayController extends Controller
 
 
 
-				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				$client_details = ProviderHelper::getClientDetails('token', $json_data['sessionId']);
 				/*$player_details = PlayerHelper::getPlayerDetails($json_data['sessionId'], 'token');*/
 
 				if ($client_details/* && $player_details != NULL*/) {
