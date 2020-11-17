@@ -282,6 +282,7 @@ class SolidGamingController extends Controller
 
 	public function debitProcess(Request $request) 
 	{
+		
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$body = [];
 		$response = [];

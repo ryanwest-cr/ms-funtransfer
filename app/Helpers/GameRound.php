@@ -4,6 +4,7 @@ use DB;
 
 class GameRound
 {
+	
 	public static function find($round_id) {
 		$search_result = DB::select('select round_id from game_rounds where round_id = :round_id', ['round_id' => $round_id]);
 		// $search_result = DB::table('game_rounds')
