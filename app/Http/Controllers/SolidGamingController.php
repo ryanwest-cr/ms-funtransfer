@@ -202,15 +202,15 @@ class SolidGamingController extends Controller
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		/*$client_code = RouteParam::get($request, 'brand_code');*/
 
-		if(!CallParameters::check_keys($json_data, 'playerid', 'gamecode', 'platform')) {
-				$http_status = 400;
-				$response = [
-						"errorcode" =>  "BAD_REQUEST",
-						"errormessage" => "The request was invalid.",
-					];
-		}
-		else
-		{
+		// if(!CallParameters::check_keys($json_data, 'playerid', 'gamecode', 'platform')) {
+		// 		$http_status = 400;
+		// 		$response = [
+		// 				"errorcode" =>  "BAD_REQUEST",
+		// 				"errormessage" => "The request was invalid.",
+		// 			];
+		// }
+		// else
+		// {
 			$http_status = 404;
 			$response = [
 							"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -222,7 +222,6 @@ class SolidGamingController extends Controller
 			
 			if ($client_details) {
 					$client_response = $this->playerDetailsCall($client_details);
-					
 					// if(isset($client_response->playerdetailsresponse->status->code) 
 					// && $client_response->playerdetailsresponse->status->code == "200") {
 
@@ -235,7 +234,7 @@ class SolidGamingController extends Controller
 					// }
 				/*}*/
 			}
-		}
+		//}
 
 		Helper::saveLog('SOLID_GAMING_BALANCE', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
@@ -250,15 +249,16 @@ class SolidGamingController extends Controller
 		if($this->_isIdempotent($json_data['transid'])) {
 			return  $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
-		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
-				$http_status = 400;
-				$response = [
-						"errorcode" =>  "BAD_REQUEST",
-						"errormessage" => "The request was invalid.",
-					];
-		}
-		else
-		{
+		
+		// if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
+		// 		$http_status = 400;
+		// 		$response = [
+		// 				"errorcode" =>  "BAD_REQUEST",
+		// 				"errormessage" => "The request was invalid.",
+		// 			];
+		// }
+		// else
+		// {
 			$http_status = 404;
 			$response = [
 							"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -282,16 +282,16 @@ class SolidGamingController extends Controller
 					$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 					$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
 	                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
-					// if(isset($client_response->fundtransferresponse->status->code) 
-					// 	&& $client_response->fundtransferresponse->status->code == "402") {
-					// 	$http_status = 402;
-					// 	$response = [
-					// 		"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
-					// 		"errormessage" => "Not sufficient funds",
-					// 	];
-					// }
-					// else
-					// {
+					if(isset($client_response->fundtransferresponse->status->code) 
+						&& $client_response->fundtransferresponse->status->code == "402") {
+						$http_status = 402;
+						$response = [
+							"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
+							"errormessage" => "Not sufficient funds",
+						];
+					}
+					else
+					{
 						if(isset($client_response->fundtransferresponse->status->code) 
 							&& $client_response->fundtransferresponse->status->code == "200") {
 							if(array_key_exists("roundended", $json_data)) {
@@ -306,7 +306,7 @@ class SolidGamingController extends Controller
 								"balance" => $client_response->fundtransferresponse->balance,
 							];
 						}
-					// }
+					}
 					ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 					// $responseTimePerProcess = [
 					// 	"response" => microtime(true) - $this->startTime,
@@ -323,7 +323,7 @@ class SolidGamingController extends Controller
 					// Helper::saveLog('responseTime(SG)', 2, json_encode(["type"=>"betinsuficient","stating"=>$this->startTime,"response"=>microtime(true)]), $responseTimePerProcess);
 				}
 			}
-		}
+		// }
 		
 		Helper::saveLog('SOLID_GAMING_DEBIT', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
@@ -337,15 +337,15 @@ class SolidGamingController extends Controller
 		if($this->_isIdempotent($json_data['transid'])) {
 			return $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
-		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
-				$http_status = 404;
-				$response = [
-					"errorcode" =>  "BAD_REQUEST",
-					"errormessage" => "The request was invalid.",
-				];
-		}
-		else
-		{
+		// if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
+		// 		$http_status = 404;
+		// 		$response = [
+		// 			"errorcode" =>  "BAD_REQUEST",
+		// 			"errormessage" => "The request was invalid.",
+		// 		];
+		// }
+		// else
+		// {
 			$http_status = 404;
 			$response = [
 				"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -430,7 +430,7 @@ class SolidGamingController extends Controller
 				}
 				/*}*/
 			}
-		}
+		// }
 		Helper::saveLog('SOLID_GAMING_CREDIT', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 	}
