@@ -852,10 +852,10 @@ class SolidGamingController extends Controller
 								->select('mw_response')
 								->where('provider_trans_id', $transaction_id);*/
 
-		$query_str = "SELECT mw_response FROM game_transaction_ext WHERE provider_trans_id = '".$transaction_id."' AND mw_response NOT LIKE '%FAILED%' LIMIT 1" ;
+		$query_str = "SELECT mw_response FROM game_transaction_ext WHERE provider_trans_id = '".$transaction_id."' LIMIT 1" ;
 		
 		if ($is_rollback == true) {
-			$query_str = "SELECT mw_response FROM game_transaction_ext WHERE provider_trans_id = '".$transaction_id."' AND game_transaction_type = 3 AND mw_response NOT LIKE '%FAILED%' LIMIT 1" ;
+			$query_str = "SELECT mw_response FROM game_transaction_ext WHERE provider_trans_id = '".$transaction_id."' AND game_transaction_type = 3 LIMIT 1" ;
 		}
 
 		if($credit_debit == "credit_idom") {
