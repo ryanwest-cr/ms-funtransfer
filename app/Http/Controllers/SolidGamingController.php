@@ -246,9 +246,9 @@ class SolidGamingController extends Controller
 	{
 	
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$is_idempotent = $this->_isIdempotent($json_data['transid']);
-		if($is_idempotent) {
-			return $is_idempotent->mw_response;
+		// $is_idempotent = $this->_isIdempotent($json_data['transid']);
+		if($this->_isIdempotent($json_data['transid'])) {
+			return  $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 				$http_status = 400;
@@ -266,8 +266,8 @@ class SolidGamingController extends Controller
 						];
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			if ($client_details) {
-				$exist_round_create = $this->create_Check($json_data['roundid'], $client_details->token_id);
-				if (!$exist_round_create) {
+				// $exist_round_create = $this->create_Check($json_data['roundid'], $client_details->token_id);
+				if (!$this->create_Check($json_data['roundid'], $client_details->token_id)) {
 					$http_status = 400;
 					$response = [
 						"errorcode" =>  "ROUND_ENDED",
@@ -333,9 +333,9 @@ class SolidGamingController extends Controller
 	public function creditProcess(Request $request)
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$is_idempotent = $this->_isIdempotent($json_data['transid']);
-		if($is_idempotent) {
-			return $is_idempotent->mw_response;
+		// $is_idempotent = $this->_isIdempotent($json_data['transid']);
+		if($this->_isIdempotent($json_data['transid'])) {
+			return $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 				$http_status = 404;
@@ -373,8 +373,8 @@ class SolidGamingController extends Controller
 				}
 				else
 				{*/
-				$exist_round_create = $this->create_Check($json_data['roundid'], $client_details->token_id);
-				if (!$exist_round_create) {
+				// $exist_round_create = $this->create_Check($json_data['roundid'], $client_details->token_id);
+				if (!$this->create_Check($json_data['roundid'], $client_details->token_id)) {
 					$http_status = 400;
 					$response = [
 						"errorcode" =>  "ROUND_ENDED",
@@ -441,10 +441,10 @@ class SolidGamingController extends Controller
 		// $body = [];
 		// $response = [];
 		// $client_response = [];
-		$is_idempotent = $this->_isIdempotent($json_data['transid'],"false","credit_idom");
+		// $is_idempotent = $this->_isIdempotent($json_data['transid'],"false","credit_idom");
 		
-		if($is_idempotent) {
-			return $is_idempotent->mw_response;
+		if( $this->_isIdempotent($json_data['transid'],"false","credit_idom")) {
+			return  $this->_isIdempotent($json_data['transid'],"false","credit_idom")->mw_response;
 		}
 		// if($this->_isIdempotent($json_data['transid'], "false", "credit_idom" )) {
 		// 	return $this->_isIdempotent($json_data['transid'], "false", "credit_idom" )->mw_response;
@@ -484,8 +484,8 @@ class SolidGamingController extends Controller
 				}
 				else
 				{*/
-					$exist_round_create = $this->create_Check($json_data['roundid'], $client_details->token_id);
-					if (!$exist_round_create) {
+					// $exist_round_create = $this->create_Check($json_data['roundid'], $client_details->token_id);
+					if (!$this->create_Check($json_data['roundid'], $client_details->token_id)) {
 					
 						// If round is not found
 						$http_status = 404;
