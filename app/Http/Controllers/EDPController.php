@@ -161,8 +161,25 @@ class EDPController extends Controller
     }
     public function betGame(Request $request){
         Helper::saveLog('BetGame(EDP)', 2, json_encode($request->getContent()), "BEFORE BET");
-        $sha1key = sha1($request->amount.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
+        if($request->has("bonusId")){
+            $sha1key = sha1($request->amount.''.$request->bonusId.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
+            // return $sha1key;
+        }
+        else{
+            $sha1key = sha1($request->amount.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
+            //return $sha1key;
+        }
         if($sha1key == $request->sign){
+            $transaction = TransactionHelper::checkGameTransactionData($request->id);
+            if($transaction){
+                $transactionData = json_decode($transaction[0]->mw_response);
+                $response = array(
+                    "transactionId" => $transactionData->transactionId,
+                    "balance" => $transactionData->balance
+                );
+                return response($response,402)
+                    ->header('Content-Type', 'application/json');
+            }
             $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($request->id);
@@ -177,7 +194,11 @@ class EDPController extends Controller
                 $game = Helper::getGameTransaction($request->token,$request->gameId);
                 $checkrefundid = Helper::checkGameTransaction($request->id,$request->gameId,3);
                 if(!$game && !$checkrefundid){
-                    $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);        
+                    if($request->has('bonusId')){
+                        $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details,$is_freespin=1);
+                    }else{
+                        $gametransactionid=Helper::createGameTransaction('debit', $json_data, $game_details, $client_details);
+                    } 
                 }
                 elseif($checkrefundid){
                     $gametransactionid = 0;
@@ -186,14 +207,41 @@ class EDPController extends Controller
                     $gametransactionid = $game->game_trans_id;
                 }
                 $transactionId=Helper::createGameTransactionExt($gametransactionid,$request,null,null,null,1);
-                $client_response = ClientRequestHelper::fundTransfer($client_details,number_format($bet_amount/1000,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
-                
+                if($request->has('bonusId')){
+                    $client_response = ClientRequestHelper::fundTransfer($client_details,number_format(0  ,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
+                }else{
+                    $client_response = ClientRequestHelper::fundTransfer($client_details,number_format($bet_amount/1000,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
+                }
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
-                    $sessions =array(
-                        "transactionId" => $request->id,
-                        "balance"=>round($client_response->fundtransferresponse->balance * 1000,2)
-                    );
+                    if($request->has('bonusId')){
+                        $freespin = FreeSpinHelper::updateFreeSpinBalance($request->bonusId);
+                        if($freespin !=null){
+                            $sessions =array(
+                                "transactionId" => $request->id,
+                                "balance"=>round($client_response->fundtransferresponse->balance * 1000,2),
+                                "bonus" => array(
+                                    "id" => $request->bonusId,
+                                    "bet" =>  "BONUS",
+                                    "win" => "REAL"
+                                ),
+                                "spins" => $freespin
+                            );
+                        }
+                        else{
+                            $sessions = array(
+                                "code" =>"INSUFFICIENT_FUNDS",
+                                "message"=>"Player has insufficient funds"
+        
+                            );
+                        }   
+                    }
+                    else{
+                        $sessions =array(
+                            "transactionId" => $request->id,
+                            "balance"=>round($client_response->fundtransferresponse->balance * 1000,2)
+                        );
+                    }
                     Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$sessions,$client_response);
                     return response($sessions,200)
                         ->header('Content-Type', 'application/json');
@@ -234,6 +282,9 @@ class EDPController extends Controller
             $payout_reason = "Win 0 for the Game Round ID ".$request->gameId;
            //Helper::saveLog("debit",9,json_encode($request->getContent()),"WIN");
         }
+        elseif($request->has("bonusId")){
+            $sha1key = sha1($request->amount.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
+        }
         else{
             $sha1key = sha1($request->amount.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
             $payout_reason = null;
@@ -263,7 +314,7 @@ class EDPController extends Controller
                     "amount" => $request->amount / 1000,
                     "roundid" => $request->gameId,
                     "payout_reason" => $payout_reason,
-                    "win" => $win
+                    "win" => $request->has("bonusId")?7:$win
                 );
                 $game = Helper::getGameTransaction($request->token,$request->gameId);
                 if(!$game){
@@ -275,14 +326,26 @@ class EDPController extends Controller
                 }
                 $transactionId=Helper::createGameTransactionExt($gametransactionid,$request,null,null,null,2);
                 $client_response = ClientRequestHelper::fundTransfer($client_details,number_format($win_amount/1000,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
-                
-                $sessions =array(
-                    "transactionId" => $trans_id,
-                    "balance"=>round($client_response->fundtransferresponse->balance * 1000,2)
-                ); 
+                if(isset($client_response->fundtransferresponse->status->code) 
+                && $client_response->fundtransferresponse->status->code == "200"){
+                    if($request->has("bonusId")){
+                        $freespin = FreeSpinHelper::getFreeSpinBalanceByFreespinId($request->bonusId);
+                        $sessions =array(
+                            "transactionId" => $trans_id,
+                            "balance"=>round($client_response->fundtransferresponse->balance * 1000,2),
+                            "spins" => $freespin
+                        );
+                    }
+                    else{
+                        $sessions =array(
+                        "transactionId" => $trans_id,
+                        "balance"=>round($client_response->fundtransferresponse->balance * 1000,2)
+                        );
+                    } 
                 Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$sessions,$client_response);
                 return response($sessions,200)
                        ->header('Content-Type', 'application/json');
+                }
             }
 
         }
@@ -363,8 +426,8 @@ class EDPController extends Controller
     }
     
     public function freeSpin(Request $request){
-        $games = DB::select("SELECT g.game_name,g.game_id,g.game_code FROM player_game_rounds as pgr JOIN player_session_tokens as pst ON pst.player_token = pgr.player_token JOIN games as g ON g.game_id = pgr.game_id JOIN players as ply ON pst.player_id = ply.player_id WHERE pgr.player_token = '".$request->player_token."'");
-		dd($games[0]);//? $games : false;
+       $freespin_update = FreeSpinHelper::updateFreeSpinBalance($request->freespin_id,$request->amount);
+       dd($freespin_update);
     }
 
     public function getInfoPlayerGameRound($player_token){
