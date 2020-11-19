@@ -2,7 +2,7 @@
 
 $middleware_url_api = 'https://api-test.betrnk.games/public';
 $gamelobby_site = 'https://daddy.betrnk.games';
-$play_betrnk = 'https://play.betrnk.games:446';
+$play_betrnk = 'https://play.betrnk.games';
 
 return [
     'play_betrnk' => $play_betrnk,
