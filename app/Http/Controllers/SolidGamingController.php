@@ -248,7 +248,6 @@ class SolidGamingController extends Controller
 		if($this->_isIdempotent($json_data['transid'])) {
 			return  $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
-		
 		$http_status = 404;
 		$response = [
 						"errorcode" =>  "PLAYER_NOT_FOUND",
@@ -256,63 +255,26 @@ class SolidGamingController extends Controller
 					];
 		$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 		if ($client_details) {
-			// $exist_round_create = $this->create_Check($json_data['roundid'], $client_details->token_id);
-			// if (!$this->create_Check($json_data['roundid'], $client_details->token_id)) {
-			// 	$http_status = 400;
-			// 	$response = [
-			// 		"errorcode" =>  "ROUND_ENDED",
-			// 		"errormessage" => "Game round have already been closed",
-			// 		"httpstatus" => "404"
-			// 	];
-			// }
-			// else
-			// {
-				$json_data['income'] = $json_data['amount'];
-				$game_details = $this->findGameDetails($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
-				
-				$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
-				$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
-                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
-				if(isset($client_response->fundtransferresponse->status->code) 
-					&& $client_response->fundtransferresponse->status->code == "402") {
-					$http_status = 402;
-					$response = [
-						"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
-						"errormessage" => "Not sufficient funds",
-					];
-				}
-				else
-				{
-					if(isset($client_response->fundtransferresponse->status->code) 
-						&& $client_response->fundtransferresponse->status->code == "200") {
-						// if(array_key_exists("roundended", $json_data)) {
-						// 	if ($json_data["roundended"] == "true") {
-						// 		GameRound::end($json_data['roundid']); // UPDATE
-						// 	}
-						// }
-						$http_status = 200;
-						$response = [
-							"status" => "OK",
-							"currency" => $client_details->default_currency,
-							"balance" => $client_response->fundtransferresponse->balance,
-						];
-					}
-				}
-				ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
-				// $responseTimePerProcess = [
-				// 	"response" => microtime(true) - $this->startTime,
-				// 	"Idempotent_reponse" => $endget_isIdempotent,
-				// 	"client_response" => $reponse_client_details,
-				// 	"checking_rounds_reponse" => $response_checking_rounds,
-				// 	"game_details_response" => $endget_game_details,
-				// 	"transaction_create_response" => $transaction_response,
-				// 	"transaction_ext_create_response" => $reponse_transaction_ext,
-				// 	"fundtransfer_response" => $endget_client_response,
-				// 	"round_update_reponse" => $get_process_time,
-				// 	"GameTransactionExt_update_reponse"=> $get_process_transactionExt 
-				// ];
-				// Helper::saveLog('responseTime(SG)', 2, json_encode(["type"=>"betinsuficient","stating"=>$this->startTime,"response"=>microtime(true)]), $responseTimePerProcess);
-			// }
+			//CREATE ROUND
+			$this->create_Check($json_data['roundid'], $client_details->token_id);
+
+			$json_data['income'] = $json_data['amount'];
+			$game_details = $this->findGameDetails($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
+			$game_transaction_id = $this->saveGameTransaction('debit', $json_data, $game_details,$client_details->player_token);
+			$game_trans_ext_id = $this->createGameTransExt($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
+
+            $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
+
+			if(isset($client_response->fundtransferresponse->status->code) 
+				&& $client_response->fundtransferresponse->status->code == "200") {
+				$http_status = 200;
+				$response = [
+					"status" => "OK",
+					"currency" => $client_details->default_currency,
+					"balance" => $client_response->fundtransferresponse->balance,
+				];
+			}
+			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 		}
 		Helper::saveLog('SOLID_GAMING_DEBIT', 2, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
@@ -938,6 +900,8 @@ class SolidGamingController extends Controller
 
 
     public function create_Check($round_id, $token_id) {
+    	$data = ["round_id" => $round_id, "token_id" => $token_id];
+		DB::table('game_rounds')->insert($data);
 		// $check_if_round_exist = DB::table('game_rounds')
 		// 						->where('round_id', $round_id)
 		// 						->first();
@@ -946,21 +910,21 @@ class SolidGamingController extends Controller
 		// 	DB::table('game_rounds')->insert($data);
 		// }
 		
-		$check_if_round_exist = DB::select("SELECT round_id, status_id FROM game_rounds WHERE round_id = '".$round_id."' ");
-		$count = count($check_if_round_exist);
-		if($count == 0) { // INSERT
-			$data = ["round_id" => $round_id, "token_id" => $token_id];
-			DB::table('game_rounds')->insert($data);
-			return true;
-		} else {
+		// $check_if_round_exist = DB::select("SELECT round_id, status_id FROM game_rounds WHERE round_id = '".$round_id."' ");
+		// $count = count($check_if_round_exist);
+		// if($count == 0) { // INSERT
+		// 	$data = ["round_id" => $round_id, "token_id" => $token_id];
+		// 	DB::table('game_rounds')->insert($data);
+		// 	return true;
+		// } else {
 
-			if ($check_if_round_exist[0]->status_id == 5) {
-				return false; // means the process done
-			}else {
-				return true;
-			}
+		// 	if ($check_if_round_exist[0]->status_id == 5) {
+		// 		return false; // means the process done
+		// 	}else {
+		// 		return true;
+		// 	}
 
-		}
+		// }
 
 	}
 
@@ -994,6 +958,70 @@ class SolidGamingController extends Controller
                 ->update(['pay_amount' => $pay_amount, 'income' => $income, 'win' => $win, 'entry_id' => $entry_id]);
                 
 		return ($game_details ? $game_details[0]->game_trans_id : false);
+	}
+
+	public function saveGameTransaction($method, $request_data, $game_data,$token_id) {
+		/*var_dump($request_data); die();*/
+		$trans_data = [
+					"token_id" => $token_id,
+					"game_id" => $game_data->game_id,
+					"round_id" => $request_data["roundid"],
+					"income" => $request_data["income"]
+				];
+
+		switch ($method) {
+		    case "debit":
+					$trans_data["provider_trans_id"] = $request_data["transid"];
+					$trans_data["bet_amount"] = $request_data["amount"];
+					$trans_data["win"] = 0;
+					$trans_data["pay_amount"] = 0;
+					$trans_data["entry_id"] = 1;
+					// check if this is a free round
+					if(array_key_exists('free_round_data', $request_data)) {
+						$trans_data["payout_reason"] = json_encode($request_data["free_round_data"]);
+					}
+		        break;
+		    case "credit":
+			        $trans_data["provider_trans_id"] = $request_data["transid"];
+			        $trans_data["bet_amount"] = 0;
+			        $trans_data["win"] = 1;
+			        $trans_data["pay_amount"] = abs($request_data["amount"]);
+			        $trans_data["entry_id"] = 2;
+			        $trans_data["payout_reason"] = $request_data["reason"];
+		        break;
+		    case "rollback":
+		    		$trans_data["provider_trans_id"] = (array_key_exists('transid', $request_data) ? $request_data["transid"] : '');
+					$trans_data["bet_amount"] = 0;
+					$trans_data["win"] = 1;
+					$trans_data["pay_amount"] = $game_data->bet_amount;
+					$trans_data["entry_id"] = 3;
+					$trans_data["payout_reason"] = "Rollback of transaction ID: ".$game_data->game_trans_id;
+		        break;
+		    default:
+		}
+		$id = DB::table('game_transactions')->insertGetId($trans_data);
+		return $id; 
+	}
+
+
+	public function createGameTransExt($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request='FAILED', $mw_response='FAILED', $mw_request='FAILED', $client_response='FAILED', $transaction_detail='FAILED', $general_details=null){
+		// DB::enableQueryLog();
+		$gametransactionext = array(
+			"game_trans_id" => $game_trans_id,
+			"provider_trans_id" => $provider_trans_id,
+			"round_id" => $round_id,
+			"amount" => $amount,
+			"game_transaction_type"=>$game_type,
+			"provider_request" => json_encode($provider_request),
+			"mw_response" =>json_encode($mw_response),
+			"mw_request"=>json_encode($mw_request),
+			"client_response" =>json_encode($client_response),
+			"transaction_detail" =>json_encode($transaction_detail),
+			"general_details" =>json_encode($general_details)
+		);
+		$gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+		// Helper::saveLog('createGameTransExtV2', 999, json_encode(DB::getQueryLog()), "TIME createGameTransExtV2");
+		return $gamestransaction_ext_ID;
 	}
 
 
