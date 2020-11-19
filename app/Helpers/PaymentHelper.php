@@ -232,43 +232,54 @@ class PaymentHelper
     }
     public static function gameCurrencyConverter(){
         $client = new Client([
-            'headers' => ['x-rapidapi-host' => 'currency-converter5.p.rapidapi.com',
-            'x-rapidapi-key' => '8206256315mshcd8655ee7f5800dp1bf51bjsn355caa8858be',
-            'Content-Type' => 'application/x-www-form-urlencoded'],
+            'auth' => ['linkers989238810', '3tlva6hl8um2g46om37gu8l8av'],
             'http_errors' => false,
         ]);
-        $response = $client->get('https://currency-converter5.p.rapidapi.com/currency/convert', [
+        $response = $client->get('https://xecdapi.xe.com/v1/convert_from/?to=*', [
         ]);
-        $data = json_decode($response->getBody(),TRUE);
+        $dataresponse = json_decode($response->getBody(),TRUE);
+        $data = array(
+            "rates"=>array()
+        );
+        foreach($dataresponse["to"] as $currency){
+            $currency_name = DB::table('currencies')->where("code",$currency["quotecurrency"])->first();
+            if($currency_name){
+                $data["rates"][$currency["quotecurrency"]] = array(
+                    "rate"=> $currency["mid"],
+                    "currency_name" => $currency_name->name,
+                );
+            }
+        }
         $currencies = DB::table('currencies')->get();
         $convert_list1 = array();
         foreach($currencies as $currency_data){
             if(array_key_exists($currency_data->code,$data["rates"])){
                 $currencylist = array("currency_code"=>$currency_data->code,
-                                      "currency_name"=>$currency_data->name,
-                                      "convert_list"=>array());
+                    "currency_name"=>$currency_data->name,
+                    "convert_list"=>array());
                 $key_data = array();
                 foreach($data["rates"] as $key=>$rate){
-                        $currencyconverted = array(
-                            "currency" =>$key,
-                            "currency_name"=>$rate["currency_name"],
-                            "rate" => number_format(1/((1/(float)$rate["rate"])/(1/(float)$data["rates"][$currency_data->code]["rate"])), 5, '.', ''),
-                        );
-                        array_push($currencylist["convert_list"],$currencyconverted);
-                        array_push($key_data,$key);
+                    $currencyconverted = array(
+                        "currency" =>$key,
+                        "currency_name"=>$rate["currency_name"],
+                        "rate" => number_format(1/((1/(float)$rate["rate"])/(1/(float)$data["rates"][$currency_data->code]["rate"])), 5, '.', ''),
+                    );
+                    array_push($currencylist["convert_list"],$currencyconverted);
+                    array_push($key_data,$key);
                 }
                 $currencylist["convert_list"] = json_encode(array_combine($key_data,$currencylist["convert_list"]));
                 DB::table('currencies_convert_list')
                     ->updateOrInsert(["currency_code"=>$currency_data->code],
                         $currencylist
                     );
-                
+
             }
-            
+
         }
-        
+
         return $convert_list1;
     }
+
 
     ///endcoinspayment
 
