@@ -230,7 +230,7 @@ class EDPController extends Controller
                                 "bonus" => array(
                                     "id" => $request->bonusId,
                                     "bet" =>  "BONUS",
-                                    "win" => "REAL"
+                                    "win" => "BOUS"
                                 ),
                                 "spins" => $freespin
                             );
