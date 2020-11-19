@@ -106,10 +106,12 @@ class EDPController extends Controller
         }
     }
     public function getBalance(Request $request){
+        $startTime =  microtime(true);
         $sha1key = sha1($request->token.''.$this->secretkey);
         if($sha1key == $request->sign){
             $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
+                $sendtoclient =  microtime(true);
                 $client = new Client([
                     'headers' => [ 
                         'Content-Type' => 'application/json',
@@ -135,6 +137,7 @@ class EDPController extends Controller
                     )]
                 );
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
+                $client_response_time = microtime(true) - $sendtoclient;
                 $sessions =array(
                     "balance"=>round($client_response->playerdetailsresponse->balance * 1000,2)
                 );
@@ -145,7 +148,8 @@ class EDPController extends Controller
                         "balance"=>round($client_response->playerdetailsresponse->balance * 1000,2),
                         "spins"=>$freespin_balance
                     );
-                } 
+                }
+                Helper::saveLog('responseTime(EDP)', 12, json_encode(["type"=>"debitproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
                 return response($sessions,200)
                        ->header('Content-Type', 'application/json');
             }
@@ -160,7 +164,8 @@ class EDPController extends Controller
         }
     }
     public function betGame(Request $request){
-        Helper::saveLog('BetGame(EDP)', 2, json_encode($request->getContent()), "BEFORE BET");
+        $startTime =  microtime(true);
+        //Helper::saveLog('BetGame(EDP)', 2, json_encode($request->getContent()), "BEFORE BET");
         if($request->has("bonusId")){
             $sha1key = sha1($request->amount.''.$request->bonusId.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
             // return $sha1key;
@@ -207,11 +212,13 @@ class EDPController extends Controller
                     $gametransactionid = $game->game_trans_id;
                 }
                 $transactionId=Helper::createGameTransactionExt($gametransactionid,$request,null,null,null,1);
+                $sendtoclient =  microtime(true);
                 if($request->has('bonusId')){
                     $client_response = ClientRequestHelper::fundTransfer($client_details,number_format(0  ,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
                 }else{
                     $client_response = ClientRequestHelper::fundTransfer($client_details,number_format($bet_amount/1000,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"debit");
                 }
+                $client_response_time = microtime(true) - $sendtoclient;
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
                     if($request->has('bonusId')){
@@ -243,6 +250,7 @@ class EDPController extends Controller
                         );
                     }
                     Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$sessions,$client_response);
+                    Helper::saveLog('responseTime(EDP)', 12, json_encode(["type"=>"debitproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
                     return response($sessions,200)
                         ->header('Content-Type', 'application/json');
                 }
@@ -270,6 +278,7 @@ class EDPController extends Controller
         }
     }
     public function winGame(Request $request){
+        $startTime =  microtime(true);
         // this is to identify the diff type of win
         Helper::saveLog("EDP WIN",9,json_encode($request->getContent()),"BEFORE WIN PROCESS");
         if($request->has("progressive")&&$request->has("progressiveDesc")){
@@ -283,7 +292,7 @@ class EDPController extends Controller
            //Helper::saveLog("debit",9,json_encode($request->getContent()),"WIN");
         }
         elseif($request->has("bonusId")){
-            $sha1key = sha1($request->amount.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
+            $sha1key = sha1($request->amount.''.$request->bonusId.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
         }
         else{
             $sha1key = sha1($request->amount.''.$request->date.''.$request->gameId.''.$request->id.''.$request->token.''.$this->secretkey);
@@ -325,7 +334,9 @@ class EDPController extends Controller
                     $gametransactionid = $game->game_trans_id;
                 }
                 $transactionId=Helper::createGameTransactionExt($gametransactionid,$request,null,null,null,2);
+                $sendtoclient =  microtime(true);
                 $client_response = ClientRequestHelper::fundTransfer($client_details,number_format($win_amount/1000,2, '.', ''),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
+                $client_response_time = microtime(true) - $sendtoclient;
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
                     if($request->has("bonusId")){
@@ -343,6 +354,7 @@ class EDPController extends Controller
                         );
                     } 
                 Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$sessions,$client_response);
+                Helper::saveLog('responseTime(EDP)', 12, json_encode(["type"=>"debitproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
                 return response($sessions,200)
                        ->header('Content-Type', 'application/json');
                 }
