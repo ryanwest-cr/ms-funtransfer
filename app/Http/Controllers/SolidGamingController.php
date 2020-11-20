@@ -277,6 +277,13 @@ class SolidGamingController extends Controller
 			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 		}
 		Helper::saveLog('SOLID_GAMING_DEBIT', 2, file_get_contents("php://input"), $response);
+		$reponse_time = [
+			"type"=>"BETPROCESS",
+			"startTime"=>$this->startTime,
+			"endTime"=> microtime(true),
+			"response"=>microtime(true) - $this->startTime 
+		];
+		 Helper::saveLog('SOLID_RESONSE_TIME_DEBIT', 2, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
 		return response()->json($response, $http_status);
 
 	}
@@ -385,6 +392,15 @@ class SolidGamingController extends Controller
 						ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 				}
 				Helper::saveLog('SOLID_GAMING_CREDIT', 2, file_get_contents("php://input"), $response);
+
+				$reponse_time = [
+					"type"=>"CREDITPROCESS",
+					"startTime"=>$this->startTime,
+					"endTime"=> microtime(true),
+					"response"=>microtime(true) - $this->startTime 
+				];
+				 Helper::saveLog('SOLID_RESONSE_TIME_CREDIT', 2, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
+
 				return response()->json($response, $http_status);
 			}catch(\Exception $e){
 				$http_status = 505;
@@ -392,6 +408,14 @@ class SolidGamingController extends Controller
 					"status" => "OK",
 					"message" => $e->getMessage(),
 				];
+
+				$reponse_time = [
+					"type"=>"CREDITPROCESS",
+					"startTime"=>$this->startTime,
+					"endTime"=> microtime(true),
+					"response"=>microtime(true) - $this->startTime 
+				];
+				 Helper::saveLog('SOLID_RESONSE_TIME_CREDIT', 2, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
 				Helper::saveLog('SOLID_GAMING_CREDIT_CATCH', 2, file_get_contents("php://input"), $response);
 				return response()->json($response, $http_status);
 			}
