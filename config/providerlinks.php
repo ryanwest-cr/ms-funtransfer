@@ -250,6 +250,11 @@ return [
     ],
     'microgaming'=>[
         'grant_type'=> 'client_credentials',
+        'client_id' => 'Tiger_USD_Agent_Test',
+        'client_secret'=> '204973dbe37949cfbae301f545ba0e',
+    ],
+    'upg'=>[
+        'grant_type'=> 'client_credentials',
         'client_id' => 'Tiger_UPG_USD_MA_Test',
         'client_secret'=> 'd4e59abcbf0b4fd88e3904f12c3dfb',
     ],

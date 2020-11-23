@@ -21,6 +21,34 @@ class MGHelper{
             ]
             ,
             'headers' =>[
+                'Authorization' => 'Bearer '.MGHelper::upgstsTokenizer(),
+                'Accept'     => 'application/json' 
+            ]
+        ]);
+
+        $url = json_decode((string) $response->getBody(), true)["gameURL"];
+        $data = array(
+            "url" => urlencode($url),
+            "token" => $token,
+            "player_id" => $player_id
+        );
+        $encoded_data = $aes->AESencode(json_encode($data));
+        return "https://play.betrnk.games/loadgame/microgaming?param=".urlencode($encoded_data);
+	}
+	public static function mglaunchGame($token,$player_id,$game_code){
+        $key = "LUGTPyr6u8sRjCfh";
+        $aes = new AES($key);
+        $player_id = $player_id;
+        $providerlinks = "https://api-tigergaming.k2net.io/api/v1/agents/Tiger_USD_Agent_Test/players/".$player_id."/sessions";
+        $http = new Client();
+        $response = $http->post("https://api-tigergaming.k2net.io/api/v1/agents/Tiger_USD_Agent_Test/players/".$player_id."/sessions",[
+            'form_params' => [
+                'platform' => "desktop",
+                'langCode' => "en-EN",//needd to be dynamic
+                'contentCode' => $game_code,//temporary this is the game code
+            ]
+            ,
+            'headers' =>[
                 'Authorization' => 'Bearer '.MGHelper::stsTokenizer(),
                 'Accept'     => 'application/json' 
             ]
@@ -42,6 +70,18 @@ class MGHelper{
                 'grant_type' => config('providerlinks.microgaming.grant_type'),
                 'client_id' => config('providerlinks.microgaming.client_id'),
                 'client_secret' => config('providerlinks.microgaming.client_secret'),
+            ],
+        ]);
+
+        return json_decode((string) $response->getBody(), true)["access_token"];
+	 }
+	 public static function upgstsTokenizer(){
+        $http = new Client();
+        $response = $http->post('https://sts-tigergaming.k2net.io/connect/token', [
+            'form_params' => [
+                'grant_type' => config('providerlinks.upg.grant_type'),
+                'client_id' => config('providerlinks.upg.client_id'),
+                'client_secret' => config('providerlinks.upg.client_secret'),
             ],
         ]);
 

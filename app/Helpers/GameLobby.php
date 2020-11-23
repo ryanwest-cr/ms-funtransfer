@@ -85,7 +85,7 @@ class GameLobby{
     public static function microgamingLaunchUrl($game_code,$token,$provider,$exitUrl){
         $client_details = ProviderHelper::getClientDetails('token', $token);
         Helper::savePLayerGameRound($game_code,$token,$provider);
-        $url = MGHelper::launchGame($token,$client_details->player_id,$game_code);
+        $url = MGHelper::mglaunchGame($token,$client_details->player_id,$game_code);
         return $url;
     }public static function upgLaunchUrl($game_code,$token,$provider,$exitUrl){
         $client_details = ProviderHelper::getClientDetails('token', $token);

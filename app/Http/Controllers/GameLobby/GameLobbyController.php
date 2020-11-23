@@ -197,6 +197,15 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
+                elseif($request->input('game_provider')=="MicroGaming Direct"){
+                    $msg = array(
+                        "game_code" => $request->input("game_code"),
+                        "url" => GameLobby::microgamingLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),
+                        "game_launch" => true
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
                 elseif($request->input('game_provider')=="EvolutionGaming Direct"){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
