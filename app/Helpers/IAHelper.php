@@ -285,13 +285,27 @@ class IAHelper{
 
 	public  static function updatecreateGameTransExt($game_trans_ext_id, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail, $general_details = 'NO DATA')
 	{
-		$provider_request = json_encode($provider_request);
-		$mw_response = json_encode($mw_response);
-		$mw_request = json_encode($mw_request);
-		$client_response = json_encode($client_response);
-		$transaction_detail = json_encode($transaction_detail);
-		$general_details = json_encode($general_details);
-		$query = DB::select("update `game_transaction_ext` set `provider_request` = '$provider_request', `mw_response` = '$mw_response', `mw_request` = '$mw_request', `client_response` = '$client_response', `transaction_detail` = '$transaction_detail', `general_details` = '$general_details' where `game_trans_ext_id` = $game_trans_ext_id");
+		// $provider_request = json_encode($provider_request);
+		// $mw_response = json_encode($mw_response);
+		// $mw_request = json_encode($mw_request);
+		// $client_response = json_encode($client_response);
+		// $transaction_detail = json_encode($transaction_detail);
+		// $general_details = json_encode($general_details);
+		// $query = DB::select("update `game_transaction_ext` set `provider_request` = '$provider_request', `mw_response` = '$mw_response', `mw_request` = '$mw_request', `client_response` = '$client_response', `transaction_detail` = "$transaction_detail", `general_details` = "$general_details" where `game_trans_ext_id` = $game_trans_ext_id");
+		// $query = DB::select('update `game_transaction_ext` set `provider_request` = "$provider_request", `mw_response` = "$mw_response", `mw_request` = "$mw_request", `client_response` = "$client_response", `transaction_detail` = "$transaction_detail", `general_details` = "$general_details" where `game_trans_ext_id` = $game_trans_ext_id');
+
+		$update = DB::table('game_transaction_ext')
+		->where('game_trans_ext_id', $game_trans_ext_id)
+			->update([
+				"provider_request" => json_encode($provider_request),
+				"mw_response" => json_encode($mw_response),
+				"mw_request" => json_encode($mw_request),
+				"client_response" => json_encode($client_response),
+				"transaction_detail" => json_encode($transaction_detail),
+				"general_details" => json_encode($general_details)
+			]);
+		// Helper::saveLog('updatecreateGameTransExt', 999, json_encode(DB::getQueryLog()), "TIME updatecreateGameTransExt");
+		return ($update ? true : false);
 	}
 
 	public static function getClientDetails($type = "", $value = "", $gg = 1, $providerfilter = 'all')
