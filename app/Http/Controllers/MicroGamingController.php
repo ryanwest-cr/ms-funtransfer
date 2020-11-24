@@ -98,7 +98,7 @@ class MicroGamingController extends Controller
         
     }
     public function makeDeposit(Request $request){
-        if($request->has("token")&&$request->has("player_id")&&$request->has("amount")){
+        if($request->has("token")&&$request->has("player_id")&&$request->has("amount")&&$request->has("provider")){
             $client_details = ProviderHelper::getClientDetails('token', $request->token);
             if($client_details){
                 $game_details = Helper::getInfoPlayerGameRound($request->token);
@@ -123,8 +123,16 @@ class MicroGamingController extends Controller
             $balance = round($client_response->fundtransferresponse->balance,2);
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
+                    if($request->player_id == "upg"){
+                        $mgclient_id = config('providerlinks.upg.client_id');
+                        $ststToken = MGHelper::upgstsTokenizer();
+                    }
+                    elseif($request->player_id == "microgaming"){
+                        $mgclient_id = config('providerlinks.microgaming.client_id');
+                        $ststToken = MGHelper::stsTokenizer();
+                    }
                     $http = new Client();
-                    $response = $http->post("https://api-tigergaming.k2net.io/api/v1/agents/Tiger_UPG_USD_MA_Test/WalletTransactions",[
+                    $response = $http->post("https://api-tigergaming.k2net.io/api/v1/agents/".$mgclient_id."/WalletTransactions",[
                         'form_params' => [
                             'playerId' => $request->player_id,
                             'type' => "deposit",
@@ -133,7 +141,7 @@ class MicroGamingController extends Controller
                         ]
                         ,
                         'headers' =>[
-                            'Authorization' => 'Bearer '.MGHelper::stsTokenizer(),
+                            'Authorization' => 'Bearer '.$ststToken,
                             'Accept'     => 'application/json' 
                         ]
                     ]);
@@ -187,8 +195,16 @@ class MicroGamingController extends Controller
                     $gametransactionid = $game->game_trans_id;
                 }
                 $transactionId =MGHelper::createMGGameTransactionExt($gametransactionid,$json_data,null,null,null,2);
+                if($request->player_id == "upg"){
+                    $mgclient_id = config('providerlinks.upg.client_id');
+                    $ststToken = MGHelper::upgstsTokenizer();
+                }
+                elseif($request->player_id == "microgaming"){
+                    $mgclient_id = config('providerlinks.microgaming.client_id');
+                    $ststToken = MGHelper::stsTokenizer();
+                }
                 $http = new Client();
-                $response = $http->post("https://api-tigergaming.k2net.io/api/v1/agents/Tiger_UPG_USD_MA_Test/WalletTransactions",[
+                $response = $http->post("https://api-tigergaming.k2net.io/api/v1/agents/".$mgclient_id."/WalletTransactions",[
                     'form_params' => [
                         'playerId' => $request->player_id,
                         'type' => "withdraw",
@@ -197,7 +213,7 @@ class MicroGamingController extends Controller
                     ]
                     ,
                     'headers' =>[
-                        'Authorization' => 'Bearer '.MGHelper::stsTokenizer(),
+                        'Authorization' => 'Bearer '.$ststToken,
                         'Accept'     => 'application/json' 
                     ]
                 ]);
