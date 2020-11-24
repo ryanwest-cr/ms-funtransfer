@@ -10,7 +10,7 @@ use App\Helpers\IAHelper;
 use App\Helpers\AWSHelper;
 use App\Helpers\SAHelper;
 use App\Helpers\TidyHelper;
-use App\Helpers\GoldenFHelper;
+use App\Helpers\TransferWalletHelper;
 use App\Helpers\FCHelper;
 use App\Helpers\ProviderHelper;
 use App\Helpers\MGHelper;
@@ -177,6 +177,7 @@ class GameLobby{
           "settings" =>  [
             'user_id'=> $client_player_details->player_id,
             'language'=> $client_player_details->language ? $client_player_details->language : 'en',
+            'https' => true,
           ],
           "denomination" => '1', // game to be launched with values like 1.0, 1, default
           "currency" => $client_player_details->default_currency,
@@ -346,11 +347,33 @@ class GameLobby{
         }
     }
     
-    public static function kaGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en'){
+    public static function kaGamingLaunchUrl($game_code,$token,$exitUrl,$lang='en', $data){
         $url = $exitUrl;
         // $domain = parse_url($url, PHP_URL_HOST);
+
+        // Single Wallet
+        // $client_details = Providerhelper::getClientDetails('token', $token);
+        // $url = ''.config('providerlinks.kagaming.gamelaunch').'/?g='.$game_code.'&p='.config('providerlinks.kagaming.partner_name').'&u='.$client_details->player_id.'&t='.$token.'&cr='.$client_details->default_currency.'&loc='.$lang.'&t='.$token.'&l='.$url.'&da='.$client_details->username.'&tl=TIGERGAMES'.'&ak='.config('providerlinks.kagaming.access_key').'';
+        // return $url;
+
+        // Transfer Wallet
+        $key = "LUGTPyr6u8sRjCfh";
+        $aes = new AES($key);
+
         $client_details = Providerhelper::getClientDetails('token', $token);
-        $url = ''.config('providerlinks.kagaming.gamelaunch').'/?g='.$game_code.'&p='.config('providerlinks.kagaming.partner_name').'&u='.$client_details->player_id.'&t='.$token.'&cr='.$client_details->default_currency.'&loc='.$lang.'&t='.$token.'&l='.$url.'&da='.$client_details->username.'&tl=TIGERGAMES'.'&ak='.config('providerlinks.kagaming.access_key').'';
+        $gameluanch_url = '' . config('providerlinks.kagaming.gamelaunch') . '/?g=' . $game_code . '&p=' . config('providerlinks.kagaming.tw_partner_name') . '&u=' . $client_details->player_id . '&t=' . $token . '&cr=' . $client_details->default_currency . '&loc=' . $lang . '&t=' . $token . '&l=' . $url . '&da=' . $client_details->username . '&tl=TIGERGAMES' . '&ak=' . config('providerlinks.kagaming.tw_access_key') . '';
+
+        TransferWalletHelper::savePLayerGameRound($data['game_code'], $data['token'], $data['game_provider']); // Save Player Round
+        TransferWalletHelper::saveLog('KAGaming gamelaunch', 43, json_encode($data), $gameluanch_url);
+        $data = array(
+            "url" => urlencode($gameluanch_url),
+            "token" => $client_details->player_token,
+            "player_id" => $client_details->player_id,
+            // "system_player_id" => $client_details->player_id,
+            "exitUrl" => isset($data['exitUrl']) ? $data['exitUrl'] : '',
+        );
+        $encoded_data = $aes->AESencode(json_encode($data));
+        return config('providerlinks.play_betrnk') . "/loadgame/kagaming?param=" . urlencode($encoded_data);
         return $url;
     }
 
@@ -679,7 +702,7 @@ class GameLobby{
                 ]
             ]);
             $golden_response = json_decode((string) $response->getBody(), true);
-            GoldenFHelper::saveLog('GoldenF create_player', $provider_id, json_encode($data), $golden_response);
+            TransferWalletHelper::saveLog('GoldenF create_player', $provider_id, json_encode($data), $golden_response);
             if(isset($golden_response['data']['action_result']) && $golden_response['data']['action_result'] == "Success"){
                 $gameluanch_url = $api_url."/Launch?secret_key=".$secret_key."&operator_token=".$operator_token."&game_code=".$data['game_code']."&player_name=".$player_id."&nickname=".$nickname."&language=".$client_details->language;
 
@@ -687,8 +710,8 @@ class GameLobby{
                 $get_url = json_decode($response->getBody()->getContents());
 
                 if(isset($get_url->data->action_result) && $get_url->data->action_result == 'Success'){
-                    GoldenFHelper::savePLayerGameRound($data['game_code'],$data['token'],$data['game_provider']); // Save Player Round
-                    GoldenFHelper::saveLog('GoldenF gamelaunch', $provider_id, json_encode($data), $gameluanch_url);
+                    TransferWalletHelper::savePLayerGameRound($data['game_code'],$data['token'],$data['game_provider']); // Save Player Round
+                    TransferWalletHelper::saveLog('GoldenF gamelaunch', $provider_id, json_encode($data), $gameluanch_url);
                     $data = array(
                         "url" => urlencode($get_url->data->game_url),
                         "token" => $client_details->player_token,
@@ -708,7 +731,7 @@ class GameLobby{
             $error = [
                 'error' => $e->getMessage()
             ];
-            GoldenFHelper::saveLog('GoldenF gamelaunch err', $provider_id, json_encode($data), $e->getMessage());
+            TransferWalletHelper::saveLog('GoldenF gamelaunch err', $provider_id, json_encode($data), $e->getMessage());
             // return $error;
             return 'false';
         }

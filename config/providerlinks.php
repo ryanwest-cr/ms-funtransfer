@@ -141,6 +141,11 @@ return [
         "access_key" => "A95383137CE37E4E19EAD36DF59D589A",
         "secret_key" => "40C6AB9E806C4940E4C9D2B9E3A0AA25",
         "partner_name" => "TIGER",
+        "tw_gamelaunch" => "https://gamesstage.kaga88.com",
+        "tw_ka_api" => "https://rmpstage.kaga88.com/kaga/",
+        "tw_access_key" => "40762F59A507E9182F28D6893975E0FD",
+        "tw_secret_key" => "40C6AB9E806C4940E4C9D2B9E3A0AA25",
+        "tw_partner_name" => "TIGER2",
     ],
     'iagaming' => [
         'auth_key' => '54bc08c471ae3d656e43735e6ffc9bb6',
