@@ -123,11 +123,11 @@ class MicroGamingController extends Controller
             $balance = round($client_response->fundtransferresponse->balance,2);
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
-                    if($request->player_id == "upg"){
+                    if($request->provider == "upg"){
                         $mgclient_id = config('providerlinks.upg.client_id');
                         $ststToken = MGHelper::upgstsTokenizer();
                     }
-                    elseif($request->player_id == "microgaming"){
+                    elseif($request->provider == "microgaming"){
                         $mgclient_id = config('providerlinks.microgaming.client_id');
                         $ststToken = MGHelper::stsTokenizer();
                     }
@@ -195,11 +195,11 @@ class MicroGamingController extends Controller
                     $gametransactionid = $game->game_trans_id;
                 }
                 $transactionId =MGHelper::createMGGameTransactionExt($gametransactionid,$json_data,null,null,null,2);
-                if($request->player_id == "upg"){
+                if($request->provider == "upg"){
                     $mgclient_id = config('providerlinks.upg.client_id');
                     $ststToken = MGHelper::upgstsTokenizer();
                 }
-                elseif($request->player_id == "microgaming"){
+                elseif($request->provider == "microgaming"){
                     $mgclient_id = config('providerlinks.microgaming.client_id');
                     $ststToken = MGHelper::stsTokenizer();
                 }
