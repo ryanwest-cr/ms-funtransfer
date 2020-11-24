@@ -295,7 +295,7 @@ class GameLobbyController extends Controller
                     if($request->has('lang')){
                         $lang = ProviderHelper::getLanguage($request->game_provider,$request->lang,$type='name');
                     }
-                    $url = GameLobby::kaGamingLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang);
+                    $url = GameLobby::kaGamingLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang, $request->all());
                     if($url){
                         $msg = array(
                             "game_code" => $request->input("game_code"),
