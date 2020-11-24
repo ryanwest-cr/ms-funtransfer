@@ -641,23 +641,23 @@ class GameLobby{
         $url = "$gameluanch_url?key=$paramEncoded&stylename=$stylename";
         $result = json_encode($url);
 
-        $aes = new AES();
-        $data = array(
-            'url' => $url,
-            'wsUri' => $wsUri,
-            'tableId' => $game_code,
-            'casinoId' => $casinoId,
-        );
-        $encoded_data = $aes->AESencode(json_encode($data));
-        if($game_details->game_type_id == '15'){
-            Helper::saveLog('start game url PP DGA', 26, $result,"$result");
-            // return "http://play.betrnk.games:81/loadgame/pragmatic-play-dga?param=".urlencode($encoded_data);
-            $url = config("providerlinks.play_betrnk")."/loadgame/pragmatic-play-dga?param=".urlencode($encoded_data);
+        // $aes = new AES();
+        // $data = array(
+        //     'url' => $url,
+        //     'wsUri' => $wsUri,
+        //     'tableId' => $game_code,
+        //     'casinoId' => $casinoId,
+        // );
+        // $encoded_data = $aes->AESencode(json_encode($data));
+        // if($game_details->game_type_id == '15'){
+        //     Helper::saveLog('start game url PP DGA', 26, $result,"$result");
+        //     // return "http://play.betrnk.games:81/loadgame/pragmatic-play-dga?param=".urlencode($encoded_data);
+        //     $url = config("providerlinks.play_betrnk")."/loadgame/pragmatic-play-dga?param=".urlencode($encoded_data);
+        //     return $url;
+        // }else{
+        //     Helper::saveLog('start game url PP', 26, $result,"$result");
             return $url;
-        }else{
-            Helper::saveLog('start game url PP', 26, $result,"$result");
-            return $url;
-        }
+        // }
     }
 
     public static function yggdrasillaunchUrl($data){
