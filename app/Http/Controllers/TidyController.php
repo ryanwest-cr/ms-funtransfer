@@ -24,6 +24,7 @@ class TidyController extends Controller
 	 public function __construct(){
     	$this->client_id = config('providerlinks.tidygaming.client_id');
     	$this->API_URL = config('providerlinks.tidygaming.API_URL');
+    	$this->startTime = microtime(true);
     }
 
 	 public function autPlayer(Request $request){
@@ -152,13 +153,11 @@ class TidyController extends Controller
 		$bet_id = $data->bet_id;
 		$request_uuid = $data->request_uuid;
 		$transaction_uuid = $data->transaction_uuid;
-		// $reference_transaction_uuid = $data->reference_transaction_uuid;
-		$client_details = ProviderHelper::getClientDetails('token',$token); // cheking the token and get details
-		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
-		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+
+		$searchGameTransactionExt = microtime(true);
 		$transaction_check = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id');
-		
-		
+		$searchGameTransactionExt = microtime(true) - $searchGameTransactionExt;
+
 		if($transaction_check != 'false'){
 			$data_response = [
 				'error' => '99-011' 
@@ -167,6 +166,13 @@ class TidyController extends Controller
 			return $data_response;
 		}
 
+		$getGameDetails = microtime(true);
+		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+		$getGameDetails = microtime(true) - $getGameDetails;
+
+		$getClientDetails = microtime(true);
+		$client_details = ProviderHelper::getClientDetails('token',$token);
+		$getClientDetails = microtime(true) - $getClientDetails;
 		try{
 			//Initialize
 			
@@ -183,17 +189,22 @@ class TidyController extends Controller
 			$provider_trans_id = $transaction_uuid;
 
 			//Create GameTransaction, GameExtension
+			$createGameTransaction = microtime(true);
 			$game_trans_id  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
+			$createGameTransaction = microtime(true) - $createGameTransaction;
 
+			$createGameTransExt = microtime(true);
 			$game_trans_ext_id = $this->createGameTransExt($game_trans_id,$provider_trans_id, $bet_id, $bet_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-			
+			$createGameTransExt = microtime(true) - $createGameTransExt;
 			//get Round_id, Transaction_id
 			//$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id'); //extension
 		
 			//requesttosend, and responsetoclient client side
 			$type = "debit";
 			$rollback = false;
+			$fundTransfer = microtime(true);
 			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_id,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
+			$fundTransfer = microtime(true) - $fundTransfer;
 
 			//response to provider				
 			$num = $client_response->fundtransferresponse->balance;
@@ -204,13 +215,31 @@ class TidyController extends Controller
 				"balance" =>  ProviderHelper::amountToFloat($num)
 			];
 			//UPDATE gameExtension
-			
+			$updateGameTransactionExt = microtime(true);
 			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
+			$updateGameTransactionExt = microtime(true) - $updateGameTransactionExt;
 
+			$createSaveLog = microtime(true);
 			Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-
+			$createSaveLog = microtime(true) - $createSaveLog;
+			
+			$reponse_time = [
+				"totalProcessTime" => microtime(true) - $this->startTime,
+				"type" => "Bet",
+				"Time Execution Process" => [
+					"searchGameTransactionExt" => $searchGameTransactionExt,
+					"getGameDetails" => $getGameDetails,
+					"getClientDetails" => $getClientDetails,
+					"createGameTransaction" => $createGameTransaction,
+					"createGameTransExt" => $createGameTransExt,
+					"fundTransfer" => $fundTransfer,
+					"updateGameTransactionExt" => $updateGameTransactionExt,
+					"createSaveLog" => $createSaveLog, 
+				],
+			];
+		 	Helper::saveLog('PROCESS_TIME', 900, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
 			return $data_response; // response to provider
-		
+			
 		}catch(\Exception $e){
 			$data_response = [
 				'error' => '99-012' 
@@ -243,7 +272,7 @@ class TidyController extends Controller
 		$reference_transaction_uuid = $data->reference_transaction_uuid; //  MW -ROUND
 
 		//CHECKING TOKEN
-		$client_details = ProviderHelper::getClientDetails('token',$token);
+		
 
 		
 		// if($client_details == null){
@@ -254,9 +283,20 @@ class TidyController extends Controller
 		// 	return $data_response;
 		// }
 		
-		$getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
-		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+		// $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
+		$searchGameTransactionExt = microtime(true);
+		$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'transaction_id',1);
+		$searchGameTransactionExt = microtime(true) - $searchGameTransactionExt;
 		
+		
+
+		$getGameDetails = microtime(true);
+		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
+		$getGameDetails = microtime(true) - $getGameDetails;
+
+		$getClientDetails = microtime(true);
+		$client_details = ProviderHelper::getClientDetails('token',$token);
+		$getClientDetails = microtime(true) - $getClientDetails;
 		//CHECKING if BET EXISTING game_transaction_ext IF FALSE no bet record
 		// $existing_bet = ProviderHelper::findGameExt($reference_transaction_uuid, 1,'transaction_id');
 		
@@ -280,18 +320,19 @@ class TidyController extends Controller
 		
 		try{
 			//get details on game_transaction
-			$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'transaction_id',1);
 			
+			$createGameTransExt = microtime(true);
 			$game_trans_ext_id = $this->createGameTransExt($bet_transaction->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-			
+			$createGameTransExt = microtime(true) - $createGameTransExt;
 			//get game_trans_id and game_trans_ext
 			//$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
 
 			//requesttosend, and responsetoclient client side
 			$type = "credit";
 			$rollback = false;
+			$fundTransfer = microtime(true);
 			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_id,$game_details->game_name,$game_trans_ext_id,$bet_transaction->game_trans_id,$type,$rollback);
-		
+			$fundTransfer = microtime(true) - $fundTransfer;
 			//reponse to provider
 		    $num = $client_response->fundtransferresponse->balance;
 			$data_response = [
@@ -310,10 +351,35 @@ class TidyController extends Controller
 				'payout_reason' => 2
 			];
 			//update transaction
+			$updateGameTransaction = microtime(true);
 			Helper::updateGameTransaction($bet_transaction,$request_data,$type);
+			$updateGameTransaction = microtime(true) - $updateGameTransaction;
+
+			$updateGameTransactionExt = microtime(true);
 			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
+			$updateGameTransactionExt = microtime(true) - $updateGameTransactionExt;
+
+			$createSaveLog = microtime(true);
 		    Helper::saveLog('Tidy Win Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
+		    $createSaveLog = microtime(true) - $createSaveLog;
+		    
+		    $reponse_time = [
+				"totalProcessTime" => microtime(true) - $this->startTime,
+				"type" => "Win",
+				"Time Execution Process" => [
+					"searchGameTransactionExt" => $searchGameTransactionExt,
+					"getGameDetails" => $getGameDetails,
+					"getClientDetails" => $getClientDetails,
+					"createGameTransExt" => $createGameTransExt,
+					"fundTransfer" => $fundTransfer,
+					"updateGameTransaction" => $updateGameTransaction,
+					"updateGameTransactionExt" => $updateGameTransactionExt,
+					"createSaveLog" => $createSaveLog, 
+				],
+			];
+		 	Helper::saveLog('PROCESS_TIME', 900, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
 	        return $data_response;
+
 		}catch(\Exception $e){
 			$data_response = [
 				'error' => '99-011' 
