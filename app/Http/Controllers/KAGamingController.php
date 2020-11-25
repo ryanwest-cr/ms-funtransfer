@@ -96,6 +96,7 @@ class KAGamingController extends Controller
          return round($amount/100,2);
     }
 
+    
     public function gameStart(Request $request){
         KAHelper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = $request->getContent();
@@ -141,10 +142,10 @@ class KAGamingController extends Controller
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
         $data = json_decode($request_body);
-        $session_check = KAHelper::getClientDetails('token',$data->sessionId);
-        if($session_check == 'false'){
-            return  $response = ["status" => "failed", "statusCode" =>  100];
-        }
+        // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
+        // if($session_check == 'false'){
+        //     return  $response = ["status" => "failed", "statusCode" =>  100];
+        // }
         $client_details = KAHelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
@@ -211,10 +212,10 @@ class KAGamingController extends Controller
         $win_or_lost = 5; // 0 lost,  5 processing
         $payout_reason = 'Game Bets and Win';
         
-        $session_check = KAHelper::getClientDetails('token',$data->sessionId);
-        if($session_check == 'false'){
-            return  $response = ["status" => "failed", "statusCode" =>  100];
-        }
+        // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
+        // if($session_check == 'false'){
+        //     return  $response = ["status" => "failed", "statusCode" =>  100];
+        // }
         $client_details = KAHelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
@@ -349,10 +350,10 @@ class KAGamingController extends Controller
         $payout_reason = 'Credited Side Bets';
         $provider_trans_id = $data->transactionId;
         $game_code = $data->gameId;
-        $session_check = KAHelper::getClientDetails('token',$data->sessionId);
-        if($session_check == 'false'){
-            return  $response = ["status" => "failed", "statusCode" =>  100];
-        }
+        // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
+        // if($session_check == 'false'){
+        //     return  $response = ["status" => "failed", "statusCode" =>  100];
+        // }
         $client_details = KAHelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
@@ -453,10 +454,10 @@ class KAGamingController extends Controller
         $provider_trans_id = $data->transactionId;
         $round_id = $provider_trans_id.'_'.$data->round;
 
-        $session_check = KAHelper::getClientDetails('token',$data->sessionId);
-        if($session_check == 'false'){
-            return  $response = ["status" => "failed", "statusCode" =>  100];
-        }
+        // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
+        // if($session_check == 'false'){
+        //     return  $response = ["status" => "failed", "statusCode" =>  100];
+        // }
         $client_details = KAHelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
@@ -567,10 +568,10 @@ class KAGamingController extends Controller
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
         $data = json_decode($request_body);
-        $session_check = KAHelper::getClientDetails('token',$data->sessionId);
-        if($session_check == 'false'){
-            return  $response = ["status" => "failed", "statusCode" =>  100];
-        }
+        // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
+        // if($session_check == 'false'){
+        //     return  $response = ["status" => "failed", "statusCode" =>  100];
+        // }
         $client_details = KAHelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
