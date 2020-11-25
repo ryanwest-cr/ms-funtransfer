@@ -97,7 +97,7 @@ class KAGamingController extends Controller
     }
 
     public function gameStart(Request $request){
-        // KAHelper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
+        KAHelper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = $request->getContent();
         if(!$request->input("hash") != ''){
             return  $response = ["status" => "failed", "statusCode" =>  3];
@@ -131,7 +131,7 @@ class KAGamingController extends Controller
 
 
     public function playerBalance(Request $request){
-        // KAHelper::saveLog('KAGaming playerBalance - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
+        KAHelper::saveLog('KAGaming playerBalance - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $request_body = $request->getContent();
 
         if(!$request->input("hash") != ''){
