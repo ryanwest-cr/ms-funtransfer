@@ -915,6 +915,7 @@ class KAGamingController extends Controller
             if ($game) {
                 $gamerecord = $game->game_trans_id;
             } else {
+                SessionWalletHelper::deleteSession($request->token);
                 $response = ["status" => "error", 'message' => 'No Transaction Recorded'];
                 TransferWalletHelper::saveLog('TransferWallet TransferOut Failed', $this->provider_db_id, json_encode($request->all()), $response);
                 return $response;
