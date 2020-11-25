@@ -165,8 +165,14 @@ class GoldenFController extends Controller
         //     return response($msg,200)->header('Content-Type', 'application/json');
         // }
 
+        // $json_data = array(
+        //     "transid" => "GFTID".Carbon::now()->timestamp,
+        //     "amount" => $request->amount,
+        //     "roundid" => 0,
+        // );
+
         $json_data = array(
-            "transid" => "GFTID".Carbon::now()->timestamp,
+            "transid" => $request->token,
             "amount" => $request->amount,
             "roundid" => 0,
         );
@@ -228,6 +234,13 @@ class GoldenFController extends Controller
                 ]);
                 $golden_response = json_decode((string) $response->getBody(), true);
                 TransferWalletHelper::saveLog('GoldenF TransferIn Success', $this->provider_db_id,json_encode($request->all()), $golden_response);
+
+                # TransferWallet
+                $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
+                if ($token == false) { // This token doesnt exist in wallet_session
+                    SessionWalletHelper::createWalletSession($request->token, $request->all());
+                }
+
             } catch (\Exception $e) {
                 $response = ["status" => "error", 'message' => $e->getMessage()];
                 if(isset($gamerecord)){
