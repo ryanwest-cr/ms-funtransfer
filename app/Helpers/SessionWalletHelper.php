@@ -1,8 +1,7 @@
 <?php
 namespace App\Helpers;
 use Illuminate\Http\Request;
-use App\Helpers\ProviderHelper;
-use App\Helpers\Helper;
+use App\Helpers\TransferWalletHelper;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
@@ -52,11 +51,25 @@ class SessionWalletHelper
 		return $data > 0 ? $query[0] : false;
     }
 
+    public static function isMultipleSession($player_id, $token){
+        // $query = DB::select('SELECT * FROM wallet_session WHERE system_player_id = "' . $player_id . '"');
+        // $data = count($query);
+
+        $query = DB::table('wallet_session')->where('system_player_id', $player_id)->first();
+        if($query){
+            if($query->token != $token){
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public static function createWalletSession($token, $metadata){
+        $token_identity = TransferWalletHelper::getClientDetails('token', $token);
     	$query = DB::table('wallet_session')->insert(
         array('token' => $token,
-            //   'system_player_id' => 1,
+              'system_player_id' => $token_identity->player_id,
               'metadata' =>  json_encode($metadata))
         );
         return $query ? $query : false;

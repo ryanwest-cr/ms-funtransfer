@@ -30,7 +30,8 @@ class MGHelper{
         $data = array(
             "url" => urlencode($url),
             "token" => $token,
-            "player_id" => $player_id
+            "player_id" => $player_id,
+            "provider" => "upg"
         );
         $encoded_data = $aes->AESencode(json_encode($data));
         return "https://play.betrnk.games/loadgame/microgaming?param=".urlencode($encoded_data);
@@ -58,7 +59,8 @@ class MGHelper{
         $data = array(
             "url" => urlencode($url),
             "token" => $token,
-            "player_id" => $player_id
+            "player_id" => $player_id,
+            "provider" => "microgaming"
         );
         $encoded_data = $aes->AESencode(json_encode($data));
         return "https://play.betrnk.games/loadgame/microgaming?param=".urlencode($encoded_data);
