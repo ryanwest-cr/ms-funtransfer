@@ -806,6 +806,13 @@ class KAGamingController extends Controller
                     return $response;
                 }
 
+
+                # TransferWallet
+                $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
+                if ($token == false) { // This token doesnt exist in wallet_session
+                    SessionWalletHelper::createWalletSession($request->token, $request->all());
+                }
+
                 TransferWalletHelper::saveLog('TransferIn Success', $this->provider_db_id, json_encode($request->all()), $make_deposit_response);
             } catch (\Exception $e) {
                 $response = ["status" => "error", 'message' => $e->getMessage()];

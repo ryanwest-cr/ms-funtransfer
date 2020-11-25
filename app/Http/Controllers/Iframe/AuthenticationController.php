@@ -48,12 +48,14 @@ class AuthenticationController extends Controller
                         "message" => "Multiple Session Detected!",
                         "exist" => true,
                     );
-                }else{
-                    $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
-                    if ($token == false) { // This token doesnt exist in wallet_session
-                        SessionWalletHelper::createWalletSession($request->token, $request->all());
-                    }
                 }
+                
+                // else{
+                //     $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
+                //     if ($token == false) { // This token doesnt exist in wallet_session
+                //         SessionWalletHelper::createWalletSession($request->token, $request->all());
+                //     }
+                // }
 
                 return response($response,200)
                 ->header('Content-Type', 'application/json');
