@@ -105,7 +105,13 @@ class GameLobbyController extends Controller
             else{
                 $ip_address = "127.0.0.1";
             }
-
+            $provider_id = GameLobby::checkAndGetProviderId($request->game_provider);
+            if($provider_id){
+                $provider_code = $provider_id->sub_provider_id;
+            }else{
+                return response(["error_code"=>"404","message"=>"Provider Code Doesnt Exist/Not Found"],200)
+                 ->header('Content-Type', 'application/json');
+            }
             // CLIENT SUBSCRIPTION FILTER
             // $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
             // if(!$subscription_checker){
