@@ -135,6 +135,18 @@ class GoldenFController extends Controller
             return response($msg, 200)->header('Content-Type', 'application/json');
         }
 
+
+        # TransferWallet  (DENY DEPOSIT FOR ALREADY PLAYING PLAYER)
+        # Check Multiple user Session
+        $session_count = SessionWalletHelper::isMultipleSession($client_details->player_id, $request->token);
+        if ($session_count) {
+            $response = array(
+                "status" => "error",
+                "message" => "Multiple Session Detected!"
+            );
+            return response($response, 200)->header('Content-Type', 'application/json');
+        }
+
         $client_response = TransferWalletHelper::playerDetailsCall($client_details); 
         $balance = round($client_response->playerdetailsresponse->balance,2);
 
