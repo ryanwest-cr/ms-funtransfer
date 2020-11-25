@@ -64,6 +64,14 @@ class SessionWalletHelper
         return false;
     }
 
+    // public static function checkIfHasSession($player_id)
+    // {
+    //     $query = DB::table('wallet_session')->where('system_player_id', $player_id)->first();
+    //     if ($query) {
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
     public static function createWalletSession($token, $metadata){
         $token_identity = TransferWalletHelper::getClientDetails('token', $token);
