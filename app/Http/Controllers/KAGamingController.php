@@ -708,6 +708,18 @@ class KAGamingController extends Controller
         $client_response = KAHelper::playerDetailsCall($client_details);
         $balance = round($client_response->playerdetailsresponse->balance, 2);
 
+
+        # TransferWallet  (DENY DEPOSIT FOR ALREADY PLAYING PLAYER)
+        # Check Multiple user Session
+        $session_count = SessionWalletHelper::isMultipleSession($client_details->player_id, $request->token);
+        if ($session_count) {
+            $response = array(
+                "status" => "error",
+                "message" => "Multiple Session Detected!"
+            );
+            return response($response, 200)->header('Content-Type', 'application/json');
+        }
+
         if (!is_numeric($request->amount)) {
             $msg = array(
                 "status" => "error",
