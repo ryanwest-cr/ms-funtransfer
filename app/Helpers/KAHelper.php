@@ -103,14 +103,8 @@ class KAHelper{
 		if ($type == 'token') {
 			$where = 'where pst.player_token = "' . $value . '"';
 		}
-		if ($providerfilter == 'fachai') {
-			if ($type == 'player_id') {
-				$where = 'where ' . $type . ' = "' . $value . '" AND pst.status_id = 1 ORDER BY pst.token_id desc';
-			}
-		} else {
-			if ($type == 'player_id') {
-				$where = 'where ' . $type . ' = "' . $value . '"';
-			}
+		if ($type == 'player_id') {
+			$where = 'where ' . $type . ' = "' . $value . '"';
 		}
 		if ($type == 'username') {
 			$where = 'where p.username = "' . $value . '"';
