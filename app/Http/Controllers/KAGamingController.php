@@ -96,6 +96,7 @@ class KAGamingController extends Controller
          return round($amount/100,2);
     }
 
+    
     public function gameStart(Request $request){
         KAHelper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = $request->getContent();
