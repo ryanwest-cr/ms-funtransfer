@@ -114,7 +114,7 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details->player_token);
+        $player_details = KAHelper::playerDetailsCall($client_details);
         if($player_details == 'false'){
             return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
         }
@@ -149,7 +149,7 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details->player_token);
+        $player_details = KAHelper::playerDetailsCall($client_details);
         if($player_details == 'false'){
             return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
         }
@@ -219,7 +219,7 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details->player_token);
+        $player_details = KAHelper::playerDetailsCall($client_details);
         if($player_details == 'false'){
             return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
         }
@@ -357,7 +357,7 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details->player_token);
+        $player_details = KAHelper::playerDetailsCall($client_details);
         if($player_details == 'false'){
             return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
         }
@@ -461,7 +461,7 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details->player_token);
+        $player_details = KAHelper::playerDetailsCall($client_details);
         if($player_details == 'false'){
             return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
         }
@@ -575,7 +575,7 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details->player_token);
+        $player_details = KAHelper::playerDetailsCall($client_details);
         if($player_details == 'false'){
             return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
         }

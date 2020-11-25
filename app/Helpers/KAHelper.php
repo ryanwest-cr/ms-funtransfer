@@ -98,7 +98,7 @@ class KAHelper{
 	}
 
 
-	public static function getClientDetails($type = "", $value = "", $gg = 1, $providerfilter = 'all')
+	public static function getClientDetails($type = "", $value = "")
 	{
 		if ($type == 'token') {
 			$where = 'where pst.player_token = "' . $value . '"';
