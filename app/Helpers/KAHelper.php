@@ -19,6 +19,12 @@ class KAHelper{
 		$date = Carbon::now();
 		return $date->toDateTimeString();
 	}
+
+	public static function amountToFloat($amount)
+	{
+		$float = floatval(number_format((float)$amount, 2, '.', ''));
+		return $float;
+	}
 	
 	public static function saveLog($method, $provider_id = 0, $request_data, $response_data)
 	{
