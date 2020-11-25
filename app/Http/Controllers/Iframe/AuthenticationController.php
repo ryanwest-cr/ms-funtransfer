@@ -27,9 +27,27 @@ class AuthenticationController extends Controller
                     "exist" => true,
                 );
 
+                $token_identity = TransferWalletHelper::getClientDetails('token', $request->token);
+                if ($token_identity == 'false') {
+                    $response = array(
+                        "status" => "error",
+                        "message" => "Token Does not Exist",
+                        "exist" => false,
+                    );
+                    return response($response, 200)
+                    ->header('Content-Type', 'application/json');
+                }
                 $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
-                if($token == false){
-                    $token_identity = TransferWalletHelper::getClientDetails('token', $request->token);
+                if($token == false){ // This token doesnt exist in wallet_session
+                    $session_count = SessionWalletHelper::isMultipleSession($token_identity->player_id, $request->token);
+                    if ($session_count) {
+                        $response = array(
+                            "status" => "error",
+                            "message" => "Multiple Session Detected!",
+                            "exist" => true,
+                        );
+                    }
+                }else{
                     $session_count = SessionWalletHelper::isMultipleSession($token_identity->player_id, $request->token);
                     if ($session_count) {
                         $response = array(
