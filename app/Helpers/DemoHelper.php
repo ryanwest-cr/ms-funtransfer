@@ -1,13 +1,6 @@
 <?php
 namespace App\Helpers;
-
-use GuzzleHttp\Client;
-use App\Helpers\Helper;
-use App\Helpers\GameLobby;
-use App\Helpers\ProviderHelper;
-use App\Payment;
 use DB;
-use ErrorException;
 
 class DemoHelper{
     
