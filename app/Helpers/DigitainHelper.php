@@ -13,6 +13,12 @@ class DigitainHelper{
 
     public static $timeout = 2; // Seconds
 
+    public static function datesent()
+    {
+        $date = Carbon::now();
+        return $date->toDateTimeString();
+    }
+
     public static function tokenCheck($token){
         $token = DB::table('player_session_tokens')
                     ->select("*", DB::raw("NOW() as IMANTO"))

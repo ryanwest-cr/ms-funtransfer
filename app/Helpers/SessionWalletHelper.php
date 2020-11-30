@@ -11,8 +11,8 @@ use DB;
 class SessionWalletHelper
 {
 
-	public static $time_deduction = 20; // Seconds Deductions
-	public static $session_time = 120; //  Seconds lifetime session
+	public static $time_deduction = 10; // Seconds Deductions
+	public static $session_time = 30; //  Seconds lifetime session
 
 	/**
 	 * [updateSessionTime - update set session to default $session_time]
