@@ -95,14 +95,13 @@ class NetEntController extends Controller
 	//bet process
 	public function withdraw(Request $request, $player){
 		
-		$game_details = NetEntHelper::findGameDetails('game_code', $this->provider_db_id, $request["game"]); //get game details here
+		
 		$playersid = explode('_', $player);
 		$client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
-		$player_details = NetEntHelper::playerDetailsCall($client_details);
 
 		$gameRoundRef = $this->prefix_transaction."".$request["gameRoundRef"];
 		$existing_bet = NetEntHelper::findGameTransaction($gameRoundRef, 'round_id', 1); 
-
+		
 		if (!array_key_exists('amountToWithdraw', $request->all())) { //Rollback bet
 			
 			if ($existing_bet != "false") { // ROLLBACK A WITHDRAW TRANSACTION
@@ -110,11 +109,11 @@ class NetEntController extends Controller
 				$reference_transaction_uuid = $request['transactionRef'];
 
 				// $bet_transaction = $this->findGameTransaction($existing_bet->game_trans_id, 'game_transaction');
-				$game_trans_ext_id = NetEntHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $existing_bet->bet_amount, 4, $request->all(), $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
+				$game_trans_ext_id = NetEntHelper::createGameTransExt($existing_bet->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $existing_bet->bet_amount, 3, $request->all(), $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
 				
 				$type = "credit";
 				$rollback = true;
-				$client_response = ClientRequestHelper::fundTransfer($client_details,$existing_bet->bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
+				$client_response = ClientRequestHelper::fundTransfer($client_details,$existing_bet->bet_amount,$existing_bet->game_code,$existing_bet->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
 				//reponse to provider
 				
 				$response = array (
@@ -144,6 +143,7 @@ class NetEntController extends Controller
 			
 			} else { 
 			//ROLLBACK AN UNKNOWN TRANSACTION and IDOM
+				$player_details = NetEntHelper::playerDetailsCall($client_details);
 				$response = array (
 					'responseCode' => 0,
 					'responseMessage' => 'Success',
@@ -156,8 +156,11 @@ class NetEntController extends Controller
 			}
 			
 		}
+		
+		
 	
 		if($existing_bet != 'false'): // this will be IDOM
+			$player_details = NetEntHelper::playerDetailsCall($client_details);
 			$response = array (
 				'responseCode' => 0,
 				'responseMessage' => 'Success',
@@ -171,7 +174,8 @@ class NetEntController extends Controller
 		endif;
 
 		try {
-
+			$game_details = NetEntHelper::findGameDetails('game_code', $this->provider_db_id, $request["game"]); 
+			$player_details = NetEntHelper::playerDetailsCall($client_details);
 			$bet_amount = $request["amountToWithdraw"];
 
 			if($bet_amount > $player_details->playerdetailsresponse->balance){ // Not Enough money return success
