@@ -138,7 +138,7 @@ class GameLobbyController extends Controller
             $lang = $request->has("lang")?$request->input("lang"):"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
 
-
+                
                 if ($request->has("demo") && $request->input("demo") == true) {
                     return DemoHelper::DemoGame($request->all());
                 }

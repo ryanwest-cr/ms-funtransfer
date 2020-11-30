@@ -26,7 +26,7 @@ class DemoHelper{
         }else{
             $response = array(
                 "game_code" => $json_data['game_code'],
-                "url" => 'false',
+                "url" => config('providerlinks.play_betrnk') . '/tigergames/api?msg=No Demo Available',
                 "game_launch" => false
             );
         }
