@@ -11,6 +11,7 @@ use App\Models\GameSubProvider;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
 use App\Helpers\ClientHelper;
+use App\Helpers\DemoHelper;
 use App\Helpers\GameLobby;
 use App\Models\ClientGameSubscribe;
 use Stripe\Balance;
@@ -129,10 +130,20 @@ class GameLobbyController extends Controller
             //     ->header('Content-Type', 'application/json');
             // }
 
+
+         
+
            $solid_gamings = ['Solid Gaming', 'Concept', 'Espresso', 'EvoPlay', 'GameArt', 'Habanero', 'MultiSlot', 'NetEnt', 'Oryx Gaming', 'Omi Gaming', 'Push Gaming', 'Revolver Gaming', 'RTG Asia', 'TPG', '1X2 Network', 'BetSoft', 'Booming', 'Leander', 'Lotus Gaming', 'No Limit City', 'One Touch', 'Quick Fire', 'Relax', 'Wazdan', 'Yggdrasil', 'Evolution Gaming', 'Golden Hero'];
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
+
+
+                if ($request->has("demo") && $request->input("demo") == true) {
+                    return DemoHelper::DemoGame($request->all());
+                }
+
+
                 if($request->input('game_provider')=="Iconic Gaming"){
                     $url = GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$request->input('game_provider'),$lang);
                     $msg = array(
