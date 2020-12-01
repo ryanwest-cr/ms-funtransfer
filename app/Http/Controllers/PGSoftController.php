@@ -28,17 +28,17 @@ class PGSoftController extends Controller
             return $this->validateData($data);
         }
         $client_details = ProviderHelper::getClientDetails('token',$data["operator_player_session"]);
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-            $data =  [
-                "data" => [
-                    "player_name" => $this->prefix.$client_details->player_id,
-                    "nickname" => $client_details->display_name,
-                    "currency" => $client_details->default_currency
-                ],
-                "error" => null
-            ];
-            Helper::saveLog('PGSoft VerifySession Process', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $data);
-            return json_encode($data, JSON_FORCE_OBJECT); 
+        // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        $data =  [
+            "data" => [
+                "player_name" => $this->prefix.$client_details->player_id,
+                "nickname" => $client_details->display_name,
+                "currency" => $client_details->default_currency
+            ],
+            "error" => null
+        ];
+        Helper::saveLog('PGSoft VerifySession Process', $this->provider_db_id, json_encode($request->all(),JSON_FORCE_OBJECT), $data);
+        return json_encode($data, JSON_FORCE_OBJECT); 
     }
     
     public function cashGet(Request $request){ // Wallet Check Balance Endpoint Hit
@@ -49,7 +49,7 @@ class PGSoftController extends Controller
         }
         $player_id =  ProviderHelper::explodeUsername('_', $data["player_name"]);
         $player_name = ProviderHelper::getClientDetails('player_id',$player_id);
-        $player_details = Providerhelper::playerDetailsCall($player_name->player_token);
+        $player_details = $this->playerDetailsCall($player_name);
         $currency = $player_name->default_currency;
         $num = $player_details->playerdetailsresponse->balance;
         $balance = (double)$num;
@@ -79,7 +79,7 @@ class PGSoftController extends Controller
             if($game_ext == 'false'): // NO BET found mw
                 $player_id =  ProviderHelper::explodeUsername('_', $data["player_name"]);
                 $client_details = ProviderHelper::getClientDetails('player_id',$player_id);
-                $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+                // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
                 $game_details = $this->findGameCode('game_code', $this->provider_db_id, $data['game_id']);
 
                 //Initialize
@@ -512,6 +512,73 @@ class PGSoftController extends Controller
 			"client_response" =>json_encode($client_response),
 		);
 		DB::table('game_transaction_ext')->where("game_trans_ext_id",$gametransextid)->update($gametransactionext);
+    }
+
+    public static function playerDetailsCall($client_details, $refreshtoken=false, $type=1){
+        
+        if($client_details){
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.$client_details->client_access_token
+                ]
+            ]);
+            $datatosend = [
+                "access_token" => $client_details->client_access_token,
+                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                "type" => "playerdetailsrequest",
+                "datesent" => Helper::datesent(),
+                "gameid" => "",
+                "clientid" => $client_details->client_id,
+                "playerdetailsrequest" => [
+                    "player_username"=>$client_details->username,
+                    "client_player_id" => $client_details->client_player_id,
+                    "token" => $client_details->player_token,
+                    "gamelaunch" => true,
+                    "refreshtoken" => $refreshtoken
+                ]
+            ];
+
+            try{    
+                $guzzle_response = $client->post($client_details->player_details_url,
+                    ['body' => json_encode($datatosend)]
+                );
+                $client_response = json_decode($guzzle_response->getBody()->getContents());
+                
+                if(isset($client_response->playerdetailsresponse->status->code) && $client_response->playerdetailsresponse->status->code != 200 || $client_response->playerdetailsresponse->status->code != '200'){
+                    if($refreshtoken == true){
+                        if(isset($client_response->playerdetailsresponse->refreshtoken) &&
+                        $client_response->playerdetailsresponse->refreshtoken != false || 
+                        $client_response->playerdetailsresponse->refreshtoken != 'false'){
+                            DB::table('player_session_tokens')->insert(
+                            array('player_id' => $client_details->player_id, 
+                                  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
+                                  'status_id' => '1')
+                            );
+                        }
+                    }
+                    return 'false';
+                }else{
+                    if($refreshtoken == true){
+                        if(isset($client_response->playerdetailsresponse->refreshtoken) &&
+                        $client_response->playerdetailsresponse->refreshtoken != false || 
+                        $client_response->playerdetailsresponse->refreshtoken != 'false'){
+                            DB::table('player_session_tokens')->insert(
+                                array('player_id' => $client_details->player_id, 
+                                      'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
+                                      'status_id' => '1')
+                            );
+                        }
+                    }
+                    return $client_response;
+                }
+
+            }catch (\Exception $e){
+               return 'false';
+            }
+        }else{
+            return 'false';
+        }
     }
     
 }
