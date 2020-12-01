@@ -11,9 +11,10 @@ class DemoHelper{
 
         $data = json_decode(json_encode($json_data));
         $provider_id = GameLobby::checkAndGetProviderId($data->game_provider);
+        $provider_code = $provider_id->sub_provider_id;
 
         
-        if($provider_id == 33){
+        if($provider_code == 33){
             $response = array(
                 "game_code" => $json_data['game_code'],
                 "url" => DemoHelper::getStaticUrl($data->game_code, $data->game_provider),
