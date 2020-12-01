@@ -7,7 +7,7 @@ use App\Helpers\AlHelper;
 use App\Helpers\Helper;
 use App\Helpers\SAHelper;
 use App\Helpers\GoldenFHelper;
-use App\Helpers\AWSHelper;
+use App\Helpers\SessionWalletHelper;
 use App\Helpers\ProviderHelper;
 use GuzzleHttp\Client;
 use App\Helpers\ClientRequestHelper;
@@ -273,14 +273,19 @@ class AlController extends Controller
         return $response;
     }
 
-
-
-
     public function tapulan(Request $request){
 
+    //  dd(SessionWalletHelper::isMultipleSession(10210, 'qa64d864b89525573dd3ad78d16d6df5'));
 
-      return GoldenFHelper::launchGame('n58ec5e159f769ae0b7b3a0774fdbf80',98,'GG');
+      // $player_token = $this->getInfoPlayerGameRound('mbbb58340803493e5f29dfeddf105e47');
+      // dd($player_token->sub_provider_id);
+      // if($player_token == false){
+      //   return 'nawal';
+      // }
 
+
+
+      return 1;
       // $client_key = DB::table('clients')->where('client_id', $client_id)->first();
       // if(!$client_key){ return false; }
       // $operator_id =  $client_key->operator_id;
@@ -311,15 +316,15 @@ class AlController extends Controller
 
       // return 1;
 
-      if(isset($_SERVER["HTTP_X_FORWARDED_FOR"])){
-        if($_SERVER["HTTP_X_FORWARDED_FOR"] == '119.92.151.236'){
-          $msg = 'your whilisted';
-        }else{
-          $msg = 'your blocked';
-        }
-      }else{
-        $msg = 'not set';
-      }
+      // if(isset($_SERVER["HTTP_X_FORWARDED_FOR"])){
+      //   if($_SERVER["HTTP_X_FORWARDED_FOR"] == '119.92.151.236'){
+      //     $msg = 'your whilisted';
+      //   }else{
+      //     $msg = 'your blocked';
+      //   }
+      // }else{
+      //   $msg = 'not set';
+      // }
 
 
 
@@ -342,7 +347,7 @@ class AlController extends Controller
 
       //  endif;
 
-      return  $msg;
+      // return  $msg;
       
       // $client_details = Providerhelper::getClientDetails('player_id',  98);
       // dd($client_details);
@@ -354,7 +359,7 @@ class AlController extends Controller
 
       // Artisan::call('al:riandraft');
 
-      return $this->callMe();
+      // return $this->callMe();
       // return self::callMe();
     }
 
