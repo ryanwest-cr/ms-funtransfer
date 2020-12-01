@@ -1,5 +1,7 @@
 <?php
 namespace App\Helpers;
+
+use App\Helpers\GameLobby;
 use DB;
 
 class DemoHelper{
@@ -8,9 +10,10 @@ class DemoHelper{
 
 
         $data = json_decode(json_encode($json_data));
+        $provider_id = GameLobby::checkAndGetProviderId($data->game_provider);
 
         
-        if($data->game_provider == 'Bole Gaming'){
+        if($provider_id == 33){
             $response = array(
                 "game_code" => $json_data['game_code'],
                 "url" => DemoHelper::getStaticUrl($data->game_code, $data->game_provider),

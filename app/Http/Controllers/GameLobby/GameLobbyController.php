@@ -140,6 +140,11 @@ class GameLobbyController extends Controller
 
             $lang = $request->has("lang")?$request->input("lang"):"en";
             if($token=Helper::checkPlayerExist($request->client_id,$request->client_player_id,$request->username,$request->email,$request->display_name,$request->token,$ip_address)){
+
+                if ($request->has("demo") && $request->input("demo") == true) {
+                    return DemoHelper::DemoGame($request->all());
+                }
+
                 if($provider_code==35){
                     $url = GameLobby::icgLaunchUrl($request->game_code,$token,$request->exitUrl,$request->input('game_provider'),$lang);
                     $msg = array(
