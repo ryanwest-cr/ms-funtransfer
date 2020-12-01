@@ -40,6 +40,17 @@ class AuthenticationController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
 
+                $player_round = TransferWalletHelper::getInfoPlayerGameRound($request->token);
+                if($player_round == false){
+                    $response = array(
+                        "status" => "error",
+                        "message" => "Token Unidentified",
+                        "exist" => false,
+                    );
+                    return response($response, 200)
+                        ->header('Content-Type', 'application/json');
+                }
+
                 # Check Multiple user Session
                 $session_count = SessionWalletHelper::isMultipleSession($token_identity->player_id, $request->token);
                 if ($session_count) {
@@ -50,13 +61,6 @@ class AuthenticationController extends Controller
                     );
                 }
                 
-                // else{
-                //     $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
-                //     if ($token == false) { // This token doesnt exist in wallet_session
-                //         SessionWalletHelper::createWalletSession($request->token, $request->all());
-                //     }
-                // }
-
                 return response($response,200)
                 ->header('Content-Type', 'application/json');
             }

@@ -38,45 +38,39 @@ class SessionWalletHelper
     // }
 
     public static function checkIfExistWalletSession($token){
-        // $token = DB::select('SELECT * FROM wallet_session WHERE token = "'.$request->token.'"');
     	$query = DB::select('SELECT * FROM wallet_session WHERE token = "'.$token.'"');
         $data = count($query);
-        // if($data>0){
-        //     $player_wallet_session = DB::select('SELECT * FROM wallet_session WHERE player_id = "' . $query[0]['player_id'] . '"');
-        //     $wallet_sessions = count($player_wallet_session);
-        //     if($wallet_sessions > 1){
-        //         return false; // morethan 1 session detected
-        //     }
-        // }
 		return $data > 0 ? $query[0] : false;
     }
 
+    /**
+     * IF Token in GameRound exist and not the same with the new token passed return true Prevent New Session
+     * If token in GameRound belongs to new Provider and not the the same Provider Allow New Session
+     * 
+     */
     public static function isMultipleSession($player_id, $token){
-        // $query = DB::select('SELECT * FROM wallet_session WHERE system_player_id = "' . $player_id . '"');
-        // $data = count($query);
 
         $query = DB::table('wallet_session')->where('system_player_id', $player_id)->first();
         if($query){
-            if($query->token != $token){
-                return true;
+            $player_round = TransferWalletHelper::getInfoPlayerGameRound($token);
+            if($query->token != $token) {
+                if($player_round->sub_provider_id != $query->provider_id){
+                    return false;
+                }else{
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    // public static function checkIfHasSession($player_id)
-    // {
-    //     $query = DB::table('wallet_session')->where('system_player_id', $player_id)->first();
-    //     if ($query) {
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
     public static function createWalletSession($token, $metadata){
         $token_identity = TransferWalletHelper::getClientDetails('token', $token);
+        $player_round = TransferWalletHelper::getInfoPlayerGameRound($token);
+
     	$query = DB::table('wallet_session')->insert(
         array('token' => $token,
+              'provider_id' => $player_round->sub_provider_id,
               'system_player_id' => $token_identity->player_id,
               'metadata' =>  json_encode($metadata))
         );
