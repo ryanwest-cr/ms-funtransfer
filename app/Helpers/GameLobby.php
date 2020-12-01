@@ -1130,6 +1130,11 @@ class GameLobby{
             return false;
         }
     }
+    public static function checkAndGetProviderId($provider_name){
+        $provider = DB::select("SELECT * FROM sub_provider_code WHERE sub_provider_name = '".$provider_name."'");
+        $count = count($provider);
+        return $count > 0 ? $provider[0]:null;
+    }
 
 }
 
