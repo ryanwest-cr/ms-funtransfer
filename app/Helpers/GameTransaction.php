@@ -44,9 +44,9 @@ class GameTransaction
 		    case "cancelled":
 		    		$trans_data["provider_trans_id"] = $request_data["transid"];
 			        $trans_data["bet_amount"] = 0;
-			        $trans_data["win"] = 0;
+			        $trans_data["win"] = 4;
 			        $trans_data["pay_amount"] = abs($request_data["amount"]);
-			        $trans_data["entry_id"] = 3;
+			        $trans_data["entry_id"] = 2;
 			        $trans_data["payout_reason"] = $request_data["reason"];
 		        break;
 
@@ -75,11 +75,9 @@ class GameTransaction
 	}
 
 	public static function solid_rollback($request_data) {
-
 		$game_details = DB::table("game_transactions AS g")
 				 ->where("g.provider_trans_id", $request_data['originaltransid'])
 				 ->first();
-
 		/*$income = 0;*/
 		$win = 4;
 		/*$pay_amount = $game_details->bet_amount;*/
@@ -88,6 +86,21 @@ class GameTransaction
         $update = DB::table('game_transactions')
                 ->where('game_trans_id', $game_details->game_trans_id)
                 ->update([/*'pay_amount' => $pay_amount, 'income' => $income,*/ 'win' => $win, 'entry_id' => $entry_id]);
+     
+		return ($update ? $game_details->game_trans_id : false);
+	}
+
+	public static function rollbackTransaction($transactionId) {
+		$game_details = DB::table("game_transactions AS g")
+				 ->where("g.provider_trans_id", $transactionId)
+				 ->first();
+
+		$win = 4;
+		$entry_id = 2;
+
+        $update = DB::table('game_transactions')
+                ->where('game_trans_id', $game_details->game_trans_id)
+                ->update(['win' => $win, 'entry_id' => $entry_id]);
      
 		return ($update ? $game_details->game_trans_id : false);
 	}

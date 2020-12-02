@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ClientRequestHelper;
 use Illuminate\Http\Request;
-use App\Helpers\ProviderHelper;
-use App\Helpers\GoldenFHelper;
+// use App\Helpers\ProviderHelper; # Migrated To GoldenFHelper Query Builder To RAW SQL - RiAN
+// use App\Helpers\GoldenFHelper; # Migrated To TransferWalletHelper (Centralization) Query Builder To RAW SQL DONT REMOVE COMMENT FOR NOW - RiAN
+use App\Helpers\TransferWalletHelper;
 use App\Helpers\SessionWalletHelper;
 use DB;
-use App\Helpers\Helper;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use Carbon\Carbon;
@@ -30,31 +30,30 @@ class GoldenFController extends Controller
      * @param Request $request [Trigger  by Play Game Iframe]
      * 
      */
-    public function GetPlayerBalance(Request $request)
+    public function getPlayerBalance(Request $request)
     {
         if(!$request->has("token")){
             $msg = array("status" =>"error","message" => "Token Invalid");
-           GoldenFHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
+           TransferWalletHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
         }
 
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
+        $client_details = TransferWalletHelper::getClientDetails('token', $request->token);
         if($client_details == null || $client_details == 'false'){
             $msg = array("status" =>"error","message" => "Token Invalid");
-           GoldenFHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
+           TransferWalletHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
         }
 
         try {
-            $client_response = GoldenFHelper::playerDetailsCall($client_details);  
-            // $client_response = Providerhelper::playerDetailsCall($client_details->player_token);  
+            $client_response = TransferWalletHelper::playerDetailsCall($client_details);  
             $balance = round($client_response->playerdetailsresponse->balance,2);
             $msg = array(
                 "status" => "ok",
                 "message" => "Balance Request Success",
                 "balance" => $balance
             );
-           GoldenFHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
+           TransferWalletHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
 
         } catch (\Exception $e) {
@@ -62,7 +61,7 @@ class GoldenFController extends Controller
                 "status" =>"error",
                 "message" => $e->getMessage()
             );
-           GoldenFHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
+           TransferWalletHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
         }
 
@@ -70,10 +69,10 @@ class GoldenFController extends Controller
 
 
     public function getPlayerWalletBalance(Request $request){
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
+        $client_details = TransferWalletHelper::getClientDetails('token', $request->token);
         if($client_details == null || $client_details == 'false'){
             $msg = array("status" =>"error","message" => "Token Invalid");
-           GoldenFHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
+           TransferWalletHelper::saveLog('GetPlayerBalance', $this->provider_db_id,json_encode($request->all()), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
         }
         $http = new Client();
@@ -99,7 +98,7 @@ class GoldenFController extends Controller
     //     $api_url = config("providerlinks.goldenF.api_url");
     //     $secrete_key = config("providerlinks.goldenF.secrete_key");
     //     $provider_id = config("providerlinks.goldenF.provider_id");
-    //     $client_details = ProviderHelper::getClientDetails('token','n58ec5e159f769ae0b7b3a0774fdbf80');
+    //     $client_details = TransferWalletHelper::getClientDetails('token','n58ec5e159f769ae0b7b3a0774fdbf80');
     //     $player_id = "TG_".$client_details->player_id;
     //     $gg = 'gps_knifethrow';
     //     $nickname = $client_details->username;
@@ -122,9 +121,33 @@ class GoldenFController extends Controller
 
         #1 DEBIT OPERATION
         $data = $request->all();
-        $game_details = GoldenFHelper::getInfoPlayerGameRound($request->token);
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        $client_response = GoldenFHelper::playerDetailsCall($client_details); 
+        $game_details = TransferWalletHelper::getInfoPlayerGameRound($request->token);
+        if ($game_details == false) {
+            $msg = array("status" => "error", "message" => "Game Not Found");
+            TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
+            return response($msg, 200)->header('Content-Type', 'application/json');
+        }
+
+        $client_details = TransferWalletHelper::getClientDetails('token', $request->token);
+        if ($client_details == 'false') {
+            $msg = array("status" => "error", "message" => "Invalid Token or Token not found");
+            TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
+            return response($msg, 200)->header('Content-Type', 'application/json');
+        }
+
+
+        # TransferWallet  (DENY DEPOSIT FOR ALREADY PLAYING PLAYER)
+        # Check Multiple user Session
+        $session_count = SessionWalletHelper::isMultipleSession($client_details->player_id, $request->token);
+        if ($session_count) {
+            $response = array(
+                "status" => "error",
+                "message" => "Multiple Session Detected!"
+            );
+            return response($response, 200)->header('Content-Type', 'application/json');
+        }
+
+        $client_response = TransferWalletHelper::playerDetailsCall($client_details); 
         $balance = round($client_response->playerdetailsresponse->balance,2);
 
         if(!is_numeric($request->amount)){
@@ -132,7 +155,7 @@ class GoldenFController extends Controller
                 "status" => "error",
                 "message" => "Undefined Amount!"
             );
-           GoldenFHelper::saveLog('TransferIn Undefined Amount', $this->provider_db_id,json_encode($request->all()), $msg);
+           TransferWalletHelper::saveLog('TransferIn Undefined Amount', $this->provider_db_id,json_encode($request->all()), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
         }
 
@@ -141,7 +164,7 @@ class GoldenFController extends Controller
                 "status" => "error",
                 "message" => "Not Enough Balance",
             );
-           GoldenFHelper::saveLog('TransferIn Low Balance', $this->provider_db_id,json_encode($request->all()), $msg);
+           TransferWalletHelper::saveLog('TransferIn Low Balance', $this->provider_db_id,json_encode($request->all()), $msg);
             return response($msg,200)->header('Content-Type', 'application/json');
         }
 
@@ -150,12 +173,18 @@ class GoldenFController extends Controller
         //         "status" => "error",
         //         "message" => "Currency Not Supported",
         //     );
-        //    GoldenFHelper::saveLog('TransferIn Currency Not Supported', $this->provider_db_id,json_encode($request->all()), $msg);
+        //    TransferWalletHelper::saveLog('TransferIn Currency Not Supported', $this->provider_db_id,json_encode($request->all()), $msg);
         //     return response($msg,200)->header('Content-Type', 'application/json');
         // }
 
+        // $json_data = array(
+        //     "transid" => "GFTID".Carbon::now()->timestamp,
+        //     "amount" => $request->amount,
+        //     "roundid" => 0,
+        // );
+
         $json_data = array(
-            "transid" => "GFTID".Carbon::now()->timestamp,
+            "transid" => $request->token,
             "amount" => $request->amount,
             "roundid" => 0,
         );
@@ -171,41 +200,35 @@ class GoldenFController extends Controller
         $provider_trans_id = $json_data['transid'];
         $game_transaction_type = 1;
 
-       GoldenFHelper::saveLog('TransferIn', $this->provider_db_id,json_encode($request->all()), 'Golden IF HIT');
-        $game = GoldenFHelper::getGameTransaction($request->token,$json_data["roundid"]);
+       TransferWalletHelper::saveLog('TransferIn', $this->provider_db_id,json_encode($request->all()), 'Golden IF HIT');
+        $game = TransferWalletHelper::getGameTransaction($request->token,$json_data["roundid"]);
         if(!$game){
             // $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details->game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-            // $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
-            $gamerecord = GoldenFHelper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
+            // $game_transextension = TransferWalletHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
+            $gamerecord = TransferWalletHelper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
         }
         else{
-            $gameupdate = GoldenFHelper::updateGameTransaction($game,$json_data,"debit");
+            $gameupdate = TransferWalletHelper::updateGameTransaction($game,$json_data,"debit");
             $gamerecord = $game->game_trans_id;
         }
 
-        $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
-        if($token == false){
-            SessionWalletHelper::createWalletSession($request->token, $request->all());
-        }else{
-            SessionWalletHelper::updateSessionTime($request->token);
-        }
+        
 
-        // $gamerecord  = ProviderHelper::createGameTransaction($token_id, $game_details->game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $round_id);
-        $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
+        $game_transextension = TransferWalletHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
 
         try {
-          GoldenFHelper::saveLog('TransferIn fundTransfer', $this->provider_db_id,json_encode($request->all()), 'Client Request');
+          TransferWalletHelper::saveLog('TransferIn fundTransfer', $this->provider_db_id,json_encode($request->all()), 'Client Request');
            // $client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,"debit");
            $client_response = ClientRequestHelper::fundTransfer($client_details,$request->amount,$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,"debit");
-          GoldenFHelper::saveLog('TransferIn fundTransfer', $this->provider_db_id,json_encode($request->all()), 'Client Responsed');
+          TransferWalletHelper::saveLog('TransferIn fundTransfer', $this->provider_db_id,json_encode($request->all()), 'Client Responsed');
            
         } catch (\Exception $e) {
             $response = ["status" => "Server Timeout", "statusCode" =>  1, 'msg' => $e->getMessage()];
             if(isset($gamerecord)){
-                ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-                ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', json_encode($response), 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                TransferWalletHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+                TransferWalletHelper::updatecreateGameTransExt($game_transextension, 'FAILED', json_encode($response), 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
             }
-           GoldenFHelper::saveLog('TransferIn', $this->provider_db_id,json_encode($request->all()), $response);
+           TransferWalletHelper::saveLog('TransferIn', $this->provider_db_id,json_encode($request->all()), $response);
             return $response;
         }
 
@@ -222,14 +245,21 @@ class GoldenFController extends Controller
                     ]
                 ]);
                 $golden_response = json_decode((string) $response->getBody(), true);
-               GoldenFHelper::saveLog('GoldenF TransferIn Success', $this->provider_db_id,json_encode($request->all()), $golden_response);
+                TransferWalletHelper::saveLog('GoldenF TransferIn Success', $this->provider_db_id,json_encode($request->all()), $golden_response);
+
+                # TransferWallet
+                $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
+                if ($token == false) { // This token doesnt exist in wallet_session
+                    SessionWalletHelper::createWalletSession($request->token, $request->all());
+                }
+
             } catch (\Exception $e) {
                 $response = ["status" => "error", 'message' => $e->getMessage()];
                 if(isset($gamerecord)){
-                    ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', json_encode($response), 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
+                    TransferWalletHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+                    TransferWalletHelper::updatecreateGameTransExt($game_transextension, 'FAILED', json_encode($response), 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
                 }
-               GoldenFHelper::saveLog('GoldenF TransferIn Failed', $this->provider_db_id,json_encode($request->all()), $response);
+               TransferWalletHelper::saveLog('GoldenF TransferIn Failed', $this->provider_db_id,json_encode($request->all()), $response);
                 return $response;
             }
 
@@ -242,9 +272,8 @@ class GoldenFController extends Controller
 
             // $entry_id = 1; // Debit/Bet
             // ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id);
-            ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $msg, $client_response->requestoclient, $client_response, $response, 'NO DATA');
+            TransferWalletHelper::updatecreateGameTransExt($game_transextension, $data, $msg, $client_response->requestoclient, $client_response, $response, 'NO DATA');
             
-            response($msg,200)->header('Content-Type', 'application/json');
             return response($msg,200)
                 ->header('Content-Type', 'application/json');
         }
@@ -263,9 +292,14 @@ class GoldenFController extends Controller
 
     public function TransferOut(Request $request)
     {
-       GoldenFHelper::saveLog('GoldenF TransferOut Success', $this->provider_db_id,json_encode($request->all()), 'Closed triggered');
+       TransferWalletHelper::saveLog('GoldenF TransferOut Success', $this->provider_db_id,json_encode($request->all()), 'Closed triggered');
         $data = $request->all();
-        $game_details = GoldenFHelper::getInfoPlayerGameRound($request->token);
+        $game_details = TransferWalletHelper::getInfoPlayerGameRound($request->token);
+        if ($game_details == false) {
+            $msg = array("status" => "error", "message" => "Game Not Found");
+            TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
+            return response($msg, 200)->header('Content-Type', 'application/json');
+        }
 
         $json_data = array(
             "transid" => "GFTID".Carbon::now()->timestamp,
@@ -273,14 +307,13 @@ class GoldenFController extends Controller
             "roundid" => 0,
         );
 
-        $client_details = ProviderHelper::getClientDetails('token', $request->token);
-        // $client_response = Providerhelper::playerDetailsCall($client_details->player_token); 
-        if(!$client_details){
-            $msg = array("status" =>"error","message" => "Invalid Token or Token not found"); 
-           GoldenFHelper::saveLog('GoldenF TransferOut FAILED', $this->provider_db_id,json_encode($request->all()), $response);
-            return response($msg,200)->header('Content-Type', 'application/json'); 
+        $client_details = TransferWalletHelper::getClientDetails('token', $request->token);
+        $client_details = TransferWalletHelper::getClientDetails('token', $request->token);
+        if ($client_details == 'false') {
+            $msg = array("status" => "error", "message" => "Invalid Token or Token not found");
+            TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
+            return response($msg, 200)->header('Content-Type', 'application/json');
         }
-
 
         try {
             $http = new Client();
@@ -293,26 +326,26 @@ class GoldenFController extends Controller
                 ]
             ]);
             $golden_response_balance = json_decode((string) $response->getBody(), true);
-           GoldenFHelper::saveLog('GoldenF TransferOut GetPlayerBalance Success', $this->provider_db_id,json_encode($request->all()), $golden_response_balance);
+           TransferWalletHelper::saveLog('GoldenF TransferOut GetPlayerBalance Success', $this->provider_db_id,json_encode($request->all()), $golden_response_balance);
             if(isset($golden_response_balance['data']['action_result']) && $golden_response_balance['data']['action_result'] == 'Success'){
                 $TransferOut_amount = $golden_response_balance['data']['balance'];
             }else{
                 $response = ["status" => "error", 'message' => 'cant connect'];
-               GoldenFHelper::saveLog('GoldenF TransferOut FAILED', $this->provider_db_id,json_encode($request->all()), $response);
+               TransferWalletHelper::saveLog('GoldenF TransferOut FAILED', $this->provider_db_id,json_encode($request->all()), $response);
                 return $response;
             }
         } catch (\Exception $e) {
             $response = ["status" => "error", 'message' => $e->getMessage()];
-           GoldenFHelper::saveLog('GoldenF TransferOut Failed', $this->provider_db_id,json_encode($request->all()), $response);
+           TransferWalletHelper::saveLog('GoldenF TransferOut Failed', $this->provider_db_id,json_encode($request->all()), $response);
             return $response;
         }
 
 
         if($request->has("token")&&$request->has("player_id")){
-              GoldenFHelper::saveLog('GoldenF TransferOut Processing withrawing', $this->provider_db_id,json_encode($request->all()), $response);
-                $client_details = ProviderHelper::getClientDetails('token', $request->token);
+              TransferWalletHelper::saveLog('GoldenF TransferOut Processing withrawing', $this->provider_db_id,json_encode($request->all()), $response);
+                $client_details = TransferWalletHelper::getClientDetails('token', $request->token);
           
-                $game_details = Helper::getInfoPlayerGameRound($request->token);
+                $game_details = TransferWalletHelper::getInfoPlayerGameRound($request->token);
                 $json_data = array(
                     "transid" => Carbon::now()->timestamp,
                     "amount" => $TransferOut_amount,
@@ -321,12 +354,13 @@ class GoldenFController extends Controller
                     "payout_reason" => "TransferOut from round",
                 );
              
-                $game = GoldenFHelper::getGameTransaction($request->token,$json_data["roundid"]);
+                $game = TransferWalletHelper::getGameTransaction($request->token,$json_data["roundid"]);
                 if($game){
                     $gamerecord = $game->game_trans_id;
                 }else{
+                    SessionWalletHelper::deleteSession($request->token);
                     $response = ["status" => "error", 'message' => 'No Transaction Recorded'];
-                   GoldenFHelper::saveLog('GoldenF TransferOut Failed', $this->provider_db_id,json_encode($request->all()), $response);
+                    TransferWalletHelper::saveLog('GoldenF TransferOut Failed', $this->provider_db_id,json_encode($request->all()), $response);
                     return $response;
                 }
 
@@ -341,7 +375,7 @@ class GoldenFController extends Controller
                 $provider_trans_id = $json_data['transid'];
                 $game_transaction_type = 2;
 
-               GoldenFHelper::saveLog('GoldenF TransferOut Processing withrawing 2', $this->provider_db_id,json_encode($request->all()), 'GG');
+               TransferWalletHelper::saveLog('GoldenF TransferOut Processing withrawing 2', $this->provider_db_id,json_encode($request->all()), 'GG');
                 try {
                     $http = new Client();
                     $response = $http->post($this->api_url."/TransferOut",[
@@ -354,16 +388,16 @@ class GoldenFController extends Controller
                         ]
                     ]);
                     $golden_response_balance = json_decode((string) $response->getBody(), true);
-                   GoldenFHelper::saveLog('GoldenF TransferOut Success Withdraw', $this->provider_db_id,json_encode($request->all()), $golden_response_balance);
+                   TransferWalletHelper::saveLog('GoldenF TransferOut Success Withdraw', $this->provider_db_id,json_encode($request->all()), $golden_response_balance);
                     if(isset($golden_response_balance['data']['action_result']) && $golden_response_balance['data']['action_result'] == 'Success'){
 
                         try {
-                            $game_transextension = ProviderHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
+                            $game_transextension = TransferWalletHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
                             $client_response = ClientRequestHelper::fundTransfer($client_details,$TransferOut_amount,$game_details->game_code,$game_details->game_name,$game_transextension,$gamerecord,"credit");
-                           GoldenFHelper::saveLog('GoldenF TransferOut Client Request', $this->provider_db_id,json_encode($request->all()), 'Request to client');
+                           TransferWalletHelper::saveLog('GoldenF TransferOut Client Request', $this->provider_db_id,json_encode($request->all()), 'Request to client');
                         } catch (\Exception $e) {
                             $response = ["status" => "error", 'message' => $e->getMessage()];
-                           GoldenFHelper::saveLog('GoldenF TransferOut client_response failed', $this->provider_db_id,json_encode($request->all()), $response);
+                           TransferWalletHelper::saveLog('GoldenF TransferOut client_response failed', $this->provider_db_id,json_encode($request->all()), $response);
                             return $response;
                         }
 
@@ -373,11 +407,11 @@ class GoldenFController extends Controller
                                 "message" => "Transaction success",
                                 "balance"   =>  round($client_response->fundtransferresponse->balance,2)
                             );
-                            $gameupdate = GoldenFHelper::updateGameTransaction($game,$json_data,"credit");
-                            ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $msg, $client_response->requestoclient, $client_response, $msg, 'NO DATA');
+                            $gameupdate = TransferWalletHelper::updateGameTransaction($game,$json_data,"credit");
+                            TransferWalletHelper::updatecreateGameTransExt($game_transextension, $data, $msg, $client_response->requestoclient, $client_response, $msg, 'NO DATA');
 
                            SessionWalletHelper::deleteSession($request->token);
-                           GoldenFHelper::saveLog('GoldenF TransferOut Success Responded', $this->provider_db_id,json_encode($request->all()), 'SUCCESS GOLDENF');
+                           TransferWalletHelper::saveLog('GoldenF TransferOut Success Responded', $this->provider_db_id,json_encode($request->all()), 'SUCCESS GOLDENF');
                             return response($msg,200)
                                 ->header('Content-Type', 'application/json');
                         }else{
@@ -385,18 +419,18 @@ class GoldenFController extends Controller
                                 "status" => "ok",
                                 "message" => "Transaction Failed Unknown Client Response",
                             );
-                           GoldenFHelper::saveLog('GoldenF TransferOut Success Responded but failed', $this->provider_db_id,json_encode($request->all()), 'FAILED GOLDENF');
+                           TransferWalletHelper::saveLog('GoldenF TransferOut Success Responded but failed', $this->provider_db_id,json_encode($request->all()), 'FAILED GOLDENF');
                             return response($msg,200)
                                 ->header('Content-Type', 'application/json');
                         }
                     }else{
                         $response = ["status" => "error", 'message' => 'cant connect'];
-                        GoldenFHelper::saveLog('GoldenF TransferOut Failed Withdraw', $this->provider_db_id,json_encode($request->all()), $response);
+                        TransferWalletHelper::saveLog('GoldenF TransferOut Failed Withdraw', $this->provider_db_id,json_encode($request->all()), $response);
                         return $response;
                     }
                 } catch (\Exception $e) {
                     $response = ["status" => "error", 'message' => $e->getMessage()];
-                   GoldenFHelper::saveLog('GoldenF TransferOut Failed', $this->provider_db_id,json_encode($request->all()), $response);
+                   TransferWalletHelper::saveLog('GoldenF TransferOut Failed', $this->provider_db_id,json_encode($request->all()), $response);
                     return $response;
                 }
                 
@@ -406,26 +440,26 @@ class GoldenFController extends Controller
 
     public function BetRecordGet(Request $request)
     {
-       GoldenFHelper::saveLog("GoldenF BetRecordGet req", $this->provider_id, json_encode($request->all()), "");
+       TransferWalletHelper::saveLog("GoldenF BetRecordGet req", $this->provider_id, json_encode($request->all()), "");
     }
 
     public function BetRecordPlayerGet(Request $request)
     {
-       GoldenFHelper::saveLog("GoldenF BetRecordPlayerGet req", $this->provider_id, json_encode($request->all()), "");
+       TransferWalletHelper::saveLog("GoldenF BetRecordPlayerGet req", $this->provider_id, json_encode($request->all()), "");
     }
 
     public function TransactionRecordGet(Request $request)
     {
-       GoldenFHelper::saveLog("GoldenF TransactionRecordGet req", $this->provider_id, json_encode($request->all()), "");
+       TransferWalletHelper::saveLog("GoldenF TransactionRecordGet req", $this->provider_id, json_encode($request->all()), "");
     }
 
     public function TransactionRecordPlayerGet(Request $request)
     {
-       GoldenFHelper::saveLog("GoldenF TransactionRecordPlayerGet req", $this->provider_id, json_encode($request->all()), "");
+       TransferWalletHelper::saveLog("GoldenF TransactionRecordPlayerGet req", $this->provider_id, json_encode($request->all()), "");
     }
 
     public function BetRecordDetail(Request $request)
     {
-       GoldenFHelper::saveLog("GoldenF BetRecordDetail req", $this->provider_id, json_encode($request->all()), "");
+       TransferWalletHelper::saveLog("GoldenF BetRecordDetail req", $this->provider_id, json_encode($request->all()), "");
     }
 }

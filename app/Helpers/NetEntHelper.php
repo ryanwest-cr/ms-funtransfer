@@ -148,7 +148,7 @@ class NetEntHelper{
 		}
 	 	
 	 	$filter = 'LIMIT 1';
-    	$query = DB::select('select *, (select transaction_detail from game_transaction_ext where game_trans_id = gt.game_trans_id order by game_trans_id limit 1) as transaction_detail from game_transactions gt '.$where.' '.$filter.'');
+    	$query = DB::select('select g.game_id, g.game_code, g.game_name, gt.game_trans_id, gtx.game_trans_ext_id, gt.bet_amount from game_transactions gt inner join games g using(game_id) inner join game_transaction_ext gtx using(game_trans_id) '.$where.' '.$filter.'');
     	$client_details = count($query);
 		return $client_details > 0 ? $query[0] : 'false';
     }

@@ -256,6 +256,12 @@ $app->post('api/ka/credit','KAGamingController@gameCredit');
 $app->post('api/ka/balance','KAGamingController@playerBalance');
 $app->post('api/ka/revoke','KAGamingController@gameRevoke');
 
+// KAGaming Transfer Wallet
+$app->post('api/kagaming/makeDeposit', 'KAGamingController@makeDeposit');
+$app->post('api/kagaming/makeWithdraw', 'KAGamingController@makeWithdraw');
+$app->post('api/kagaming/getPlayerBalance', 'KAGamingController@getPlayerBalance');
+$app->post('api/kagaming/getPlayerWalletBalance', 'KAGamingController@getPlayerWalletBalance');
+
 
 
 // 8PROVIDERS
@@ -513,10 +519,10 @@ $app->post('/api/evogaming/internalrefund','EvolutionController@internalrefund')
 
 //Golden F Game System
 // $app->post('api/gf/Player/Create','GoldenFController@auth');
-$app->post('api/gf/GetPlayerBalance','GoldenFController@GetPlayerBalance');
+$app->post('api/gf/getPlayerBalance', 'GoldenFController@getPlayerBalance');
 $app->post('api/gf/getPlayerWalletBalance','GoldenFController@getPlayerWalletBalance');
-$app->post('api/gf/TransferIn','GoldenFController@TransferIn');
-$app->post('api/gf/TransferOut','GoldenFController@TransferOut');
+$app->post('api/gf/makeDeposit','GoldenFController@TransferIn');
+$app->post('api/gf/makeWithdraw','GoldenFController@TransferOut');
 // $app->post('api/gf/Bet/Record/Get','GoldenFController@BetRecordGet');
 // $app->post('api/gf/Bet/Record/Player/Get','GoldenFController@BetRecordPlayerGet');
 // $app->post('api/gf/Transaction/Record/Get','GoldenFController@TransactionRecordGet');
