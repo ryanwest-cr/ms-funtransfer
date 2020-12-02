@@ -120,7 +120,6 @@ class NetEntController extends Controller
 					'responseCode' => 0,
 					'responseMessage' => 'Success',
 					'serverTransactionRef' => $existing_bet->game_trans_id,
-					'serverToken' => $client_details->player_token,
 					'balance' => round($client_response->fundtransferresponse->balance,3)
 				);
 				
@@ -147,7 +146,6 @@ class NetEntController extends Controller
 				$response = array (
 					'responseCode' => 0,
 					'responseMessage' => 'Success',
-					'serverToken' => $client_details->player_token,
 					'balance' => round($player_details->playerdetailsresponse->balance,3)
 				);
 				NetEntHelper::saveLog('NetEnt Withdraw transactionRef does not exist ', $this->provider_db_id,  json_encode($request->all()), $response);
