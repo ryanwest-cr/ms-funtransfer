@@ -402,7 +402,7 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 // elseif($request->input('game_provider')=="Solid Gaming"){
-                elseif(in_array($request->input('game_provider'), $solid_gamings)){
+                elseif(in_array($provider_code, $solid_gamings)){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::solidLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
