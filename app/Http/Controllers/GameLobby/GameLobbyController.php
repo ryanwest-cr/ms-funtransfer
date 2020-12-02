@@ -109,6 +109,7 @@ class GameLobbyController extends Controller
             $provider_id = GameLobby::checkAndGetProviderId($request->game_provider);
             if($provider_id){
                 $provider_code = $provider_id->sub_provider_id;
+                return $provider_code;
             }else{
                 return response(["error_code"=>"404","message"=>"Provider Code Doesnt Exist/Not Found"],200)
                  ->header('Content-Type', 'application/json');
@@ -501,7 +502,7 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($provider_id == 55){ 
+                elseif($provider_code == 55){ 
                     $url = GameLobby::pgsoftlaunchUrl($request->game_code,$request->token);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
