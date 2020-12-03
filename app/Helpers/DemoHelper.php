@@ -24,7 +24,7 @@ class DemoHelper{
         elseif(in_array($provider_code, [39, 78, 79, 80, 81, 82, 83])){
             $msg = array(
                 "game_code" => $json_data['game_code'],
-                "url" => DemoHelper::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
+                "url" => DemoHelper::oryxLaunchUrl($data->game_code,$data->token,$data->exitUrl), 
                 "game_launch" => true
             );
             return response($msg,200)
