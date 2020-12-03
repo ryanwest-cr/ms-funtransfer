@@ -124,17 +124,17 @@ class GameLobbyController extends Controller
             // }
             
             // Filters
-            // if(ClientHelper::checkClientID($request->all()) != 200){
-            //     $log_id = Helper::saveLog('GAME LAUNCH', 99, json_encode($request->all()), 'FAILED LAUNCH '.$request->client_id);
-            //     $msg = array(
-            //         "error_code" => ClientHelper::checkClientID($request->all()),
-            //         "message" => ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())),
-            //         "url" => config('providerlinks.tigergames').'/tigergames/api?msg='.ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())).'&id='.$log_id,
-            //         "game_launch" => false
-            //     );
-            //     return response($msg,200)
-            //     ->header('Content-Type', 'application/json');
-            // }
+            if(ClientHelper::checkClientID($request->all()) != 200){
+                $log_id = Helper::saveLog('GAME LAUNCH', 99, json_encode($request->all()), 'FAILED LAUNCH '.$request->client_id);
+                $msg = array(
+                    // "error_code" => ClientHelper::checkClientID($request->all()),
+                    "message" => ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())),
+                    "url" => config('providerlinks.play_betrnk').'/tigergames/api?msg='.ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())).'&id='.$log_id,
+                    "game_launch" => false
+                );
+                return response($msg,200)
+                ->header('Content-Type', 'application/json');
+            }
 
            $solid_gamings = [2, 3, 5, 6, 7, 8, 10, 9, 11, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 26, 28];
 
@@ -191,7 +191,7 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($provider_code==56){
+                elseif($provider_code==57){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::wazdanLaunchUrl($request->game_code,$token,$request->input('game_provider'),$request->exitUrl),

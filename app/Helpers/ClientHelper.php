@@ -46,7 +46,8 @@ class ClientHelper
 		if(isset($operator->status_id) && $operator->status_id != 1 ){ return 9; }
 
 		// Game Not Found / Game on maintenance
-		$games = DB::table('games')->where('game_code', $data['game_code'])->first();
+		$game_provider = DB::table('sub_provider_code')->where('sub_provider_name', $data['game_provider'])->first();
+		$games = DB::table('games')->where('game_code', $data['game_code'])->where('sub_provider_id', $game_provider->sub_provider_id)->first();
 		if($games == '' || $games == null){ return 3; }
 		if($games->on_maintenance != 0 ){ return 4; } 
 
