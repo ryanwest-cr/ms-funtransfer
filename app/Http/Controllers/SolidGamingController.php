@@ -84,7 +84,7 @@ class SolidGamingController extends Controller
 				
 				$client_response = json_decode($guzzle_response->getBody()->getContents());*/
 
-				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+				$client_response = $this->playerDetailsCall($client_details);
 				
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
@@ -173,7 +173,7 @@ class SolidGamingController extends Controller
 
 				$client_response = json_decode($guzzle_response->getBody()->getContents());*/
 
-				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);		
+				$client_response = $this->playerDetailsCall($client_details);		
 				
 				if(isset($client_response->playerdetailsresponse->status->code) 
 					&& $client_response->playerdetailsresponse->status->code == "200") {
@@ -263,7 +263,7 @@ class SolidGamingController extends Controller
 			$game_transaction_id = $this->saveGameTransaction('debit', $json_data, $game_details,$client_details->player_token);
 			$game_trans_ext_id = $this->createGameTransExt($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
 
-            $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
+            $client_response = $this->fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
 
 			if(isset($client_response->fundtransferresponse->status->code) 
 				&& $client_response->fundtransferresponse->status->code == "200") {
@@ -374,7 +374,7 @@ class SolidGamingController extends Controller
 						// $game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
 						$game_trans_ext_id = $this->createGameTransExt($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
 
-	           			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
+	           			$client_response = $this->fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
 						if(isset($client_response->fundtransferresponse->status->code) 
 							&& $client_response->fundtransferresponse->status->code == "200") {
 							// if(array_key_exists("roundended", $json_data)) {
@@ -513,7 +513,7 @@ class SolidGamingController extends Controller
 							$debit_game_trans_ext_id = $this->createGameTransExt($debit_game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['betamount'], 1);
 
 							// change $json_data['roundid'] to $debit_game_transaction_id
-			                $debit_client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['betamount'], $game_details->game_code, $game_details->game_name, $debit_game_trans_ext_id, $debit_game_transaction_id, 'debit');
+			                $debit_client_response = $this->fundTransfer($client_details, $json_data['betamount'], $game_details->game_code, $game_details->game_name, $debit_game_trans_ext_id, $debit_game_transaction_id, 'debit');
 
 							if(isset($debit_client_response->fundtransferresponse->status->code) 
 							&& $debit_client_response->fundtransferresponse->status->code == "402") {
@@ -547,7 +547,7 @@ class SolidGamingController extends Controller
 								$credit_game_trans_ext_id = ProviderHelper::createGameTransExtV2($credit_game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['winamount'], 2);
 
 								// change $json_data['roundid'] to $credit_game_transaction_id
-		               			$credit_client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['winamount'], $game_details->game_code, $game_details->game_name, $credit_game_trans_ext_id, $credit_game_transaction_id, 'credit');
+		               			$credit_client_response = $this->fundTransfer($client_details, $json_data['winamount'], $game_details->game_code, $game_details->game_name, $credit_game_trans_ext_id, $credit_game_transaction_id, 'credit');
 
 								if(isset($credit_client_response->fundtransferresponse->status->code) 
 									&& $credit_client_response->fundtransferresponse->status->code == "200") {
@@ -658,7 +658,7 @@ class SolidGamingController extends Controller
 							$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $game_details->bet_amount, 3);
 
 							// change $json_data['roundid'] to $game_transaction_id
-	               			$client_response = ClientRequestHelper::fundTransfer($client_details, $game_details->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit', true);
+	               			$client_response = $this->fundTransfer($client_details, $game_details->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit', true);
 
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
@@ -719,7 +719,7 @@ class SolidGamingController extends Controller
 									$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $value->provider_trans_id, $value->round_id, $value->bet_amount, 3);
 
 									// change $json_data['roundid'] to $game_transaction_id
-			               			$client_response = ClientRequestHelper::fundTransfer($client_details, $value->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit', true);
+			               			$client_response = $this->fundTransfer($client_details, $value->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit', true);
 
 									// If client returned a success response
 									if($client_response->fundtransferresponse->status->code == "200") {
@@ -784,7 +784,7 @@ class SolidGamingController extends Controller
 					}
 				}
 
-				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+				$client_response = $this->playerDetailsCall($client_details);
 				
 				$http_status = 200;
 				$response = [
@@ -880,8 +880,7 @@ class SolidGamingController extends Controller
 	}
 
 	// UPDATE PLAYER DETAILS
-	public static function playerDetailsCall($client_details,$refreshtoken = false){
-        // $client_details = ProviderHelper::getClientDetails('token', $player_token);
+	public  function playerDetailsCall($client_details,$refreshtoken = false){
         if($client_details){
             try{
                 $client = new Client([
