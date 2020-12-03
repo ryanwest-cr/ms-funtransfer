@@ -20,13 +20,24 @@ class DemoHelper{
                 "url" => DemoHelper::getStaticUrl($data->game_code, $data->game_provider),
                 "game_launch" => false
             );
-        }else{
+        }
+        elseif(in_array($provider_code, [39, 78, 79, 80, 81, 82, 83])){
+            $msg = array(
+                "game_code" => $request->input("game_code"),
+                "url" => DemoHelper::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
+                "game_launch" => true
+            );
+            return response($msg,200)
+            ->header('Content-Type', 'application/json');
+        } 
+        else{
             $response = array(
                 "game_code" => $json_data['game_code'],
                 "url" => config('providerlinks.play_betrnk') . '/tigergames/api?msg=No Demo Available',
                 "game_launch" => false
             );
         }
+        
 
         return $response;     
     }
@@ -41,5 +52,10 @@ class DemoHelper{
         ->where('p.provider_name', $game_provider)
         ->first();
         return $game_demo->game_demo;
+    }
+    public static function oryxLaunchUrl($game_code,$token,$exitUrl){
+        $url = $exitUrl;
+        $url = config("providerlinks.oryx.GAME_URL").$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=FUN';
+        return $url;
     }
 }
