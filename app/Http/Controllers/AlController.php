@@ -47,7 +47,7 @@ class AlController extends Controller
 
 
     public function checkCLientPlayer(Request $request){
-        DB::enableQueryLog();
+        // DB::enableQueryLog();
 
         if(!$request->header('hashen')){
           return ['al' => 'OOPS RAINDROPS'];
@@ -60,7 +60,7 @@ class AlController extends Controller
         // }
 
         if($request->debugtype == 1){
-          $client_details = Providerhelper::getClientDetails($request->type,  $request->identifier);
+          $client_details = $this->getClientDetails($request->type,  $request->identifier);
           if($client_details == 'false'){
             return ['al' => 'NO PLAYER FOUND'];
           }else{
@@ -89,14 +89,14 @@ class AlController extends Controller
               );
               $client_response = json_decode($guzzle_response->getBody()->getContents());
               $client_response->request_body = $datatosend;
-              Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+              // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
               return json_encode($client_response);
             }catch (\Exception $e){
                $message = [
                 'request_body' => $datatosend,
                 'al' => $e->getMessage(),
                ];
-               Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+              //  Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
                return $message;
             } 
           }
@@ -114,7 +114,7 @@ class AlController extends Controller
             } 
             $result = $gg->limit($request->has('limit') ? $request->limit : 1);
             $result = $gg->latest()->get(); // Added Latest (CQ9) 08-12-20 - Al
-            Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+            // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
             return $result ? $result : 'false';
         }elseif($request->debugtype == 3){
             $gg = DB::table('game_transaction_ext');
@@ -140,7 +140,7 @@ class AlController extends Controller
             } 
             $result = $gg->limit($request->has('limit') ? $request->limit : 1);
             $result = $gg->latest()->get(); // Added Latest (CQ9) 08-12-20 - Al
-            Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+            // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
             return $result ? $result : 'false';
         }elseif($request->debugtype == 4){
               $query = DB::select(DB::raw($request->identifier));
@@ -271,6 +271,41 @@ class AlController extends Controller
 
         Helper::saveLog('RESEND TRIGGERED', 999, json_encode($response), Helper::datesent());
         return $response;
+    }
+
+    public  function getClientDetails($type = "", $value = "", $gg = 1, $providerfilter = 'all')
+    {
+      // DB::enableQueryLog();
+      if ($type == 'token') {
+        $where = 'where pst.player_token = "' . $value . '"';
+      }
+      if ($providerfilter == 'fachai') {
+        if ($type == 'player_id') {
+          $where = 'where ' . $type . ' = "' . $value . '" AND pst.status_id = 1 ORDER BY pst.token_id desc';
+        }
+      } else {
+        if ($type == 'player_id') {
+          $where = 'where ' . $type . ' = "' . $value . '"';
+        }
+      }
+      if ($type == 'username') {
+        $where = 'where p.username = "' . $value . '"';
+      }
+      if ($type == 'token_id') {
+        $where = 'where pst.token_id = "' . $value . '"';
+      }
+      if ($providerfilter == 'fachai') {
+        $filter = 'LIMIT 1';
+      } else {
+        // $result= $query->latest('token_id')->first();
+        $filter = 'order by token_id desc LIMIT 1';
+      }
+
+      $query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) ' . $where . ' ' . $filter . '');
+
+      $client_details = count($query);
+      // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
+      return $client_details > 0 ? $query[0] : null;
     }
 
     public function tapulan(Request $request){
