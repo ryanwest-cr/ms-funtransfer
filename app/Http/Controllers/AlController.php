@@ -90,7 +90,9 @@ class AlController extends Controller
               $client_response = json_decode($guzzle_response->getBody()->getContents());
               $client_response->request_body = $datatosend;
               // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
-              return json_encode($client_response);
+              // return json_encode($client_response);
+              return response(json_encode($client_response), 200)
+                ->header('Content-Type', 'application/json');
             }catch (\Exception $e){
                $message = [
                 'request_body' => $datatosend,
@@ -142,10 +144,12 @@ class AlController extends Controller
             $result = $gg->latest()->get(); // Added Latest (CQ9) 08-12-20 - Al
             // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
             return $result ? $result : 'false';
-        }elseif($request->debugtype == 4){
-              $query = DB::select(DB::raw($request->identifier));
-              return $query;
         }
+        
+        // elseif($request->debugtype == 4){
+        //       $query = DB::select(DB::raw($request->identifier));
+        //       return $query;
+        // }
 
     }
 
