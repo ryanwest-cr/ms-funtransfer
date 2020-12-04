@@ -85,6 +85,7 @@ class GameLobbyController extends Controller
         
     }
 
+
     public function createFallbackLink($data){
         $log_id = Helper::saveLog('GAME LAUNCH', 99, json_encode($data), 'FAILED LAUNCH');
         $url =config('providerlinks.tigergames').'/tigergames/api?msg=Something went wrong please contact Tiger Games&id='.$log_id;
@@ -429,7 +430,7 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif(in_array($provider_code, [39, 78, 79, 80, 81, 82, 83])){
+                elseif(in_array($provider_code, [39, 78, 79, 80, 81, 82, 83, 87])){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
