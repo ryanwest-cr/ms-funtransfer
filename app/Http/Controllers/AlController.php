@@ -144,10 +144,12 @@ class AlController extends Controller
             $result = $gg->latest()->get(); // Added Latest (CQ9) 08-12-20 - Al
             // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
             return $result ? $result : 'false';
-        }elseif($request->debugtype == 4){
-              $query = DB::select(DB::raw($request->identifier));
-              return $query;
         }
+        
+        // elseif($request->debugtype == 4){
+        //       $query = DB::select(DB::raw($request->identifier));
+        //       return $query;
+        // }
 
     }
 
