@@ -168,7 +168,7 @@ class ICGController extends Controller
     public function playerDetails(Request $request){
         if($request->has("token")){
             $client_details = ProviderHelper::getClientDetails('token', $request->token);
-            //Helper::saveLog('PlayerDetails(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
+            Helper::saveLog('PlayerDetails(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
             if($client_details){
                 $client = new Client([
                     'headers' => [ 
