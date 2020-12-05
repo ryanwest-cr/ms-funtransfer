@@ -3,18 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Helpers\AlHelper;
+// use App\Helpers\AlHelper;
 use App\Helpers\Helper;
-use App\Helpers\SAHelper;
-use App\Helpers\GoldenFHelper;
-use App\Helpers\SessionWalletHelper;
+// use App\Helpers\SAHelper;
+// use App\Helpers\GoldenFHelper;
+// use App\Helpers\SessionWalletHelper;
 use App\Helpers\ProviderHelper;
 use GuzzleHttp\Client;
 use App\Helpers\ClientRequestHelper;
-use Illuminate\Support\Facades\Artisan;
+// use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
-use Session;
-use Auth;
+// use Session;
+// use Auth;
 use DB;
 
 /**
@@ -49,6 +49,8 @@ class AlController extends Controller
     public function checkCLientPlayer(Request $request){
         // DB::enableQueryLog();
 
+        $start_method = microtime(true);
+
         if(!$request->header('hashen')){
           return ['al' => 'OOPS RAINDROPS'];
         }
@@ -60,7 +62,9 @@ class AlController extends Controller
         // }
 
         if($request->debugtype == 1){
+          $start_qry = microtime(true);
           $client_details = $this->getClientDetails($request->type,  $request->identifier);
+          $end_qry = microtime(true);
           if($client_details == 'false'){
             return ['al' => 'NO PLAYER FOUND'];
           }else{
@@ -84,15 +88,22 @@ class AlController extends Controller
               ]
             ];
             try{  
+              $request_time = microtime(true);
               $guzzle_response = $client->post($client_details->player_details_url,
                   ['body' => json_encode($datatosend)]
               );
+              $receive_time = microtime(true);
+
               $client_response = json_decode($guzzle_response->getBody()->getContents());
               $client_response->request_body = $datatosend;
               // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
               // return json_encode($client_response);
-              return response(json_encode($client_response), 200)
-                ->header('Content-Type', 'application/json');
+              $client_response->lumen_boot_start = ($start_method - LARAVEL_START) * 1000;
+              $client_response->qry_player = ($end_qry - $start_qry) * 1000;
+              $client_response->player_api = ($receive_time - $request_time) * 1000;
+              return json_encode($client_response);
+              // return response(json_encode($client_response), 200)
+              //   ->header('Content-Type', 'application/json');
             }catch (\Exception $e){
                $message = [
                 'request_body' => $datatosend,
@@ -314,18 +325,30 @@ class AlController extends Controller
 
     public function tapulan(Request $request){
 
-      return 'OOPS RAINDROPS';
+
+      return [
+    'response_time' => microtime(true) - LARAVEL_START
+];
+
+      $client = new Client();
+      $returnURL = urlencode(urlencode("http://daddy.betrnk.games"));
+      $guzzle_response = $client->get('https://edemo.endorphina.com/api/link/accountId/1002/hash/' . md5("endorphina_4OfAKing@ENDORPHINA") . '/returnURL/' . $returnURL);
+      // $guzzle_response = $client->get('http://edemo.endorphina.com/api/link/accountId/1002/hash/' . md5("endorphina2_SugarGliderDice@ENDORPHINA"));
+      // $guzzle_response = $client->get('https://edemo.endorphina.com/api/link/accountId/1002/hash/5bb33a3ec5107d46fe5b02d77ba674d6');
+
+      dd($guzzle_response->getBody()->getContents());
+
+
+    // return 'OOPS RAINDROPS';
+
+    // https://edemo.endorphina.com/session/open/sid/18e2994c39681b301f91d927821f210f
 
       // $game_code = 'endorphina2_DurgaDD@ENDORPHINA';
-
       // $game_name = explode('_', $game_code);
       // $game_code = explode('@', $game_name[1]);
-
       // $game_gg = $game_code[0];
-
       // $arr = preg_replace("([A-Z])", " $0", $game_gg);
       // $arr = explode(" ", trim($arr));
-
       // if(count($arr) == 1){
       //   $url = 'https://endorphina.com/games/'. strtolower($arr[0]).'/play';
       // }else{
@@ -333,17 +356,11 @@ class AlController extends Controller
       // }
       // return $url;
 
-    // $client = new Client();
-    //  $returnURL = urlencode(urlencode("http://endorphina.com/"));
     // $demoLink = file_get_contents('https://edemo.endorphina.com/api/link/accountId/EDEMO /hash/'. md5("endorphina_4OfAKing@ENDORPHINA"). '/returnURL/' . $returnURL);
     // dd($demoLink);
     // return json_encode($demoLink);
 
-    // $guzzle_response = $client->get('https://edemo.endorphina.com/api/link/accountId/1002 /hash/' . md5("endorphina_4OfAKing@ENDORPHINA") . '/returnURL/' . $returnURL);
-    // $guzzle_response = $client->get('http://edemo.endorphina.com/api/link/accountId/1002/hash/' . md5("endorphina2_SugarGliderDice@ENDORPHINA"));
-    // $guzzle_response = $client->get('https://edemo.endorphina.com/api/link/accountId/1002/hash/5bb33a3ec5107d46fe5b02d77ba674d6');
-
-    // dd($guzzle_response->getBody()->getContents());
+    
 
     // $demoLink = file_get_contents('https://edemo.endorphina.com/api/link/accountId/1002/hash/5bb33a3ec5107d46fe5b02d77ba674d6');
     // return json_encode($demoLink);
