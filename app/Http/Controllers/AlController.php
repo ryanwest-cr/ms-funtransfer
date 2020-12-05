@@ -314,6 +314,22 @@ class AlController extends Controller
 
     public function tapulan(Request $request){
 
+
+
+    $client = new Client();
+     $returnURL = urlencode(urlencode("http://endorphina.com/"));
+    // $demoLink = file_get_contents('https://edemo.endorphina.com/api/link/accountId/EDEMO /hash/'. md5("endorphina_4OfAKing@ENDORPHINA"). '/returnURL/' . $returnURL);
+    // dd($demoLink);
+    // return json_encode($demoLink);
+      
+      // $guzzle_response = $client->get('https://edemo.endorphina.com/api/link/accountId/1002 /hash/' . md5("endorphina_4OfAKing@ENDORPHINA") . '/returnURL/' . $returnURL);
+      $guzzle_response = $client->get('http://edemo.endorphina.com/api/link/accountId/EDEMO/hash/' . md5("endorphina2_SugarGliderDice@ENDORPHINA"));
+      dd($guzzle_response->getBody()->getContents());
+      
+
+
+      // return ;
+
     //  dd(SessionWalletHelper::isMultipleSession(10210, 'qa64d864b89525573dd3ad78d16d6df5'));
 
       // $player_token = $this->getInfoPlayerGameRound('mbbb58340803493e5f29dfeddf105e47');
