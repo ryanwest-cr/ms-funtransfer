@@ -14,7 +14,7 @@ class DemoHelper{
         $provider_code = $provider_id->sub_provider_id;
 
         
-        if($provider_code == 33){
+        if($provider_code == 33){ // Bole Gaming
             $response = array(
                 "game_code" => $json_data['game_code'],
                 "url" => DemoHelper::getStaticUrl($data->game_code, $data->game_provider),
@@ -29,7 +29,33 @@ class DemoHelper{
             );
             return response($msg,200)
             ->header('Content-Type', 'application/json');
-        } 
+        }elseif($provider_code == 34){ // EDP
+            // / $client = new Client();
+            // $guzzle_response = $client->get('https://edemo.endorphina.com/api/link/accountId/1002 /hash/' . md5("endorphina_4OfAKing@ENDORPHINA") . '/returnURL/' . $returnURL);
+            // $guzzle_response = $client->get('http://edemo.endorphina.com/api/link/accountId/1002/hash/' . md5("endorphina2_SugarGliderDice@ENDORPHINA"));
+            // $guzzle_response = $client->get('https://edemo.endorphina.com/api/link/accountId/1002/hash/5bb33a3ec5107d46fe5b02d77ba674d6');
+            // $demoLink = file_get_contents('https://edemo.endorphina.com/api/link/accountId/1002/hash/5bb33a3ec5107d46fe5b02d77ba674d6');
+            // return json_encode($demoLink);
+
+            $game_code = $json_data['game_code'];
+            $game_name = explode('_', $game_code);
+            $game_code = explode('@', $game_name[1]);
+            $game_gg = $game_code[0];
+            $arr = preg_replace("([A-Z])", " $0", $game_gg);
+            $arr = explode(" ", trim($arr));
+            if (count($arr) == 1) {
+                $url = 'https://endorphina.com/games/' . strtolower($arr[0]) . '/play';
+            } else {
+                $url = 'https://endorphina.com/games/' . strtolower($arr[0]) . '-' . strtolower($arr[1]) . '/play';
+            }
+            $msg = array(
+                "game_code" => $json_data['game_code'],
+                "url" => $url,
+                "game_launch" => true
+            );
+            return response($msg, 200)
+            ->header('Content-Type', 'application/json');
+        }
         else{
             $response = array(
                 "game_code" => $json_data['game_code'],
