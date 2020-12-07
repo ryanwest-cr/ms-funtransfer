@@ -148,7 +148,7 @@ class TGGHelper{
 		}
 	 	
 	 	$filter = 'LIMIT 1';
-    	$query = DB::select('select *, (select transaction_detail from game_transaction_ext where game_trans_id = gt.game_trans_id order by game_trans_id limit 1) as transaction_detail from game_transactions gt '.$where.' '.$filter.'');
+    	$query = DB::select('select gt.game_trans_id, gt.provider_trans_id, gt.game_id, gt.round_id, gt.bet_amount,gt.win, gt.pay_amount, gt.entry_id, gt.income, game_trans_ext_id from game_transactions gt inner join game_transaction_ext using(game_trans_id) '.$where.' '.$filter.'');
     	$client_details = count($query);
 		return $client_details > 0 ? $query[0] : 'false';
     }
