@@ -629,7 +629,7 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif($request->input('game_provider')=="UltraPlay"){ 
+                elseif($provider_code==88){ 
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::ultraPlayLaunchUrl($request->game_code,$request->token,$request->exitUrl), //TEST
