@@ -20,13 +20,13 @@ class TGGController extends Controller
     	$this->startTime = microtime(true);
 	}
 	
-	public $provider_db_id = 29; // 29 on test ,, 27 prod
+	public $provider_db_id = 27; // 29 on test ,, 27 prod
 
 	public function index(Request $request){
 		TGGHelper::saveLog('TGG index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
 		// $signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->api_key,'check_signature');
-		// return $signature_checker;
+		// // return $signature_checker;
 		// if($signature_checker == 'false'):
 		// 	$msg = array(
 		// 				"status" => 'error',
