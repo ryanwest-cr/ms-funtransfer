@@ -26,7 +26,7 @@ class TGGController extends Controller
 		TGGHelper::saveLog('TGG index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
 		// $signature_checker = $this->getSignature($this->project_id, 2, $request->all(), $this->api_key,'check_signature');
-		// return $signature_checker;
+		// // return $signature_checker;
 		// if($signature_checker == 'false'):
 		// 	$msg = array(
 		// 				"status" => 'error',
@@ -354,7 +354,7 @@ class TGGController extends Controller
 						],
 					  );
 
-					TGGHelper::updateBetTransaction($existing_transaction->game_trans_id, $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
+					$this->updateBetTransaction($existing_transaction->game_trans_id, $existing_transaction->bet_amount, $existing_transaction->income, 4, $existing_transaction->entry_id); // UPDATE BET TO REFUND!
 					TGGHelper::creteTGGtransaction($existing_transaction->game_trans_id, $data, $client_response->requestoclient, $client_response->fundtransferresponse, $response,NULL, 4, $existing_transaction->bet_amount, $data['callback_id'], $data['data']['refund_round_id']);
 					TGGHelper::saveLog('TGG gameRefund success '.$data['data']['refund_round_id'], $this->provider_db_id, json_encode($data), 'success refund');
 				  	return $response;
@@ -530,7 +530,19 @@ class TGGController extends Controller
 		}
 	}
 
-
+	public static function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id) {
+		$update = DB::table('game_transactions')
+			 // ->where('round_id', $round_id)
+			 ->where('game_trans_id', $round_id) 
+			 ->update(['pay_amount' => $pay_amount, 
+				   'income' => $income, 
+				   'win' => $win, 
+				   'entry_id' => $entry_id,
+				   'transaction_reason' => TGGHelper::updateReason($win),
+				   'payout_reason' => TGGHelper::updateReason($win),
+			 ]);
+	 return ($update ? true : false);
+ 	}
 	
 
 }
