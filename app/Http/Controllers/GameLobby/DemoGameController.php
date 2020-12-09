@@ -11,21 +11,33 @@ class DemoGameController extends Controller
 {
 
     public function __construct(){
-		$this->middleware('oauth', ['except' => ['index']]);
+		// $this->middleware('oauth', ['except' => ['index']]);
 		// $this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);
     }
     
     public function GameDemo(Request $request){
 
+        $data = json_decode(json_encode($request->all()));
+
         if(!$request->has("game_code") || !$request->has("game_provider")){
             $msg = array(
-                "error_code" => "INVALID_INPUT",
-                "message" => "Missing Required Input"
+                "game_code" => $data->game_code,
+                "url" => config('providerlinks.play_betrnk') . '/tigergames/api?msg=Missing Input',
+                "game_launch" => false
+            );
+            return $msg;
+        }
+       
+        $game_details = DemoHelper::findGameDetails($data->game_provider, $data->game_code);
+        if($game_details == false){
+            $msg = array(
+                "game_code" => $data->game_code,
+                "url" => config('providerlinks.play_betrnk') . '/tigergames/api?msg=No Game Found',
+                "game_launch" => false
             );
             return $msg;
         }
 
-        $data = json_decode(json_encode($request->all()));
         $provider_id = GameLobby::checkAndGetProviderId($data->game_provider);
         $provider_code = $provider_id->sub_provider_id;
         
@@ -33,7 +45,7 @@ class DemoGameController extends Controller
             $response = array(
                 "game_code" => $data->game_code,
                 "url" => DemoHelper::getStaticUrl($data->game_code, $data->game_provider),
-                "game_launch" => false
+                "game_launch" => true
             );
         }
         elseif(in_array($provider_code, [39, 78, 79, 80, 81, 82, 83])){
@@ -50,14 +62,14 @@ class DemoGameController extends Controller
             $response = array(
                 "game_code" => $data->game_code,
                 "url" => DemoHelper::pgSoft($data->game_code),
-                "game_launch" => false
+                "game_launch" => true
             );
         }
         elseif($provider_code == 60){ // ygg drasil direct
             $response = array(
                 "game_code" => $data->game_code,
                 "url" => DemoHelper::yggDrasil($data->game_code),
-                "game_launch" => false
+                "game_launch" => true
             );
         }
         // elseif($provider_code == 34){ // EDP
