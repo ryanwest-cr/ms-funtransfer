@@ -3,6 +3,8 @@ namespace App\Helpers;
 
 use App\Helpers\GameLobby;
 use App\Helpers\DemoController;
+use App\Helpers\ProviderHelper;
+use GuzzleHttp\Client;
 use DB;
 
 class DemoHelper{
@@ -51,6 +53,13 @@ class DemoHelper{
             $response = array(
                 "game_code" => $data->game_code,
                 "url" => DemoHelper::pgSoft($data->game_code),
+                "game_launch" => true
+            );
+        }
+        elseif($provider_code == 40){  // Evoplay
+            $response = array(
+                "game_code" => $data->game_code,
+                "url" => DemoHelper::evoplay($data->game_code),
                 "game_launch" => true
             );
         }
@@ -139,5 +148,36 @@ class DemoHelper{
         $operator_token = config('providerlinks.pgsoft.operator_token');
         $url = "https://m.pg-redirect.net/".$game_code."/index.html?language=en-us&bet_type=2&operator_token=".urlencode($operator_token);
         return $url;
+    }
+
+
+    public static function evoplay($game_code){
+        $requesttosend = [
+          "project" => config('providerlinks.evoplay.project_id'),
+          "version" => 1,
+          "token" => 'demo',
+          "game" => $game_code, //game_code, game_id
+          "settings" =>  [
+            'language'=>'en',
+            'https' => true,
+          ],
+          "denomination" => '1', // game to be launched with values like 1.0, 1, default
+          "currency" => 'USD',
+          "return_url_info" => true, // url link
+          "callback_version" => 2, // POST CALLBACK
+        ];
+        $signature =  ProviderHelper::getSignature($requesttosend, config('providerlinks.evoplay.secretkey'));
+        $requesttosend['signature'] = $signature;
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ]
+        ]);
+        $response = $client->post(config('providerlinks.evoplay.api_url').'/game/geturl',[
+            'form_params' => $requesttosend,
+        ]);
+        $res = json_decode($response->getBody(),TRUE);
+        Helper::saveLog('8Provider GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
+        return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 }
