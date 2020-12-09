@@ -424,6 +424,8 @@ $app->post('payment/transaction','Payments\PaymentLobbyController@getPayTransact
 $app->post('payment/cancel','Payments\PaymentLobbyController@cancelPayTransaction');
 $app->post('currency/convert','Payments\PaymentLobbyController@currencyConverter');
 //GameLobby
+$app->post('game/demo','GameLobby\DemoGameController@GameDemo');
+
 $app->get('game/list','GameLobby\GameLobbyController@getGameList');
 $app->get('game/provider/{provider_name}','GameLobby\GameLobbyController@getProviderDetails');
 $app->post('game/launchurl','GameLobby\GameLobbyController@gameLaunchUrl');

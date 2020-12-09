@@ -232,7 +232,7 @@ class PaymentHelper
     }
     public static function gameCurrencyConverter(){
         $client = new Client([
-            'auth' => ['linkers989238810', '3tlva6hl8um2g46om37gu8l8av'],
+            'auth' => ['linkers692330432', 'egse80dl8rfise73nlpe98h0k6'],
             'http_errors' => false,
         ]);
         $response = $client->get('https://xecdapi.xe.com/v1/convert_from/?to=*', [
