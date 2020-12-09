@@ -20,8 +20,9 @@ class TGGController extends Controller
     	$this->startTime = microtime(true);
 	}
 	
-	public $provider_db_id = 29; // 29 on test ,, 27 prod
-
+	// public $provider_db_id = 29; // 29 on test ,, 27 prod
+	public $provider_db_id = 29; 
+	
 	public function index(Request $request){
 		TGGHelper::saveLog('TGG index '.$request->name, $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
 
