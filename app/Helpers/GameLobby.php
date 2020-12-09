@@ -930,7 +930,7 @@ class GameLobby{
 
     public static function oryxLaunchUrl($game_code,$token,$exitUrl){
         $url = $exitUrl;
-        $url = config("providerlinks.oryx.GAME_URL").$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=REAL';
+        $url = config("providerlinks.oryx.GAME_URL").$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=REAL&lobbyUrl='.$exitUrl;
         return $url;
     }
 
