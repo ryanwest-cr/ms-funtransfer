@@ -9,22 +9,31 @@ class DemoHelper{
     
     public static function DemoGame($json_data){
 
-
         $data = json_decode(json_encode($json_data));
+
+        $game_details = DemoHelper::findGameDetails($data->game_provider, $data->game_code);
+        if($game_details == false){
+            $msg = array(
+                "game_code" => $data->game_code,
+                "url" => config('providerlinks.play_betrnk') . '/tigergames/api?msg=No Game Found',
+                "game_launch" => false
+            );
+            return $msg;
+        }
+
         $provider_id = GameLobby::checkAndGetProviderId($data->game_provider);
         $provider_code = $provider_id->sub_provider_id;
-
         
         if($provider_code == 33){ // Bole Gaming
             $response = array(
-                "game_code" => $json_data['game_code'],
+                "game_code" => $data->game_code,
                 "url" => DemoHelper::getStaticUrl($data->game_code, $data->game_provider),
-                "game_launch" => false
+                "game_launch" => true
             );
         }
         elseif(in_array($provider_code, [39, 78, 79, 80, 81, 82, 83])){
             $msg = array(
-                "game_code" => $json_data['game_code'],
+                "game_code" => $data->game_code,
                 "url" => DemoHelper::oryxLaunchUrl($data->game_code), 
                 "game_launch" => true
             );
@@ -35,14 +44,14 @@ class DemoHelper{
             $response = array(
                 "game_code" => $data->game_code,
                 "url" => DemoHelper::yggDrasil($data->game_code),
-                "game_launch" => false
+                "game_launch" => true
             );
         }
         elseif($provider_code == 55){ // pgsoft
             $response = array(
                 "game_code" => $data->game_code,
                 "url" => DemoHelper::pgSoft($data->game_code),
-                "game_launch" => false
+                "game_launch" => true
             );
         }
         // elseif($provider_code == 34){ // EDP
@@ -74,7 +83,7 @@ class DemoHelper{
         // }
         else{
             $response = array(
-                "game_code" => $json_data['game_code'],
+                "game_code" => $data->game_code,
                 "url" => config('providerlinks.play_betrnk') . '/tigergames/api?msg=No Demo Available',
                 "game_launch" => false
             );
@@ -95,6 +104,22 @@ class DemoHelper{
         return $game_demo->game_demo;
     }
 
+    public static function findGameDetails($game_provider, $game_code) {
+
+        $provider_id = GameLobby::checkAndGetProviderId($game_provider);
+        $provider_code = $provider_id->sub_provider_id;
+
+        $game_details = DB::table("games as g")
+            ->leftJoin("providers as p","g.provider_id","=","p.provider_id");
+      
+        $game_details->where([
+            ["g.sub_provider_id", "=", $provider_code],
+            ["g.game_code",'=', $game_code],
+        ]);
+        
+        $result= $game_details->first();
+        return $result ? $result : false;
+	}
     // public static function oryxLaunchUrl($game_code,$token,$exitUrl){
     //     $url = $exitUrl;
     //     $url = config("providerlinks.oryx.GAME_URL").$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=FUN';
