@@ -79,6 +79,13 @@ class DemoGameController extends Controller
                 "game_launch" => true
             );
         }
+        elseif($provider_code == 75){  // KAGaming
+            $response = array(
+                "game_code" => $data->game_code,
+                "url" => DemoHelper::kagaming($data->game_code),
+                "game_launch" => true
+            );
+        }
         // elseif($provider_code == 34){ // EDP
         //     // TEST ONLY
         //     $game_code = $json_data['game_code'];
