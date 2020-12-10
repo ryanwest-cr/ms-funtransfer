@@ -430,7 +430,7 @@ class GameLobbyController extends Controller
                     return response($msg,200)
                     ->header('Content-Type', 'application/json');
                 }
-                elseif(in_array($provider_code, [39, 78, 79, 80, 81, 82, 83, 87])){
+                elseif(in_array($provider_code, [39, 79, 83, 84, 85, 86, 87])){
                     $msg = array(
                         "game_code" => $request->input("game_code"),
                         "url" => GameLobby::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
