@@ -718,6 +718,30 @@ class ProviderHelper{
 		}
 
 		return $result;
-    }
+	}
+	
+	/**
+	 * GLOBAL
+	 * iso_type = 639-type
+	 * 
+	 */
+	public static function getLangIso($lang,$iso_type=1) {
+		$lang = strtolower($lang);
+		$language = [
+			"en" => ['1' => 'en', '2' => 'eng', '3' => 'eng'],
+			"zh" => ['1' => 'zh', '2' => 'zho', '3' => 'chi'],
+			"ru" => ['1' => 'ru', '2' => 'rus', '3' => 'rus'],
+			"ja" => ['1' => 'ja', '2' => 'jpn', '3' => 'jpn'],
+			"th" => ['1' => 'th', '2' => 'tha', '3' => 'tha'],
+			"ko" => ['1' => 'ko', '2' => 'kor', '3' => 'kor'],
+			"te" => ['1' => 'te', '2' => 'tel', '3' => 'tel'],
+			"te" => ['1' => 'tr', '2' => 'tur', '3' => 'tur'],
+		];
+		if(array_key_exists($lang, $language)){
+    		return $language[$lang][$iso_type];
+    	}else{
+    		return false;
+    	}
+	}
 
 }
