@@ -11,7 +11,7 @@ class DemoGameController extends Controller
 {
 
     public function __construct(){
-		// $this->middleware('oauth', ['except' => ['index']]);
+		$this->middleware('oauth', ['except' => ['index']]);
 		// $this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);
     }
     
