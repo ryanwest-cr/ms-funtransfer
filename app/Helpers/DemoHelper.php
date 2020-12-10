@@ -63,6 +63,13 @@ class DemoHelper{
                 "game_launch" => true
             );
         }
+        elseif($provider_code == 75){  // KAGaming
+            $response = array(
+                "game_code" => $data->game_code,
+                "url" => DemoHelper::kagaming($data->game_code),
+                "game_launch" => true
+            );
+        }
         // elseif($provider_code == 34){ // EDP
         //     // / $client = new Client();
         //     // $guzzle_response = $client->get('https://edemo.endorphina.com/api/link/accountId/1002 /hash/' . md5("endorphina_4OfAKing@ENDORPHINA") . '/returnURL/' . $returnURL);
@@ -150,6 +157,10 @@ class DemoHelper{
         return $url;
     }
 
+    public static function kagaming($game_code){
+        $url = '' . config('providerlinks.kagaming.gamelaunch') . '/?g=' . $game_code . '&p=' . config('providerlinks.kagaming.partner_name') . '&u=1&t=RiANDRAFT&da=charity&cr=USD&loc=en&m=1&tl=GUIOGUIO' . '&ak=' . config('providerlinks.kagaming.access_key') . '';
+        return $url;
+    }
 
     public static function evoplay($game_code){
         $requesttosend = [
@@ -177,7 +188,6 @@ class DemoHelper{
             'form_params' => $requesttosend,
         ]);
         $res = json_decode($response->getBody(),TRUE);
-        Helper::saveLog('8Provider GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
         return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 }
