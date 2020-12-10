@@ -52,7 +52,8 @@ class ClientHelper
 		if($games->on_maintenance != 0 ){ return 4; } 
 
 		// Provider Disabled
-		$sub_provider = DB::table('sub_providers')->where('sub_provider_name', $data['game_provider'])->first();
+		// $sub_provider = DB::table('sub_providers')->where('sub_provider_name', $data['game_provider'])->first();
+		$sub_provider = DB::table('sub_providers')->where('sub_provider_id', $game_provider->sub_provider_id)->first();
 		if($sub_provider == '' || $sub_provider == null){ return 5; }
 		if($sub_provider->on_maintenance != 0){ return 6; }
 
