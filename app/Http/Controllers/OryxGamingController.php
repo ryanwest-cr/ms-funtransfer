@@ -411,6 +411,7 @@ class OryxGamingController extends Controller
 	public function gameTransactionV2(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		Helper::saveLog('ORYX - REQUEST RECEIVE gameTransactionV2', 18, file_get_contents("php://input"), 'REQUEST RECEIVE');
 
 		if($this->_isIdempotent($json_data['transactionId'], true)) {
 			$http_status = 409;
@@ -485,8 +486,10 @@ class OryxGamingController extends Controller
 						$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $game_transaction->provider_trans_id, $game_transaction->round_id, $game_transaction->bet_amount, 3);
 						
 						// change $json_data['roundId'] to $game_transaction_id
+						Helper::saveLog('ORYX - REQUEST RECEIVE gameTransactionV2', 18, file_get_contents("php://input"), 'REQUEST SEND');
                			$client_response = ClientRequestHelper::fundTransfer($client_details, $game_transaction->bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit', true);
-               			
+						Helper::saveLog('ORYX - REQUEST RECEIVE gameTransactionV2', 18, file_get_contents("php://input"), 'REQUEST RECEIVED');
+						   
 						// If client returned a success response
 						if($client_response->fundtransferresponse->status->code == "200") {
 		
@@ -505,6 +508,7 @@ class OryxGamingController extends Controller
 			}
 		}
 		
+		Helper::saveLog('ORYX - REQUEST gameTransactionV2', 18, file_get_contents("php://input"), 'RETURNED RESPONSE');
 		return response()->json($response, $http_status);
 
 	}
