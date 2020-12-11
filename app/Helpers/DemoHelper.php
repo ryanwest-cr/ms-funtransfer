@@ -13,7 +13,12 @@ class DemoHelper{
 
         $data = json_decode(json_encode($json_data));
 
+        # Game Demo Endpoint  (ENDPOINT THAT ONLY GET TWO PARAMETERS game_code and game_provider)
+        $exitUrl = isset($data->exitUrl) ? $data->exitUrl : '';
+        $lang = isset($data->lang) ? $data->lang : '';
+
         $game_details = DemoHelper::findGameDetails($data->game_provider, $data->game_code);
+
         if($game_details == false){
             $msg = array(
                 "game_code" => $data->game_code,
@@ -36,7 +41,7 @@ class DemoHelper{
         elseif(in_array($provider_code, [39, 78, 79, 80, 81, 82, 83])){
             $msg = array(
                 "game_code" => $data->game_code,
-                "url" => DemoHelper::oryxLaunchUrl($data->game_code), 
+                "url" => DemoHelper::oryxLaunchUrl($data->game_code, $lang, $exitUrl), 
                 "game_launch" => true
             );
             return response($msg,200)
@@ -45,21 +50,28 @@ class DemoHelper{
         elseif($provider_code == 60){ // ygg drasil direct
             $response = array(
                 "game_code" => $data->game_code,
-                "url" => DemoHelper::yggDrasil($data->game_code),
+                "url" => DemoHelper::yggDrasil($data->game_code,$lang),
                 "game_launch" => true
             );
         }
         elseif($provider_code == 55){ // pgsoft
             $response = array(
                 "game_code" => $data->game_code,
-                "url" => DemoHelper::pgSoft($data->game_code),
+                "url" => DemoHelper::pgSoft($data->game_code,$lang, $exitUrl),
                 "game_launch" => true
             );
         }
         elseif($provider_code == 40){  // Evoplay
             $response = array(
                 "game_code" => $data->game_code,
-                "url" => DemoHelper::evoplay($data->game_code),
+                "url" => DemoHelper::evoplay($data->game_code,$lang),
+                "game_launch" => true
+            );
+        }
+        elseif($provider_code == 75){  // KAGaming
+            $response = array(
+                "game_code" => $data->game_code,
+                "url" => DemoHelper::kagaming($data->game_code,$lang,$exitUrl),
                 "game_launch" => true
             );
         }
@@ -101,7 +113,6 @@ class DemoHelper{
         return $response;     
     }
 
-
     # Providers That Has Static URL DEMO LINK IN THE DATABASE
     public static function getStaticUrl($game_code, $game_provider){
         $game_demo = DB::table('games as g')
@@ -114,51 +125,53 @@ class DemoHelper{
     }
 
     public static function findGameDetails($game_provider, $game_code) {
-
         $provider_id = GameLobby::checkAndGetProviderId($game_provider);
+        if($provider_id == null){ return false;}
         $provider_code = $provider_id->sub_provider_id;
-
-        $game_details = DB::table("games as g")
-            ->leftJoin("providers as p","g.provider_id","=","p.provider_id");
-      
+        $game_details = DB::table("games as g")->leftJoin("providers as p","g.provider_id","=","p.provider_id");
         $game_details->where([
             ["g.sub_provider_id", "=", $provider_code],
             ["g.game_code",'=', $game_code],
         ]);
-        
         $result= $game_details->first();
         return $result ? $result : false;
 	}
-    // public static function oryxLaunchUrl($game_code,$token,$exitUrl){
-    //     $url = $exitUrl;
-    //     $url = config("providerlinks.oryx.GAME_URL").$game_code.'/open?token='.$token.'&languageCode=ENG&playMode=FUN';
-    //     return $url;
-    // }
 
-    public static function oryxLaunchUrl($game_code){
-        $url = config("providerlinks.oryx.GAME_URL").$game_code.'/open?languageCode=ENG&playMode=FUN';
+    public static function oryxLaunchUrl($game_code, $lang, $exitUrl){
+        $lang = $lang != '' ? (strtolower(ProviderHelper::getLangIso($lang)) != false ? strtolower(ProviderHelper::getLangIso($lang)) : 'ENG') : 'ENG';
+        $exitUrl = $exitUrl != '' ? $exitUrl : '';
+        $url = config("providerlinks.oryx.GAME_URL").$game_code.'/open?languageCode='.$lang.'&playMode=FUN&lobbyUrl='.$exitUrl.'';
         return $url;
     }
 
-    public static function yggDrasil($game_code){
-        return 'https://static-pff-tw.248ka.com/init/launchClient.html?gameid='.$game_code.'&lang=en&currency=USD&org='.config('providerlinks.ygg.Org').'&channel=pc';
+    public static function yggDrasil($game_code,$lang){
+        $lang = $lang != '' ? (strtolower(ProviderHelper::getLangIso($lang)) != false ? strtolower(ProviderHelper::getLangIso($lang)) : 'en') : 'en';
+        return 'https://static-pff-tw.248ka.com/init/launchClient.html?gameid='.$game_code.'&lang='.$lang.'&currency=USD&org='.config('providerlinks.ygg.Org').'&channel=pc';
     }
 
-    public static function pgSoft($game_code){
+    // YGG DONT SUPPORT RETURN URL
+    public static function pgSoft($game_code,$lang,$exitUrl){
         $operator_token = config('providerlinks.pgsoft.operator_token');
-        $url = "https://m.pg-redirect.net/".$game_code."/index.html?language=en-us&bet_type=2&operator_token=".urlencode($operator_token);
+        $lang = $lang != '' ? (strtolower(ProviderHelper::getLangIso($lang)) != false ? strtolower(ProviderHelper::getLangIso($lang)) : 'en') : 'en';
+        $url = 'https://m.pg-redirect.net/'.$game_code.'/index.html?language='.$lang.'&bet_type=2&operator_token='.urlencode($operator_token);
         return $url;
     }
 
+    public static function kagaming($game_code,$lang,$exitUrl){
+        $lang = $lang != '' ? (strtolower(ProviderHelper::getLangIso($lang)) != false ? strtolower(ProviderHelper::getLangIso($lang)) : 'en') : 'en';
+        $url = '' . config('providerlinks.kagaming.gamelaunch') . '/?g=' . $game_code . '&l='.$exitUrl.'&p=' . config('providerlinks.kagaming.partner_name') . '&u=1&t=RiANDRAFT&da=charity&cr=USD&loc='.$lang.'&m=1&tl=GUIOGUIO' . '&ak=' . config('providerlinks.kagaming.access_key') . '';
+        return $url;
+    }
 
-    public static function evoplay($game_code){
+    public static function evoplay($game_code, $lang){
+        $lang = $lang != '' ? (strtolower(ProviderHelper::getLangIso($lang)) != false ? strtolower(ProviderHelper::getLangIso($lang)) : 'en') : 'en';
         $requesttosend = [
           "project" => config('providerlinks.evoplay.project_id'),
           "version" => 1,
           "token" => 'demo',
           "game" => $game_code, //game_code, game_id
           "settings" =>  [
-            'language'=>'en',
+            'language'=>$lang,
             'https' => true,
           ],
           "denomination" => '1', // game to be launched with values like 1.0, 1, default
@@ -177,7 +190,6 @@ class DemoHelper{
             'form_params' => $requesttosend,
         ]);
         $res = json_decode($response->getBody(),TRUE);
-        Helper::saveLog('8Provider GAMELAUNCH EVOPLAY', 15, json_encode($requesttosend), json_decode($response->getBody()));
         return isset($res['data']['link']) ? $res['data']['link'] : false;
     }
 }
