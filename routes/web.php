@@ -317,6 +317,14 @@ $app->post('/tidy/api/transaction/bet', 'TidyController@gameBet');
 $app->post('/tidy/api/transaction/rollback', 'TidyController@gameRollback');
 $app->post('/tidy/api/transaction/win', 'TidyController@gameWin');
 $app->post('/tidy/api/user/balance', 'TidyController@checkBalance');
+// FUNTA TRANFER WALLET
+// $app->post('/funta/api/cash/outside/deposit', 'FuntaTranferWalletController@deposit');
+// $app->get('/funta/api/user/outside/balance', 'FuntaTranferWalletController@walletCheckBalance');
+$app->post('api/funtagaming/makeDeposit', 'FuntaTranferWalletController@makeDeposit');
+$app->post('api/funtagaming/makeWithdraw', 'FuntaTranferWalletController@makeWithdraw');
+$app->post('api/funtagaming/getPlayerBalance', 'FuntaTranferWalletController@getPlayerBalance');
+$app->post('api/funtagaming/getPlayerWalletBalance', 'FuntaTranferWalletController@getPlayerWalletBalance');
+
 
 //TGG
 // $app->post('/api/tgg/gamelist', 'TGGController@getGamelist'); // launch game 
