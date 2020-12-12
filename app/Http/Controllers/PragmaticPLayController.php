@@ -191,7 +191,7 @@ class PragmaticPLayController extends Controller
         }
         
         // $checkDoubleBet = DB::table('game_transactions')->select('game_trans_id')->where("round_id","=",$data->roundId)->get();
-        $checkDoubleBet = DB::select("SELECT game_trans_id FROM game_transactions WHERE round_id = '".$data->roundId."' ");
+        $checkDoubleBet = DB::select("SELECT game_trans_id,bet_amount FROM game_transactions WHERE round_id = '".$data->roundId."' ");
         if(count($checkDoubleBet) > 0){
             // $checkDuplicate = DB::table('game_transaction_ext')->where("round_id","=",$data->roundId)->where('provider_trans_id','=',$data->reference)->get();
             $checkDuplicate = DB::select("SELECT game_transaction_type FROM game_transaction_ext WHERE provider_trans_id = '".$data->reference."' ");
