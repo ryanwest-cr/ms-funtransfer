@@ -36,8 +36,10 @@ class FuntaTranferWalletController extends Controller
 
     /************************************************************************************************************************/
     # Transfer Wallet Setup
+    // UPDATE 101
     public function getPlayerBalance(Request $request)
     {
+       
         KAHelper::saveLog('GetPlayerBalance', $this->provider_db_id, json_encode($request->all()), 'HIT');
         if (!$request->has("token")) {
             $msg = array("status" => "error", "message" => "Token Invalid");
@@ -75,6 +77,7 @@ class FuntaTranferWalletController extends Controller
     // SET UP DONE
     public function getPlayerWalletBalance(Request $request)
     {
+       
         $client_details = KAHelper::getClientDetails('token', $request->token);
         if ($client_details == 'false') {
             $msg = array("status" => "error", "message" => "Token Invalid");
@@ -89,45 +92,36 @@ class FuntaTranferWalletController extends Controller
             return response($msg, 200)->header('Content-Type', 'application/json');
         }
         
-        // $client = new Client(['headers' => ['Content-Type' => 'application/json']]);
-        // $body = [
-        //     "username" => $client_details->player_id,
-        //     "partnerName" => $this->tw_partnerName,
-        //     "gameName" => $game_details->game_name,
-        //     "currency" => $client_details->default_currency,
-        //     "accessKey" => $this->tw_access_key,
-        //     'online' => true
-        // ];
-        // $guzzle_response = $client->post(
-        //     $this->funta_api . 'wallet/balance?hash=' . $this->generateHash($body, 2),
-        //     ['body' => json_encode(
-        //         $body
-        //     )]
-        // );
-        // $wallet_balance = json_decode($guzzle_response->getBody()->getContents());
+        try {
+            $url = $this->funta_api . '/api/user/outside/balance';
+            $requesttosend = [
+                'client_id' => $this->client_id,
+                'username'  => $client_details->username
+            ];
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . TidyHelper::generateToken($requesttosend)
+                ]
+            ]);
+            $guzzle_response = $client->get($url,['body' => json_encode($requesttosend)]);
+            $wallet_balance = json_decode($guzzle_response->getBody()->getContents());
 
-        $url = $this->funta_api . '/api/user/outside/balance';
-        $requesttosend = [
-            'client_id' => $this->client_id,
-            'username'  => $client_details->username
-        ];
-        $client = new Client([
-            'headers' => [ 
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . TidyHelper::generateToken($requesttosend)
-            ]
-        ]);
-        $guzzle_response = $client->get($url,['body' => json_encode($requesttosend)]);
-        $wallet_balance = json_decode($guzzle_response->getBody()->getContents());
-        
-        if(isset($wallet_balance->user)){
-            $TransferOut_amount = $wallet_balance->user->balance;
-            $msg = array(
-                "status" => "success",
-                "balance" => $TransferOut_amount,
-                "message" => 'Balance Acquired',
-            );
-        } else {
+            if(isset($wallet_balance->user)){
+                $TransferOut_amount = $wallet_balance->user->balance;
+                $msg = array(
+                    "status" => "success",
+                    "balance" => $TransferOut_amount,
+                    "message" => 'Balance Acquired',
+                );
+            } else {
+                $msg = array(
+                    "status" => "error",
+                    "balance" => 0,
+                    "message" => 'Something went wrong',
+                );
+            }
+        } catch (\Exception $e) {
             $msg = array(
                 "status" => "error",
                 "balance" => 0,
@@ -140,7 +134,6 @@ class FuntaTranferWalletController extends Controller
 
     public function makeDeposit(Request $request)
     {
-
 
         if (!$request->has("token") || !$request->has("player_id") || !$request->has("amount") || !$request->has("callback_transfer_out") || !$request->has("callback_transfer_in")) {
             $msg = array("status" => "error", "message" => "Missing Required Fields!");
@@ -273,35 +266,23 @@ class FuntaTranferWalletController extends Controller
 	            $response = $client->post($url,['body' => json_encode($requesttosend)]);
 	            $make_deposit_response = json_decode($response->getBody()->getContents());
 
-                // $client = new Client(['headers' => ['Content-Type' => 'application/json']]);
-                // $body = [
-                //     "username" => $client_details->player_id,
-                //     "partnerName" => $this->tw_partnerName,
-                //     "gameName" => 'Fastbreak',
-                //     "currency" => $client_details->default_currency,
-                //     "accessKey" => $this->tw_access_key,
-                //     'depositAmount' => $this->formatBalance($bet_amount)
-                // ];
-                // $response = $client->post(
-                //     $this->funta_api . 'wallet/deposit?hash=' . $this->generateHash($body, 2),
-                //     ['body' => json_encode(
-                //         $body
-                //     )]
-                // );
-                // $make_deposit_response = json_decode($response->getBody()->getContents());
-                
-                # If the deposit to the provider Wallet Failed
-                // if(isset($make_deposit_response->error_code) && isset($make_deposit_response->error_msg)){
-
-                //     $response = ["status" => "error", 'message' => 'Somthing Went Wrong'];
-                //     if (isset($gamerecord)) {
-                //         TransferWalletHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-
-                //         TransferWalletHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', 'FAILED', 'FAILED', 'FAILED');
-                //     }
-                //     TransferWalletHelper::saveLog('TransferIn Failed', $this->provider_db_id, json_encode($request->all()), $response);
-                //     return $response;
+                // If the deposit to the provider Wallet Failed
+                // example response if failed
+                // {
+                //     "error_code":"00-1103-00-07-039",
+                //     "error_msg":"no_such_transfer"
                 // }
+                if(isset($make_deposit_response->error_code) && isset($make_deposit_response->error_msg)){
+
+                    $response = ["status" => "error", 'message' => 'Somthing Went Wrong'];
+                    if (isset($gamerecord)) {
+                        TransferWalletHelper::updateGameTransactionStatus($gamerecord, 2, 99);
+
+                        TransferWalletHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', 'FAILED', 'FAILED', 'FAILED');
+                    }
+                    TransferWalletHelper::saveLog('TransferIn Failed', $this->provider_db_id, json_encode($request->all()), $response);
+                    return $response;
+                }
 
 
                 # TransferWallet
@@ -309,8 +290,8 @@ class FuntaTranferWalletController extends Controller
                 if ($token == false) { // This token doesnt exist in wallet_session
                     SessionWalletHelper::createWalletSession($request->token, $request->all());
                 }
-
                 TransferWalletHelper::saveLog('TransferIn Success', $this->provider_db_id, json_encode($request->all()), $make_deposit_response);
+
             } catch (\Exception $e) {
                 $response = ["status" => "error", 'message' => $e->getMessage()];
                 if (isset($gamerecord)) {
@@ -353,7 +334,8 @@ class FuntaTranferWalletController extends Controller
             KAHelper::saveLog('Funta Missing Fields', $this->provider_db_id, json_encode($request->all()), $msg);
             return response($msg, 200)->header('Content-Type', 'application/json');
         }
-
+        //get amount of withdraw
+        $TransferOut_amount = 0;
         TransferWalletHelper::saveLog('TransferWallet TransferOut Success', $this->provider_db_id, json_encode($request->all()), 'Closed triggered');
         $data = $request->all();
         $game_details = TransferWalletHelper::getInfoPlayerGameRound($request->token);
@@ -363,13 +345,10 @@ class FuntaTranferWalletController extends Controller
             TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
             return response($msg, 200)->header('Content-Type', 'application/json');
         }
-        $json_data = array(
-            "transid" => "KATID" . Carbon::now()->timestamp,
-            "roundid" => 0,
-        );
+        
 
         $client_details = KAHelper::getClientDetails('token', $request->token);
-        // dd($client_details);
+        
         if ($client_details == 'false') {
             $msg = array("status" => "error", "message" => "Invalid Token or Token not found");
             TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
@@ -392,44 +371,28 @@ class FuntaTranferWalletController extends Controller
             ]);
             $guzzle_response = $client->get($url,['body' => json_encode($requesttosend)]);
             $wallet_balance = json_decode($guzzle_response->getBody()->getContents());
-           
-            // $client = new Client(['headers' => ['Content-Type' => 'application/json']]);
-            // $body = [
-            //     "username" => $client_details->player_id,
-            //     "partnerName" => $this->tw_partnerName,
-            //     "gameName" => $game_details->game_name,
-            //     "currency" => $client_details->default_currency,
-            //     "accessKey" => $this->tw_access_key,
-            //     'online' => true
-            // ];
-            // $guzzle_response = $client->post(
-            //     $this->funta_api . 'wallet/balance?hash=' . $this->generateHash($body, 2),
-            //     ['body' => json_encode(
-            //         $body
-            //     )]
-            // );
-            // $wallet_balance = json_decode($guzzle_response->getBody()->getContents());
+            
             if(isset($wallet_balance->user)){
                 $TransferOut_amount = $wallet_balance->user->balance; // Amount to withdraw from the player wallet need tobe formatted
             }else{
                 $msg = array("status" => "error", "message" => "Wallet Balance Failed");
                 TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $wallet_balance);
-                //return response($msg, 200)->header('Content-Type', 'application/json');
+                return response($msg, 200)->header('Content-Type', 'application/json');
             }
 
         } catch (\Exception $e) {
-            $response = ["status" => "error", 'message' => $e->getMessage()];
+            $response = ["status" => "error", 'message' => "The exception was created on line: " . $e->getLine() . ". message_errpr = " . $e->getMessage()];
             TransferWalletHelper::saveLog('TransferWallet TransferOut Failed', $this->provider_db_id, json_encode($request->all()), $response);
-           // return $response;
+           return $response;
         }
 
-        $TransferOut_amount = 1000;
+      
         if ($request->has("token") && $request->has("player_id")) {
 
             TransferWalletHelper::saveLog('TransferWallet TransferOut Processing withrawing', $this->provider_db_id, json_encode($request->all()), $data);
 
             $json_data = array(
-                "transid" => Carbon::now()->timestamp,
+                "transid" => "FGID" . Carbon::now()->timestamp,
                 "amount" => $TransferOut_amount,
                 "roundid" => 0,
                 "win" => 1,
@@ -477,27 +440,8 @@ class FuntaTranferWalletController extends Controller
 	            $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]);
 	            $wallet_withdraw = json_decode($guzzle_response->getBody()->getContents());
 
-                // $client = new Client(['headers' => ['Content-Type' => 'application/json']]);
-                // $body = [
-                //     "username" => $client_details->player_id,
-                //     "partnerName" => $this->tw_partnerName,
-                //     "gameName" => $game_details->game_name,
-                //     "currency" => $client_details->default_currency,
-                //     "accessKey" => $this->tw_access_key,
-                //     'withdrawalAmount' => $TransferOut_amount,
-                // ];
-                // // $balance_form = [1 => $this->formatBalance($TransferOut_amount), 2 => $this->formatAmounts($TransferOut_amount), 3=> $TransferOut_amount];
-
-                // $guzzle_response = $client->post(
-                //     $this->funta_api . 'wallet/withdraw?hash=' . $this->generateHash($body, 2),
-                //     ['body' => json_encode(
-                //         $body
-                //     )]
-                // );
-                // $wallet_withdraw = json_decode($guzzle_response->getBody()->getContents());
-
                 TransferWalletHelper::saveLog('TransferWallet TransferOut Success Withdraw', $this->provider_db_id, json_encode($request->all()), $wallet_withdraw);
-                if ((isset($wallet_withdraw->error_code) && isset($wallet_withdraw->error_msg)) ) {
+                if (!(isset($wallet_withdraw->error_code) && isset($wallet_withdraw->error_msg)) ) {
 
                     try {
                         $game_transextension = TransferWalletHelper::createGameTransExtV2($gamerecord, $provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
@@ -544,96 +488,8 @@ class FuntaTranferWalletController extends Controller
         } // END IF
       
     }
+   
 
-
-    public function checkPlayerWallet(Request $request)
-    {
-        $client = new Client([
-            'headers' => [
-                'Content-Type' => 'application/json'
-            ]
-        ]);
-
-
-        $body = [
-            "username" => '98',
-            "partnerName" => $this->tw_partnerName,
-            "gameName" => 'Fastbreak',
-            "currency" => 'USD',
-            "accessKey" => $this->tw_access_key,
-            'online' => true
-        ];
-
-        // $body['hash'] = hash_hmac('sha256', json_encode($body), $this->tw_secret_key);
-        // return json_encode($body);
-
-        $guzzle_response = $client->post(
-            $this->funta_api . 'wallet/balance?hash=' . $this->generateHash($body, 2),
-            ['body' => json_encode(
-                $body
-            )]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-
-        dd($client_response);
-    }
-
-
-    public function checkPlayerTransactions(Request $request)
-    {
-        $client = new Client([
-            'headers' => [
-                'Content-Type' => 'application/json'
-            ]
-        ]);
-
-
-        $body = [
-            "username" => 'RiANDRAFT',
-            "partnerName" => $this->tw_partnerName,
-            "gameName" => 'Fastbreak',
-            "currency" => 'USD',
-            "accessKey" => $this->tw_access_key,
-            'walletTransactionId' => '0BA7193D0486277FCA3125BD017A2A2D'
-        ];
-
-        // $body['hash'] = hash_hmac('sha256', json_encode($body), $this->tw_secret_key);
-        // return json_encode($body);
-
-        $guzzle_response = $client->post(
-            $this->funta_api . 'wallet/checkTransaction?hash=' . $this->generateHash($body, 2),
-            ['body' => json_encode(
-                $body
-            )]
-        );
-        $client_response = json_decode($guzzle_response->getBody()->getContents());
-
-        dd($client_response);
-    }
-
-
-
-    public  function findAllGameExt($provider_identifier, $type, $second_identifier='') {
-        $transaction_db = DB::table('game_transaction_ext as gte');
-        if ($type == 'transaction_id') {
-            $transaction_db->where([
-                ["gte.provider_trans_id", "=", $provider_identifier],
-            ]);
-        }
-        if ($type == 'round_id') {
-            $transaction_db->where([
-                ["gte.round_id", "=", $provider_identifier],
-            ]);
-        }  
-        if ($type == 'all') {
-            $transaction_db->where([
-                ["gte.round_id", "=", $second_identifier],
-                ["gte.provider_trans_id", "=", $provider_identifier],
-            ]);
-        }  
-        $result = $transaction_db->latest()->get();
-        return $result ? $result : 'false';
-    }
 
 
 }
