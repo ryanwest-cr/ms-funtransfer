@@ -431,9 +431,10 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif(in_array($provider_code, [39, 79, 83, 84, 85, 86, 87])){
+                    $lang = GameLobby::getLanguage($request->game_provider,$request->lang);
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
+                        "url" => GameLobby::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang), 
                         "game_launch" => true
                     );
                     return response($msg,200)
