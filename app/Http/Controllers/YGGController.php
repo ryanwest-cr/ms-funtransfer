@@ -70,7 +70,7 @@ class YGGController extends Controller
             Helper::saveLog("YGG wager response", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
         }
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        $player_details = Providerhelper::playerDetailsCall($client_details[0]->player_token);
 
         $gamecode = '';
         $game_name = '';
@@ -89,7 +89,7 @@ class YGGController extends Controller
         
         $balance = $player_details->playerdetailsresponse->balance;
         
-        $tokenId = $client_details->token_id;
+        $tokenId = $client_details[0]->token_id;
         $game_code = $game_details[0]->game_code;
         $game_id = $game_details[0]->game_id;
         $bet_amount = $request->amount;
@@ -112,13 +112,13 @@ class YGGController extends Controller
                 $response = array(
                     "code" => 0,
                     "data" => array(
-                        "currency" => $client_details->default_currency,
+                        "currency" => $client_details[0]->default_currency,
                         "applicableBonus" => 0.00,
-                        "homeCurrency" => $client_details->default_currency,
+                        "homeCurrency" => $client_details[0]->default_currency,
                         "organization" => $this->org,
                         "balance" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
-                        "nickName" => $client_details->display_name,
-                        "playerId" => "TGaming_".$client_details->player_id
+                        "nickName" => $client_details[0]->display_name,
+                        "playerId" => "TGaming_".$client_details[0]->player_id
                     ),
                 );
                 Helper::saveLog("YGG wager dubplicate", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
@@ -144,12 +144,12 @@ class YGGController extends Controller
             $response = array(
                 "code" => 0,
                 "data" => array(
-                    "currency" => $client_details->default_currency,
+                    "currency" => $client_details[0]->default_currency,
                     "applicableBonus" => 0.00,
-                    "homeCurrency" => $client_details->default_currency,
+                    "homeCurrency" => $client_details[0]->default_currency,
                     "organization" => $this->org,
                     "balance" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
-                    "nickName" => $client_details->display_name,
+                    "nickName" => $client_details[0]->display_name,
                     "playerId" => "TGaming_".$client_details->player_id
                 ),
             );
