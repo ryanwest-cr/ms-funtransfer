@@ -433,7 +433,7 @@ class GameLobbyController extends Controller
                 elseif(in_array($provider_code, [39, 79, 83, 84, 85, 86, 87])){
                     $lang = 'en';
                     if($request->has('lang')){
-                        $lang = $request->has('lang');
+                        $lang = $request->lang;
                         /*Temporarily disabled*/
                         /*$lang = GameLobby::getLanguage($request->game_provider,$request->lang);*/
                     }
