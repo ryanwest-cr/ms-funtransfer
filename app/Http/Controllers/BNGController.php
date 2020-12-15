@@ -85,6 +85,9 @@ class BNGController extends Controller
                         return response($msg,200)->header('Content-Type', 'application/json');
                     }
             }
+            else{
+                return "this";
+            }
             //return $this->_betGame($data);
         }
         elseif($data["name"]=="rollback"){
