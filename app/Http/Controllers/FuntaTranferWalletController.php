@@ -18,20 +18,15 @@ use DB;
 class FuntaTranferWalletController extends Controller
 {
 
-    public $funta_api, $client_id = '';
-    // public $gamelaunch = 'https://gamesstage.kaga88.com/';
-    // public $funta_api = 'https://rmpstage.kaga88.com/kaga/';
-    // public $access_key = 'A95383137CE37E4E19EAD36DF59D589A';
-    // public $secret_key = '40C6AB9E806C4940E4C9D2B9E3A0AA25';
-    public $provider_db_id = 23; // Nothing todo with the provider
-
-
+    public $funta_api, $prefix, $provider_db_id, $client_id = '';
+   
     public function __construct()
     {
 
     	$this->funta_api = config('providerlinks.tidygaming.API_URL');
     	$this->client_id = config('providerlinks.tidygaming.client_id');
-       
+        $this->provider_db_id = 23;
+        $this->prefix = "TG_";
     }
 
     /************************************************************************************************************************/
@@ -48,6 +43,7 @@ class FuntaTranferWalletController extends Controller
         }
 
         $client_details = KAHelper::getClientDetails('token', $request->token);
+        
         if ($client_details == null || $client_details == 'false') {
             $msg = array("status" => "error", "message" => "Token Invalid");
             KAHelper::saveLog('GetPlayerBalance', $this->provider_db_id, json_encode($request->all()), $msg);
@@ -79,6 +75,7 @@ class FuntaTranferWalletController extends Controller
     {
        
         $client_details = KAHelper::getClientDetails('token', $request->token);
+
         if ($client_details == 'false') {
             $msg = array("status" => "error", "message" => "Token Invalid");
             KAHelper::saveLog('GetPlayerBalance', $this->provider_db_id, json_encode($request->all()), $msg);
@@ -215,7 +212,7 @@ class FuntaTranferWalletController extends Controller
 
 
         $game = TransferWalletHelper::getGameTransaction($request->token, $json_data["roundid"]);
-       
+        
         if (!$game) {
             $gamerecord = TransferWalletHelper::createGameTransaction('debit', $json_data, $game_details, $client_details);
         } else {
@@ -231,10 +228,12 @@ class FuntaTranferWalletController extends Controller
         }
 
         $game_transextension = TransferWalletHelper::createGameTransExtV2($gamerecord, $provider_trans_id, $round_id, $bet_amount, $game_transaction_type);
+
         try {
             TransferWalletHelper::saveLog('TransferIn fundTransfer', $this->provider_db_id, json_encode($request->all()), 'Client Request');
             $client_response = ClientRequestHelper::fundTransfer($client_details, $request->amount, $game_details->game_code, $game_details->game_name, $game_transextension, $gamerecord, "debit");
             TransferWalletHelper::saveLog('TransferIn fundTransfer', $this->provider_db_id, json_encode($request->all()), 'Client Responsed');
+
         } catch (\Exception $e) {
             $response = ["status" => "Server Timeout", "statusCode" =>  1, 'msg' => $e->getMessage()];
             if (isset($gamerecord)) {
