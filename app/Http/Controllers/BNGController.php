@@ -301,6 +301,7 @@ class BNGController extends Controller
                         )
                     );
                     $this->_setExtParameter($this->_getExtParameter()+1);
+                    Helper::updateBNGGameTransactionExt($transactionId,$client_response->requestoclient,$response,$client_response);
                     Helper::saveLog('betGameInsuficientN(BNG)', 12, json_encode($data), $response);
                     return $response;
                 }
