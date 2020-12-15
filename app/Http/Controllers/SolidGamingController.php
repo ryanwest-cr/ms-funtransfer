@@ -57,7 +57,7 @@ class SolidGamingController extends Controller
 						];
 			
 			$client_details = ProviderHelper::getClientDetails('token', $json_data['token']);
-			
+
 			if ($client_details) {
 				/*$client = new Client([
 				    'headers' => [ 
@@ -83,37 +83,52 @@ class SolidGamingController extends Controller
 				);
 				
 				$client_response = json_decode($guzzle_response->getBody()->getContents());*/
-
-				$client_response = $this->playerDetailsCall($client_details);
+				// TEMPORARY
+				// $client_response = $this->playerDetailsCall($client_details);
 				
-				if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
+				// if(isset($client_response->playerdetailsresponse->status->code) 
+				// 	&& $client_response->playerdetailsresponse->status->code == "200") {
 
-					// save player details if not exist
-					$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
+				// 	// save player details if not exist
+				// 	$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
 
-					// save token to system if not exist
-					TokenHelper::saveIfNotExist($player_id, $json_data["token"]);
+				// 	// save token to system if not exist
+				// 	TokenHelper::saveIfNotExist($player_id, $json_data["token"]);
 
+				// 	$http_status = 200;
+				// 	$response = [
+				// 		"status" => "OK",
+				// 		"brand" => 'BETRNKMW',
+				// 		"playerid" => "$player_id",
+				// 		"currency" => $client_details->default_currency,
+				// 		"balance" => $client_response->playerdetailsresponse->balance,
+				// 		"testaccount" => ($client_details->test_player ? true : false),
+				// 		"wallettoken" => "",
+				// 		"country" => "",
+				// 		"affiliatecode" => "",
+				// 		"displayname" => $client_response->playerdetailsresponse->accountname,
+				// 	];
+				// }
+				// else
+				// {
+				// 	// change token status to expired
+				// 	// TokenHelper::changeStatus($player_id, 'expired');
+				// }
+				// END OF TEMPORARY
 					$http_status = 200;
 					$response = [
 						"status" => "OK",
 						"brand" => 'BETRNKMW',
-						"playerid" => "$player_id",
+						"playerid" => $client_details->player_id,
 						"currency" => $client_details->default_currency,
-						"balance" => $client_response->playerdetailsresponse->balance,
+						"balance" => "999.10",
 						"testaccount" => ($client_details->test_player ? true : false),
 						"wallettoken" => "",
 						"country" => "",
 						"affiliatecode" => "",
-						"displayname" => $client_response->playerdetailsresponse->accountname,
+						"displayname" => $client_details->username,
 					];
-				}
-				else
-				{
-					// change token status to expired
-					// TokenHelper::changeStatus($player_id, 'expired');
-				}
+
 			}
 		}
 
@@ -221,7 +236,7 @@ class SolidGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			
 			if ($client_details) {
-					$client_response = $this->playerDetailsCall($client_details);
+					// $client_response = $this->playerDetailsCall($client_details);
 					// if(isset($client_response->playerdetailsresponse->status->code) 
 					// && $client_response->playerdetailsresponse->status->code == "200") {
 
@@ -229,7 +244,7 @@ class SolidGamingController extends Controller
 						$response = [
 							"status" => "OK",
 							"currency" => $client_details->default_currency,
-							"balance" => $client_response->playerdetailsresponse->balance,
+							"balance" => "999.10"
 						];
 					// }
 				/*}*/
@@ -245,15 +260,18 @@ class SolidGamingController extends Controller
 	{
 	
 		$json_data = json_decode(file_get_contents("php://input"), true);
+
 		if($this->_isIdempotent($json_data['transid'])) {
 			return  $this->_isIdempotent($json_data['transid'])->mw_response;
 		}
+
 		$http_status = 404;
 		$response = [
-						"errorcode" =>  "PLAYER_NOT_FOUND",
-						"errormessage" => "Player not found",
-					];
+			"errorcode" =>  "PLAYER_NOT_FOUND",
+			"errormessage" => "Player not found",
+		];
 		$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
+
 		if ($client_details) {
 			//CREATE ROUND
 			$this->create_Check($json_data['roundid'], $client_details->token_id);
@@ -263,18 +281,26 @@ class SolidGamingController extends Controller
 			$game_transaction_id = $this->saveGameTransaction('debit', $json_data, $game_details,$client_details->player_token);
 			$game_trans_ext_id = $this->createGameTransExt($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 1);
 
-            $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
+   //          $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
 
-			if(isset($client_response->fundtransferresponse->status->code) 
-				&& $client_response->fundtransferresponse->status->code == "200") {
-				$http_status = 200;
+			// if(isset($client_response->fundtransferresponse->status->code) 
+			// 	&& $client_response->fundtransferresponse->status->code == "200") {
+			// 	$http_status = 200;
+			// 	$response = [
+			// 		"status" => "OK",
+			// 		"currency" => $client_details->default_currency,
+			// 		"balance" => $client_response->fundtransferresponse->balance,
+			// 	];
+			// }
+			// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+			$balance = 999.10 - $json_data["amount"];
+			$http_status = 200;
 				$response = [
 					"status" => "OK",
 					"currency" => $client_details->default_currency,
-					"balance" => $client_response->fundtransferresponse->balance,
+					"balance" => $balance,
 				];
-			}
-			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $response, $response, $json_data);
 		}
 		Helper::saveLog('SOLID_GAMING_DEBIT', 2, file_get_contents("php://input"), $response);
 		$reponse_time = [
@@ -374,22 +400,32 @@ class SolidGamingController extends Controller
 						// $game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
 						$game_trans_ext_id = $this->createGameTransExt($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
 
-	           			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
-						if(isset($client_response->fundtransferresponse->status->code) 
-							&& $client_response->fundtransferresponse->status->code == "200") {
-							// if(array_key_exists("roundended", $json_data)) {
-							// 	if ($json_data["roundended"] == "true") {
-							// 		GameRound::end($json_data['roundid']); //UPDATE
-							// 	}
-							// }
-							$http_status = 200;
+	     //       			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
+						// if(isset($client_response->fundtransferresponse->status->code) 
+						// 	&& $client_response->fundtransferresponse->status->code == "200") {
+						// 	// if(array_key_exists("roundended", $json_data)) {
+						// 	// 	if ($json_data["roundended"] == "true") {
+						// 	// 		GameRound::end($json_data['roundid']); //UPDATE
+						// 	// 	}
+						// 	// }
+						// 	$http_status = 200;
+						// 	$response = [
+						// 		"status" => "OK",
+						// 		"currency" => $client_details->default_currency,
+						// 		"balance" => $client_response->fundtransferresponse->balance,
+						// 	];
+						// }
+						// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+
+						$balance = 999.10 + $json_data["amount"];
+						$http_status = 200;
 							$response = [
 								"status" => "OK",
 								"currency" => $client_details->default_currency,
-								"balance" => $client_response->fundtransferresponse->balance,
+								"balance" => $balance,
 							];
-						}
-						ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+
+						ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $response, $response, $json_data);
 				}
 				Helper::saveLog('SOLID_GAMING_CREDIT', 2, file_get_contents("php://input"), $response);
 

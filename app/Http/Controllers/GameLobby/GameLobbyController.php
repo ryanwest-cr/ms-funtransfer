@@ -431,9 +431,15 @@ class GameLobbyController extends Controller
                     ->header('Content-Type', 'application/json');
                 }
                 elseif(in_array($provider_code, [39, 79, 83, 84, 85, 86, 87])){
+                    $lang = 'en';
+                    if($request->has('lang')){
+                        $lang = $request->lang;
+                        /*Temporarily disabled*/
+                        /*$lang = GameLobby::getLanguage($request->game_provider,$request->lang);*/
+                    }
                     $msg = array(
                         "game_code" => $request->input("game_code"),
-                        "url" => GameLobby::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl), 
+                        "url" => GameLobby::oryxLaunchUrl($request->game_code,$request->token,$request->exitUrl,$lang), 
                         "game_launch" => true
                     );
                     return response($msg,200)
@@ -466,30 +472,44 @@ class GameLobbyController extends Controller
                     // return response($msg,200)
                     // ->header('Content-Type', 'application/json');
                 } 
-                elseif($provider_code==46){ 
+                elseif($provider_code==46){
+                    
                     // $msg = array(
                     //     "game_code" => $request->input("game_code"),
                     //     "url" => GameLobby::tidylaunchUrl($request->game_code,$request->token), //TEST
                     //     "game_launch" => true
                     // );
+                    if($request->has("game_code")  && $request->game_code == "1")
+                    {
+                        
+                        $url = GameLobby::funtaTransferLuanch($request->all());
+                    } 
+                    else 
+                    {
+                        // SEAMLESS WALLET
+                        $url = GameLobby::tidylaunchUrl($request->game_code,$request->token);
+                    }
 
-                    $url = GameLobby::tidylaunchUrl($request->game_code,$request->token);
-                    if($url){
+                    // return $url;
+                    if($url)
+                    {
                         $msg = array(
                             "game_code" => $request->input("game_code"),
                             "url" => $url,
                             "game_launch" => true
                         );
-                    }else{
+                    }
+                    else
+                    {
                         $msg = array(
                             "game_code" => $request->input("game_code"),
                             "url" => $this->createFallbackLink($request->all()),
                             "game_launch" => false
                         );
                     }
-                    return $msg;
-                    // return response($msg,200)
-                    // ->header('Content-Type', 'application/json');
+                    // return $msg;
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
                     
                 }
                 elseif($provider_code == 53){ 
