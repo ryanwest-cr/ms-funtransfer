@@ -73,7 +73,7 @@ class ClientRequestHelper{
         );
         $client_reponse = json_decode($guzzle_response->getBody()->getContents());
         $client_response_time = microtime(true) - $sendtoclient;
-        Helper::saveLog('fundTransfer(ClientRequestHelper)', 12, json_encode(["type"=>"funtransfer","game"=>$game_name]), ["clientresponse"=>$client_response_time]);
+        Helper::saveLog('fundTransfer(ClientRequestHelper)', 12, json_encode(["type"=>"funtransfer","game"=>$game_name]), ["clientresponse"=>$client_response_time,"client_reponse_data"=>$client_reponse,"client_request"=>$requesttocient]);
         $client_reponse->requestoclient = $requesttocient;
         //ClientRequestHelper::currencyRateConverter($client_details->default_currency,$roundId);
         return $client_reponse;
