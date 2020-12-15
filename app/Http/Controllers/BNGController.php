@@ -20,10 +20,12 @@ class BNGController extends Controller
     }
     public function index(Request $request){
         $data = json_decode($request->getContent(),TRUE);
+        
         if($data["name"]== "login"){
             return $this->_authPlayer($data);
         }
         elseif($data["name"]== "transaction"){
+            Helper::saveLog('transactionRequestBNG', 12, json_encode($data), "get request");
             if($data["args"]["bet"]!= null && $data["args"]["win"]!= null){
                 $game_transaction = TransactionHelper::checkGameTransactionData($data["uid"]);
                 if(!empty($game_transaction)){
