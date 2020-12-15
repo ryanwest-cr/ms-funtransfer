@@ -31,6 +31,7 @@ class SolidGamingController extends Controller
 		/*$this->middleware('oauth', ['except' => ['index']]);*/
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
 		 $this->startTime = microtime(true);
+
 	}
 
 
@@ -258,6 +259,8 @@ class SolidGamingController extends Controller
 
 	public function debitProcess(Request $request) 
 	{
+
+		Helper::saveLog('SOLID_GAMING_DEBIT', 2, "HIT", "DEBIT");
 	
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
@@ -270,8 +273,9 @@ class SolidGamingController extends Controller
 			"errorcode" =>  "PLAYER_NOT_FOUND",
 			"errormessage" => "Player not found",
 		];
-		$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 
+		$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
+		
 		if ($client_details) {
 			//CREATE ROUND
 			$this->create_Check($json_data['roundid'], $client_details->token_id);
@@ -309,13 +313,16 @@ class SolidGamingController extends Controller
 			"endTime"=> microtime(true),
 			"response"=>microtime(true) - $this->startTime 
 		];
-		 Helper::saveLog('SOLID_RESONSE_TIME_DEBIT', 2, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
+		Helper::saveLog('SOLID_RESONSE_TIME_DEBIT', 2, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
 		return response()->json($response, $http_status);
 
 	}
 
 	public function creditProcess(Request $request)
 	{
+
+		Helper::saveLog('SOLID_GAMING_CREDIT', 2, "HIT", "CREDIT");
+
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		// $is_idempotent = $this->_isIdempotent($json_data['transid']);
 		if($this->_isIdempotent($json_data['transid'])) {
