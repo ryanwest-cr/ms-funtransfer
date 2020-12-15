@@ -26,7 +26,7 @@ use DB;
 
 class SolidGamingController extends Controller
 {
-	
+	public $startTime;
     public function __construct(){
 		/*$this->middleware('oauth', ['except' => ['index']]);*/
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
@@ -257,11 +257,17 @@ class SolidGamingController extends Controller
 
 	}
 
+
 	public function debitProcess(Request $request) 
 	{
 
-		Helper::saveLog('SOLID_GAMING_DEBIT', 2, "HIT", "DEBIT");
-	
+		$startTime = microtime(true);
+		$time_receive = [
+			"time_receive" => date('Y-m-d H:i:s.') . gettimeofday()['usec']
+		];
+		Helper::saveLog('SOLID_GAMING_HIT', 2, json_encode($time_receive), "DEBIT");
+		
+
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
 		if($this->_isIdempotent($json_data['transid'])) {
@@ -275,7 +281,7 @@ class SolidGamingController extends Controller
 		];
 
 		$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
-		
+
 		if ($client_details) {
 			//CREATE ROUND
 			$this->create_Check($json_data['roundid'], $client_details->token_id);
@@ -307,21 +313,29 @@ class SolidGamingController extends Controller
 			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $response, $response, $json_data);
 		}
 		Helper::saveLog('SOLID_GAMING_DEBIT', 2, file_get_contents("php://input"), $response);
-		$reponse_time = [
-			"type"=>"BETPROCESS",
-			"startTime"=>$this->startTime,
-			"endTime"=> microtime(true),
-			"response"=>microtime(true) - $this->startTime 
+		// $reponse_time = [
+		// 	"type"=>"BETPROCESS",
+		// 	"startTime"=>$this->startTime,
+		// 	"endTime"=> microtime(true),
+		// 	"response"=>microtime(true) - $this->startTime 
+		// ];
+
+		$time_response = [
+			"time_response" => date('Y-m-d H:i:s.') . gettimeofday()['usec']
 		];
-		Helper::saveLog('SOLID_RESONSE_TIME_DEBIT', 2, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
+		$total_process = microtime(true) - $startTime;
+		Helper::saveLog('SOLID_RESONSE_TIME_DEBIT', 2, json_encode($time_response), ["process_time" => $total_process] );
 		return response()->json($response, $http_status);
 
 	}
 
 	public function creditProcess(Request $request)
 	{
-
-		Helper::saveLog('SOLID_GAMING_CREDIT', 2, "HIT", "CREDIT");
+		$startTime = microtime(true);
+		$time_receive = [
+			"time_receive" => date('Y-m-d H:i:s.') . gettimeofday()['usec']
+		];
+		Helper::saveLog('SOLID_GAMING_HIT', 2, json_encode($time_receive), "CREDIT");
 
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		// $is_idempotent = $this->_isIdempotent($json_data['transid']);
@@ -436,15 +450,22 @@ class SolidGamingController extends Controller
 				}
 				Helper::saveLog('SOLID_GAMING_CREDIT', 2, file_get_contents("php://input"), $response);
 
-				$reponse_time = [
-					"type"=>"CREDITPROCESS",
-					"startTime"=>$this->startTime,
-					"endTime"=> microtime(true),
-					"response"=>microtime(true) - $this->startTime 
+				// $reponse_time = [
+				// 	"type"=>"CREDITPROCESS",
+				// 	"startTime"=>$this->startTime,
+				// 	"endTime"=> microtime(true),
+				// 	"response"=>microtime(true) - $this->startTime 
+				// ];
+				//  Helper::saveLog('SOLID_RESONSE_TIME_CREDIT', 2, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
+
+				 $time_response = [
+					"time_response" => date('Y-m-d H:i:s.') . gettimeofday()['usec']
 				];
-				 Helper::saveLog('SOLID_RESONSE_TIME_CREDIT', 2, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
+				$total_process = microtime(true) - $startTime;
+				Helper::saveLog('SOLID_RESONSE_TIME_CREDIT', 2, json_encode($time_response), ["process_time" => $total_process] );
 
 				return response()->json($response, $http_status);
+				
 			}catch(\Exception $e){
 				$http_status = 505;
 				$response = [
@@ -1086,6 +1107,8 @@ class SolidGamingController extends Controller
 		// Helper::saveLog('createGameTransExtV2', 999, json_encode(DB::getQueryLog()), "TIME createGameTransExtV2");
 		return $gamestransaction_ext_ID;
 	}
+
+
 
 
 }
