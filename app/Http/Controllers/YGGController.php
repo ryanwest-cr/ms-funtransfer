@@ -139,7 +139,7 @@ class YGGController extends Controller
                 return $response;
             }
             
-            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_transextension,$game_trans,'debit');
+            $client_response = ClientRequestHelper::fundTransfer($client_details[0], $bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_transextension,$game_trans,'debit');
 
             $response = array(
                 "code" => 0,
@@ -150,7 +150,7 @@ class YGGController extends Controller
                     "organization" => $this->org,
                     "balance" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
                     "nickName" => $client_details[0]->display_name,
-                    "playerId" => "TGaming_".$client_details->player_id
+                    "playerId" => "TGaming_".$client_details[0]->player_id
                 ),
             );
             
