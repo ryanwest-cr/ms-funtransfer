@@ -1205,7 +1205,7 @@ class GameLobby{
                 "exitUrl" => isset($data['exitUrl']) ? $data['exitUrl'] : '',
             );
             $encoded_data = $aes->AESencode(json_encode($data));
-            return urlencode($encoded_data);
+            // return urlencode($encoded_data);
             return config('providerlinks.play_betrnk') . "/loadgame/funtagaming?param=" . urlencode($encoded_data);
 
         }catch(\Exception $e){
