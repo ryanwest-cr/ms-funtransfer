@@ -1140,48 +1140,72 @@ class GameLobby{
     {
 
         try{
-            
             $key = "LUGTPyr6u8sRjCfh";
             $aes = new AES($key);
-
-            $url = config('providerlinks.tidygaming.url_lunch');
             $client_details = Providerhelper::getClientDetails('token', $data["token"]);
-            $get_code_currency = TidyHelper::currencyCode($client_details->default_currency);
-            $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-
-
+            $prefix = "TG_";
+            TransferWalletHelper::savePLayerGameRound($data['game_code'], $data['token'], $data['game_provider']);
+            //checking if exist player
+            $url = config('providerlinks.tidygaming.TransferWallet.API_URL') . "/api/user/outside/info?client_id=".config('providerlinks.tidygaming.TransferWallet.client_id')."&username=" . $prefix . $client_details->player_id;
             $requesttosend = [
-                'client_id' =>  config('providerlinks.tidygaming.client_id'),
-                'game_id' => $data['game_code'],
-                'username' => $client_details->username,
-                'token' => $data["token"],
-                'uid' => 'TG_'.$client_details->player_id,
-                'currency' => $get_code_currency
+                'client_id' => config('providerlinks.tidygaming.TransferWallet.client_id'),
+                'username' => $prefix . $client_details->player_id
+            ];
+            
+            $client = new Client([
+                'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.TidyHelper::generateTokenTransfer($requesttosend)
+                ]
+            ]);
+            $guzzle_response = $client->get($url);
+            $client_response = json_decode($guzzle_response->getBody()->getContents());
+           
+
+            if ($client_response->check == 0) {
+                // add player 
+                $url = config('providerlinks.tidygaming.TransferWallet.API_URL') . '/api/user/outside';
+                $requesttosend = [
+                    'client_id' => config('providerlinks.tidygaming.TransferWallet.client_id'),
+                    'username'  => $prefix . $client_details->player_id,
+                    'currency'  => TidyHelper::currencyCode($client_details->default_currency)
+                ];
+
+                $client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.TidyHelper::generateTokenTransfer($requesttosend)
+                    ]
+                ]);
+                $response = $client->post($url,['body' => json_encode($requesttosend)]);
+                $register_player = json_decode($response->getBody()->getContents());
+            }
+
+            $url = config('providerlinks.tidygaming.TransferWallet.API_URL') . '/api/game/outside/link';
+            $requesttosend = [
+                'client_id' => config('providerlinks.tidygaming.TransferWallet.client_id'),
+                'game_id' => $data["game_code"],
+                'username' => $prefix . $client_details->player_id
             ];
             $client = new Client([
                 'headers' => [ 
                     'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.TidyHelper::generateToken($requesttosend)
+                    'Authorization' => 'Bearer '.TidyHelper::generateTokenTransfer($requesttosend)
                 ]
             ]);
             $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]
             );
-            $client_response = json_decode($guzzle_response->getBody()->getContents());
-            TransferWalletHelper::savePLayerGameRound($data['game_code'], $data['token'], $data['game_provider']);
-
-
-            Helper::saveLog('Funta Gaming Transfer Gameluanch', 23, json_encode($requesttosend), $client_response);
-            // return $client_response->link;
+            $game_luanch_response = json_decode($guzzle_response->getBody()->getContents());
+          
 
             $data = array(
-                "url" => urlencode($client_response->link),
+                "url" => $game_luanch_response->link,
                 "token" => $client_details->player_token,
                 "player_id" => $client_details->player_id,
-                // "system_player_id" => $client_details->player_id,
                 "exitUrl" => isset($data['exitUrl']) ? $data['exitUrl'] : '',
             );
             $encoded_data = $aes->AESencode(json_encode($data));
-            // return urlencode($encoded_data);
+            return urlencode($encoded_data);
             return config('providerlinks.play_betrnk') . "/loadgame/funtagaming?param=" . urlencode($encoded_data);
 
         }catch(\Exception $e){

@@ -479,6 +479,7 @@ class GameLobbyController extends Controller
                     //     "url" => GameLobby::tidylaunchUrl($request->game_code,$request->token), //TEST
                     //     "game_launch" => true
                     // );
+                   
                     if($request->has("game_code")  && $request->game_code == "1")
                     {
                         

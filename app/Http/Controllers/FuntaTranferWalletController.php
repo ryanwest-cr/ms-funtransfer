@@ -13,20 +13,44 @@ use GuzzleHttp\Exception\GuzzleException;
 use App\Helpers\TidyHelper;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use Firebase\JWT\JWT;
 use DB;
 
 class FuntaTranferWalletController extends Controller
 {
+
+    // post method body
+    // get method url request
 
     public $funta_api, $prefix, $provider_db_id, $client_id = '';
    
     public function __construct()
     {
 
-    	$this->funta_api = config('providerlinks.tidygaming.API_URL');
-    	$this->client_id = config('providerlinks.tidygaming.client_id');
+    	$this->funta_api = config('providerlinks.tidygaming.TransferWallet.API_URL');
+    	$this->client_id = config('providerlinks.tidygaming.TransferWallet.client_id');
         $this->provider_db_id = 23;
         $this->prefix = "TG_";
+    }
+
+    public function getInfo(request $request){
+        $url = $this->funta_api . "/api/user/outside/info?client_id=".$this->client_id."&username=TG_33286";
+        
+        $requesttosend = [
+            'client_id' =>  $this->client_id,
+            'username' => 'TG_33286'
+        ];
+        
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.TidyHelper::generateTokenTransfer($requesttosend)
+            ]
+        ]);
+        $guzzle_response = $client->get($url);
+        $client_response = json_decode($guzzle_response->getBody()->getContents());
+        return json_encode($client_response);
+
     }
 
     /************************************************************************************************************************/
@@ -75,7 +99,6 @@ class FuntaTranferWalletController extends Controller
     {
        
         $client_details = KAHelper::getClientDetails('token', $request->token);
-
         if ($client_details == 'false') {
             $msg = array("status" => "error", "message" => "Token Invalid");
             KAHelper::saveLog('GetPlayerBalance', $this->provider_db_id, json_encode($request->all()), $msg);
@@ -90,20 +113,20 @@ class FuntaTranferWalletController extends Controller
         }
         
         try {
-            $url = $this->funta_api . '/api/user/outside/balance';
+           $url = $this->funta_api . "/api/user/outside/balance?client_id=".$this->client_id."&username=". $this->prefix . $client_details->player_id;
             $requesttosend = [
                 'client_id' => $this->client_id,
-                'username'  => $client_details->username
+                'username'  => $this->prefix . $client_details->player_id
             ];
+          
             $client = new Client([
                 'headers' => [ 
                     'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer ' . TidyHelper::generateToken($requesttosend)
+                    'Authorization' => 'Bearer ' . TidyHelper::generateTokenTransfer($requesttosend)
                 ]
             ]);
-            $guzzle_response = $client->get($url,['body' => json_encode($requesttosend)]);
+            $guzzle_response = $client->get($url);
             $wallet_balance = json_decode($guzzle_response->getBody()->getContents());
-
             if(isset($wallet_balance->user)){
                 $TransferOut_amount = $wallet_balance->user->balance;
                 $msg = array(
@@ -141,7 +164,7 @@ class FuntaTranferWalletController extends Controller
         #1 DEBIT OPERATION
         $data = $request->all();
         $game_details = TransferWalletHelper::getInfoPlayerGameRound($request->token);
-
+       
         if ($game_details == false) {
             $msg = array("status" => "error", "message" => "Game Not Found");
             TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
@@ -149,6 +172,7 @@ class FuntaTranferWalletController extends Controller
         }
 
         $client_details = KAHelper::getClientDetails('token', $request->token);
+
         if ($client_details == 'false') {
             $msg = array("status" => "error", "message" => "Invalid Token or Token not found");
             TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
@@ -212,7 +236,7 @@ class FuntaTranferWalletController extends Controller
 
 
         $game = TransferWalletHelper::getGameTransaction($request->token, $json_data["roundid"]);
-        
+         
         if (!$game) {
             $gamerecord = TransferWalletHelper::createGameTransaction('debit', $json_data, $game_details, $client_details);
         } else {
@@ -252,18 +276,21 @@ class FuntaTranferWalletController extends Controller
             	$url = $this->funta_api . '/api/cash/outside/deposit';
 		 	    $requesttosend = [
 	                'client_id' => $this->client_id,
-	                'username'	=> $client_details->username,
+	                'username'  => $this->prefix . $client_details->player_id,
 	                'amount'  => ProviderHelper::amountToFloat($bet_amount),
+                    // 'currency' => "156"
 	                'currency'	=> TidyHelper::currencyCode($client_details->default_currency)
 	            ];
+                
 	            $client = new Client([
 	                'headers' => [ 
 	                    'Content-Type' => 'application/json',
-	                    'Authorization' => 'Bearer '.TidyHelper::generateToken($requesttosend)
+	                    'Authorization' => 'Bearer '.TidyHelper::generateTokenTransfer($requesttosend)
 	                ]
 	            ]);
 	            $response = $client->post($url,['body' => json_encode($requesttosend)]);
 	            $make_deposit_response = json_decode($response->getBody()->getContents());
+               
 
                 // If the deposit to the provider Wallet Failed
                 // example response if failed
@@ -300,7 +327,7 @@ class FuntaTranferWalletController extends Controller
                 TransferWalletHelper::saveLog('TransferIn Failed', $this->provider_db_id, json_encode($request->all()), $response);
                 return $response;
             }
-
+            // response
             SessionWalletHelper::updateSessionTime($request->token);
             $msg = array(
                 "status" => "ok",
@@ -347,28 +374,30 @@ class FuntaTranferWalletController extends Controller
         
 
         $client_details = KAHelper::getClientDetails('token', $request->token);
-        
+       
         if ($client_details == 'false') {
             $msg = array("status" => "error", "message" => "Invalid Token or Token not found");
             TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
             return response($msg, 200)->header('Content-Type', 'application/json');
         }
 
-
+        
+        
         //GET BALANCE
         try {
-    		$url = $this->funta_api . '/api/user/outside/balance';
-	 	    $requesttosend = [
+    		$url = $this->funta_api . "/api/user/outside/balance?client_id=". $this->client_id."&username=" . $this->prefix . $client_details->player_id;
+            $requesttosend = [
                 'client_id' => $this->client_id,
-                'username'	=> $client_details->username
+                'username'  => $this->prefix . $client_details->player_id,
             ];
+            
             $client = new Client([
                 'headers' => [ 
                     'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.TidyHelper::generateToken($requesttosend)
+                    'Authorization' => 'Bearer '.TidyHelper::generateTokenTransfer($requesttosend)
                 ]
             ]);
-            $guzzle_response = $client->get($url,['body' => json_encode($requesttosend)]);
+            $guzzle_response = $client->get($url);
             $wallet_balance = json_decode($guzzle_response->getBody()->getContents());
             
             if(isset($wallet_balance->user)){
@@ -384,8 +413,8 @@ class FuntaTranferWalletController extends Controller
             TransferWalletHelper::saveLog('TransferWallet TransferOut Failed', $this->provider_db_id, json_encode($request->all()), $response);
            return $response;
         }
+        // dd($wallet_balance);
 
-      
         if ($request->has("token") && $request->has("player_id")) {
 
             TransferWalletHelper::saveLog('TransferWallet TransferOut Processing withrawing', $this->provider_db_id, json_encode($request->all()), $data);
@@ -398,7 +427,7 @@ class FuntaTranferWalletController extends Controller
                 "payout_reason" => "TransferOut from round",
             );
             $game = TransferWalletHelper::getGameTransaction($request->token, $json_data["roundid"]);
-           	// dd($game);
+           
             if ($game) {
                 $gamerecord = $game->game_trans_id;
             } else {
@@ -424,20 +453,21 @@ class FuntaTranferWalletController extends Controller
             try {
 
             	$url = $this->funta_api . '/api/cash/outside/withdraw';
-		 	    $requesttosend = [
-	                'client_id' => $this->client_id,
-	                'username'	=> $client_details->username,
-	                'amount'  => ProviderHelper::amountToFloat($TransferOut_amount),
-	                'currency'	=> TidyHelper::currencyCode($client_details->default_currency)
-	            ];
-	            $client = new Client([
-	                'headers' => [ 
-	                    'Content-Type' => 'application/json',
-	                    'Authorization' => 'Bearer '.TidyHelper::generateToken($requesttosend)
-	                ]
-	            ]);
-	            $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]);
-	            $wallet_withdraw = json_decode($guzzle_response->getBody()->getContents());
+                $requesttosend = [
+                    'client_id' => $this->client_id,
+                    'username'  => $this->prefix . $client_details->player_id,
+                    'amount'  => ProviderHelper::amountToFloat($TransferOut_amount),
+                    // 'currency' => "156"
+                    'currency'  => TidyHelper::currencyCode($client_details->default_currency)
+                ];
+                $client = new Client([
+                    'headers' => [ 
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer '.TidyHelper::generateTokenTransfer($requesttosend)
+                    ]
+                ]);
+                $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]);
+                $wallet_withdraw = json_decode($guzzle_response->getBody()->getContents());
 
                 TransferWalletHelper::saveLog('TransferWallet TransferOut Success Withdraw', $this->provider_db_id, json_encode($request->all()), $wallet_withdraw);
                 if (!(isset($wallet_withdraw->error_code) && isset($wallet_withdraw->error_msg)) ) {
@@ -490,5 +520,29 @@ class FuntaTranferWalletController extends Controller
    
 
 
+    public function generateToken(Array $data) {
+         $data['iat'] = (int)microtime(true);
+         $jwt = JWT::encode($data, config('providerlinks.tidygaming.TransferWallet.SECRET_KEY'));
+         return $jwt;
+    }
 
+    public function luanchGameURL(Request $request){
+        $url = $this->funta_api . "/api/cash/outside/deposit";
+        $requesttosend = [
+            'client_id' => $this->client_id,
+            'username'  => "TG_33286",
+            'amount'  => 10000.00,
+            'currency'  => "156"
+        ];
+       
+        $client = new Client([
+            'headers' => [ 
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.TidyHelper::generateTokenTransfer($requesttosend)
+            ]
+        ]);
+        $guzzle_response = $client->post($url, [ "body" => json_encode($requesttosend)]);
+        $client_response = json_decode($guzzle_response->getBody()->getContents());
+        return json_encode($client_response);
+    }
 }

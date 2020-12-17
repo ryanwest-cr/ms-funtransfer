@@ -49,11 +49,17 @@ class TidyHelper{
 
 	//  }
 
-	  public static function generateToken(Array $data) {
+	public static function generateToken(Array $data) {
 		 $data['iat'] = (int)microtime(true);
 		 $jwt = JWT::encode($data, config('providerlinks.tidygaming.SECRET_KEY'));
 		 return $jwt;
-	 }
+	}
+
+	public static function generateTokenTransfer(Array $data) {
+         $data['iat'] = (int)microtime(true);
+         $jwt = JWT::encode($data, config('providerlinks.tidygaming.TransferWallet.SECRET_KEY'));
+         return $jwt;
+    }
 
 	// JWT VERIFICATION
     public static function decodeToken($token){

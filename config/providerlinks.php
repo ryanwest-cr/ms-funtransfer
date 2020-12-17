@@ -169,6 +169,11 @@ return [
         'API_URL' => 'http://staging-v1-api.tidy.zone',
         'client_id' => '8440a5b6',
         'SECRET_KEY' => 'f83c8224b07f96f41ca23b3522c56ef1',
+        'TransferWallet' => [
+            "client_id" => '2efa763b',
+            "API_URL" => 'http://staging-v1-api.tidy.zone',
+            "SECRET_KEY" => '9448cb4264f631cfcb6d1fb9109fc967',
+        ]
     ],
     'evoplay' => [
         'api_url' => 'http://api.8provider.com',
