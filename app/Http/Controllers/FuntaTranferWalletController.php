@@ -163,6 +163,7 @@ class FuntaTranferWalletController extends Controller
 
         #1 DEBIT OPERATION
         $data = $request->all();
+
         $game_details = TransferWalletHelper::getInfoPlayerGameRound($request->token);
        
         if ($game_details == false) {
@@ -206,7 +207,6 @@ class FuntaTranferWalletController extends Controller
             return response($msg, 200)->header('Content-Type', 'application/json');
         }
 
-         
 
         if ($balance < $request->amount) {
             $msg = array(
@@ -236,7 +236,7 @@ class FuntaTranferWalletController extends Controller
 
 
         $game = TransferWalletHelper::getGameTransaction($request->token, $json_data["roundid"]);
-         
+          
         if (!$game) {
             $gamerecord = TransferWalletHelper::createGameTransaction('debit', $json_data, $game_details, $client_details);
         } else {
@@ -245,6 +245,7 @@ class FuntaTranferWalletController extends Controller
         }
 
         $token = SessionWalletHelper::checkIfExistWalletSession($request->token);
+
         if ($token == false) {
             SessionWalletHelper::createWalletSession($request->token, $request->all());
         } else {
@@ -374,7 +375,7 @@ class FuntaTranferWalletController extends Controller
         
 
         $client_details = KAHelper::getClientDetails('token', $request->token);
-       
+          
         if ($client_details == 'false') {
             $msg = array("status" => "error", "message" => "Invalid Token or Token not found");
             TransferWalletHelper::saveLog('TransferWallet TransferOut FAILED', $this->provider_db_id, json_encode($request->all()), $msg);
@@ -413,7 +414,7 @@ class FuntaTranferWalletController extends Controller
             TransferWalletHelper::saveLog('TransferWallet TransferOut Failed', $this->provider_db_id, json_encode($request->all()), $response);
            return $response;
         }
-        // dd($wallet_balance);
+       
 
         if ($request->has("token") && $request->has("player_id")) {
 
@@ -468,7 +469,7 @@ class FuntaTranferWalletController extends Controller
                 ]);
                 $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]);
                 $wallet_withdraw = json_decode($guzzle_response->getBody()->getContents());
-
+               
                 TransferWalletHelper::saveLog('TransferWallet TransferOut Success Withdraw', $this->provider_db_id, json_encode($request->all()), $wallet_withdraw);
                 if (!(isset($wallet_withdraw->error_code) && isset($wallet_withdraw->error_msg)) ) {
 

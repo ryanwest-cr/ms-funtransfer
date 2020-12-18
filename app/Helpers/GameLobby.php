@@ -1143,8 +1143,10 @@ class GameLobby{
             $key = "LUGTPyr6u8sRjCfh";
             $aes = new AES($key);
             $client_details = Providerhelper::getClientDetails('token', $data["token"]);
+            // dd($client_details);
             $prefix = "TG_";
             TransferWalletHelper::savePLayerGameRound($data['game_code'], $data['token'], $data['game_provider']);
+
             //checking if exist player
             $url = config('providerlinks.tidygaming.TransferWallet.API_URL') . "/api/user/outside/info?client_id=".config('providerlinks.tidygaming.TransferWallet.client_id')."&username=" . $prefix . $client_details->player_id;
             $requesttosend = [
@@ -1160,7 +1162,6 @@ class GameLobby{
             ]);
             $guzzle_response = $client->get($url);
             $client_response = json_decode($guzzle_response->getBody()->getContents());
-           
 
             if ($client_response->check == 0) {
                 // add player 
