@@ -457,7 +457,7 @@ class FuntaTranferWalletController extends Controller
                 $requesttosend = [
                     'client_id' => $this->client_id,
                     'username'  => $this->prefix . $client_details->player_id,
-                    'amount'  => ProviderHelper::amountToFloat($TransferOut_amount),
+                    'amount'  => $TransferOut_amount,
                     // 'currency' => "156"
                     'currency'  => TidyHelper::currencyCode($client_details->default_currency)
                 ];
@@ -469,7 +469,7 @@ class FuntaTranferWalletController extends Controller
                 ]);
                 $guzzle_response = $client->post($url,['body' => json_encode($requesttosend)]);
                 $wallet_withdraw = json_decode($guzzle_response->getBody()->getContents());
-               
+
                 TransferWalletHelper::saveLog('TransferWallet TransferOut Success Withdraw', $this->provider_db_id, json_encode($request->all()), $wallet_withdraw);
                 if (!(isset($wallet_withdraw->error_code) && isset($wallet_withdraw->error_msg)) ) {
 
