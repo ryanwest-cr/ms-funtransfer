@@ -112,6 +112,7 @@ class ClientRequestHelper{
      */
     public static function playerDetailsCall($player_token, $refreshtoken=false){
         $client_details = ProviderHelper::getClientDetails('token', $player_token);
+
         if($client_details){
             try{
                 $client = new Client([
@@ -134,11 +135,23 @@ class ClientRequestHelper{
                         "refreshtoken" => $refreshtoken
                     ]
                 ];
-            
+        
                 $guzzle_response = $client->post($client_details->player_details_url,
                     ['body' => json_encode($datatosend)]
                 );
+
                 $client_response = json_decode($guzzle_response->getBody()->getContents());
+
+                /** [START] Additional information needed for UltraPlay Integration **/
+
+                if($client_response->playerdetailsresponse->status->code == 200) {
+                    $client_response->playerdetailsresponse->internal_id = $client_details->player_id;
+                    $client_response->playerdetailsresponse->is_test_player = ($client_details->test_player == 1 ? true : false);
+                }
+
+                /** [END] Additional information needed for UltraPlay Integration **/
+
+                
                 return $client_response;
             }catch (\Exception $e){
                return 'false';
