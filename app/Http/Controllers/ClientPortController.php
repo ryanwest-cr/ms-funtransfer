@@ -26,20 +26,24 @@ use DB;
 
 class ClientPortController extends Controller
 {
-    public function __construct(){
-		/*$this->middleware('oauth', ['except' => ['index']]);*/
-		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
-	}
 
 	public function playerDetailsRequest(Request $request) 
 	{
-		$json_data = json_decode(file_get_contents("php://input"), true);
-		$guzzle_response = ClientRequestHelper::playerDetailsCall($json_data['token']);
+		$payload = $request->all();
 
-		$client_details = ProviderHelper::getClientDetails('token', $json_data['token']);
-		$is_test_player = ($client_details->test_player == 1 ? true : false);
-		$guzzle_response->playerdetailsresponse->is_test_players = $is_test_player;
-		$guzzle_response->playerdetailsresponse->internal_id = $client_details->player_id;
+		$guzzle_response = ClientRequestHelper::playerDetailsCall($payload['token']);
+             
+		if($guzzle_response === 'false') {
+			$guzzle_response = [
+				"playerdetailsresponse" => [
+		            "status" => [
+		                    "code" => 401,
+		                    "status" => "Failed",
+		                    "message" => "Player not found.",
+		                ]
+		        ]
+			];
+		}
 
 		$http_status = 200;
 		return response()->json($guzzle_response, $http_status);
@@ -50,8 +54,24 @@ class ClientPortController extends Controller
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
 		$client_details = ProviderHelper::getClientDetails('token', $json_data['token']);
-		$guzzle_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $json_data['game_code'], $json_data['game_name'], $json_data['transaction_id'], $json_data['round_id'], $json_data['transaction_type'], $json_data['rollback'] = false);
-
+		
+		if(!$client_details) {
+			$guzzle_response = [
+				"fundtransferresponse" => [
+		            "status" => [
+		                    "code" => 401,
+		                    "status" => "Failed",
+		                    "message" => "Player not found.",
+		                ]
+		        ]
+			];
+		}
+		else
+		{
+			$guzzle_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $json_data['game_code'], $json_data['game_name'], $json_data['transaction_id'], $json_data['round_id'], $json_data['transaction_type'], $json_data['rollback'] = false);
+		}
+		
+		
 		$http_status = 200;
 		return response()->json($guzzle_response, $http_status);
 
