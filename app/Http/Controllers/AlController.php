@@ -32,6 +32,8 @@ class AlController extends Controller
             ->where('sub_provider_id', $request->subprovider)
             ->get();
 
+
+
         $array = array();  
         foreach($gg as $g){
             DB::table('games')
