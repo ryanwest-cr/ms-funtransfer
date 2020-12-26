@@ -230,10 +230,20 @@ class KAGamingController extends Controller
         if($game_information == null){ 
             return  $response = ["status" => "Game Not Found", "statusCode" =>  1];
         }
-        $game_ext_check = KAHelper::findGameExt($round_id, 1, 'round_id');
-        if($game_ext_check != 'false'){ // Duplicate transaction
-            return  $response = ["status" => "Duplicate transaction", "statusCode" =>  1];
-        }
+
+
+        // $game_ext_check = KAHelper::findGameExt($round_id, 1, 'round_id');
+        // if($game_ext_check != 'false'){ // Duplicate transaction
+        //     return  $response = ["status" => "Duplicate transaction", "statusCode" =>  1];
+        // }
+
+        # Insert Idenpotent
+		try{
+			ProviderHelper::idenpotencyTable($this->prefix.'_'.$round_id);
+		}catch(\Exception $e){
+			return  $response = ["status" => "Duplicate transaction", "statusCode" =>  1];
+		}
+
         // if(KAHelper::amountToFloat($player_details->playerdetailsresponse->balance) < $amount){
         if(KAHelper::amountToFloat($client_details->balance) < $amount){
              return  $response = ["status" => "Insufficient balance", "statusCode" =>  200];
