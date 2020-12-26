@@ -102,14 +102,14 @@ class AWSController extends Controller
 
 		$signature = md5($merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($merchant_key));
 		
-		if($signature != $details->sign){
-			$response = [
-				"msg"=> "Sign check encountered error, please verify sign is correct",
-				"code"=> 9200
-			];
-			AWSHelper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
-			return $response;
-		}
+		// if($signature != $details->sign){
+		// 	$response = [
+		// 		"msg"=> "Sign check encountered error, please verify sign is correct",
+		// 		"code"=> 9200
+		// 	];
+		// 	AWSHelper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
+		// 	return $response;
+		// }
 		// AWSHelper::saveLog('AWS singleBalance - KEY CHECK', $this->provider_db_id, $data, 'CHECK DONE');
 
 		// AWSHelper::saveLog('AWS singleBalance - CURRENCY CHECK', $this->provider_db_id, $data, 'CHECK');
@@ -127,7 +127,7 @@ class AWSController extends Controller
 		// $player_details = AWSHelper::playerDetailsCall($client_details->player_token);
 		AWSHelper::saveLog('AWS singleBalance - playerDetailsCall', $this->provider_db_id, $data, 'CHECK');
 		// $player_details = AWSHelper::playerDetailsCall($client_details);
-		if($player_details != 'false'){
+		// if($player_details != 'false'){
 			$response = [
 				"msg"=> "success",
 				"code"=> 0,
@@ -138,13 +138,13 @@ class AWSController extends Controller
 					"bonusBalance"=> 0
 				]
 			];
-		}else{
-			$response = [
-				"msg"=> "User balance retrieval error",
-				"code"=> 2211,
-				"data"=> []
-			];
-		}
+		// }else{
+		// 	$response = [
+		// 		"msg"=> "User balance retrieval error",
+		// 		"code"=> 2211,
+		// 		"data"=> []
+		// 	];
+		// }
 		AWSHelper::saveLog('AWS singleBalance - SUCCESS', $this->provider_db_id, $data, $response);
 		return $response;
 	}
