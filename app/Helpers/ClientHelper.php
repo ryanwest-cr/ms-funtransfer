@@ -18,6 +18,7 @@ class ClientHelper
 		  7 => 'Player is disabled',
 		  8 => 'Operator Not Found',
 		  9 => 'Operator Disabled',
+		  10 => 'Some thing went wrong'
 		];
 		return $msg[$error_code];
 	}

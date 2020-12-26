@@ -199,11 +199,18 @@ class AWSHelper{
 	/***************************************************  END  AWS MAIN HELPER   *************************************************** */
 
 
-
-
-
-
-
+	/**
+	 * GLOBAL
+	 * [Transaction Helper]
+	 * getBalance (provider that has refreash token should have data game)
+	 * 
+	 */
+	public static function getBalance($token_id){
+		// $balance_query = DB::connection('mysql2')->select("SELECT * FROM player_session_tokens WHERE token_id = '".$token_id."'");
+		$balance_query = DB::select("SELECT * FROM player_session_tokens WHERE token_id = '".$token_id."'");
+		$data = count($balance_query);
+		return $data > 0 ?$balance_query[0]:null;
+	}
 
 
 
@@ -223,7 +230,11 @@ class AWSHelper{
 			];
 		// return DB::table('seamless_request_logs')->insertGetId($data);
 		// return DB::table('debug')->insertGetId($data);
-		return DB::table('debug')->insert($data);
+		if(env('Al_DEBUG')){
+			return DB::table('debug')->insert($data);
+		}else{
+			return DB::table('seamless_request_logs')->insert($data);
+		}
 	}
 
 	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win = 0, $transaction_reason = null, $payout_reason = null, $income = null, $provider_trans_id = null, $round_id = 1)
@@ -437,6 +448,83 @@ class AWSHelper{
 			return $currencies[$currency];
 		} else {
 			return 'false';
+		}
+	}
+
+
+	/***************************************************  EXPERIMENTAL   *************************************************** */
+
+	# EXPERIMENTAL FINALLY SETUP
+	public static function playerDetailsCall_inhouse($client_details){
+		$player_details = DB::select("SELECT * FROM player_session_tokens WHERE token_id = '".$client_details->token_id."'");
+		$data = count($player_details);
+		if($data > 0){
+			$in_house_player_details = [
+				'playerdetailsresponse' => [
+					'balance' => $player_details[0]->balance
+				]
+			];
+			return json_decode(json_encode($in_house_player_details));
+		}else{
+			return false;
+		}
+	}
+
+	/**
+	 * GLOBAL
+	 * [Transaction Helper]
+	 * saveBalance (provider that has refreash token should have data gametoken)
+	 * 
+	 */
+	public static function saveBalance($token){
+		$client_details = AWSHelper::getClientDetails('token', $token);
+		if($client_details){
+			$client = new Client([
+			    'headers' => [ 
+			    	'Content-Type' => 'application/json',
+			    	'Authorization' => 'Bearer '.$client_details->client_access_token
+			    ]
+			]);
+			$datatosend = ["access_token" => $client_details->client_access_token,
+				"hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+				"type" => "playerdetailsrequest",
+				"datesent" => Helper::datesent(),
+                "gameid" => "",
+				"clientid" => $client_details->client_id,
+				"playerdetailsrequest" => [
+					"player_username"=>$client_details->username,
+					"client_player_id" => $client_details->client_player_id,
+					"token" => $token,
+					"gamelaunch" => true,
+					"refreshtoken" => false
+				]
+			];
+		}
+		try{	
+			$guzzle_response = $client->post($client_details->player_details_url,
+				['body' => json_encode($datatosend)]
+			);
+			$client_response = json_decode($guzzle_response->getBody()->getContents());
+			AWSHelper::saveLog('PLAYER DETAILS LOG', 999, json_encode($client_response), $datatosend);
+			if(isset($client_response->playerdetailsresponse->status->code) && $client_response->playerdetailsresponse->status->code == 200){
+				AWSHelper::_insertOrUpdate($client_details->token_id,$client_response->playerdetailsresponse->balance);
+				return true;
+			}else{
+				return false;
+			}
+		}catch (\Exception $e){
+			return false;
+		 }
+	}
+
+	public static function _insertOrUpdate($token_id,$balance){
+		$balance_query = DB::select("SELECT * FROM player_session_tokens WHERE token_id = '".$token_id."'");
+		$data = count($balance_query);
+		if($data > 0){
+			return DB::select("UPDATE player_session_tokens SET balance=".$balance." WHERE token_id ='".$token_id."'");
+		}
+		else{
+			return DB::select("INSERT INTO  player_session_tokens (token_id,balance) VALUEs ('".$token_id."',".$balance.")");
 		}
 	}
 

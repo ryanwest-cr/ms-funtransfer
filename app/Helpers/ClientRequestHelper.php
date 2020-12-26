@@ -2,6 +2,7 @@
 namespace App\Helpers;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\TransferStats;
 use App\Helpers\Helper;
 use App\Helpers\GameLobby;
 use App\Helpers\ProviderHelper;
@@ -66,7 +67,11 @@ class ClientRequestHelper{
             ]
               ];
             $guzzle_response = $client->post($client_details->fund_transfer_url,
-            ['body' => json_encode(
+            [
+                'on_stats' => function (TransferStats $stats) use ($requesttocient){
+                    Helper::saveLog('TIME = '.$stats->getTransferTime() .' GEID = '.$requesttocient['fundtransferrequest']['fundinfo']['transactionId'].' '.$requesttocient['fundtransferrequest']['fundinfo']['transactiontype'], 999, json_encode($stats->getHandlerStats()), $requesttocient);
+                },
+                'body' => json_encode(
                     $requesttocient
             )],
             ['defaults' => [ 'exceptions' => false ]]

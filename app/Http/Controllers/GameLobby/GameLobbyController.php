@@ -126,7 +126,7 @@ class GameLobbyController extends Controller
             
             // Filters
             if(ClientHelper::checkClientID($request->all()) != 200){
-                $log_id = Helper::saveLog('GAME LAUNCH', 99, json_encode($request->all()), 'FAILED LAUNCH '.$request->client_id);
+                $log_id = Helper::saveLog('GAME LAUNCH', 1223, json_encode($request->all()), 'FAILED LAUNCH '.$request->client_id);
                 $msg = array(
                     // "error_code" => ClientHelper::checkClientID($request->all()),
                     "message" => ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())),
@@ -136,6 +136,8 @@ class GameLobbyController extends Controller
                 return response($msg,200)
                 ->header('Content-Type', 'application/json');
             }
+            
+         
 
            $solid_gamings = [2, 3, 5, 6, 7, 8, 10, 9, 11, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 26, 28];
 
@@ -144,6 +146,35 @@ class GameLobbyController extends Controller
 
                 if ($request->has("demo") && $request->input("demo") == true) {
                     return DemoHelper::DemoGame($request->all());
+                }
+
+                # EXPERIMENTAL - GAME BALANCE INHOUSE (SAVE ALL PLAYER BALANCE)
+                $save_balance = ProviderHelper::saveBalance($request->token);
+                if($save_balance == false){
+                    $log_id = Helper::saveLog('GAME LAUNCH', 1223, json_encode($request->all()), 'FAILED LAUNCH SAVE BALANCE'.$request->client_id);
+                    $msg = array(
+                        "message" => ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())),
+                        "url" => config('providerlinks.play_betrnk').'/tigergames/api?msg='.ClientHelper::getClientErrorCode(ClientHelper::checkClientID($request->all())).'&id='.$log_id,
+                        "game_launch" => false
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
+                }
+
+                # Check if player is allowed to play a specific game
+                //    Helper::savePLayerGameRound( $request->input("game_code"), $request->input("token"), $request->input("game_provider"));
+                $checkplayer = ProviderHelper::checkClientPlayer($request->client_id, $request->client_player_id);
+                $check_game_details = ProviderHelper::getSubGameDetails($provider_code, $request->input("game_code"));
+                $isRestricted = ProviderHelper::checkGameRestricted($check_game_details->game_id,$checkplayer->player_id);
+                if($isRestricted){
+                    $log_id = Helper::saveLog('GAME LAUNCH', 1223, json_encode($request->all()), 'FAILED LAUNCH GAME RESTRICTED '.$request->client_id);
+                    $msg = array(
+                        "message" => ClientHelper::getClientErrorCode(10),
+                        "url" => config('providerlinks.play_betrnk').'/tigergames/api?msg='.ClientHelper::getClientErrorCode(10).'&id='.$log_id,
+                        "game_launch" => false
+                    );
+                    return response($msg,200)
+                    ->header('Content-Type', 'application/json');
                 }
 
                 if($provider_code==35){
