@@ -102,15 +102,15 @@ class AWSController extends Controller
 
 		$signature = md5($merchant_id.$details->currentTime.$details->accountId.$details->currency.base64_encode($merchant_key));
 		
-		// if($signature != $details->sign){
-		// 	$response = [
-		// 		"msg"=> "Sign check encountered error, please verify sign is correct",
-		// 		"code"=> 9200
-		// 	];
-		// 	AWSHelper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
-		// 	return $response;
-		// }
-		// AWSHelper::saveLog('AWS singleBalance - KEY CHECK', $this->provider_db_id, $data, 'CHECK DONE');
+		if($signature != $details->sign){
+			$response = [
+				"msg"=> "Sign check encountered error, please verify sign is correct",
+				"code"=> 9200
+			];
+			AWSHelper::saveLog('AWS Single Error Sign', $this->provider_db_id, $data, $response);
+			return $response;
+		}
+		AWSHelper::saveLog('AWS singleBalance - KEY CHECK', $this->provider_db_id, $data, 'CHECK DONE');
 
 		// AWSHelper::saveLog('AWS singleBalance - CURRENCY CHECK', $this->provider_db_id, $data, 'CHECK');
 		$provider_reg_currency = AWSHelper::getProviderCurrency($this->provider_db_id, $client_details->default_currency);
