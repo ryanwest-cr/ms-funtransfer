@@ -160,6 +160,14 @@ class OryxGamingController extends Controller
 		// 	}
 		// }
 		
+		$balance = 999.99;
+		$http_status = 200;
+		$response = [
+			"responseCode" => "OK",
+			"balance" => $this->_toPennies($balance),
+		];
+		
+		return response()->json($response, $http_status);
 
 		if(!CallParameters::check_keys($json_data, 'playerId', 'roundId', 'gameCode', 'roundAction', 'sessionToken')) {
 				$http_status = 401;
