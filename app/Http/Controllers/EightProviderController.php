@@ -98,11 +98,12 @@ class EightProviderController extends Controller
 		if($request->name == 'init'){
 
 			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
-			$player_details = $this->playerDetailsCall($client_details);
+			// $player_details = $this->playerDetailsCall($client_details);
 			$response = array(
 				'status' => 'ok',
 				'data' => [
-					'balance' => (string)$player_details->playerdetailsresponse->balance,
+					'balance' => (string)$client_details->balance,
+					// 'balance' => (string)$player_details->playerdetailsresponse->balance,
 					'currency' => $client_details->default_currency,
 				],
 			);
@@ -119,13 +120,14 @@ class EightProviderController extends Controller
 			   
 
 				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
-				$player_details = $this->playerDetailsCall($client_details);
-				if ($player_details->playerdetailsresponse->balance < $data['data']['amount']) :
+				// $player_details = $this->playerDetailsCall($client_details);
+				// if ($player_details->playerdetailsresponse->balance < $data['data']['amount']) :
+				if ($client_details->balance < $data['data']['amount']) :
 					$msg = array(
 							"status" => 'error',
 							"error" => ["scope" => "user", "no_refund" => 1, "message" => "Not enough money"]
 						);
-					$this->saveLog('8Provider gameBet PC', $this->provider_db_id, json_encode($player_details), $msg);
+					// $this->saveLog('8Provider gameBet PC', $this->provider_db_id, json_encode($player_details), $msg);
 					return $msg;
 				endif;
 				try {
@@ -165,7 +167,7 @@ class EightProviderController extends Controller
 
 					if(isset($client_response->fundtransferresponse->status->code) 
 					             && $client_response->fundtransferresponse->status->code == "200"){
-
+						ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); # INHOUSE
 						if ($check_round_exist != 'false') {
 							$income = $bet_amount - ($game_transaction->pay_amount + $game_transaction->income);
 							$win_lost = $income < 0 ? 0 : 1;
@@ -210,12 +212,13 @@ class EightProviderController extends Controller
 		    	// NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
 		    	$this->saveLog('8Provider gameBet 3', $this->provider_db_id, json_encode($data), 3);
 				$client_details = ProviderHelper::getClientDetails('token', $data['token']);
-				$player_details = $this->playerDetailsCall($client_details);
+				// $player_details = $this->playerDetailsCall($client_details);
 				// dd($client_details);
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'balance' => (string)$client_details->balance,
+						// 'balance' => (string)$player_details->playerdetailsresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 			 	 );
@@ -229,7 +232,7 @@ class EightProviderController extends Controller
 		$game_id = $string_to_obj->game->game_id;
 		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
 		$client_details = ProviderHelper::getClientDetails('token', $data['token']);
-		$player_details = $this->playerDetailsCall($client_details);
+		// $player_details = $this->playerDetailsCall($client_details);
 
 
 		$game_ext = $this->checkTransactionExist($data['callback_id'], 2); // Find if this callback in game extension
@@ -291,6 +294,7 @@ class EightProviderController extends Controller
 
 								if(isset($client_response->fundtransferresponse->status->code) 
 								    && $client_response->fundtransferresponse->status->code == "200"){
+									ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); #INHOUSE
 									$response = array(
 										'status' => 'ok',
 										'data' => [
@@ -353,6 +357,7 @@ class EightProviderController extends Controller
 
 								if(isset($client_response->fundtransferresponse->status->code) 
 									&& $client_response->fundtransferresponse->status->code == "200"){
+									ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); #INHOUSE
 									$this->updateBetTransaction($existing_bet->game_trans_id, $amount, $income, $win, $entry_id);
 									$this->saveLog('Bet Updated', $this->provider_db_id, json_encode($data), 1);
 									$response = array(
@@ -429,6 +434,7 @@ class EightProviderController extends Controller
 
 								if(isset($client_response->fundtransferresponse->status->code) 
 								    && $client_response->fundtransferresponse->status->code == "200"){
+									ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); #INHOUSE
 									$response = array(
 										'status' => 'ok',
 										'data' => [
@@ -469,7 +475,8 @@ class EightProviderController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'balance' => (string)$client_details->balance,
+						// 'balance' => (string)$player_details->playerdetailsresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 			 	);
@@ -488,12 +495,12 @@ class EightProviderController extends Controller
 
 			
 			$client_details = ProviderHelper::getClientDetails('token', $data['token']);
-			$player_details = $this->playerDetailsCall($client_details);
-			if ($player_details == 'false') {
-				$msg = array("status" => 'error', "message" => $e->getMessage());
-				$this->saveLog('8Provider gameRefund - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
-				return $msg;
-			}
+			// $player_details = $this->playerDetailsCall($client_details);
+			// if ($player_details == 'false') {
+			// 	$msg = array("status" => 'error', "message" => $e->getMessage());
+			// 	$this->saveLog('8Provider gameRefund - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+			// 	return $msg;
+			// }
 
 			$game_transaction_ext = ProviderHelper::findGameExt($data['data']['refund_round_id'], 1, 'round_id'); // Find GameEXT
 			if($game_transaction_ext == 'false'):
@@ -502,7 +509,8 @@ class EightProviderController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'balance' => (string)$client_details->balance,
+						// 'balance' => (string)$player_details->playerdetailsresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 				);
@@ -517,7 +525,8 @@ class EightProviderController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						// 'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'balance' => (string)$client_details->balance,
 						'currency' => $client_details->default_currency,
 					],
 				);
@@ -532,7 +541,8 @@ class EightProviderController extends Controller
 				// $client_details = ProviderHelper::getClientDetails('token', $data['token']);
 				if($transaction_type == 'debit'):
 					// $player_details = $this->playerDetailsCall($data['token']);
-					if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
+					// if($player_details->playerdetailsresponse->balance < $data['data']['amount']):
+					if($client_details->balance < $data['data']['amount']):
 						$msg = array(
 							"status" => 'error',
 							"error" => ["scope" => "user","no_refund" => 1,"message" => "Not enough money"]
@@ -559,6 +569,7 @@ class EightProviderController extends Controller
 
 					if(isset($client_response->fundtransferresponse->status->code) 
 								&& $client_response->fundtransferresponse->status->code == "200"){
+						ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); #INHOUSE
 						$response = array(
 							'status' => 'ok',
 							'data' => [
@@ -588,7 +599,8 @@ class EightProviderController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'balance' => (string)$client_details->playerdetailsresponse->balance,
+						// 'balance' => (string)$player_details->playerdetailsresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 				);
@@ -602,7 +614,8 @@ class EightProviderController extends Controller
 				$response = array(
 					'status' => 'ok',
 					'data' => [
-						'balance' => (string)$player_details->playerdetailsresponse->balance,
+						'balance' => (string)$client_details->playerdetailsresponse->balance,
+						// 'balance' => (string)$player_details->playerdetailsresponse->balance,
 						'currency' => $client_details->default_currency,
 					],
 				);

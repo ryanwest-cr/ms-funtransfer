@@ -327,7 +327,7 @@ class AlController extends Controller
 
     public function tapulan(Request $request){
 
-
+      return 123;
       return [
     'response_time' => microtime(true) - LARAVEL_START
 ];
