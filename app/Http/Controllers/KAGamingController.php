@@ -107,22 +107,23 @@ class KAGamingController extends Controller
             return  $response = ["status" => "failed", "statusCode" =>  3];
         }
         $data = json_decode($request_body);
-        $session_check = KAHelper::getClientDetails('token',$data->token);
-        if($session_check == 'false'){
-            return  $response = ["status" => "failed", "statusCode" =>  100];
-        }
+        // $session_check = KAHelper::getClientDetails('token',$data->token);
+        // if($session_check == 'false'){
+        //     return  $response = ["status" => "failed", "statusCode" =>  100];
+        // }
         $client_details = KAHelper::getClientDetails('player_id',$data->partnerPlayerId);
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details);
-        if($player_details == 'false'){
-            return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
-        }
+        // $player_details = KAHelper::playerDetailsCall($client_details);
+        // if($player_details == 'false'){
+        //     return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
+        // }
         $response = [
             "playerId" => $client_details->player_id,
             "sessionId" => $client_details->player_token,
-            "balance" => $this->formatBalance($player_details->playerdetailsresponse->balance),
+            // "balance" => $this->formatBalance($player_details->playerdetailsresponse->balance),
+            "balance" => $this->formatBalance($client_details->balance),
             "currency" =>  $client_details->default_currency,
             "status" => "success",
             "statusCode" =>  0
@@ -150,12 +151,13 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details);
-        if($player_details == 'false'){
-            return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
-        }
+        // $player_details = KAHelper::playerDetailsCall($client_details);
+        // if($player_details == 'false'){
+        //     return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
+        // }
         $response = [
-            "balance" => $this->formatBalance($player_details->playerdetailsresponse->balance),
+            // "balance" => $this->formatBalance($player_details->playerdetailsresponse->balance),
+            "balance" => $this->formatBalance($client_details->balance),
             "status" => "success",
             "statusCode" =>  0
         ];
@@ -220,10 +222,10 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details);
-        if($player_details == 'false'){
-            return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
-        }
+        // $player_details = KAHelper::playerDetailsCall($client_details);
+        // if($player_details == 'false'){
+        //     return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
+        // }
         $game_information = KAHelper::findGameDetails('game_code', $this->provider_db_id, $game_code);
         if($game_information == null){ 
             return  $response = ["status" => "Game Not Found", "statusCode" =>  1];
@@ -232,11 +234,13 @@ class KAGamingController extends Controller
         if($game_ext_check != 'false'){ // Duplicate transaction
             return  $response = ["status" => "Duplicate transaction", "statusCode" =>  1];
         }
-        if(KAHelper::amountToFloat($player_details->playerdetailsresponse->balance) < $amount){
+        // if(KAHelper::amountToFloat($player_details->playerdetailsresponse->balance) < $amount){
+        if(KAHelper::amountToFloat($client_details->balance) < $amount){
              return  $response = ["status" => "Insufficient balance", "statusCode" =>  200];
         }
 
-        $general_details['client']['before_balance'] = KAHelper::amountToFloat($player_details->playerdetailsresponse->balance);
+        $general_details['client']['before_balance'] = KAHelper::amountToFloat($client_details->balance);
+        // $general_details['client']['before_balance'] = KAHelper::amountToFloat($player_details->playerdetailsresponse->balance);
         $general_details['client']['action'] = 'play';
         $game_transaction_type = 1; // 1 Bet, 2 Win
         $game_code = $game_information->game_id;
@@ -271,6 +275,7 @@ class KAGamingController extends Controller
         }
         if(isset($client_response->fundtransferresponse->status->code) 
              && $client_response->fundtransferresponse->status->code == "200"){
+            ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
             #2 CREDIT OPERATION   
             $game_transextension_credit = KAHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $win_amount, 2);
             $client_response_credit = ClientRequestHelper::fundTransfer($client_details,abs($win_amount),$game_information->game_code,$game_information->game_name,$game_transextension_credit,$gamerecord, 'credit');
@@ -358,10 +363,10 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details);
-        if($player_details == 'false'){
-            return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
-        }
+        // $player_details = KAHelper::playerDetailsCall($client_details);
+        // if($player_details == 'false'){
+        //     return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
+        // }
         $game_information = KAHelper::findGameDetails('game_code', $this->provider_db_id, $game_code);
         if($game_information == null){ 
             return  $response = ["status" => "Game Not Found", "statusCode" =>  1];
@@ -370,7 +375,8 @@ class KAGamingController extends Controller
         if($game_ext_check == 'false'){ // Duplicate transaction
             return  $response = ["status" => "Licensee or operator denied crediting to player (cashable or bonus) / Transaction Not Found", "statusCode" =>  301];
         }
-        $general_details['client']['before_balance'] = KAHelper::amountToFloat($player_details->playerdetailsresponse->balance);
+        $general_details['client']['before_balance'] = KAHelper::amountToFloat($client_details->balance);
+        // $general_details['client']['before_balance'] = KAHelper::amountToFloat($player_details->playerdetailsresponse->balance);
         $general_details['client']['action'] = 'credit';
 
         $game_ext_check_win = KAHelper::findGameExt($provider_trans_id, 2, 'transaction_id');
@@ -417,6 +423,7 @@ class KAGamingController extends Controller
         }
         if(isset($client_response->fundtransferresponse->status->code) 
              && $client_response->fundtransferresponse->status->code == "200"){
+            ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
             $general_details['client']['after_balance'] = KAHelper::amountToFloat($client_response->fundtransferresponse->balance);
             $response = [
                 "balance" => $this->formatBalance($client_response->fundtransferresponse->balance),
@@ -462,10 +469,10 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details);
-        if($player_details == 'false'){
-            return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
-        }
+        // $player_details = KAHelper::playerDetailsCall($client_details);
+        // if($player_details == 'false'){
+        //     return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
+        // }
         $game_information = KAHelper::findGameDetails('game_code', $this->provider_db_id, $game_code);
         if($game_information == null){ 
             return  $response = ["status" => "Game Not Found", "statusCode" =>  1];
@@ -479,7 +486,8 @@ class KAGamingController extends Controller
         if($check_revoked != 'false'){ // Duplicate transaction
             return  $response = ["status" => "Transaction no longer revocable", "statusCode" =>  401];
         }
-        $general_details['client']['before_balance'] = KAHelper::amountToFloat($player_details->playerdetailsresponse->balance);
+        $general_details['client']['before_balance'] = KAHelper::amountToFloat($client_details->balance);
+        // $general_details['client']['before_balance'] = KAHelper::amountToFloat($player_details->playerdetailsresponse->balance);
 
         $all_round = $this->findAllGameExt($provider_trans_id, 'all', $round_id);
         $bet_amounts = array();
@@ -511,7 +519,8 @@ class KAGamingController extends Controller
            $transaction_type = 'debit';
            $pay_amount =  0; //abs($data['amount']);
            $income = 0;
-           if(KAHelper::amountToFloat($player_details->playerdetailsresponse->balance) < abs($refund_amount)){
+        //    if(KAHelper::amountToFloat($player_details->playerdetailsresponse->balance) < abs($refund_amount)){
+           if(KAHelper::amountToFloat($client_details->balance) < abs($refund_amount)){
                  return  $response = ["status" => "Insufficient balance", "statusCode" =>  200];
            }
         }else{
@@ -535,6 +544,7 @@ class KAGamingController extends Controller
         }
         if(isset($client_response->fundtransferresponse->status->code) 
              && $client_response->fundtransferresponse->status->code == "200"){
+            ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
             #2 CREDIT OPERATION   
             $general_details['client']['after_balance'] = KAHelper::amountToFloat($client_response->fundtransferresponse->balance);
             $response = [
@@ -576,12 +586,13 @@ class KAGamingController extends Controller
         if($client_details == 'false'){
             return  $response = ["status" => "failed", "statusCode" =>  4];
         }
-        $player_details = KAHelper::playerDetailsCall($client_details);
-        if($player_details == 'false'){
-            return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
-        }
+        // $player_details = KAHelper::playerDetailsCall($client_details);
+        // if($player_details == 'false'){
+        //     return  $response = ["status" => "Server Timeout", "statusCode" =>  1];
+        // }
         $response = [
-            "balance" => $this->formatBalance($player_details->playerdetailsresponse->balance),
+            "balance" => $this->formatBalance($client_details->balance),
+            // "balance" => $this->formatBalance($player_details->playerdetailsresponse->balance),
             "status" => "success",
             "statusCode" =>  0
         ];
