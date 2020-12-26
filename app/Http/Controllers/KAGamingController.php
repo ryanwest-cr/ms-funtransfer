@@ -23,6 +23,7 @@ class KAGamingController extends Controller
     // public $access_key = 'A95383137CE37E4E19EAD36DF59D589A';
     // public $secret_key = '40C6AB9E806C4940E4C9D2B9E3A0AA25';
     public $provider_db_id = 43; // Nothing todo with the provider
+    public $prefix = 'KAGAMING';
 
 
     public function __construct()
