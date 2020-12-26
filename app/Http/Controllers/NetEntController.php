@@ -95,7 +95,6 @@ class NetEntController extends Controller
 	//bet process
 	public function withdraw(Request $request, $player){
 		
-		
 		$playersid = explode('_', $player);
 		$client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
 
@@ -155,7 +154,6 @@ class NetEntController extends Controller
 			
 		}
 		
-		
 	
 		if($existing_bet != 'false'): // this will be IDOM
 			$player_details = NetEntHelper::playerDetailsCall($client_details);
@@ -172,21 +170,9 @@ class NetEntController extends Controller
 		endif;
 
 		try {
-			$game_details = NetEntHelper::findGameDetails('game_code', $this->provider_db_id, $request["game"]); 
-			$player_details = NetEntHelper::playerDetailsCall($client_details);
-			$bet_amount = $request["amountToWithdraw"];
 
-			if($bet_amount > $player_details->playerdetailsresponse->balance){ // Not Enough money return success
-				$response = array (
-					'responseCode' => 1,
-					'responseMessage' => 'Not enough money in player account',
-					'serverToken' => $client_details->player_token,
-					'balance' => (float)$player_details->playerdetailsresponse->balance
-				);
-				NetEntHelper::saveLog('NetEnt Withdraw Not Enough money', $this->provider_db_id,  json_encode($request->all()), $response);
-				return response($response,200)
-				->header('Content-Type', 'application/json');
-			}
+			$game_details = NetEntHelper::findGameDetails('game_code', $this->provider_db_id, $request["game"]); 
+			$bet_amount = $request["amountToWithdraw"];
 
 			if($bet_amount < 0 ){ // NEGATIVE DEPOSIT RESPONSE
 
@@ -227,18 +213,66 @@ class NetEntController extends Controller
 			$type = "debit";
 			$rollback = false;
 			
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
-			
-			$response = array (
-				'responseCode' => 0,
-				'responseMessage' => 'Success',
-				'serverTransactionRef' => $game_trans_id,
-				'serverToken' => $client_details->player_token,
-				'balance' => round($client_response->fundtransferresponse->balance,3)
-			);
-			//UPDATE gameExtension
-			NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
-		    NetEntHelper::saveLog('NetEnt Withdraw success', $this->provider_db_id, json_encode($request->all()), $response);
+			$general_details = ["aggregator" => [], "provider" => [], "client" => []];
+			try {
+	            $client_response = ClientRequestHelper::fundTransfer($client_details,$bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
+	        } catch (\Exception $e) {
+	            $response = array (
+					'responseCode' => 99,
+					'responseMessage' => 'Retry exception',
+					'balance' => 0,
+					'serverToken' => NULL,
+					'serverTransactionRef' => NULL,
+					'messagesToPlayer' => NULL,
+				);
+				ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+				ProviderHelper::updateGameTransactionStatus($game_trans_id, 2, 99);
+				NetEntHelper::saveLog('NetEnt Withdraw FATAL ERROR', $this->provider_db_id, json_encode($request->all()),Helper::datesent());
+			    return response($response,200)
+				->header('Content-Type', 'application/json');
+	        }
+
+	        if (isset($client_response->fundtransferresponse->status->code)) {
+
+	        	switch ($client_response->fundtransferresponse->status->code) {
+					case "200":
+						$response = array (
+							'responseCode' => 0,
+							'responseMessage' => 'Success',
+							'serverTransactionRef' => $game_trans_id,
+							'serverToken' => $client_details->player_token,
+							'balance' => round($client_response->fundtransferresponse->balance,3)
+						);
+
+						NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
+		    			NetEntHelper::saveLog('NetEnt Withdraw success', $this->provider_db_id, json_encode($request->all()), $response);
+						break;
+					
+					case "402":
+						$response = array (
+							'responseCode' => 1,
+							'responseMessage' => 'Not enough money in player account',
+							'serverToken' => $client_details->player_token,
+							'balance' => round($client_response->fundtransferresponse->balance,3)
+						);
+	          			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $client_response, 'FAILED', $general_details);
+	          			ProviderHelper::updateGameTransactionStatus($game_trans_id, 2, 99);
+	          			NetEntHelper::saveLog('NetEnt Withdraw error 404', $this->provider_db_id, json_encode($request->all()), $response);
+						break;
+					default:
+						$response = array (
+							'responseCode' => 99,
+							'responseMessage' => 'Retry exception',
+							'balance' => 0,
+							'serverToken' => NULL,
+							'serverTransactionRef' => NULL,
+							'messagesToPlayer' => NULL,
+						);
+	          			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $client_response, 'FAILED', $general_details);
+	          			ProviderHelper::updateGameTransactionStatus($game_trans_id, 2, 99);
+	          			NetEntHelper::saveLog('NetEnt Withdraw error default', $this->provider_db_id, json_encode($request->all()), $response);
+				}
+	        }
 		    return response($response,200)
 			->header('Content-Type', 'application/json');
 			
@@ -266,8 +300,7 @@ class NetEntController extends Controller
 		$game_details = NetEntHelper::findGameDetails('game_code', $this->provider_db_id, $request["game"]); //get game details here
 		$playersid = explode('_', $player);
 		$client_details = ProviderHelper::getClientDetails('player_id',$playersid[1]);
-		$player_details = NetEntHelper::playerDetailsCall($client_details);
-
+		
 		$amount = $request['amountToDeposit'];
 		if($amount < 0 ){
 			$response = array (
@@ -286,11 +319,12 @@ class NetEntController extends Controller
 		// $existing_win =NetEntHelper::findGameExt($request['gameRoundRef'], 2, 'transaction_id'); 
 		$gameRoundRef = $this->prefix_transaction."".$request["gameRoundRef"];
 		$existing_win = NetEntHelper::findGameTransaction($gameRoundRef, 'round_id', 2); 
-	
+		
 		// $existing_win = NetEntHelper::findGameTransaction($request["gameRoundRef"], 'round_id', 2); 
 		if($existing_win == 'false'):
 
 			$existing_bet = NetEntHelper::findGameTransaction($gameRoundRef, 'round_id', 1); 
+
 			// No Bet was found check if this is a free spin and proccess it!
 			if($existing_bet != 'false'): 
 				
@@ -302,33 +336,82 @@ class NetEntController extends Controller
 				
 				$type = "credit";
 				$rollback = false;
-				$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
-				//reponse to provider
-				
-				$response = array (
-					'responseCode' => 0,
-					'responseMessage' => 'Success',
-					'serverTransactionRef' => $existing_bet->game_trans_id,
-					'serverToken' => $client_details->player_token,
-					'balance' => round($client_response->fundtransferresponse->balance,3)
-				);
-				
-				//Initialize data to pass
-				$win = $amount > 0  ?  1 : 0;  /// 1win 0lost
-				$type = $amount > 0  ? "credit" : "debit";
-				$request_data = [
-					'win' => $win,
-					'amount' => $amount,
-					'payout_reason' => NetEntHelper::updateReason(1),
-				];
-				//update transaction
-				Helper::updateGameTransaction($existing_bet,$request_data,$type);
-				NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
-				NetEntHelper::saveLog('NetEnt Deposit success', $this->provider_db_id, json_encode($request->all()), $response);
-				return response($response,200)
-				->header('Content-Type', 'application/json');
-			else: 
 
+				$general_details = ["aggregator" => [], "provider" => [], "client" => []];
+				try {
+		            $client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_trans_ext_id,$existing_bet->game_trans_id,$type,$rollback);
+		        } catch (\Exception $e) {
+		            $response = array (
+						'responseCode' => 99,
+						'responseMessage' => 'Retry exception',
+						'balance' => 0,
+						'serverToken' => NULL,
+						'serverTransactionRef' => NULL,
+						'messagesToPlayer' => NULL,
+					);
+					ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+					ProviderHelper::updateGameTransactionStatus($existing_bet->game_trans_id, 2, 99);
+					NetEntHelper::saveLog('NetEnt Deposit FATAL ERROR', $this->provider_db_id, json_encode($request->all()),Helper::datesent());
+				    return response($response,200)
+					->header('Content-Type', 'application/json');
+		        }
+
+		        if (isset($client_response->fundtransferresponse->status->code)) {
+
+		        	switch ($client_response->fundtransferresponse->status->code) {
+						case "200":
+							$response = array (
+								'responseCode' => 0,
+								'responseMessage' => 'Success',
+								'serverTransactionRef' => $existing_bet->game_trans_id,
+								'serverToken' => $client_details->player_token,
+								'balance' => round($client_response->fundtransferresponse->balance,3)
+							);
+							
+							//Initialize data to pass
+							$win = $amount > 0  ?  1 : 0;  /// 1win 0lost
+							$type = $amount > 0  ? "credit" : "debit";
+							$request_data = [
+								'win' => $win,
+								'amount' => $amount,
+								'payout_reason' => NetEntHelper::updateReason(1),
+							];
+							//update transaction
+							Helper::updateGameTransaction($existing_bet,$request_data,$type);
+							NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
+							NetEntHelper::saveLog('NetEnt Deposit success', $this->provider_db_id, json_encode($request->all()), $response);
+							break;
+						
+						case "402":
+							$response = array (
+								'responseCode' => 1,
+								'responseMessage' => 'Not enough money in player account',
+								'serverToken' => $client_details->player_token,
+								'balance' => round($client_response->fundtransferresponse->balance,3)
+							);
+		          			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $client_response, 'FAILED', $general_details);
+		          			ProviderHelper::updateGameTransactionStatus($existing_bet->game_trans_id, 2, 99);
+		          			NetEntHelper::saveLog('NetEnt Deposit error 404', $this->provider_db_id, json_encode($request->all()), $response);
+							break;
+						default:
+							$response = array (
+								'responseCode' => 99,
+								'responseMessage' => 'Retry exception',
+								'balance' => 0,
+								'serverToken' => NULL,
+								'serverTransactionRef' => NULL,
+								'messagesToPlayer' => NULL,
+							);
+		          			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $client_response, 'FAILED', $general_details);
+		          			ProviderHelper::updateGameTransactionStatus($existing_bet->game_trans_id, 2, 99);
+		          			NetEntHelper::saveLog('NetEnt Deposit error default', $this->provider_db_id, json_encode($request->all()), $response);
+					}
+		        }
+			    return response($response,200)
+				->header('Content-Type', 'application/json');
+				
+			else: 
+				$player_details = NetEntHelper::playerDetailsCall($client_details);
 				//TOURNAMENT PROCESS
 				if ($request["reason"] == "AWARD_TOURNAMENT_WIN") {
 					//TEMPORARY RESPONSE
@@ -342,36 +425,6 @@ class NetEntController extends Controller
 					NetEntHelper::saveLog('NetEnt Deposit Idom', $this->provider_db_id,  json_encode($request->all()), $response);
 					return response($response,200)
 						->header('Content-Type', 'application/json');
-					// $pay_amount = $amount;
-					// $income = 0 - $amount;
-					// $method = 2;
-					// $win_or_lost = 1; // 0 lost,  5 processing
-					// $payout_reason = NetEntHelper::updateReason(1);
-					// $provider_trans_id = $request["transactionRef"];
-					// $bet_id = $request["transactionRef"];
-					// $bet_amount = 0;
-					// //Create GameTransaction, GameExtension
-					// $game_trans_id  = ProviderHelper::createGameTransaction($client_details->token_id, $game_details[0]->game_id,$bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
-					
-					// $game_trans_ext_id = NetEntHelper::createGameTransExt($game_trans_id,$provider_trans_id, $bet_id, $bet_amount, 2, $request->all(), $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-					
-					// //requesttosend, and responsetoclient client side
-					// $type = "credit";
-					// $rollback = false;
-					
-					// $client_response = ClientRequestHelper::fundTransfer($client_details,$pay_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
-					
-					// $response = array (
-					// 	'responseCode' => 0,
-					// 	'responseMessage' => 'Success',
-					// 	'serverTransactionRef' => $game_trans_id,
-					// 	'serverToken' => $client_details->player_token,
-					// 	'balance' => round($client_response->fundtransferresponse->balance,3)
-					// );
-					// //UPDATE gameExtension
-					// NetEntHelper::updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);	
-				 //    NetEntHelper::saveLog('NetEnt Deposit TOURNAMENT WIN', $this->provider_db_id, json_encode($request->all()), $response);
-				 //    return $response;
 
 				} else {
 					// NO BET FOUND RETURN SUCESS
@@ -391,6 +444,7 @@ class NetEntController extends Controller
 		
 		else:	
 		    // NOTE IF CALLBACK WAS ALREADY PROCESS PROVIDER DONT NEED A ERROR RESPONSE! LEAVE IT AS IT IS!
+		    $player_details = NetEntHelper::playerDetailsCall($client_details);
 			$response = array (
 				'responseCode' => 0,
 				'responseMessage' => 'Success',

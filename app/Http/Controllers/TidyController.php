@@ -98,55 +98,78 @@ class TidyController extends Controller
 
 	/* SEAMLESS METHODS */
 	public function checkBalance(Request $request){
-		Helper::saveLog('Tidy Check Balance', $this->provider_db_id,  json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
+		// Helper::saveLog('Tidy Check Balance', $this->provider_db_id,  json_encode(file_get_contents("php://input")), 'ENDPOINT HIT');
+		Helper::saveLog('Tidy Check Balance', $this->provider_db_id,  json_encode($request->all()), 'ENDPOINT HIT');
 		//$data = json_decode(file_get_contents("php://input")); // INCASE RAW JSON / CHANGE IF NOT ARRAY
 		$header = $request->header('Authorization');
 		$enc_body = file_get_contents("php://input");
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
-	    // Helper::saveLog('Tidy Bal 1', 23, json_encode(file_get_contents("php://input")), $data);
-	   
+
 		$token = $data->token;
 		$request_uuid = $data->request_uuid;
 		$client_details = ProviderHelper::getClientDetails('token',$token);
+
+		if ($data->client_id != $this->client_id) {
+			$errormessage = array(
+				'error_code' 	=> '99-001',
+				'error_msg'  	=> 'invalid_partner',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy Check Balance invalid_partner', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
+		}
+
 		if($client_details != null){
-			$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-				//$balance = number_format($player_details->playerdetailsresponse->balance, 2); 
+				try{
+					$player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+				} catch(\Exception $e){
+					$errormessage = array(
+						'error_code' 	=> '99-002',
+						'error_msg'  	=> 'invalid_token',
+						'request_uuid'	=> $request_uuid
+					);
+					Helper::saveLog('Tidy Check Balance FATAL ERROR', $this->provider_db_id, json_encode($request->all()), $errormessage);
+					return $errormessage;
+				}
+
+		        $balance = floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', ''));
+		        $save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $balance]);
+		        
 				$currency = $client_details->default_currency;
 				$get_code_currency = TidyHelper::currencyCode($currency);
 
 				$num = $player_details->playerdetailsresponse->balance;
-				$balance = (double)$num;
-				$data =  array(	
+				$reponse =  array(	
 		 			 "uid"			=> $this->prefix_id.'_'.$client_details->player_id,
 					 "request_uuid" => $request_uuid,
 					 "currency"		=> $get_code_currency,
 					 "balance" 		=> ProviderHelper::amountToFloat($num)
 			 	);
-				Helper::saveLog('Tidy Check Balance Response', $this->provider_db_id, json_encode($request->all()), $data);
-				return $data;
+				Helper::saveLog('Tidy Check Balance Response', $this->provider_db_id, json_encode($request->all()), $reponse);
+				return $reponse;
 		}else{
 			$errormessage = array(
-				'error_code' 	=> '08-025',
-				'error_msg'  	=> 'not_found',
+				'error_code' 	=> '99-002',
+				'error_msg'  	=> 'invalid_token',
 				'request_uuid'	=> $request_uuid
 			);
+			Helper::saveLog('Tidy Check Balance invalid_token', $this->provider_db_id, json_encode($request->all()), $errormessage);
 			return $errormessage;
 		}
 	}
 
 	public function gameBet(Request $request){
-		
 		$header = $request->header('Authorization');
-	    Helper::saveLog('Tidy Authorization Logger BET', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
+	    Helper::saveLog('Tidy Authorization Logger BET', $this->provider_db_id, json_encode($request->all()), $header);
 
 	    $enc_body = file_get_contents("php://input");
      	parse_str($enc_body, $data);
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 		
-		$game_id = $data->game_id;
+		$game_code = $data->game_id;
 		$token = $data->token;
 		$amount = $data->amount;
 		$uid = $data->uid;
@@ -154,30 +177,61 @@ class TidyController extends Controller
 		$request_uuid = $data->request_uuid;
 		$transaction_uuid = $data->transaction_uuid;
 
-		$searchGameTransactionExt = microtime(true);
-		$transaction_check = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id');
-		$searchGameTransactionExt = microtime(true) - $searchGameTransactionExt;
+		$transaction_check = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id'); // NOTE NOT EQUAL TO FAILED // success return
 
-		if($transaction_check != 'false'){
-			$data_response = [
-				'error' => '99-011' 
-			];
-			Helper::saveLog('Tidy error bet', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-			return $data_response;
+		if ($data->client_id != $this->client_id) {
+			$errormessage = array(
+				'error_code' 	=> '99-001',
+				'error_msg'  	=> 'invalid_partner',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy BET invalid_partner', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
 		}
 
-		$getGameDetails = microtime(true);
-		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
-		$getGameDetails = microtime(true) - $getGameDetails;
+		if($transaction_check != 'false'){
+			$errormessage = array(
+				'error_code' 	=> '99-011',
+				'error_msg'  	=> 'duplicate_transaction',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy BET duplicate_transaction', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
+		}
 
-		$getClientDetails = microtime(true);
+		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code);
+		if ($game_details == null) {
+			$errormessage = array(
+				'error_code' 	=> '99-003',
+				'error_msg'  	=> 'invalid_game',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy BET invalid_game', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
+		}
+
 		$client_details = ProviderHelper::getClientDetails('token',$token);
-		$getClientDetails = microtime(true) - $getClientDetails;
-		try{
-			//Initialize
+		if ($client_details != null) 
+		{
+
+			// $errOccur = ProviderHelper::checkGameRestricted($game_details->game_id, $client_details->player_id);
+			
+			// if($errOccur == true){
+			// 	// $response = [
+			// 	// 	"responseCode" =>  "ERROR_OCCUR_FUNDTRANSFER",
+			// 	// 	"errorDescription" => "Fund Transfer Failed to response."
+			// 	// ];
+			// 	$response = array(
+			// 		'error_code' 	=> '99-001',
+			// 		'error_msg'  	=> 'invalid_partner',
+			// 		'request_uuid'	=> $request_uuid
+			// 	);
+				
+			// 	Helper::saveLog('Tidy BET error_occur', $this->provider_db_id, json_encode($request->all()), $response);
+			// 	return $response;
+			// }
 			
 			$game_transaction_type = 1; // 1 Bet, 2 Win
-			$game_code = $game_details->game_id;
 			$token_id = $client_details->token_id;
 			$bet_amount = abs($amount);
 			$pay_amount = 0;
@@ -188,64 +242,78 @@ class TidyController extends Controller
 			$payout_reason = 'Bet';
 			$provider_trans_id = $transaction_uuid;
 
-			//Create GameTransaction, GameExtension
-			$createGameTransaction = microtime(true);
-			$game_trans_id  = ProviderHelper::createGameTransaction($token_id, $game_code, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
-			$createGameTransaction = microtime(true) - $createGameTransaction;
+			$game_trans_id  = ProviderHelper::createGameTransaction($token_id, $game_details->game_id, $bet_amount,  $pay_amount, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $bet_id);
 
-			$createGameTransExt = microtime(true);
 			$game_trans_ext_id = $this->createGameTransExt($game_trans_id,$provider_trans_id, $bet_id, $bet_amount, $game_transaction_type, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-			$createGameTransExt = microtime(true) - $createGameTransExt;
-			//get Round_id, Transaction_id
-			//$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 1,'transaction_id'); //extension
-		
-			//requesttosend, and responsetoclient client side
-			$type = "debit";
-			$rollback = false;
-			$fundTransfer = microtime(true);
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_id,$game_details->game_name,$game_trans_ext_id,$game_trans_id,$type,$rollback);
-			$fundTransfer = microtime(true) - $fundTransfer;
 
-			//response to provider				
-			$num = $client_response->fundtransferresponse->balance;
-			$data_response = [
-				"uid" => $uid,
-				"request_uuid" => $request_uuid,
-				"currency" => TidyHelper::currencyCode($client_details->default_currency),
-				"balance" =>  ProviderHelper::amountToFloat($num)
-			];
-			//UPDATE gameExtension
-			$updateGameTransactionExt = microtime(true);
-			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
-			$updateGameTransactionExt = microtime(true) - $updateGameTransactionExt;
+			$general_details = ["aggregator" => [], "provider" => [], "client" => []];
+			try {
+				$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$game_trans_ext_id,$game_trans_id,"debit",false);
+				$save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $client_response->fundtransferresponse->balance]);
+	        } catch (\Exception $e) {
+	            $response = array(
+					'error_code' 	=> '99-001',
+					'error_msg'  	=> 'invalid_partner',
+					'request_uuid'	=> $request_uuid
+				);
+				ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+				ProviderHelper::updateGameTransactionStatus($game_trans_id, 2, 99);
+				// ProviderHelper::createRestrictGame($game_details->game_id,$client_details->player_id,$game_trans_ext_id,json_encode(json_encode($response)));
+				Helper::saveLog('Tidy BET FATAL ERROR', $this->provider_db_id, json_encode($request->all()), $response);
+			    return $response;
+	        }
+	        
+	        if (isset($client_response->fundtransferresponse->status->code)) {
 
-			$createSaveLog = microtime(true);
-			Helper::saveLog('Tidy Bet Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-			$createSaveLog = microtime(true) - $createSaveLog;
-			
-			$reponse_time = [
-				"totalProcessTime" => microtime(true) - $this->startTime,
-				"type" => "Bet",
-				"Time Execution Process" => [
-					"searchGameTransactionExt" => $searchGameTransactionExt,
-					"getGameDetails" => $getGameDetails,
-					"getClientDetails" => $getClientDetails,
-					"createGameTransaction" => $createGameTransaction,
-					"createGameTransExt" => $createGameTransExt,
-					"fundTransfer" => $fundTransfer,
-					"updateGameTransactionExt" => $updateGameTransactionExt,
-					"createSaveLog" => $createSaveLog, 
-				],
-			];
-		 	Helper::saveLog('PROCESS_TIME', 900, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
-			return $data_response; // response to provider
-			
-		}catch(\Exception $e){
-			$data_response = [
-				'error' => '99-012' 
-			];
-			Helper::saveLog('Tidy Bet error = '.$e->getMessage(), $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-			return $data_response;
+	        	switch ($client_response->fundtransferresponse->status->code) {
+					case "200":
+						$num = $client_response->fundtransferresponse->balance;
+						$response = [
+							"uid" => $uid,
+							"request_uuid" => $request_uuid,
+							"currency" => TidyHelper::currencyCode($client_details->default_currency),
+							"balance" =>  ProviderHelper::amountToFloat($num)
+						];
+
+						$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
+		    			Helper::saveLog('Tidy BET success', $this->provider_db_id, json_encode($request->all()), $response);
+						break;
+					
+					case "402":
+						$response = array(
+							'error_code' 	=> '99-005',
+							'error_msg'  	=> 'not_enough_balance',
+							'request_uuid'	=> $request_uuid
+						);
+	          			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $client_response, 'FAILED', $general_details);
+	          			ProviderHelper::updateGameTransactionStatus($game_trans_id, 2, 99);
+	          			Helper::saveLog('Tidy BET not_enough_balance', $this->provider_db_id, json_encode($request->all()), $response);
+						// ProviderHelper::createRestrictGame($game_details->game_id,$client_details->player_id,$game_trans_ext_id,json_encode(json_encode($response)));
+						break;
+
+					default:
+						$response = array(
+							'error_code' 	=> '99-005',
+							'error_msg'  	=> 'not_enough_balance',
+							'request_uuid'	=> $request_uuid
+						);
+	          			ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $response, 'FAILED', $client_response, 'FAILED', $general_details);
+	          			ProviderHelper::updateGameTransactionStatus($game_trans_id, 2, 99);
+	          			Helper::saveLog('Tidy BET not_enough_balance_default', $this->provider_db_id, json_encode($request->all()), $response);
+	          			// ProviderHelper::createRestrictGame($game_details->game_id,$client_details->player_id,$game_trans_ext_id,json_encode(json_encode($response)));
+				}
+	        }
+		    return $response;
+
+		} else 
+		{
+			$errormessage = array(
+				'error_code' 	=> '08-025',
+				'error_msg'  	=> 'not_found',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy BET not_found', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
 		}
 		
 	}
@@ -254,7 +322,7 @@ class TidyController extends Controller
 		
 		//HEADER AUTHORIZATION
 		$header = $request->header('Authorization');
-		Helper::saveLog('Tidy Authorization Logger WIN', $this->provider_db_id, json_encode(file_get_contents("php://input")), $header);
+		Helper::saveLog('Tidy Authorization Logger WIN', $this->provider_db_id, json_encode($request->all()), $header);
 		
 		//JSON_FORMAT CONVERT
 	    $enc_body = file_get_contents("php://input");
@@ -263,7 +331,7 @@ class TidyController extends Controller
         $data = json_decode($json_encode);
 		
 		//INITIALIZE DATA
-		$game_id = $data->game_id;
+		$game_code = $data->game_id;
 		$token = $data->token;
 		$amount = $data->amount;
 		$uid = $data->uid;
@@ -272,120 +340,128 @@ class TidyController extends Controller
 		$reference_transaction_uuid = $data->reference_transaction_uuid; //  MW -ROUND
 
 		//CHECKING TOKEN
-		
-
-		
-		// if($client_details == null){
-		// 	$data_response = [
-		// 		'error' => '99-011' 
-		// 	];
-		// 	Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-		// 	return $data_response;
-		// }
-		
-		// $getPlayer = ProviderHelper::playerDetailsCall($client_details->player_token);
-		$searchGameTransactionExt = microtime(true);
-		$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'transaction_id',1);
-		$searchGameTransactionExt = microtime(true) - $searchGameTransactionExt;
-		
-		
-
-		$getGameDetails = microtime(true);
-		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_id);
-		$getGameDetails = microtime(true) - $getGameDetails;
-
-		$getClientDetails = microtime(true);
-		$client_details = ProviderHelper::getClientDetails('token',$token);
-		$getClientDetails = microtime(true) - $getClientDetails;
-		//CHECKING if BET EXISTING game_transaction_ext IF FALSE no bet record
-		// $existing_bet = ProviderHelper::findGameExt($reference_transaction_uuid, 1,'transaction_id');
-		
-		// if($existing_bet == 'false'){
-		// 	$data_response = [
-		// 		'error' => '99-011' 
-		// 	];
-		// 	Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-		// 	return $data_response;
-		// }
+		if ($data->client_id != $this->client_id) {
+			$errormessage = array(
+				'error_code' 	=> '99-001',
+				'error_msg'  	=> 'invalid_partner',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy WIN invalid_partner', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
+		}
 
 		//CHECKING WIN EXISTING game_transaction_ext IF WIN ALREADY PROCESS
-		// $transaction_check = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
-		// if($transaction_check != 'false'){
-		// 	$data_response = [
-		// 		'error' => '99-011' 
-		// 	];
-		// 	Helper::saveLog('Tidy Win error', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-		// 	return $data_response;
-		// }
+		$transaction_check = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
+
+		if($transaction_check != 'false'){
+			$errormessage = array(
+				'error_code' 	=> '99-011',
+				'error_msg'  	=> 'duplicate_transaction',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy WIN duplicate_transaction', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
+		}
+		
+		//CHECKING BET
+		$bet_transaction = ProviderHelper::findGameTransaction($reference_transaction_uuid, 'transaction_id',1);
+
+		if ($bet_transaction == 'false') {
+			$errormessage = array(
+				'error_code' 	=> '99-012',
+				'error_msg'  	=> 'transaction_does_not_exist',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy WIN transaction_does_not_exist', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
+		}
+		
+		$game_details = Helper::findGameDetails('game_code', $this->provider_db_id, $game_code);
+		if ($game_details == null) {
+			$errormessage = array(
+				'error_code' 	=> '99-003',
+				'error_msg'  	=> 'invalid_game',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy WIN invalid_game', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
+		}
+
+		$client_details = DB::select("select p.client_id, p.player_id, pst.balance, p.email, p.client_player_id,p.language, p.currency, p.test_player, p.username,p.created_at,pst.token_id,pst.player_token,c.client_url,c.default_currency,pst.status_id,p.display_name,op.client_api_key,op.client_code,op.client_access_token,ce.player_details_url,ce.fund_transfer_url,p.created_at from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) WHERE player_token = '".$token."' ORDER BY token_id desc LIMIT 1")[0]; 
+
+		
 		
 		try{
-			//get details on game_transaction
-			
-			$createGameTransExt = microtime(true);
-			$game_trans_ext_id = $this->createGameTransExt($bet_transaction->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
-			$createGameTransExt = microtime(true) - $createGameTransExt;
-			//get game_trans_id and game_trans_ext
-			//$transaction_id = ProviderHelper::findGameExt($transaction_uuid, 2,'transaction_id');
-
-			//requesttosend, and responsetoclient client side
-			$type = "credit";
-			$rollback = false;
-			$fundTransfer = microtime(true);
-			$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_id,$game_details->game_name,$game_trans_ext_id,$bet_transaction->game_trans_id,$type,$rollback);
-			$fundTransfer = microtime(true) - $fundTransfer;
-			//reponse to provider
-		    $num = $client_response->fundtransferresponse->balance;
-			$data_response = [
-	    		"uid" => $uid,
-	    		"request_uuid" => $request_uuid,
-	    		"currency" => TidyHelper::currencyCode($client_details->default_currency),
-	    		"balance" => ProviderHelper::amountToFloat($num)
-	    	];
-			
 			//Initialize data to pass
 			$win = $amount > 0  ?  1 : 0;  /// 1win 0lost
 			$type = $amount > 0  ? "credit" : "debit";
 			$request_data = [
 				'win' => $win,
 				'amount' => $amount,
-				'payout_reason' => 2
+				'payout_reason' => ProviderHelper::updateReason(1),
 			];
 			//update transaction
-			$updateGameTransaction = microtime(true);
-			Helper::updateGameTransaction($bet_transaction,$request_data,$type);
-			$updateGameTransaction = microtime(true) - $updateGameTransaction;
+			
+			$game_trans_ext_id = $this->createGameTransExt($bet_transaction->game_trans_id,$transaction_uuid, $reference_transaction_uuid, $amount, 2, $data, $data_response = null, $requesttosend = null, $client_response = null, $data_response = null);
 
-			$updateGameTransactionExt = microtime(true);
-			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$data_response);
-			$updateGameTransactionExt = microtime(true) - $updateGameTransactionExt;
+			//requesttosend, and responsetoclient client side
+			
+				try{
+					
+					$client_response = ClientRequestHelper::fundTransfer($client_details,$amount,$game_code,$game_details->game_name,$game_trans_ext_id,$bet_transaction->game_trans_id,"credit",false);
+					$save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $client_response->fundtransferresponse->balance]);
+					// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $data, $response, $client_response->requestoclient, $client_response, $data);
 
-			$createSaveLog = microtime(true);
-		    Helper::saveLog('Tidy Win Processed', $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-		    $createSaveLog = microtime(true) - $createSaveLog;
-		    
-		    $reponse_time = [
-				"totalProcessTime" => microtime(true) - $this->startTime,
-				"type" => "Win",
-				"Time Execution Process" => [
-					"searchGameTransactionExt" => $searchGameTransactionExt,
-					"getGameDetails" => $getGameDetails,
-					"getClientDetails" => $getClientDetails,
-					"createGameTransExt" => $createGameTransExt,
-					"fundTransfer" => $fundTransfer,
-					"updateGameTransaction" => $updateGameTransaction,
-					"updateGameTransactionExt" => $updateGameTransactionExt,
-					"createSaveLog" => $createSaveLog, 
-				],
-			];
-		 	Helper::saveLog('PROCESS_TIME', 900, json_encode($reponse_time), ["reponse_time" => microtime(true) - $this->startTime]);
-	        return $data_response;
+					$num = $client_response->fundtransferresponse->balance;
+					$response = [
+		    		"uid" => $uid,
+		    		"request_uuid" => $request_uuid,
+		    		"currency" => TidyHelper::currencyCode($client_details->default_currency),
+		    		"balance" => ProviderHelper::amountToFloat($num)
+			    	];
+					
+					
+					Helper::updateGameTransaction($bet_transaction,$request_data,$type);
+					$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
+					Helper::saveLog('Tidy Win Processed', $this->provider_db_id, json_encode($request->all()), $response);
+					return $response;
+				}catch(\Exception $e){
+					// $funtrans_request = array(
+					// 	'client_details' => $client_details,
+					// 	'amount' => $amount,
+					// 	'game_code' => $game_details->game_code,
+					// 	'game_name' => $game_details->game_name,
+					// 	'game_trans_ext_id' => $game_trans_ext_id,
+					// 	'game_transaction_id' => $bet_transaction->game_trans_id,
+					// 	'type' => 'credit'
+					// );
+					// $errormessage = array(
+					// 	'error_code' 	=> '08-025',
+					// 	'error_msg'  	=> 'not_found',
+					// 	'request_uuid'	=> $request_uuid
+					// );
+					// ProviderHelper::createRestrictGame($game_details->game_id,$client_details->player_id,$game_trans_ext_id,json_encode(json_encode($funtrans_request)));
+					// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $data, json_encode($errormessage), 'FAILED', $transaction_uuid, $e->getMessage(), 'FAILED');
+					$general_details = ["aggregator" => [], "provider" => [], "client" => []];
+					$errormessage = array(
+						'error_code' 	=> '08-025',
+						'error_msg'  	=> 'not_found',
+						'request_uuid'	=> $request_uuid
+					);
+	          		ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, 'FAILED', $errormessage, 'FAILED', $client_response, 'FAILED', $general_details);
+					return $errormessage;
+				}
+
+				
 
 		}catch(\Exception $e){
-			$data_response = [
-				'error' => '99-011' 
-			];
-			Helper::saveLog('Tidy Win error = '.$e->getMessage(), $this->provider_db_id, json_encode(file_get_contents("php://input")), $data_response);
-			return $data_response;
+			$errormessage = array(
+				'error_code' 	=> '08-025',
+				'error_msg'  	=> 'not_found',
+				'request_uuid'	=> $request_uuid
+			);
+			Helper::saveLog('Tidy WIN not_found', $this->provider_db_id, json_encode($request->all()), $errormessage);
+			return $errormessage;
 		}
 		
 	}
