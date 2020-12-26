@@ -1044,4 +1044,8 @@ class ProviderHelper{
 			return DB::select("INSERT INTO  player_session_tokens (token_id,balance) VALUEs ('".$token_id."',".$balance.")");
 		}
 	}
+
+	public static function idenpotencyTable($provider_trans_id){
+		return DB::select("INSERT INTO  transaction_idempotent (provider_trans_id) VALUEs ('".$provider_trans_id."')");
+	}
 }
