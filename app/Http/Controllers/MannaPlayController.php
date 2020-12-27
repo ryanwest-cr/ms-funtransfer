@@ -80,12 +80,11 @@ class MannaPlayController extends Controller
 					// 		"balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2)
 					// 	];
 					// }
-					
+
 					$http_status = 200;
 					$response = [
-						"balance" => bcdiv((int)$client_details->balance, 1, 2)
+						"balance" => bcdiv($client_details->balance, 1, 2)
 					];
-				
 				}
 			}
 		}
@@ -441,7 +440,7 @@ class MannaPlayController extends Controller
 
 	private function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' ,`pst`.`balance`, 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
