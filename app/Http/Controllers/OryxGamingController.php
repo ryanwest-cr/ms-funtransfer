@@ -104,6 +104,7 @@ class OryxGamingController extends Controller
 	
 	public function getBalance(Request $request) 
 	{
+		Helper::saveLog('getBalance', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$client_code = RouteParam::get($request, 'brand_code');
 		$player_id = RouteParam::get($request, 'player_id');
@@ -152,6 +153,7 @@ class OryxGamingController extends Controller
 	public function gameTransaction(Request $request) 
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
+		Helper::saveLog('ORYX GAMETRAN v1', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 
 		if (array_key_exists('bet', $json_data) || array_key_exists('win', $json_data)) {
 			$transaction_id = (array_key_exists('bet', $json_data) == true ? $json_data['bet']['transactionId'] : $json_data['win']['transactionId']);
@@ -426,8 +428,10 @@ class OryxGamingController extends Controller
 
 	}
 
+	
 	public function gameTransactionV2(Request $request) 
 	{
+		Helper::saveLog('ORYX GAMETRAN v2', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
 		if($this->_isIdempotent($json_data['transactionId'], true)) {
@@ -530,6 +534,7 @@ class OryxGamingController extends Controller
 
 	public function roundFinished(Request $request) 
 	{
+		Helper::saveLog('roundFinished', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$client_code = RouteParam::get($request, 'brand_code');
 		$player_id = RouteParam::get($request, 'player_id');
