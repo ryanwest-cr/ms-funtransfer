@@ -27,20 +27,14 @@ use DB;
 class OryxGamingController extends Controller
 {
 
-	public $prefix = 'ORYX'; 
-	public $middleware_api;
+	public $prefix = 'ORYX';
 
     public function __construct(){
 		/*$this->middleware('oauth', ['except' => ['index']]);*/
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
-		$this->middleware_api = config('providerlinks.oauth_mw_api.mwurl'); 
 	}
 
 	public function show(Request $request) { }
-
-
-
-	
 
 	public function authPlayer(Request $request)
 	{
@@ -164,7 +158,7 @@ class OryxGamingController extends Controller
 		$hit_time =  microtime(true);
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		Helper::saveLog('ORYX GAMETRAN v1', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
-		
+
 		if (array_key_exists('bet', $json_data) || array_key_exists('win', $json_data)) {
 			$transaction_id = (array_key_exists('bet', $json_data) == true ? $json_data['bet']['transactionId'] : $json_data['win']['transactionId']);
 
@@ -224,6 +218,7 @@ class OryxGamingController extends Controller
 						];
 
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
+
 			if ($client_details) {
 				// Check if the game is available for the client
 				/*$subscription = new GameSubscription();
@@ -279,73 +274,44 @@ class OryxGamingController extends Controller
 								
 								$game_transaction_id = GameTransaction::save('debit', $json_data, $game_details, $client_details, $client_details);
 
-								$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['bet']['transactionId'], $json_data['roundId'], $amount, 1,$json_data);
+								$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['bet']['transactionId'], $json_data['roundId'], $amount, 1);
 								
 								// change $json_data['roundId'] to $game_transaction_id
-								$balance = $client_details->balance - $amount;
-								$body_details = [
-									'token' => $client_details->player_token,
-									'game_id' => $game_details->game_id,
-									'amount' => $amount,
-									'game_trans_ext_id' => $game_trans_ext_id,
-									'game_transaction_id' => $game_transaction_id,
-									'type' => "debit",
-									'rollback'=> false,
-									'provider_request' => $json_data
-								];
-								try{
-						       		$client = new Client();
-							 		$guzzle_response = $client->post($this->middleware_api . '/api/oryx/fund',
-							 			[ 'form_params' => $body_details, 'timeout' => '0.01']
-							 		);
-						       	} catch(\Exception $e){
-						       		$http_status = 200;
-									$response = [
-										"responseCode" => "OK",
-										"balance" => $this->_toPennies($balance)
-									];
-
-						       		$stoptime  = microtime(true);
-									$overall_time = ($stoptime - $hit_time) * 1000;
-									Helper::saveLog('ORYX GT1 - TIME - '.floor($overall_time), 18, file_get_contents("php://input"), $response);
-									return response()->json($response, $http_status);
-						       	}
-
-				    //            $client_response = ClientRequestHelper::fundTransfer($client_details, $amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
+				                $client_response = ClientRequestHelper::fundTransfer($client_details, $amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
 				                
-								// if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
-								// 	$http_status = 200;
-								// 	$response = [
-								// 		"responseCode" =>  "OUT_OF_MONEY",
-								// 		"errorDescription" => "Player ran out of money.",
-								// 		"balance" => $this->_toPennies($client_response->fundtransferresponse->balance)
-								// 	];
-								// }
-								// else
-								// {
-								// 	if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
-								// 		ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // -RIAN
-								// 		if(array_key_exists("roundAction", $json_data)) {
-								// 			if ($json_data["roundAction"] == "CLOSE") {
-								// 				GameRound::end($json_data['roundId']);
-								// 			}
-								// 		}
+								if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
+									$http_status = 200;
+									$response = [
+										"responseCode" =>  "OUT_OF_MONEY",
+										"errorDescription" => "Player ran out of money.",
+										"balance" => $this->_toPennies($client_response->fundtransferresponse->balance)
+									];
+								}
+								else
+								{
+									if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
+										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // -RIAN
+										if(array_key_exists("roundAction", $json_data)) {
+											if ($json_data["roundAction"] == "CLOSE") {
+												GameRound::end($json_data['roundId']);
+											}
+										}
 
-								// 		$http_status = 200;
-								// 		$response = [
-								// 			"responseCode" => "OK",
-								// 			"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
-								// 		];
+										$http_status = 200;
+										$response = [
+											"responseCode" => "OK",
+											"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
+										];
 
-								// 	}
-								// }
+									}
+								}
 
-								// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+								ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 
-								// if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
-								// 	// return if bet is not successful
-								// 	return response()->json($response, $http_status);
-								// }
+								if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
+									// return if bet is not successful
+									return response()->json($response, $http_status);
+								}
 							}
 
 							if(array_key_exists('win', $json_data)) {
@@ -361,69 +327,38 @@ class OryxGamingController extends Controller
 								
 								$game_transaction_id = GameTransaction::update('credit', $json_data, $game_details, $client_details, $client_details);
 
-								$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['win']['transactionId'], $json_data['roundId'], $this->_toDollars($json_data['win']["amount"]) + $jackpot_amount, 2,$json_data);
+								$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['win']['transactionId'], $json_data['roundId'], $this->_toDollars($json_data['win']["amount"]) + $jackpot_amount, 2);
 
 								// change $json_data['roundId'] to $game_transaction_id
-								$amount = $this->_toDollars($json_data['win']["amount"]) + $jackpot_amount;
-								$balance = $client_details->balance + $amount;
-								$body_details = [
-									'token' => $client_details->player_token,
-									'game_id' => $game_details->game_id,
-									'amount' => $amount,
-									'game_trans_ext_id' => $game_trans_ext_id,
-									'game_transaction_id' => $game_transaction_id,
-									'type' => "credit",
-									'rollback'=> false,
-									'provider_request' => $json_data
-								];
-								try{
-						       		$client = new Client();
-							 		$guzzle_response = $client->post($this->middleware_api . '/api/oryx/fund',
-							 			[ 'form_params' => $body_details, 'timeout' => '0.01']
-							 		);
-						       	} catch(\Exception $e){
-						       		$http_status = 200;
+		               			$client_response = ClientRequestHelper::fundTransfer($client_details, $this->_toDollars($json_data['win']["amount"]) + $jackpot_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
+
+								if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
+									$http_status = 200;
 									$response = [
-										"responseCode" => "OK",
-										"balance" => $this->_toPennies($balance)
+										"responseCode" =>  "OUT_OF_MONEY",
+										"errorDescription" => "Player ran out of money.",
+										"balance" => $this->_toPennies($client_response->fundtransferresponse->balance)
 									];
+								}
+								else
+								{
+									if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
+										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // -RIAN
+										if(array_key_exists("roundAction", $json_data)) {
+											if ($json_data["roundAction"] == "CLOSE") {
+												GameRound::end($json_data['roundId']);
+											}
+										}
 
-						       		$stoptime  = microtime(true);
-									$overall_time = ($stoptime - $hit_time) * 1000;
-									Helper::saveLog('ORYX GT1 - TIME - '.floor($overall_time), 18, file_get_contents("php://input"), $response);
-									return response()->json($response, $http_status);
-						       	}
-
-		      //          			$client_response = ClientRequestHelper::fundTransfer($client_details, $this->_toDollars($json_data['win']["amount"]) + $jackpot_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
-
-								// if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402") {
-								// 	$http_status = 200;
-								// 	$response = [
-								// 		"responseCode" =>  "OUT_OF_MONEY",
-								// 		"errorDescription" => "Player ran out of money.",
-								// 		"balance" => $this->_toPennies($client_response->fundtransferresponse->balance)
-								// 	];
-								// }
-								// else
-								// {
-								// 	if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
-								// 		ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // -RIAN
-								// 		if(array_key_exists("roundAction", $json_data)) {
-								// 			if ($json_data["roundAction"] == "CLOSE") {
-								// 				GameRound::end($json_data['roundId']);
-								// 			}
-								// 		}
-
-								// 		$http_status = 200;
-								// 		$response = [
-								// 			"responseCode" => "OK",
-								// 			"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
-								// 		];
-								// 	}
-								// }
+										$http_status = 200;
+										$response = [
+											"responseCode" => "OK",
+											"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
+										];
+									}
+								}
 								
-								// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
-
+								ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 							}
 						}
 						else
@@ -762,63 +697,4 @@ class OryxGamingController extends Controller
 		return (float) str_replace(' ', '', number_format(($value / 100), 2, '.', ' '));
 	}
 
-
-	public function fund(Request $request){
-		// sleep(5);
-		$response = [];
-		Helper::saveLog('fundddddd hit', 18, json_encode($request->all()), $response);
-		$client_details = ProviderHelper::getClientDetails('token', $request->token);
-		
-		$amount = $request->amount;
-		$game_details = Providerhelper::findGameID($request->game_id);
-		$game_trans_ext_id = $request->game_trans_ext_id;
-		$game_transaction_id = $request->game_transaction_id;
-		$json_data = $request->provider_request;
-
-		// $type => $request->type;
-        $client_response = ClientRequestHelper::fundTransfer($client_details, $amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, $request->type);
-	     
-
-	    if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
-			ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // updateting balance
-			// if(array_key_exists("roundAction", $json_data)) {
-			// 	if ($json_data["roundAction"] == "CLOSE") {
-			// 		GameRound::end($json_data['roundId']);
-			// 	}
-			// }
-			$response = [
-				"responseCode" => "OK",
-				"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
-			];
-			// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
-			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
-		}            
-		
-		Helper::saveLog('fundddddd done', 18, json_encode($request->all()), $response);
-	}
-
-	public function endpoint(Request $request){
-
-       	try{
-       		$client = new Client();
-	 		$guzzle_response = $client->post('localhost:9090/api/oryx/fund',
-	 			[ 'timeout' => '0.01']
-	 		);
-       	} catch(\Exception $e){
-       		return [ 'msg' => 'sdafadsfdsaf'];
-       	}
-       
-       	return 1;
-
-	}
-
-	public static function updateGameTransactionExt($gametransextid,$mw_request,$mw_response,$client_response){
-		$gametransactionext = array(
-			"mw_request"=>json_encode($mw_request),
-			"mw_response" =>json_encode($mw_response),
-			"client_response" =>json_encode($client_response),
-			"transaction_detail" => "null",
-		);
-		DB::table('game_transaction_ext')->where("game_trans_ext_id",$gametransextid)->update($gametransactionext);
-	}
 }
