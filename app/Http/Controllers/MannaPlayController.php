@@ -182,7 +182,7 @@ class MannaPlayController extends Controller
 							{
 								if(isset($client_response->fundtransferresponse->status->code) 
 							&& $client_response->fundtransferresponse->status->code == "200") {
-
+									ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
 									$http_status = 200;
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
@@ -303,7 +303,7 @@ class MannaPlayController extends Controller
 
 									if(isset($client_response->fundtransferresponse->status->code) 
 								&& $client_response->fundtransferresponse->status->code == "200") {
-										
+										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
 										$http_status = 200;
 										$response = [
 											"transaction_id" => $json_data['transaction_id'],
@@ -400,7 +400,7 @@ class MannaPlayController extends Controller
 							
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
-								
+								ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
 								$http_status = 200;
 								$response = [
 									"transaction_id" => $json_data['transaction_id'],
