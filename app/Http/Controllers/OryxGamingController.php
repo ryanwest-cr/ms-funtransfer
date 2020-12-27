@@ -58,41 +58,32 @@ class OryxGamingController extends Controller
 			
 			if ($client_details) {
 
-				$http_status = 200;
-				$response = [
-					"playerId" => $client_details->player_id,
-					"currencyCode" => $client_details->default_currency, 
-					"languageCode" => "ENG",
-					"balance" => $this->_toPennies($client_details->balance),
-					"sessionToken" => $token
-				];
-
-				// $client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 			
-				// if(isset($client_response->playerdetailsresponse->status->code) 
-				// 	&& $client_response->playerdetailsresponse->status->code == "200") {
+				if(isset($client_response->playerdetailsresponse->status->code) 
+					&& $client_response->playerdetailsresponse->status->code == "200") {
 
-				// 	// save player details if not exist
-				// 	$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
+					// save player details if not exist
+					$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
 
-				// 	// save token to system if not exist
-				// 	TokenHelper::saveIfNotExist($player_id, $token);
+					// save token to system if not exist
+					TokenHelper::saveIfNotExist($player_id, $token);
 
-				// 	$http_status = 200;
-				// 	$response = [
-				// 		"playerId" => "$player_id",
-				// 		// "currencyCode" => "USD", // RiAN
-				// 		"currencyCode" => $client_details->default_currency, 
-				// 		"languageCode" => "ENG",
-				// 		"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
-				// 		"sessionToken" => $token
-				// 	];
-				// }
-				// else
-				// {
-				// 	// change token status to expired
-				// 	// TokenHelper::changeStatus($player_id, 'expired');
-				// }
+					$http_status = 200;
+					$response = [
+						"playerId" => "$player_id",
+						// "currencyCode" => "USD", // RiAN
+						"currencyCode" => $client_details->default_currency, 
+						"languageCode" => "ENG",
+						"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
+						"sessionToken" => $token
+					];
+				}
+				else
+				{
+					// change token status to expired
+					// TokenHelper::changeStatus($player_id, 'expired');
+				}
 			}
 		}
 
@@ -127,20 +118,16 @@ class OryxGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $player_id);
 
 			if ($client_details) {
-					// $client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 					
-					// if(isset($client_response->playerdetailsresponse->status->code) 
-					// && $client_response->playerdetailsresponse->status->code == "200") {
-					// 	$http_status = 200;
-					// 	$response = [
-					// 		"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
-					// 	];
-					// }
-
-					$http_status = 200;
+					if(isset($client_response->playerdetailsresponse->status->code) 
+					&& $client_response->playerdetailsresponse->status->code == "200") {
+						$http_status = 200;
 						$response = [
-							"balance" => $this->_toPennies($client_details->balance)
-					];
+							"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
+						];
+					}
+				/*}*/
 			}
 		}
 
@@ -412,7 +399,7 @@ class OryxGamingController extends Controller
 			}
 		}
 		
-		Helper::saveLog('ORYX TRANSACTION v1', 18, file_get_contents("php://input"), $response);
+		/*Helper::saveLog($transactiontype, 18, file_get_contents("php://input"), $response);*/
 		return response()->json($response, $http_status);
 
 	}
@@ -514,7 +501,6 @@ class OryxGamingController extends Controller
 			}
 		}
 		
-		Helper::saveLog('ORYX TRANSACTION v2', 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
