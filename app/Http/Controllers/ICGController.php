@@ -100,33 +100,34 @@ class ICGController extends Controller
             $client_details = ProviderHelper::getClientDetails('token', $request->token);
             Helper::saveLog('AuthPlayer(ICG)', 12, json_encode(array("token"=>$request->token)), $client_details);
             if($client_details){
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
+                // $client = new Client([
+                //     'headers' => [ 
+                //         'Content-Type' => 'application/json',
+                //         'Authorization' => 'Bearer '.$client_details->client_access_token
+                //     ]
+                // ]);
                 
-                $guzzle_response = $client->post($client_details->player_details_url,
-                    ['body' => json_encode(
-                            [
-                                "access_token" => $client_details->client_access_token,
-                                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                                "type" => "playerdetailsrequest",
-                                "datesent" => "",
-                                "gameid" => "",
-                                "clientid" => $client_details->client_id,
-                                "playerdetailsrequest" => [
-                                    "player_username"=>$client_details->username,
-                                    "client_player_id"=>$client_details->client_player_id,
-                                    "token" => $client_details->player_token,
-                                    "gamelaunch" => "true"
-                                ]]
-                    )]
-                );
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                Helper::saveLog('AuthPlayer(ICG)', 12, json_encode(array("token"=>$request->token)), $client_response);
-                $balance = round($client_response->playerdetailsresponse->balance*100,2);
+                // $guzzle_response = $client->post($client_details->player_details_url,
+                //     ['body' => json_encode(
+                //             [
+                //                 "access_token" => $client_details->client_access_token,
+                //                 "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                //                 "type" => "playerdetailsrequest",
+                //                 "datesent" => "",
+                //                 "gameid" => "",
+                //                 "clientid" => $client_details->client_id,
+                //                 "playerdetailsrequest" => [
+                //                     "player_username"=>$client_details->username,
+                //                     "client_player_id"=>$client_details->client_player_id,
+                //                     "token" => $client_details->player_token,
+                //                     "gamelaunch" => "true"
+                //                 ]]
+                //     )]
+                // );
+                // $client_response = json_decode($guzzle_response->getBody()->getContents());
+                // Helper::saveLog('AuthPlayer(ICG)', 12, json_encode(array("token"=>$request->token)), $client_response);
+                // $balance = round($client_response->playerdetailsresponse->balance*100,2);
+                $balance = round($client_details->balance*100,2);
                 $msg = array(
                     "data" => array(
                         "statusCode" => 0,
@@ -170,33 +171,34 @@ class ICGController extends Controller
             $client_details = ProviderHelper::getClientDetails('token', $request->token);
             Helper::saveLog('PlayerDetails(ICG)', 12, json_encode(array("token"=>$request->all())), $client_details);
             if($client_details){
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
+                // $client = new Client([
+                //     'headers' => [ 
+                //         'Content-Type' => 'application/json',
+                //         'Authorization' => 'Bearer '.$client_details->client_access_token
+                //     ]
+                // ]);
                 
-                $guzzle_response = $client->post($client_details->player_details_url,
-                    ['body' => json_encode(
-                            [
-                                "access_token" => $client_details->client_access_token,
-                                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                                "type" => "playerdetailsrequest",
-                                "datesent" => "",
-                                "gameid" => "",
-                                "clientid" => $client_details->client_id,
-                                "playerdetailsrequest" => [
-                                    "player_username"=>$client_details->username,
-                                    "client_player_id"=>$client_details->client_player_id,
-                                    "token" => $client_details->player_token,
-                                    "gamelaunch" => "false"
-                                ]]
-                    )]
-                );
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                Helper::saveLog('PlayerBalance(ICG)AfterClient', 12, json_encode(array("token"=>$request->token)), $client_response);
-                $balance = round($client_response->playerdetailsresponse->balance*100,2);
+                // $guzzle_response = $client->post($client_details->player_details_url,
+                //     ['body' => json_encode(
+                //             [
+                //                 "access_token" => $client_details->client_access_token,
+                //                 "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                //                 "type" => "playerdetailsrequest",
+                //                 "datesent" => "",
+                //                 "gameid" => "",
+                //                 "clientid" => $client_details->client_id,
+                //                 "playerdetailsrequest" => [
+                //                     "player_username"=>$client_details->username,
+                //                     "client_player_id"=>$client_details->client_player_id,
+                //                     "token" => $client_details->player_token,
+                //                     "gamelaunch" => "false"
+                //                 ]]
+                //     )]
+                // );
+                // $client_response = json_decode($guzzle_response->getBody()->getContents());
+                // Helper::saveLog('PlayerBalance(ICG)AfterClient', 12, json_encode(array("token"=>$request->token)), $client_response);
+                // $balance = round($client_response->playerdetailsresponse->balance*100,2);
+                $balance = round($client_details->balance*100,2);
                 $msg = array(
                     "data" => array(
                         "statusCode" => 0,
