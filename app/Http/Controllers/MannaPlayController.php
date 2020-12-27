@@ -67,20 +67,25 @@ class MannaPlayController extends Controller
 							];
 
 				// Find the player and client details
-				$client_details = $this->_getClientDetails('token', $json_data['sessionId']);
+				$client_details = ProviderHelper::getClientDetails('token', $json_data['sessionId']);
+				// $client_details = $this->_getClientDetails('token', $json_data['sessionId']);
 				
 				if ($client_details) {
-					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+					// $client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 
-					if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
+					// if(isset($client_response->playerdetailsresponse->status->code) 
+					// && $client_response->playerdetailsresponse->status->code == "200") {
 
-						$http_status = 200;
+					// 	$http_status = 200;
+					// 	$response = [
+					// 		"balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2)
+					// 	];
+					// }
+
+					$http_status = 200;
 						$response = [
 							"balance" => bcdiv($client_details->balance, 1, 2)
-							// "balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2)
-						];
-					}
+					];
 				
 				}
 			}
