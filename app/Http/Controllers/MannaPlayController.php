@@ -77,7 +77,8 @@ class MannaPlayController extends Controller
 
 						$http_status = 200;
 						$response = [
-							"balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2)
+							"balance" => bcdiv($client_details->balance, 1, 2)
+							// "balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2)
 						];
 					}
 				
