@@ -460,7 +460,8 @@ class MannaPlayController extends Controller
 				 	]);
 				}
 
-				 $result= $query->first();
+				//  $result= $query->first();
+				 $result= $query->latest(); # RiAN
 
 		return $result;
 
