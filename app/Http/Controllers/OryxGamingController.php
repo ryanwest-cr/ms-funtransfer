@@ -58,32 +58,41 @@ class OryxGamingController extends Controller
 			
 			if ($client_details) {
 
-				$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+				$http_status = 200;
+				$response = [
+					"playerId" => "$client_details->player_id",
+					"currencyCode" => $client_details->default_currency, 
+					"languageCode" => "ENG",
+					"balance" => $this->_toPennies($client_details->balance),
+					"sessionToken" => $token
+				];
+
+				// $client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 			
-				if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
+				// if(isset($client_response->playerdetailsresponse->status->code) 
+				// 	&& $client_response->playerdetailsresponse->status->code == "200") {
 
-					// save player details if not exist
-					$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
+				// 	// save player details if not exist
+				// 	$player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
 
-					// save token to system if not exist
-					TokenHelper::saveIfNotExist($player_id, $token);
+				// 	// save token to system if not exist
+				// 	TokenHelper::saveIfNotExist($player_id, $token);
 
-					$http_status = 200;
-					$response = [
-						"playerId" => "$player_id",
-						// "currencyCode" => "USD", // RiAN
-						"currencyCode" => $client_details->default_currency, 
-						"languageCode" => "ENG",
-						"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
-						"sessionToken" => $token
-					];
-				}
-				else
-				{
-					// change token status to expired
-					// TokenHelper::changeStatus($player_id, 'expired');
-				}
+				// 	$http_status = 200;
+				// 	$response = [
+				// 		"playerId" => "$player_id",
+				// 		// "currencyCode" => "USD", // RiAN
+				// 		"currencyCode" => $client_details->default_currency, 
+				// 		"languageCode" => "ENG",
+				// 		"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
+				// 		"sessionToken" => $token
+				// 	];
+				// }
+				// else
+				// {
+				// 	// change token status to expired
+				// 	// TokenHelper::changeStatus($player_id, 'expired');
+				// }
 			}
 		}
 
@@ -118,16 +127,20 @@ class OryxGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $player_id);
 
 			if ($client_details) {
-					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+					// $client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 					
-					if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
-						$http_status = 200;
+					// if(isset($client_response->playerdetailsresponse->status->code) 
+					// && $client_response->playerdetailsresponse->status->code == "200") {
+					// 	$http_status = 200;
+					// 	$response = [
+					// 		"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
+					// 	];
+					// }
+
+					$http_status = 200;
 						$response = [
-							"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
-						];
-					}
-				/*}*/
+							"balance" => $this->_toPennies($client_details->balance)
+					];
 			}
 		}
 
@@ -144,12 +157,20 @@ class OryxGamingController extends Controller
 			$transaction_id = (array_key_exists('bet', $json_data) == true ? $json_data['bet']['transactionId'] : $json_data['win']['transactionId']);
 
 			if($this->_isCancelled($transaction_id)) {
-				$playerdetails_response = Providerhelper::playerDetailsCall($json_data['sessionToken']);
+				// $playerdetails_response = Providerhelper::playerDetailsCall($json_data['sessionToken']);
+				// $http_status = 501;
+
+				// $response = [
+				// 	"responseCode" => "ERROR",
+				// 	"balance" => $this->_toPennies($playerdetails_response->playerdetailsresponse->balance),
+				// ];
+
+				$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
 				$http_status = 501;
 
 				$response = [
 					"responseCode" => "ERROR",
-					"balance" => $this->_toPennies($playerdetails_response->playerdetailsresponse->balance),
+					"balance" => $this->_toPennies($client_details->balance),
 				];
 
 				return response()->json($response, $http_status);
@@ -249,7 +270,7 @@ class OryxGamingController extends Controller
 								else
 								{
 									if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
-
+										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
 										if(array_key_exists("roundAction", $json_data)) {
 											if ($json_data["roundAction"] == "CLOSE") {
 												GameRound::end($json_data['roundId']);
@@ -302,6 +323,7 @@ class OryxGamingController extends Controller
 								else
 								{
 									if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
+										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
 										if(array_key_exists("roundAction", $json_data)) {
 											if ($json_data["roundAction"] == "CLOSE") {
 												GameRound::end($json_data['roundId']);
@@ -340,7 +362,7 @@ class OryxGamingController extends Controller
 
 										if(isset($client_response->playerdetailsresponse->status->code) 
 											&& $client_response->playerdetailsresponse->status->code == "200") {
-
+											ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
 											$http_status = 200;
 											$response = [
 												"responseCode" => "OK",
@@ -373,7 +395,7 @@ class OryxGamingController extends Controller
 
 												if(isset($client_response->fundtransferresponse->status->code) 
 											&& $client_response->fundtransferresponse->status->code == "200") {
-
+													ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
 													if(array_key_exists("roundAction", $json_data)) {
 														if ($json_data["roundAction"] == "CLOSE") {
 															GameRound::end($json_data['roundId']);
@@ -399,7 +421,7 @@ class OryxGamingController extends Controller
 			}
 		}
 		
-		/*Helper::saveLog($transactiontype, 18, file_get_contents("php://input"), $response);*/
+		Helper::saveLog('ORYX GAMETRAN v1', 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
@@ -485,7 +507,7 @@ class OryxGamingController extends Controller
                			
 						// If client returned a success response
 						if($client_response->fundtransferresponse->status->code == "200") {
-		
+							ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
 							$http_status = 200;
 								$response = [
 									"responseCode" => "OK",
@@ -500,7 +522,8 @@ class OryxGamingController extends Controller
 				
 			}
 		}
-		
+
+		Helper::saveLog('ORYX GAMETRAN v2', 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
@@ -530,16 +553,22 @@ class OryxGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
 
 			if ($client_details) {
-					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+
+					$response = [
+						"responseCode" => "OK",
+						"balance" => $this->_toPennies($client_details->balance)
+					];
+
+					// $client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
 					
-					if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
-						$http_status = 200;
-						$response = [
-							"responseCode" => "OK",
-							"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
-						];
-					}
+					// if(isset($client_response->playerdetailsresponse->status->code) 
+					// && $client_response->playerdetailsresponse->status->code == "200") {
+					// 	$http_status = 200;
+					// 	$response = [
+					// 		"responseCode" => "OK",
+					// 		"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
+					// 	];
+					// }
 				/*}*/
 			}
 		}
