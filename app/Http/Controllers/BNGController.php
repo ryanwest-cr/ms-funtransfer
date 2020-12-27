@@ -60,7 +60,7 @@ class BNGController extends Controller
                 }
             }
             elseif($data["args"]["bet"]== null && $data["args"]["win"]!= null){
-                Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>$this->startTime,"response"=>microtime(true)]), microtime(true) - $this->startTime);
+                $this->_betGame($data);
                 return $this->_winGame($data);
             }
             elseif($data["args"]["bet"]!= null && $data["args"]["win"]== null){
@@ -255,7 +255,8 @@ class BNGController extends Controller
             $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["uid"]);
-                $bet_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
+                $bet = $data["args"]["bet"]==null ? 0:$data["args"]["bet"];
+                $bet_amount = $game_transaction ? 0 : round($bet,2);
                 $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
                 $json_data = array(
