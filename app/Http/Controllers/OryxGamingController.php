@@ -157,21 +157,21 @@ class OryxGamingController extends Controller
 			$transaction_id = (array_key_exists('bet', $json_data) == true ? $json_data['bet']['transactionId'] : $json_data['win']['transactionId']);
 
 			if($this->_isCancelled($transaction_id)) {
-				// $playerdetails_response = Providerhelper::playerDetailsCall($json_data['sessionToken']);
-				// $http_status = 501;
-
-				// $response = [
-				// 	"responseCode" => "ERROR",
-				// 	"balance" => $this->_toPennies($playerdetails_response->playerdetailsresponse->balance),
-				// ];
-
-				$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
+				$playerdetails_response = Providerhelper::playerDetailsCall($json_data['sessionToken']);
 				$http_status = 501;
 
 				$response = [
 					"responseCode" => "ERROR",
-					"balance" => $this->_toPennies($client_details->balance),
+					"balance" => $this->_toPennies($playerdetails_response->playerdetailsresponse->balance),
 				];
+
+				// $client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
+				// $http_status = 501;
+
+				// $response = [
+				// 	"responseCode" => "ERROR",
+				// 	"balance" => $this->_toPennies($client_details->balance),
+				// ];
 
 				return response()->json($response, $http_status);
 			}
