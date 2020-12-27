@@ -262,12 +262,12 @@ class AWSController extends Controller
 		$payout_reason = AWSHelper::getOperationType($details->txnTypeId);
 		$provider_trans_id = $details->txnId;
 
-		// Insert Idenpotent
+		# Insert Idenpotent
 		try{
 			ProviderHelper::idenpotencyTable($this->prefix.'_'.$details->txnId);
 		}catch(\Exception $e){
 			$response = [
-			"msg"=> "marchantTransId already exisaaaat",
+			"msg"=> "marchantTransId already exist",
 			"code"=> 2200,
 			"data"=> [
 					"currency"=> $client_details->default_currency,
