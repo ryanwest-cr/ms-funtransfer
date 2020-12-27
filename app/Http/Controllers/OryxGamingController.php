@@ -445,7 +445,8 @@ class OryxGamingController extends Controller
 				/*}*/
 			}
 		}
-		$overall_time = microtime(true) - $hit_time;
+		$stoptime  = microtime(true);
+		$overall_time = ($stoptime - $hit_time) * 1000;
 		Helper::saveLog('ORYX GT1 - TIME - '.$overall_time, 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
@@ -562,7 +563,8 @@ class OryxGamingController extends Controller
 				
 			}
 		}
-		$overall_time = microtime(true) - $hit_time;
+		$stoptime  = microtime(true);
+		$overall_time = ($stoptime - $hit_time) * 1000;
 		Helper::saveLog('ORYX GT2 - TIME - '.$overall_time, 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 	}
