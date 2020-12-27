@@ -258,6 +258,7 @@ class ICGController extends Controller
                 //End
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
+                    ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
                     $response =array(
                         "data" => array(
                             "statusCode"=>0,
@@ -326,7 +327,7 @@ class ICGController extends Controller
                 $balance = round($client_response->fundtransferresponse->balance * 100,2);
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
-                    
+                    ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
                     $response =array(
                         "data" => array(
                             "statusCode"=>0,
