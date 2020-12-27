@@ -80,11 +80,7 @@ class MannaPlayController extends Controller
 							"balance" => bcdiv($client_response->playerdetailsresponse->balance, 1, 2)
 						];
 					}
-
-					// $http_status = 200;
-					// $response = [
-					// 	"balance" => bcdiv($client_details->balance, 1, 2)
-					// ];
+				
 				}
 			}
 		}
@@ -186,7 +182,7 @@ class MannaPlayController extends Controller
 							{
 								if(isset($client_response->fundtransferresponse->status->code) 
 							&& $client_response->fundtransferresponse->status->code == "200") {
-									ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
+
 									$http_status = 200;
 									$response = [
 										"transaction_id" => $json_data['transaction_id'],
@@ -307,7 +303,7 @@ class MannaPlayController extends Controller
 
 									if(isset($client_response->fundtransferresponse->status->code) 
 								&& $client_response->fundtransferresponse->status->code == "200") {
-										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
+										
 										$http_status = 200;
 										$response = [
 											"transaction_id" => $json_data['transaction_id'],
@@ -404,7 +400,7 @@ class MannaPlayController extends Controller
 							
 							// If client returned a success response
 							if($client_response->fundtransferresponse->status->code == "200") {
-								ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
+								
 								$http_status = 200;
 								$response = [
 									"transaction_id" => $json_data['transaction_id'],
@@ -440,7 +436,7 @@ class MannaPlayController extends Controller
 
 	private function _getClientDetails($type = "", $value = "") {
 		$query = DB::table("clients AS c")
-				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' ,`pst`.`balance`, 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
+				 ->select('p.client_id', 'p.player_id', 'p.client_player_id', 'p.username', 'p.email', 'p.language', 'c.default_currency', 'c.default_currency AS currency', 'pst.token_id', 'pst.player_token' , 'pst.status_id', 'p.display_name', 'c.client_api_key', 'cat.client_token AS client_access_token', 'ce.player_details_url', 'ce.fund_transfer_url')
 				 ->leftJoin("players AS p", "c.client_id", "=", "p.client_id")
 				 ->leftJoin("player_session_tokens AS pst", "p.player_id", "=", "pst.player_id")
 				 ->leftJoin("client_endpoints AS ce", "c.client_id", "=", "ce.client_id")
@@ -460,8 +456,7 @@ class MannaPlayController extends Controller
 				 	]);
 				}
 
-				$result= $query->first();
-				//  $result= $query->latest(); # RiAN
+				 $result= $query->first();
 
 		return $result;
 
