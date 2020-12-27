@@ -428,10 +428,11 @@ class OryxGamingController extends Controller
 
 	}
 
+	
 	public function gameTransactionV2(Request $request) 
 	{
-		$json_data = json_decode(file_get_contents("php://input"), true);
 		Helper::saveLog('ORYX GAMETRAN v2', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
+		$json_data = json_decode(file_get_contents("php://input"), true);
 
 		if($this->_isIdempotent($json_data['transactionId'], true)) {
 			$http_status = 409;
@@ -533,6 +534,7 @@ class OryxGamingController extends Controller
 
 	public function roundFinished(Request $request) 
 	{
+		Helper::saveLog('roundFinished', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$client_code = RouteParam::get($request, 'brand_code');
 		$player_id = RouteParam::get($request, 'player_id');
