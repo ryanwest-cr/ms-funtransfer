@@ -155,6 +155,7 @@ class OryxGamingController extends Controller
 
 	public function gameTransaction(Request $request) 
 	{
+		$hit_time =  microtime(true);
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		Helper::saveLog('ORYX GAMETRAN v1', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 
@@ -185,7 +186,7 @@ class OryxGamingController extends Controller
 			// 	return $this->_isIdempotent($transaction_id)->mw_response;
 			// }
 
-			# Insert Idenpotent
+			# Insert Idenpotent -RIAN
 			try{
 				ProviderHelper::idenpotencyTable($this->prefix.'_'.$transaction_id);
 			}catch(\Exception $e){
@@ -289,7 +290,7 @@ class OryxGamingController extends Controller
 								else
 								{
 									if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
-										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
+										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // -RIAN
 										if(array_key_exists("roundAction", $json_data)) {
 											if ($json_data["roundAction"] == "CLOSE") {
 												GameRound::end($json_data['roundId']);
@@ -342,7 +343,7 @@ class OryxGamingController extends Controller
 								else
 								{
 									if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") {
-										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
+										ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // -RIAN
 										if(array_key_exists("roundAction", $json_data)) {
 											if ($json_data["roundAction"] == "CLOSE") {
 												GameRound::end($json_data['roundId']);
@@ -419,7 +420,7 @@ class OryxGamingController extends Controller
 
 												if(isset($client_response->fundtransferresponse->status->code) 
 											&& $client_response->fundtransferresponse->status->code == "200") {
-													ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
+													ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // -RIAN
 													if(array_key_exists("roundAction", $json_data)) {
 														if ($json_data["roundAction"] == "CLOSE") {
 															GameRound::end($json_data['roundId']);
@@ -444,8 +445,8 @@ class OryxGamingController extends Controller
 				/*}*/
 			}
 		}
-		
-		Helper::saveLog('ORYX GAMETRAN v1', 18, file_get_contents("php://input"), $response);
+		$overall_time = microtime(true) - $hit_time;
+		Helper::saveLog('ORYX GT1 - TIME - '.$overall_time, 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
@@ -453,6 +454,7 @@ class OryxGamingController extends Controller
 	
 	public function gameTransactionV2(Request $request) 
 	{
+		$hit_time = microtime(true);
 		Helper::saveLog('ORYX GAMETRAN v2', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
@@ -466,7 +468,7 @@ class OryxGamingController extends Controller
 		// 	return response()->json($response, $http_status);
 		// }
 
-		# Insert Idenpotent
+		# Insert Idenpotent -RIAN
 		try{
 			ProviderHelper::idenpotencyTable($this->prefix.'_'.$json_data['transactionId']);
 		}catch(\Exception $e){
@@ -545,7 +547,7 @@ class OryxGamingController extends Controller
                			
 						// If client returned a success response
 						if($client_response->fundtransferresponse->status->code == "200") {
-							ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
+							ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); // -RIAN
 							$http_status = 200;
 								$response = [
 									"responseCode" => "OK",
@@ -560,10 +562,9 @@ class OryxGamingController extends Controller
 				
 			}
 		}
-
-		Helper::saveLog('ORYX GAMETRAN v2', 18, file_get_contents("php://input"), $response);
+		$overall_time = microtime(true) - $hit_time;
+		Helper::saveLog('ORYX GT2 - TIME - '.$overall_time, 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
-
 	}
 
 	public function roundFinished(Request $request) 
