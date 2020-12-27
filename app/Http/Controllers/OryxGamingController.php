@@ -360,18 +360,23 @@ class OryxGamingController extends Controller
 									if ($json_data["roundAction"] == "CLOSE") {
 										GameRound::end($json_data['roundId']);
 										
-										$client_response = Providerhelper::playerDetailsCall($client_details->player_token);
+										// $client_response = Providerhelper::playerDetailsCall($client_details->player_token);
 
-										if(isset($client_response->playerdetailsresponse->status->code) 
-											&& $client_response->playerdetailsresponse->status->code == "200") {
-											ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
-											$http_status = 200;
-											$response = [
+										// if(isset($client_response->playerdetailsresponse->status->code) 
+										// 	&& $client_response->playerdetailsresponse->status->code == "200") {
+										// 	ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
+										// 	$http_status = 200;
+										// 	$response = [
+										// 		"responseCode" => "OK",
+										// 		"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
+										// 	];
+										// }
+
+										$http_status = 200;
+										$response = [
 												"responseCode" => "OK",
-												"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
-											];
-										}
-
+												"balance" => $this->_toPennies($client_details->balance),
+										];
 									}
 
 									if ($json_data["roundAction"] == "CANCEL") {
