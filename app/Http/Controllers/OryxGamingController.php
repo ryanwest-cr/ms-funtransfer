@@ -26,6 +26,9 @@ use DB;
 
 class OryxGamingController extends Controller
 {
+
+	public $prefix = 'ORYX';
+
     public function __construct(){
 		/*$this->middleware('oauth', ['except' => ['index']]);*/
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
@@ -178,9 +181,23 @@ class OryxGamingController extends Controller
 				return response()->json($response, $http_status);
 			}
 
-			if($this->_isIdempotent($transaction_id)) {
-				return $this->_isIdempotent($transaction_id)->mw_response;
+			// if($this->_isIdempotent($transaction_id)) {
+			// 	return $this->_isIdempotent($transaction_id)->mw_response;
+			// }
+
+			# Insert Idenpotent
+			try{
+				ProviderHelper::idenpotencyTable($this->prefix.'_'.$transaction_id);
+			}catch(\Exception $e){
+				$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerId']);
+				$http_status = 200;
+				$response = [
+					"responseCode" => "OK",
+					"balance" => $this->_toPennies($client_details->balance),
+				];
+				return $response;
 			}
+			
 		}
 		
 
@@ -439,13 +456,25 @@ class OryxGamingController extends Controller
 		Helper::saveLog('ORYX GAMETRAN v2', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 
-		if($this->_isIdempotent($json_data['transactionId'], true)) {
-			$http_status = 409;
-				$response = [
-							"responseCode" =>  "ERROR",
-							"errorDescription" => "This transaction is already processed."
-						];
+		// if($this->_isIdempotent($json_data['transactionId'], true)) {
+		// 	$http_status = 409;
+		// 		$response = [
+		// 					"responseCode" =>  "ERROR",
+		// 					"errorDescription" => "This transaction is already processed."
+		// 				];
 
+		// 	return response()->json($response, $http_status);
+		// }
+
+		# Insert Idenpotent
+		try{
+			ProviderHelper::idenpotencyTable($this->prefix.'_'.$json_data['transactionId']);
+		}catch(\Exception $e){
+			$http_status = 409;
+			$response = [
+				"responseCode" =>  "ERROR",
+				"errorDescription" => "This transaction is already processed."
+			];
 			return response()->json($response, $http_status);
 		}
 
