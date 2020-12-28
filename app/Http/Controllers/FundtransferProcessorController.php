@@ -45,7 +45,7 @@ class FundtransferProcessorController extends Controller
                 $payload->action->mwapi->mw_response
             );
         }catch(\Exception $e){
-            Helper::saveLog('fundTransfer TID', 888, json_encode([]), $e->getMessage().' '.$e->getLine().' '.$e->getFile());
+            Helper::saveLog('fundTransfer generateGTEID', 888, json_encode([]), $e->getMessage().' '.$e->getLine().' '.$e->getFile());
         }
 
         $client = new Client([
