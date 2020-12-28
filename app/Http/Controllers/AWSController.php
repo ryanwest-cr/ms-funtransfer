@@ -406,7 +406,7 @@ class AWSController extends Controller
 							"accountId"=> $details->accountId,
 							"txnId"=> $details->txnId,
 							"eventTime"=> date('Y-m-d H:i:s'),
-							"balance" => floatval(number_format((float)$client_response2->fundtransferresponse->balance, 2, '.', '')),
+							"balance" => floatval(number_format((float)$new_balance, 2, '.', '')),
 							"bonusBalance" => 0
 						]
 					];
