@@ -344,6 +344,7 @@ class AWSController extends Controller
             	// AWSHelper::saveLog('AWS singleFundTransfer - C1 createGameTransExtV2', $this->provider_db_id, $data, Helper::datesent());
             	// $game_transextension2 = AWSHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $win_amount_2way, 2);
             	try {
+					ProviderHelper::_insertOrUpdate($client_details->token_id, $client_details->balance + $win_amount_2way);
 
 					$response = [
 						"msg"=> "success",
