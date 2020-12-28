@@ -131,7 +131,7 @@ class PragmaticPLayController extends Controller
         $dataSort = json_decode($json_encode, true);
 
         $hash = $this->hashParam($dataSort);
-        
+
         // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         if($hash != $data->hash){
             $response = [
@@ -278,7 +278,7 @@ class PragmaticPLayController extends Controller
             $msg = array("status" => 'error',"message" => $e->getMessage());
             ProviderHelper::updateGameTransactionStatus($game_trans, 99, 99);
             ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-            Helper::saveLog('PP bet - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+            Helper::saveLog('PP bet - FATAL ERROR', $this->provider_id, json_encode($data), Helper::datesent());
             return $msg;
         }
 
@@ -319,7 +319,6 @@ class PragmaticPLayController extends Controller
         // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         $dataSort = json_decode($json_encode, true);
         $hash = $this->hashParam($dataSort);
-        
         // if($hash != $data->hash){
         //     $response = [
         //         "error" => 5,
@@ -398,43 +397,7 @@ class PragmaticPLayController extends Controller
                 } catch (\Exception $e) {
                     $msg = array("status" => 'error',"message" => $e->getMessage());
                     ProviderHelper::updatecreateGameTransExt($game_trans_ext_v2, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-                    Helper::saveLog('PP promowin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
-                    return $msg;
-                }
-            }
-
-            if(isset($data->promoCampaignID)){
-              
-                $gametrans = ProviderHelper::createGameTransaction($client_details->token_id, $game_details->game_id, 0.00, $data->promoWinAmount, 2, 1, null, "Promo Win (prize drop)", 0 - $data->promoWinAmount, $data->reference, $data->roundId);
-                $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $game_trans[0]->game_trans_id, $data->promoCampaignID, $round_id, $data->promoWinAmount, $entry_id);
-                
-                try {
-                    $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, $gametrans, 'credit');
-                    
-                    $income = $game_trans[0]->bet_amount - $data->amount;
-                    $win = 1;
-                    
-                    $update = DB::table('game_transactions')->where("game_trans_id","=",$game_trans[0]->game_trans_id)->update(["round_id" => $round_id, "pay_amount" => $payout, "income" => $income, "win" => $win, "entry_id" => $entry_id ]);
-        
-                    
-                    $response = array(
-                        "transactionId" => $game_trans_ext_v2,
-                        "currency" => $client_details->default_currency,
-                        "cash" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
-                        "bonus" => 0,
-                        "error" => 0,
-                        "description" => "Success",
-                    );
-                    
-                    $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $payout,"game_transaction_type" => $entry_id,"provider_request" => json_encode($data),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
-        
-                    Helper::saveLog('PP promo win', $this->provider_id, json_encode($data) , $response);
-                    
-                    return $response;
-                } catch (\Exception $e) {
-                    $msg = array("status" => 'error',"message" => $e->getMessage());
-                    ProviderHelper::updatecreateGameTransExt($game_trans_ext_v2, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-                    Helper::saveLog('PP promowin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+                    Helper::saveLog('PP promowin - FATAL ERROR', $this->provider_id, json_encode($data), Helper::datesent());
                     return $msg;
                 }
             }
@@ -445,26 +408,46 @@ class PragmaticPLayController extends Controller
 
         try {
             
-            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, $game_trans[0]->game_trans_id, 'credit');
+            // $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, $game_trans[0]->game_trans_id, 'credit');
 
             $income = $game_trans[0]->bet_amount - $data->amount;
             
             
             $update = DB::table('game_transactions')->where("game_trans_id","=",$game_trans[0]->game_trans_id)->update(["round_id" => $round_id, "pay_amount" => $payout, "income" => $income, "win" => $win, "entry_id" => $entry_id ]);
 
-            
+            $balance = $client_details->balance + $data->amount;
             $response = array(
                 "transactionId" => $game_trans_ext_v2,
                 "currency" => $client_details->default_currency,
-                "cash" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
+                "cash" => floatval(number_format($balance, 2, '.', '')),
                 "bonus" => 0,
                 "error" => 0,
                 "description" => "Success",
             );
 
-            $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $payout,"game_transaction_type" => $entry_id,"provider_request" => json_encode($data),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
+            $action_payload = [
+                "type" => "custom", #genreral,custom :D # REQUIRED!
+                "custom" => [
+                    "provider" => 'tpp',
+                ],
+                "provider" => [
+                    "provider_request" => json_encode($data),
+                    "provider_trans_id"=>$provider_trans_id,
+                    "provider_round_id"=>$round_id,
+                ],
+                "mwapi" => [
+                    "roundId"=> $game_trans_ext_v2,
+                    "type"=>2,
+                    "game_id" => $game_details->game_id,
+                    "player_id" => $client_details->player_id,
+                    "mw_response" => $response,
+                ]
+            ];
 
-            $save_bal = DB::table("player_session_tokens")->where("token_id","=",$token_id)->update(["balance" => $client_response->fundtransferresponse->balance]);
+            // $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $payout,"game_transaction_type" => $entry_id,"provider_request" => json_encode($data),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
+
+            $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, 'credit', false, $action_payload);
+            $save_bal = DB::table("player_session_tokens")->where("token_id","=",$token_id)->update(["balance" => $balance]);
             Helper::saveLog('PP result', $this->provider_id, json_encode($data) , $response);
             
             return $response;
@@ -473,7 +456,7 @@ class PragmaticPLayController extends Controller
         } catch (\Exception $e) {
             $msg = array("status" => 'error',"message" => $e->getMessage());
             ProviderHelper::updatecreateGameTransExt($game_trans_ext_v2, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
-            Helper::saveLog('PP gameWin - FATAL ERROR', $this->provider_db_id, json_encode($data), Helper::datesent());
+            Helper::saveLog('PP gameWin - FATAL ERROR', $this->provider_id, json_encode($data), Helper::datesent());
             return $msg;
         }
         
