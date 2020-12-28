@@ -237,12 +237,12 @@ class ClientRequestHelper{
             $guzzle_response = $client->post(config('providerlinks.oauth_mw_api.mwurl').'/tigergames/fundtransfer',
                 [
                     'on_stats' => function (TransferStats $stats) use ($requesttocient) {
-                        Helper::saveLog('TIME = ' . $stats->getTransferTime() . ' GEID = ' . $requesttocient['fundtransferrequest']['fundinfo']['transactionId'] . ' ' . $requesttocient['fundtransferrequest']['fundinfo']['transactiontype'], 999, json_encode($stats->getHandlerStats()), $requesttocient);
+                        Helper::saveLog('TIME = ' . $stats->getTransferTime() . ' GEID = ' . $requesttocient['request_body']['fundtransferrequest']['fundinfo']['transactionId'] . ' ' . $requesttocient['request_body']['fundtransferrequest']['fundinfo']['transactiontype'], 999, json_encode($stats->getHandlerStats()), $requesttocient);
                     },
                     'timeout' => 0.10, # enough tobe received by the server!
                     'body' => json_encode($requesttocient)
                 ],
-                ['defaults' => ['exceptions' => false]]
+                // ['defaults' => ['exceptions' => false]]
             );
         }catch(\Exception $e){
 
@@ -251,7 +251,6 @@ class ClientRequestHelper{
             }else{
                 $balance = $client_details->balance + $amount;
             }
-            // ProviderHelper::_insertOrUpdate($client_details->token_id, $balance);
             $response = array(
                 "fundtransferresponse" => array(
                     "status" => array(

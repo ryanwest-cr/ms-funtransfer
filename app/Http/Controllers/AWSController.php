@@ -387,7 +387,7 @@ class AWSController extends Controller
             		$client_response2 = ClientRequestHelper::fundTransfer_TG($client_details,abs($win_amount_2way),$game_details->game_code,$game_details->game_name,$gamerecord,'credit',false,$action_payload);
 					// AWSHelper::saveLog('AWS singleFundTransfer - fundTransfer II CHECK', $this->provider_db_id, $data, 'DONE');
             	} catch (\Exception $e) {
-					return $e->getMessage();
+					return $e->getMessage().' '.$e->getLine().' '.$e->getFile();
             		// $response = ["msg"=> "Fund transfer encountered error","code"=> 2205,"data"=> []];
             		// AWSHelper::updatecreateGameTransExt($game_transextension2, 'FAILED', $response, 'FAILED', $e->getMessage().' '.$e->getLine(), 'FAILED', 'FAILED');
             		// AWSHelper::saveLog('AWS singleFundTransfer - FATAL ERROR', $this->provider_db_id, json_encode($response), Helper::datesent());
