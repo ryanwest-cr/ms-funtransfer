@@ -245,11 +245,13 @@ class ClientRequestHelper{
                 ['defaults' => ['exceptions' => false]]
             );
         }catch(\Exception $e){
+
             if($type == 'debit'){
                 $balance = $client_details->balance - $amount;
             }else{
                 $balance = $client_details->balance + $amount;
             }
+            ProviderHelper::_insertOrUpdate($client_details->token_id, $balance);
             $response = array(
                 "fundtransferresponse" => array(
                     "status" => array(

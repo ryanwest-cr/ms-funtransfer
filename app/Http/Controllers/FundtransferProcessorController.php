@@ -95,6 +95,7 @@ class FundtransferProcessorController extends Controller
             if(isset($client_response->fundtransferresponse->status->code) 
             && $client_response->fundtransferresponse->status->code == "200"){
                 # NOTE DEBIT AND CREDIT SOMETIMES HAS DIFFERENT WAY OF UPDATING JUST USE YOUR CUSTOM!!
+                ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response2->fundtransferresponse->balance);
 
                 # You can add your own helper for custom gametransaction update like general_details etc!
                 if($payload->action->type == 'custom'){
