@@ -136,18 +136,28 @@ class PragmaticPLayController extends Controller
         if($hash != $data->hash){
             $response = [
                 "error" => 5,
-                "decription" => "Success"
+                "decription" => "Invalid Hash"
             ];
             return $response;
             Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
 
         Helper::saveLog('PP bet request', $this->provider_id,json_encode($data), "");
-
+        $game_details = Helper::findGameDetails('game_code', $this->provider_id, $data->gameId);
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+
+        # Check Game Restricted
+		$restricted_player = ProviderHelper::checkGameRestricted($game_details->game_id, $client_details->player_id);
+		if($restricted_player){
+			$response = array(
+                "error" => 3,
+                "description" => "Player has been blocked on This game"
+            );
+			return $response;
+		}
+
         // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $game_details = Helper::findGameDetails('game_code', $this->provider_id, $data->gameId);
    
 
         $tokenId = $client_details->token_id;
