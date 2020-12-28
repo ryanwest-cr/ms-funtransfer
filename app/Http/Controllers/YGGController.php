@@ -61,6 +61,16 @@ class YGGController extends Controller
     {
         $playerId = ProviderHelper::explodeUsername('_',$request->playerid);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+        $game_details = Helper::findGameDetails('game_code', $this->provider_id, $request->cat5);
+        # Check Game Restricted
+		$restricted_player = ProviderHelper::checkGameRestricted($game_details->game_id, $client_details->player_id);
+		if($restricted_player){
+			$response = array(
+                "code" => 1007,
+                "msg" => "Player has been blocked on This game"
+            );
+			return $response;
+		}
         // $client_details = DB::select("select p.client_id, p.player_id, p.email, p.client_player_id,p.language, p.currency, p.test_player, p.username,p.created_at,pst.token_id,pst.player_token,c.client_url,c.default_currency,pst.status_id,p.display_name,op.client_api_key,op.client_code,op.client_access_token,ce.player_details_url,ce.fund_transfer_url,p.created_at from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) WHERE player_id = '$playerId' ORDER BY token_id desc LIMIT 1");
         if($client_details == null){ 
             $response = array(
@@ -72,38 +82,38 @@ class YGGController extends Controller
         }
         // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
-        $gamecode = '';
-        $game_name = '';
-        for ($x = 1; $x <= 9; $x++) {
-            if($request['cat'.$x] != ''){
-                $qry = "select * from games where provider_id = ".$this->provider_id." and game_code = '".$request['cat'.$x]."'" ;
-                $game_details = DB::select($qry);
-            }else{
-                break;
-            }
-            if(count($game_details) > 0){
-                $gamecode = $game_details[0]->game_code;
-                $game_name = $game_details[0]->game_name;
-            }
-        } 
+        // $gamecode = '';
+        // $game_name = '';
+        // for ($x = 1; $x <= 9; $x++) {
+        //     if($request['cat'.$x] != ''){
+        //         $qry = "select * from games where provider_id = ".$this->provider_id." and game_code = '".$request['cat'.$x]."'" ;
+        //         $game_details = DB::select($qry);
+        //     }else{
+        //         break;
+        //     }
+        //     if(count($game_details) > 0){
+        //         $gamecode = $game_details->game_code;
+        //         $game_name = $game_details->game_name;
+        //     }
+        // } 
         
         $balance = $client_details->balance;
         
         $tokenId = $client_details->token_id;
-        $game_code = $game_details[0]->game_code;
-        $game_id = $game_details[0]->game_id;
+        $game_code = $game_details->game_code;
+        $game_id = $game_details->game_id;
         $bet_amount = $request->amount;
-        $roundId = $request->subreference;
-        $provider_trans_id = $request->reference;
+        $roundId = $request->reference;
+        $provider_trans_id = $request->subreference;
         $bet_payout = 0; // Bet always 0 payout!
         $method = 1; // 1 bet, 2 win
         $win_or_lost = 0; // 0 Lost, 1 win, 3 draw, 4 refund, 5 processing
         $payout_reason = 'Bet';
         $income = $request->amount;
-        $checkTrans = DB::select("SELECT game_trans_id FROM game_transactions WHERE provider_trans_id = '$request->reference' AND round_id = '$request->subreference' ");
-        // $checkTrans = DB::table('game_transactions')->where('provider_trans_id','=',$request->reference)->where('round_id','=',$request->subreference)->get();
+        $checkTrans = DB::select("SELECT game_trans_id FROM game_transactions WHERE provider_trans_id = '$request->subreference' AND round_id = '$request->reference' ");
+        // $checkTrans = DB::table('game_transactions')->where('provider_trans_id','=',$request->reference)->where('round_id','=',$request->reference)->get();
 
-        // $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details[0]->game_id, $bet_amount, 0.00, 1, 0, null, null, $bet_amount, $provider_trans_id, $round_id);
+        // $gametrans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, $bet_amount, 0.00, 1, 0, null, null, $bet_amount, $provider_trans_id, $round_id);
         // $game_trans_ext = ProviderHelper::createGameTransExt( $gametrans, $provider_trans_id, $round_id, $bet_amount, 1, json_encode($request->all()), $response, , $client_response['client_response'], "");  
 
         try{
@@ -139,7 +149,7 @@ class YGGController extends Controller
                 return $response;
             }
             
-            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_transextension,$game_trans,'debit');
+            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount,$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
 
             $response = array(
                 "code" => 0,
@@ -184,9 +194,9 @@ class YGGController extends Controller
             Helper::saveLog("YGG cancelwager login", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
         }
-        $provider_trans_id = $request->reference;
-        $round_id = $request->subreference;
-        $checkTrans = DB::select("SELECT game_trans_id FROM game_transactions WHERE provdier_trans_id = '$request->reference' AND round_id = '$request->subreference' ");;
+        $provider_trans_id = $request->subreference;
+        $round_id = $request->reference;
+        $checkTrans = DB::select("SELECT game_trans_id FROM game_transactions WHERE provdier_trans_id = '$request->subreference' AND round_id = '$request->reference' ");;
         $game_details = DB::select("SELECT game_name, game_code FROM games WHERE game_id = '$checkTrans[0]->game_id' "); # DB::table("games")->where("game_id","=",$checkTrans[0]->game_id)->first();
         $gamecode = $game_details[0]->game_code;
         $game_name = $game_details[0]->game_name;
@@ -274,14 +284,14 @@ class YGGController extends Controller
                 $game_name = $game_details[0]->game_name;
             }
         } 
-        $checkTrans = DB::select("SELECT game_trans_id FROM game_transactions WHERE provdier_trans_id = '$request->reference' AND round_id = '$request->subreference' ");
-        // $checkTrans = DB::table('game_transactions')->where('provider_trans_id','=',$request->reference)->where('round_id','=',$request->subreference)->get();
+        $checkTrans = DB::select("SELECT game_trans_id FROM game_transactions WHERE provdier_trans_id = '$request->subreference' AND round_id = '$request->reference' ");
+        // $checkTrans = DB::table('game_transactions')->where('provider_trans_id','=',$request->reference)->where('round_id','=',$request->reference)->get();
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $balance = $player_details->playerdetailsresponse->balance;
         $tokenId = $client_details->token_id;
         $bet_amount = $request->amount;
-        $provider_trans_id = $request->reference;
-        $round_id = $request->subreference;
+        $provider_trans_id = $request->subreference;
+        $round_id = $request->reference;
 
         
        
@@ -363,36 +373,21 @@ class YGGController extends Controller
             return $response;
         }
 
-        // $checkTrans = DB::table('game_transaction_ext')->where('provider_trans_id','=',$request->reference)->where('round_id','=',$request->subreference)->get();
-        $checkTrans = DB::select("SELECT game_trans_ext_id FROM game_transaction_ext WHERE provider_trans_id = '$request->reference' AND round_id = '$request->subreference' ");
+        // $checkTrans = DB::table('game_transaction_ext')->where('provider_trans_id','=',$request->reference)->where('round_id','=',$request->reference)->get();
+        $checkTrans = DB::select("SELECT game_trans_ext_id FROM game_transaction_ext WHERE provider_trans_id = '$request->subreference' AND round_id = '$request->reference' ");
         // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
-        $gamecode = '';
-        $game_name = '';
-        for ($x = 1; $x <= 9; $x++) {
-            if($request['cat'.$x] != ''){
-                $qry = "select * from games where provider_id = ".$this->provider_id." and game_code = '".$request['cat'.$x]."'" ;
-                $game_details = DB::select($qry);
-            }else{
-                break;
-            }
-            if(count($game_details) > 0){
-                $gamecode = $game_details[0]->game_code;
-                $game_name = $game_details[0]->game_name;
-            }
-        } 
+        $game_details = Helper::findGameDetails('game_code', $this->provider_id, $request->cat5);
 
         $balance = $client_details->balance;
         $tokenId = $client_details->token_id;
         $bet_amount = $request->amount;
-        $provider_trans_id = $request->reference;
-        $round_id = $request->subreference;
-        $getTrans = DB::select("SELECT * FROM game_transactions WHERE provider_trans_id = '$provider_trans_id' ");
+        $provider_trans_id = $request->subreference;
+        $round_id = $request->reference;
+        $getTrans = DB::select("SELECT * FROM game_transactions WHERE round_id = '$round_id' ");
         // $getTrans = DB::table('game_transactions')->where('provider_trans_id','=',$provider_trans_id)->get();
         $income = $getTrans[0]->bet_amount - $bet_amount;
         $entry_id = $bet_amount > 0 ? 2 : 1;
         $win = $bet_amount > 0 ? 1 : 0;
-        
-
         
         if(count($checkTrans) > 0){
             $response = array(
@@ -415,12 +410,8 @@ class YGGController extends Controller
         $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $getTrans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, $entry_id);
        
         try{
-
-
-
-            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_details[0]->game_code, $game_details[0]->game_name, $game_trans_ext_v2, $getTrans[0]->game_trans_id, 'credit');
-
-            
+            // $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_v2, $getTrans[0]->game_trans_id, 'credit');
+            $balance = $client_details->balance + $bet_amount;
             $response = array(
                 "code" => 0,
                 "data" => array(
@@ -428,18 +419,36 @@ class YGGController extends Controller
                     "applicableBonus" => 0.00,
                     "homeCurrency" => $client_details->default_currency,
                     "organization" => $this->org,
-                    "balance" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
+                    "balance" => floatval(number_format($balance, 2, '.', '')),
                     "nickName" => $client_details->display_name,
                     "playerId" => "TGaming_".$client_details->player_id
                 ),
             );
-            
+            $action_payload = [
+                "type" => "custom", #genreral,custom :D # REQUIRED!
+                "custom" => [
+                    "provider" => 'tpp',
+                ],
+                "provider" => [
+                    "provider_request" => $request->all(),
+                    "provider_trans_id"=>$provider_trans_id,
+                    "provider_round_id"=>$round_id,
+                ],
+                "mwapi" => [
+                    "roundId"=> $game_trans_ext_v2,
+                    "type"=>2,
+                    "game_id" => $game_details->game_id,
+                    "player_id" => $client_details->player_id,
+                    "mw_response" => $response,
+                ]
+            ];
             $update = DB::table('game_transactions')
                         ->where('game_trans_id','=',$getTrans[0]->game_trans_id)
                         ->update(["win" => $win, "pay_amount" => $bet_amount, "entry_id" => $entry_id, "income" => $income]);
 
-            $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $bet_amount,"game_transaction_type" => $entry_id,"provider_request" => json_encode($request->all(),JSON_FORCE_OBJECT),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
-            $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $client_response->fundtransferresponse->balance]);
+            // $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $bet_amount,"game_transaction_type" => $entry_id,"provider_request" => json_encode($request->all(),JSON_FORCE_OBJECT),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
+            $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $round_id, 'credit', false, $action_payload);
+            $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $balance]);
             Helper::saveLog("YGG endwager (win)", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
 
