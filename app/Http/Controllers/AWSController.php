@@ -426,7 +426,7 @@ class AWSController extends Controller
 					];
 
 					# Game Restrict (failed win)
-					Providerhelper::createRestrictGame($game_details->game_id,$client_details->player_id,$game_transextension2, 'FAILED');
+					// Providerhelper::createRestrictGame($game_details->game_id,$client_details->player_id,$game_transextension2, 'FAILED');
             	}
 
 			}elseif(isset($client_response->fundtransferresponse->status->code) 
