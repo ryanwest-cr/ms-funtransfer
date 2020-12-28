@@ -9,13 +9,20 @@ use App\Helpers\Helper;
 // use App\Helpers\GoldenFHelper;
 // use App\Helpers\SessionWalletHelper;
 use App\Helpers\ProviderHelper;
+
 use GuzzleHttp\Client;
+use GuzzleHttp\Handler\CurlMultiHandler;
+use GuzzleHttp\HandlerStack;
+use Psr\Http\Message\ResponseInterface;
+
 use App\Helpers\ClientRequestHelper;
 // use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 // use Session;
 // use Auth;
 use DB;
+
+use function GuzzleHttp\json_decode;
 
 /**
  *  DEBUGGING! CALLS! -RiAN ONLY! 10:21:51
@@ -50,7 +57,6 @@ class AlController extends Controller
 
     public function checkCLientPlayer(Request $request){
         // DB::enableQueryLog();
-
         $start_method = microtime(true);
 
         if(!$request->header('hashen')){
@@ -98,7 +104,7 @@ class AlController extends Controller
 
               $client_response = json_decode($guzzle_response->getBody()->getContents());
               $client_response->request_body = $datatosend;
-              // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
+              Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode($client_response), "TIME PLAYERDETAILS");
               // return json_encode($client_response);
               $client_response->lumen_boot_start = ($start_method - LARAVEL_START) * 1000;
               $client_response->qry_player = ($end_qry - $start_qry) * 1000;
@@ -325,12 +331,170 @@ class AlController extends Controller
       return $client_details > 0 ? $query[0] : null;
     }
 
+    public function tapulan2(Request $request){
+              Helper::saveLog('PLAYER RESPONSE', 999, json_encode([]), "END HIT");
+              $client_details = $this->getClientDetails('player_id', 10210);
+              // $client_details = $this->getClientDetails('player_id', $request->player_id);
+              $client = new Client([
+                  'headers' => [ 
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.$client_details->client_access_token
+                  ]
+              ]);
+              $datatosend = ["access_token" => $client_details->client_access_token,
+                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                "type" => "playerdetailsrequest",
+                "datesent" => Helper::datesent(),
+                "clientid" => $client_details->client_id,
+                "playerdetailsrequest" => [
+                  "player_username"=>$client_details->username,
+                  "client_player_id" => $client_details->client_player_id,
+                  "token" => $client_details->player_token,
+                  "gamelaunch" => true,
+                  "refreshtoken" => false,
+                ]
+              ];
+
+              $request_time = microtime(true);
+              $guzzle_response = $client->post($client_details->player_details_url,
+                  ['body' => json_encode($datatosend)]
+              );
+              $receive_time = microtime(true);
+              $client_response = json_decode($guzzle_response->getBody()->getContents());
+              $client_response->request_body = $datatosend;
+              Helper::saveLog('PLAYER RESPONSE', 999, json_encode($client_response), "CLIENT HAS RESPONSED"); // mauni musalo sa call if nidagan
+              return json_encode($client_response);
+    }
+
+
     public function tapulan(Request $request){
+
+      // $hashed_password = password_hash('charityxrian', PASSWORD_DEFAULT);
+
+
+
+
+	    // if (password_verify('charityxrian', $hashed_password)) {
+      //     // return true;
+      //     return 'sakto';
+      // }else{
+      //     // return false;
+      //     return 'dili';
+      // }
+
+      // return $hashed_password;
+
+
+      $requesttocient = array(
+        "fundtransferresponse" => array(
+            "status" => array(
+                "code" => 200,
+                "status" => "OK",
+                "message" => "The request was successfully completed."
+            ),
+            'balance' => 1000
+        )
+    );
+      $response = array(
+        "fundtransferresponse" => array(
+            "status" => array(
+                "code" => 200,
+                "status" => "OK",
+                "message" => "The request was successfully completed."
+            ),
+            'balance' => 1000
+        )
+    );
+    $client_reponse = json_decode(json_encode($response));
+    $client_reponse->requestoclient = $requesttocient;
+    return $client_reponse->requestoclient;
+
+
+      $client = new Client();
+      
+      try{
+        $requesttosend = [
+          'player_id' => 10210,
+        ];
+        $guzzle_response = $client->post('http://localhost:8010/gg2',
+            ['form_params' => $requesttosend,'timeout' => 0.100]
+        );
+      }catch(\Exception $e){
+        // return $e->getMessage();
+        return ['MSG'=>'NAKA RESPONSE NAKO KOL!'];
+      }
+      // magic ni
+
+
+
+
+
+
+      $client = new Client();
+      $promises = [];
+      // foreach($data as $value)
+      $promises[] = $client->requestAsync('POST', 'http://localhost:8010/gg2' . '/' . 'GG')
+        ->then(function($response) {
+          Helper::saveLog('PLAYER RESPONSE', 999, json_encode([]), "CLIENB HAS GGGG");
+      });
+
+
+      $results = Promise\unwrap($promises);
+      // $results = \Promise\unwrap($promises);
+      return 123456;
+
+
+      // $curl = new CurlMultiHandler;
+      // $handler = HandlerStack::create($curl);
+      // $client = new Client(['handler' => $handler]);
+      // $p = $client
+      //     ->postAsync('http://localhost:8010/gg2')
+      //     ->then(
+      //         function (ResponseInterface $res) {
+      //             echo 'response: ' . $res->getStatusCode() . PHP_EOL;
+      //         },
+      //         function (\Exception $e) {
+      //             echo $e->getMessage() . PHP_EOL;
+      //         }
+      //     );
+      // while ($p->getState() === 'pending') {
+      //   Helper::saveLog('PLAYER RESPONSE', 999, json_encode([]), "CLIENB HAS GGGG");
+      //   return 123;
+      //   $curl->tick();
+      //   //do some other stuff here or just sleep(1);
+      // }
+      // if($p->getState() === 'pending'){
+      //   Helper::saveLog('PLAYER RESPONSE', 999, json_encode([]), "CLIENB HAS GGGG");
+      //   // return 123;
+      // }
+      // echo 'bottom' . PHP_EOL;
+
+      // $client = new Client();
+      // $promise = $client->postAsync('http://localhost:8010/gg2', [
+      //     'json' => [
+      //             'company_name' => 'update Name'
+      //     ],
+      // ])->then(
+      //     function (\ResponseInterface $res){
+      //         $response = json_decode($res->getBody()->getContents());
+
+      //         return $response;
+      //     },
+      //     function (\RequestException $e) {
+      //         $response = [];
+      //         $response->data = $e->getMessage();
+
+      //         return $response;
+      //     }
+      // );
+      // $response = $promise->wait();
+      // echo json_encode($response);
+     
 
       return 123;
       return [
-    'response_time' => microtime(true) - LARAVEL_START
-];
+          'response_time' => microtime(true) - LARAVEL_START
+      ];
 
       $client = new Client();
       $returnURL = urlencode(urlencode("http://daddy.betrnk.games"));

@@ -17,6 +17,7 @@ $app->get('/', function () use ($app) {
 $app->post('/al','AlController@index'); // TESTING!
 $app->post('/alplayer','AlController@checkCLientPlayer'); // TESTING!
 $app->post('/gg','AlController@tapulan'); // TESTING!
+$app->post('/gg2','AlController@tapulan2'); // TESTING!
 $app->post('/aldebug','AlController@debugMe'); // TESTING!
 $app->post('/manual_resend','AlController@resendTransaction'); // TESTING!
 // Posts
@@ -574,3 +575,7 @@ $app->post('bo/client-setting-update','BackOffice\ClientBOController@clientSetti
 //EXPIREMENT TIME NA WAHHAHAH
 $app->post('/api/oryx/endpoint', 'OryxGamingController@endpoint');
 $app->post('/api/oryx/fund', 'OryxGamingController@fund');
+
+
+
+$app->post('tigergames/fundtransfer','FundtransferProcessorController@fundTransfer');

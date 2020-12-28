@@ -541,6 +541,11 @@ class ProviderHelper{
 	}
 
 
+	public static function updateGameTransactionExtTransactionStatus($game_ext_id, $status)
+	{
+		$update = DB::select("update `game_transaction_ext` set `transaction_detail` = $status where `game_trans_ext_id` = $game_ext_id");
+	}
+
 	/**
 	 * GLOBAL
 	 * Find bet and update to win 
@@ -1048,4 +1053,5 @@ class ProviderHelper{
 	public static function idenpotencyTable($provider_trans_id){
 		return DB::select("INSERT INTO  transaction_idempotent (provider_trans_id) VALUEs ('".$provider_trans_id."')");
 	}
+
 }
