@@ -396,7 +396,7 @@ class AWSController extends Controller
 
             	if(isset($client_response2->fundtransferresponse->status->code) 
             	 && $client_response2->fundtransferresponse->status->code == "200"){
-					ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response2->fundtransferresponse->balance);
+					// ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response2->fundtransferresponse->balance);
             		$response = [
 						"msg"=> "success",
 						"code"=> 0,
