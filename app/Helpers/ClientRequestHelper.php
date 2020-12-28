@@ -242,7 +242,7 @@ class ClientRequestHelper{
                     'timeout' => 0.10, # enough tobe received by the server!
                     'body' => json_encode($requesttocient)
                 ],
-                // ['defaults' => ['exceptions' => false]]
+                ['defaults' => ['exceptions' => false]]
             );
         }catch(\Exception $e){
 
