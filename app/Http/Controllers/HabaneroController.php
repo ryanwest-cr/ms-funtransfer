@@ -60,6 +60,7 @@ class HabaneroController extends Controller
         }else{
             try{
                 $player_details = Providerhelper::playerDetailsCall($client_details->player_token,true);
+                
                 $response = [
                     "playerdetailresponse" => [
                         "status" => [

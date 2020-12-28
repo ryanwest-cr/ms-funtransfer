@@ -37,7 +37,7 @@ class YGGController extends Controller
         $player_details = Providerhelper::playerDetailsCall($client_details->player_token);  
         $player_id = "TGaming_".$client_details->player_id;
         $balance = floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', ''));
-
+        $save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $balance]); #new method
         $response = array(
             "code" => 0,
             "data" => array(
@@ -60,8 +60,8 @@ class YGGController extends Controller
     public function wager(Request $request)
     {
         $playerId = ProviderHelper::explodeUsername('_',$request->playerid);
-        // $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
-        $client_details = DB::select("select p.client_id, p.player_id, p.email, p.client_player_id,p.language, p.currency, p.test_player, p.username,p.created_at,pst.token_id,pst.player_token,c.client_url,c.default_currency,pst.status_id,p.display_name,op.client_api_key,op.client_code,op.client_access_token,ce.player_details_url,ce.fund_transfer_url,p.created_at from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) WHERE player_id = '$playerId' ORDER BY token_id desc LIMIT 1");
+        $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+        // $client_details = DB::select("select p.client_id, p.player_id, p.email, p.client_player_id,p.language, p.currency, p.test_player, p.username,p.created_at,pst.token_id,pst.player_token,c.client_url,c.default_currency,pst.status_id,p.display_name,op.client_api_key,op.client_code,op.client_access_token,ce.player_details_url,ce.fund_transfer_url,p.created_at from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) WHERE player_id = '$playerId' ORDER BY token_id desc LIMIT 1");
         if($client_details == null){ 
             $response = array(
                 "code" => 1000,
@@ -70,7 +70,7 @@ class YGGController extends Controller
             Helper::saveLog("YGG wager response", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
         }
-        $player_details = Providerhelper::playerDetailsCall($client_details[0]->player_token);
+        // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
 
         $gamecode = '';
         $game_name = '';
@@ -87,9 +87,9 @@ class YGGController extends Controller
             }
         } 
         
-        $balance = $player_details->playerdetailsresponse->balance;
+        $balance = $client_details->balance;
         
-        $tokenId = $client_details[0]->token_id;
+        $tokenId = $client_details->token_id;
         $game_code = $game_details[0]->game_code;
         $game_id = $game_details[0]->game_id;
         $bet_amount = $request->amount;
@@ -112,13 +112,13 @@ class YGGController extends Controller
                 $response = array(
                     "code" => 0,
                     "data" => array(
-                        "currency" => $client_details[0]->default_currency,
+                        "currency" => $client_details->default_currency,
                         "applicableBonus" => 0.00,
-                        "homeCurrency" => $client_details[0]->default_currency,
+                        "homeCurrency" => $client_details->default_currency,
                         "organization" => $this->org,
-                        "balance" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
-                        "nickName" => $client_details[0]->display_name,
-                        "playerId" => "TGaming_".$client_details[0]->player_id
+                        "balance" => floatval(number_format($client_details->balance, 2, '.', '')),
+                        "nickName" => $client_details->display_name,
+                        "playerId" => "TGaming_".$client_details->player_id
                     ),
                 );
                 Helper::saveLog("YGG wager dubplicate", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
@@ -139,18 +139,18 @@ class YGGController extends Controller
                 return $response;
             }
             
-            $client_response = ClientRequestHelper::fundTransfer($client_details[0], $bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_transextension,$game_trans,'debit');
+            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount,$game_details[0]->game_code,$game_details[0]->game_name,$game_transextension,$game_trans,'debit');
 
             $response = array(
                 "code" => 0,
                 "data" => array(
-                    "currency" => $client_details[0]->default_currency,
+                    "currency" => $client_details->default_currency,
                     "applicableBonus" => 0.00,
-                    "homeCurrency" => $client_details[0]->default_currency,
+                    "homeCurrency" => $client_details->default_currency,
                     "organization" => $this->org,
                     "balance" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
-                    "nickName" => $client_details[0]->display_name,
-                    "playerId" => "TGaming_".$client_details[0]->player_id
+                    "nickName" => $client_details->display_name,
+                    "playerId" => "TGaming_".$client_details->player_id
                 ),
             );
             
@@ -362,9 +362,10 @@ class YGGController extends Controller
             Helper::saveLog("YGG endwager login", $this->provider_id,json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
         }
+
         // $checkTrans = DB::table('game_transaction_ext')->where('provider_trans_id','=',$request->reference)->where('round_id','=',$request->subreference)->get();
         $checkTrans = DB::select("SELECT game_trans_ext_id FROM game_transaction_ext WHERE provider_trans_id = '$request->reference' AND round_id = '$request->subreference' ");
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
         $gamecode = '';
         $game_name = '';
         for ($x = 1; $x <= 9; $x++) {
@@ -380,7 +381,7 @@ class YGGController extends Controller
             }
         } 
 
-        $balance = $player_details->playerdetailsresponse->balance;
+        $balance = $client_details->balance;
         $tokenId = $client_details->token_id;
         $bet_amount = $request->amount;
         $provider_trans_id = $request->reference;
@@ -401,7 +402,7 @@ class YGGController extends Controller
                     "applicableBonus" => 0.00,
                     "homeCurrency" => $client_details->default_currency,
                     "organization" => $this->org,
-                    "balance" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
+                    "balance" => floatval(number_format($client_details->balance, 2, '.', '')),
                     "nickName" => $client_details->display_name,
                     "playerId" => "TGaming_".$client_details->player_id,
                     "balik" => true
@@ -438,6 +439,7 @@ class YGGController extends Controller
                         ->update(["win" => $win, "pay_amount" => $bet_amount, "entry_id" => $entry_id, "income" => $income]);
 
             $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $bet_amount,"game_transaction_type" => $entry_id,"provider_request" => json_encode($request->all(),JSON_FORCE_OBJECT),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
+            $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $client_response->fundtransferresponse->balance]);
             Helper::saveLog("YGG endwager (win)", $this->provider_id, json_encode($request->all(),JSON_FORCE_OBJECT), $response);
             return $response;
 
