@@ -344,7 +344,9 @@ class AWSController extends Controller
             	// AWSHelper::saveLog('AWS singleFundTransfer - C1 createGameTransExtV2', $this->provider_db_id, $data, Helper::datesent());
             	// $game_transextension2 = AWSHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $provider_trans_id, $win_amount_2way, 2);
             	try {
-					ProviderHelper::_insertOrUpdate($client_details->token_id, $client_details->balance + $win_amount_2way);
+					$new_balance = $client_details->balance - $bet_amount_2way;
+					$new_balance = $new_balance + $win_amount_2way;
+					ProviderHelper::_insertOrUpdate($client_details->token_id, $new_balance );
 
 					$response = [
 						"msg"=> "success",
@@ -355,7 +357,7 @@ class AWSController extends Controller
 							"accountId"=> $details->accountId,
 							"txnId"=> $details->txnId,
 							"eventTime"=> date('Y-m-d H:i:s'),
-							"balance" => floatval(number_format((float)$client_details->balance + abs($win_amount_2way), 2, '.', '')),
+							"balance" => floatval(number_format((float)$new_balance, 2, '.', '')),
 							"bonusBalance" => 0
 						]
 					];
@@ -394,7 +396,7 @@ class AWSController extends Controller
 
             	if(isset($client_response2->fundtransferresponse->status->code) 
             	 && $client_response2->fundtransferresponse->status->code == "200"){
-					ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response2->fundtransferresponse->balance);
+					// ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response2->fundtransferresponse->balance);
             		$response = [
 						"msg"=> "success",
 						"code"=> 0,
@@ -404,7 +406,7 @@ class AWSController extends Controller
 							"accountId"=> $details->accountId,
 							"txnId"=> $details->txnId,
 							"eventTime"=> date('Y-m-d H:i:s'),
-							"balance" => floatval(number_format((float)$client_response2->fundtransferresponse->balance, 2, '.', '')),
+							"balance" => floatval(number_format((float)$new_balance, 2, '.', '')),
 							"bonusBalance" => 0
 						]
 					];
