@@ -251,7 +251,7 @@ class ClientRequestHelper{
             }else{
                 $balance = $client_details->balance + $amount;
             }
-            ProviderHelper::_insertOrUpdate($client_details->token_id, $balance);
+            // ProviderHelper::_insertOrUpdate($client_details->token_id, $balance);
             $response = array(
                 "fundtransferresponse" => array(
                     "status" => array(
