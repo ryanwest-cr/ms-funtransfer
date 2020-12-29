@@ -341,11 +341,19 @@ class PragmaticPLayController extends Controller
         // $checkGameTrans = DB::table('game_transactions')->select('game_trans_id')->where("round_id","=",$data->roundId)->get();
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
+        AWSHelper::saveLog('TPP getClientDetails start', $this->provider_id, json_encode($data), "start");
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
+        AWSHelper::saveLog('TPP getClientDetails end', $this->provider_id, json_encode($data), "end");
         // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        AWSHelper::saveLog('TPP findGameDetails start', $this->provider_id, json_encode($data), "start");
         $game_details = Helper::findGameDetails('game_code', $this->provider_id, $data->gameId);
+        AWSHelper::saveLog('TPP findGameDetails end', $this->provider_id, json_encode($data), "end");
+        AWSHelper::saveLog('TPP findGameExt start', $this->provider_id, json_encode($data), "start");
         $checkExt = ProviderHelper::findGameExt($data->roundId, '2', 'round_id');
-        
+        AWSHelper::saveLog('TPP findGameExt end', $this->provider_id, json_encode($data), "end");
+        AWSHelper::saveLog('TPP findGameExt start', $this->provider_id, json_encode($data), "start");
+        $findExt = DB::select("SELECT game_trans_ext_id FROM game_transaction_ext WHERE round_id = '".$data->roundId."' AND game_transaction_type = '2' AND transaction_detail != '\"FAILED\"' ");
+        AWSHelper::saveLog('TPP findGameExt end', $this->provider_id, json_encode($data), "end");
         if($checkExt  != 'false'){
             $response_log = array(
                 "transactionId" => $game_trans[0]->game_trans_id,
@@ -460,7 +468,7 @@ class PragmaticPLayController extends Controller
             $save_bal = DB::table("player_session_tokens")->where("token_id","=",$token_id)->update(["balance" => $balance]);
             AWSHelper::saveLog('TPP result response', $this->provider_id, json_encode($data), "response");
             return $response;
-            
+
         } catch (\Exception $e) {
             $msg = array("status" => 'error',"message" => $e->getMessage());
             ProviderHelper::updatecreateGameTransExt($game_trans_ext_v2, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
