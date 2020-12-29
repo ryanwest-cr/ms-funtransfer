@@ -299,7 +299,7 @@ class SolidGamingController extends Controller
 
 						// change $json_data['roundid'] to $game_transaction_id
 		                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
-						
+
 						if(isset($client_response->fundtransferresponse->status->code) 
 					&& $client_response->fundtransferresponse->status->code == "402") {
 							$http_status = 402;
@@ -325,12 +325,10 @@ class SolidGamingController extends Controller
 									"currency" => $client_details->default_currency,
 									"balance" => $client_response->fundtransferresponse->balance,
 								];
-								$save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $client_response->fundtransferresponse->balance]);
 							}
 						}
 
 						ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
-						
 					}
 				/*}*/
 			}
@@ -402,6 +400,7 @@ class SolidGamingController extends Controller
 					else
 					{
 						$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
+
 						$json_data['income'] = $json_data["amount"];
 
 						if(isset($json_data['payoutreason'])) {
@@ -417,47 +416,26 @@ class SolidGamingController extends Controller
 						$game_trans_ext_id = ProviderHelper::createGameTransExtV2($game_transaction_id, $json_data['transid'], $json_data['roundid'], $json_data['amount'], 2);
 
 						// change $json_data['roundid'] to $game_transaction_id
-               			// $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
+               			$client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'credit');
 
-						// if(isset($client_response->fundtransferresponse->status->code) 
-						// && $client_response->fundtransferresponse->status->code == "200") {
+						if(isset($client_response->fundtransferresponse->status->code) 
+					&& $client_response->fundtransferresponse->status->code == "200") {
 
 							if(array_key_exists("roundended", $json_data)) {
 								if ($json_data["roundended"] == "true") {
 									GameRound::end($json_data['roundid']);
 								}
 							}
-
-							$balance = $client_details->balance + $json_data['amount'];
 							
 							$http_status = 200;
 							$response = [
 								"status" => "OK",
 								"currency" => $client_details->default_currency,
-								"balance" => $balance,
+								"balance" => $client_response->fundtransferresponse->balance,
 							];
-						// }
-							$action_payload = [
-								"type" => "custom", #genreral,custom :D # REQUIRED!
-								"custom" => [
-									"provider" => 'tpp',
-								],
-								"provider" => [
-									"provider_request" => $json_data,
-									"provider_trans_id"=> $json_data['transid'],
-									"provider_round_id"=> $json_data['roundid'],
-								],
-								"mwapi" => [
-									"roundId"=> $game_trans_ext_id,
-									"type"=>2,
-									"game_id" => $game_details->game_id,
-									"player_id" => $client_details->player_id,
-									"mw_response" => $response,
-								]
-							];
-							$client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, 'credit', false, $action_payload);
-            				$save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $balance]);
-						// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
+						}
+
+						ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 					}
 				/*}*/
 			}
