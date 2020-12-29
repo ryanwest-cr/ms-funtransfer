@@ -310,9 +310,9 @@ class KAGamingController extends Controller
                 $bet_amount = $existing_bet_details->bet_amount + $bet_amount;
                 $income = $bet_amount - $pay_amount; //$existing_bet_details->income;
 
-                if($pay_amount == $bet_amount){
-                    $win_or_lost = 3;
-                }
+                // if($pay_amount == $bet_amount){
+                //     $win_or_lost = 3;
+                // }
 
                 ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id,'game_trans_id',$bet_amount,$multi_bet=true);
             }else{
@@ -326,9 +326,9 @@ class KAGamingController extends Controller
                    $entry_id = 1;
                 }
 
-                if($pay_amount == $bet_amount){
-                    $win_or_lost = 3;
-                }
+                // if($pay_amount == $bet_amount){
+                //     $win_or_lost = 3;
+                // }
                 
                 ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id);
             }
@@ -389,20 +389,20 @@ class KAGamingController extends Controller
             return  $response = ["status" => "Game Not Found", "statusCode" =>  1];
         }
 
-        // $game_ext_check_win = KAHelper::findGameExt($provider_trans_id, 2, 'transaction_id');
-        // if($game_ext_check_win != 'false'){
-        //     $transaction_general_details = json_decode($game_ext_check_win->general_details);
-        //     if(isset($transaction_general_details->client->action) && $transaction_general_details->client->action == 'credit'){
-        //         return  $response = ["status" => "Double transactionId with an action credit", "statusCode" =>  301];
-        //     }
-        // }
+        $game_ext_check_win = KAHelper::findGameExt($provider_trans_id, 2, 'transaction_id');
+        if($game_ext_check_win != 'false'){
+            $transaction_general_details = json_decode($game_ext_check_win->general_details);
+            if(isset($transaction_general_details->client->action) && $transaction_general_details->client->action == 'credit'){
+                return  $response = ["status" => "Double transactionId with an action credit", "statusCode" =>  301];
+            }
+        }
 
         # Insert Idenpotent (CREDIT)
-		try{
-			ProviderHelper::idenpotencyTable($this->prefix.'_CREDIT_'.$provider_trans_id);
-		}catch(\Exception $e){
-			return  $response = ["status" => "Double transactionId with an action credit", "statusCode" =>  301];
-		}
+		// try{
+		// 	ProviderHelper::idenpotencyTable($this->prefix.'_CREDIT_'.$provider_trans_id);
+		// }catch(\Exception $e){
+		// 	return  $response = ["status" => "Double transactionId with an action credit", "statusCode" =>  301];
+		// }
 
         $game_ext_check = KAHelper::findGameExt($provider_trans_id, 1, 'transaction_id');
         if($game_ext_check == 'false'){ // Duplicate transaction
