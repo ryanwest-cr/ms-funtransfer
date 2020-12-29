@@ -335,8 +335,9 @@ class PragmaticPLayController extends Controller
         //     ];
         //     return $response;
         // }
-        
-        $checkGameTrans = DB::select("SELECT game_trans_id FROM game_transactions WHERE round_id = '".$data->roundId."' ");
+        AWSHelper::saveLog('TPP select_game_trans start', $this->provider_id, json_encode($data), "start");
+        $game_trans = DB::select("SELECT game_trans_id, bet_amount FROM game_transactions WHERE round_id = '".$data->roundId."' ");
+        AWSHelper::saveLog('TPP select_game_trans end', $this->provider_id, json_encode($data), "end");
         // $checkGameTrans = DB::table('game_transactions')->select('game_trans_id')->where("round_id","=",$data->roundId)->get();
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
@@ -347,7 +348,7 @@ class PragmaticPLayController extends Controller
         
         if($checkExt  != 'false'){
             $response_log = array(
-                "transactionId" => $checkGameTrans[0]->game_trans_id,
+                "transactionId" => $game_trans[0]->game_trans_id,
                 "currency" => $client_details->default_currency,
                 "cash" => floatval(number_format($client_details->balance, 2, '.', '')),
                 "bonus" => 0,
@@ -358,8 +359,7 @@ class PragmaticPLayController extends Controller
             return $response_log;
         }
         // $game_trans = DB::table('game_transactions')->select('game_trans_id','bet_amount')->where("round_id","=",$data->roundId)->get();
-        $game_trans = DB::select("SELECT game_trans_id, bet_amount FROM game_transactions WHERE round_id = '".$data->roundId."' ");
-        
+      
         
         $token_id = $client_details->token_id;
         $game_id = $game_details->game_id;
@@ -412,18 +412,18 @@ class PragmaticPLayController extends Controller
             }
       
 
-       
+        AWSHelper::saveLog('TPP createGameTransExtV2 start', $this->provider_id, json_encode($data), "start");
         $game_trans_ext_v2 = ProviderHelper::createGameTransExtV2( $game_trans[0]->game_trans_id, $provider_trans_id, $round_id, $bet_amount, $entry_id);
-
+        AWSHelper::saveLog('TPP createGameTransExtV2 end', $this->provider_id, json_encode($data), "end");
         try {
             
             // $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, $game_trans[0]->game_trans_id, 'credit');
 
             $income = $game_trans[0]->bet_amount - $data->amount;
             
-            
+            AWSHelper::saveLog('TPP update_gt start', $this->provider_id, json_encode($data), "start");
             $update = DB::table('game_transactions')->where("game_trans_id","=",$game_trans[0]->game_trans_id)->update(["round_id" => $round_id, "pay_amount" => $payout, "income" => $income, "win" => $win, "entry_id" => $entry_id ]);
-
+            AWSHelper::saveLog('TPP update_gt end', $this->provider_id, json_encode($data), "end");
             $balance = $client_details->balance + $data->amount;
             $response = array(
                 "transactionId" => $game_trans_ext_v2,
@@ -454,23 +454,19 @@ class PragmaticPLayController extends Controller
             ];
 
             // $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $payout,"game_transaction_type" => $entry_id,"provider_request" => json_encode($data),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
-
+            AWSHelper::saveLog('TPP fundTransfer_TG start', $this->provider_id, json_encode($data), "start");
             $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, 'credit', false, $action_payload);
+            AWSHelper::saveLog('TPP fundTransfer_TG end', $this->provider_id, json_encode($data), "end");
             $save_bal = DB::table("player_session_tokens")->where("token_id","=",$token_id)->update(["balance" => $balance]);
             AWSHelper::saveLog('TPP result response', $this->provider_id, json_encode($data), "response");
-            
             return $response;
-
-
+            
         } catch (\Exception $e) {
             $msg = array("status" => 'error',"message" => $e->getMessage());
             ProviderHelper::updatecreateGameTransExt($game_trans_ext_v2, 'FAILED', $msg, 'FAILED', $e->getMessage(), 'FAILED', 'FAILED');
             Helper::saveLog('PP gameWin - FATAL ERROR', $this->provider_id, json_encode($data), Helper::datesent());
             return $msg;
         }
-        
-        
-        
     }
 
     public function endRound(Request $request)
