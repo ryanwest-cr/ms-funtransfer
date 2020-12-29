@@ -106,17 +106,15 @@ class PragmaticPLayController extends Controller
 
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
-        $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
+        // $player_details = Providerhelper::playerDetailsCall($client_details->player_token);
    
         $response = array(
             "currency" => $client_details->default_currency,
-            "cash" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', '')),
+            "cash" => floatval(number_format($client_details->balance, 2, '.', '')),
             "bonus" => 0.00,
             "error" => 0,
             "description" => "Success"
         );
-
-        Helper::saveLog('PP balance', $this->provider_id, json_encode($data) , $response);
         
         return $response;
     }
