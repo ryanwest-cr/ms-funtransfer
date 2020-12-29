@@ -572,6 +572,9 @@ $app->post('bo/client-game-setting-update','BackOffice\ClientBOController@gameSe
 $app->post('bo/client-setting-update','BackOffice\ClientBOController@clientSettings');
 
 
+//EXPIREMENT TIME NA WAHHAHAH
+$app->post('/api/oryx/endpoint', 'OryxGamingController@endpoint');
+$app->post('/api/oryx/readWriteProcess', 'OryxGamingController@readWriteProcess');
 
 
 

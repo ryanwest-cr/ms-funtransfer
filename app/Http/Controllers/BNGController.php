@@ -60,7 +60,7 @@ class BNGController extends Controller
                 }
             }
             elseif($data["args"]["bet"]== null && $data["args"]["win"]!= null){
-                Helper::saveLog('responseTime(BNG)', 12, json_encode(["stating"=>$this->startTime,"response"=>microtime(true)]), microtime(true) - $this->startTime);
+                $this->_betGame($data);
                 return $this->_winGame($data);
             }
             elseif($data["args"]["bet"]!= null && $data["args"]["win"]== null){
@@ -153,31 +153,31 @@ class BNGController extends Controller
         if($data["token"]){
             $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                $guzzle_response = $client->post($client_details->player_details_url,
-                    ['body' => json_encode(
-                            [
-                                "access_token" => $client_details->client_access_token,
-                                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                                "type" => "playerdetailsrequest",
-                                "datesent" => "",
-                                "gameid" => "",
-                                "clientid" => $client_details->client_id,
-                                "playerdetailsrequest" => [
-                                    "player_username"=>$client_details->username,
-                                    "client_player_id"=>$client_details->client_player_id,
-                                    "token" => $client_details->player_token,
-                                    "gamelaunch" => "true"
-                                ]]
-                    )]
-                );
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                Helper::saveLog('AuthPlayer(BNG)', 12, json_encode(array("token"=>$data)),$client_response);
+                // $client = new Client([
+                //     'headers' => [ 
+                //         'Content-Type' => 'application/json',
+                //         'Authorization' => 'Bearer '.$client_details->client_access_token
+                //     ]
+                // ]);
+                // $guzzle_response = $client->post($client_details->player_details_url,
+                //     ['body' => json_encode(
+                //             [
+                //                 "access_token" => $client_details->client_access_token,
+                //                 "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                //                 "type" => "playerdetailsrequest",
+                //                 "datesent" => "",
+                //                 "gameid" => "",
+                //                 "clientid" => $client_details->client_id,
+                //                 "playerdetailsrequest" => [
+                //                     "player_username"=>$client_details->username,
+                //                     "client_player_id"=>$client_details->client_player_id,
+                //                     "token" => $client_details->player_token,
+                //                     "gamelaunch" => "true"
+                //                 ]]
+                //     )]
+                // );
+                // $client_response = json_decode($guzzle_response->getBody()->getContents());
+                // Helper::saveLog('AuthPlayer(BNG)', 12, json_encode(array("token"=>$data)),$client_response);
                 //$balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $msg = array(
                     "uid" => $data["uid"],
@@ -189,7 +189,7 @@ class BNGController extends Controller
                         "is_test"=> false
                     ),
                     "balance"=>array(
-                        "value"=> number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
+                        "value"=> number_format($client_details->balance,2,'.', ''),
                         "version"=> $this->_getExtParameter()
                     ),
                     "tag"=>""
@@ -212,35 +212,35 @@ class BNGController extends Controller
         if($data["token"]){
             $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
-                $client = new Client([
-                    'headers' => [ 
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer '.$client_details->client_access_token
-                    ]
-                ]);
-                $guzzle_response = $client->post($client_details->player_details_url,
-                    ['body' => json_encode(
-                            [
-                                "access_token" => $client_details->client_access_token,
-                                "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
-                                "type" => "playerdetailsrequest",
-                                "datesent" => "",
-                                "gameid" => "",
-                                "clientid" => $client_details->client_id,
-                                "playerdetailsrequest" => [
-                                    "client_player_id"=>$client_details->client_player_id,
-                                    "token" => $client_details->player_token,
-                                    "gamelaunch" => "true"
-                                ]]
-                    )]
-                );
-                $client_response = json_decode($guzzle_response->getBody()->getContents());
-                Helper::saveLog('AuthPlayer(BNG)', 12, json_encode(array("token"=>$data)),$client_response);
+                // $client = new Client([
+                //     'headers' => [ 
+                //         'Content-Type' => 'application/json',
+                //         'Authorization' => 'Bearer '.$client_details->client_access_token
+                //     ]
+                // ]);
+                // $guzzle_response = $client->post($client_details->player_details_url,
+                //     ['body' => json_encode(
+                //             [
+                //                 "access_token" => $client_details->client_access_token,
+                //                 "hashkey" => md5($client_details->client_api_key.$client_details->client_access_token),
+                //                 "type" => "playerdetailsrequest",
+                //                 "datesent" => "",
+                //                 "gameid" => "",
+                //                 "clientid" => $client_details->client_id,
+                //                 "playerdetailsrequest" => [
+                //                     "client_player_id"=>$client_details->client_player_id,
+                //                     "token" => $client_details->player_token,
+                //                     "gamelaunch" => "true"
+                //                 ]]
+                //     )]
+                // );
+                // $client_response = json_decode($guzzle_response->getBody()->getContents());
+                // Helper::saveLog('AuthPlayer(BNG)', 12, json_encode(array("token"=>$data)),$client_response);
                 //$balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 $msg = array(
                     "uid" => $data["uid"],
                     "balance"=>array(
-                        "value"=> number_format($client_response->playerdetailsresponse->balance,2,'.', ''),
+                        "value"=> number_format($client_details->balance,2,'.', ''),
                         "version"=> $this->_getExtParameter()
                     )
                 );
@@ -255,7 +255,8 @@ class BNGController extends Controller
             $client_details = ProviderHelper::getClientDetails('token', $data["token"]);
             if($client_details){
                 $game_transaction = Helper::checkGameTransaction($data["uid"]);
-                $bet_amount = $game_transaction ? 0 : round($data["args"]["bet"],2);
+                $bet = $data["args"]["bet"]==null ? 0:$data["args"]["bet"];
+                $bet_amount = $game_transaction ? 0 : round($bet,2);
                 $bet_amount = $bet_amount < 0 ? 0 :$bet_amount;
                 $game_details = Helper::getInfoPlayerGameRound($data["token"]);
                 $json_data = array(
@@ -278,6 +279,7 @@ class BNGController extends Controller
                 $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
+                    ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
                     $response =array(
                         "uid"=>$data["uid"],
                         "balance" => array(
@@ -349,6 +351,7 @@ class BNGController extends Controller
                 $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
+                    ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
                     $response =array(
                         "uid"=>$data["uid"],
                         "balance" => array(
@@ -411,6 +414,7 @@ class BNGController extends Controller
                 $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                 if(isset($client_response->fundtransferresponse->status->code) 
                 && $client_response->fundtransferresponse->status->code == "200"){
+                    ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
                     $response =array(
                         "uid"=>$data["uid"],
                         "balance" => array(
