@@ -60,7 +60,7 @@ class HabaneroController extends Controller
         }else{
             try{
                 $player_details = Providerhelper::playerDetailsCall($client_details->player_token,true);
-                $save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => floatval(number_format($player_details->playerdetailsresponse->balance, 2, '.', ''))]); #val
+                
                 $response = [
                     "playerdetailresponse" => [
                         "status" => [
@@ -92,7 +92,7 @@ class HabaneroController extends Controller
     public function fundtransferrequest(Request $request){
         $data = file_get_contents("php://input");
         $details = json_decode($data);
-        AWSHelper::saveLog('Habanero bet recieved', $this->provider_id, json_encode($data), "recieved");
+        Helper::saveLog('HBN request --------', 24, json_encode($details),"request");
         $client_details = Providerhelper::getClientDetails('token', $details->fundtransferrequest->token);
 
         $checktoken = $this->sessionExpire($client_details->player_token);
