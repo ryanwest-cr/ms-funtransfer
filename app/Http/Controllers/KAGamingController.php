@@ -303,13 +303,20 @@ class KAGamingController extends Controller
                 "statusCode" =>  0
             ];
             if($check_bet_round != 'false'){
-                $win_or_lost = $existing_bet_details->win;
-                $entry_id = $existing_bet_details->entry_id;
+               
+                // $win_or_lost = $existing_bet_details->win;
+                // $entry_id = $existing_bet_details->entry_id;
 
                 $pay_amount = $existing_bet_details->pay_amount + $win_amount;
                 $bet_amount = $existing_bet_details->bet_amount + $bet_amount;
                 $income = $bet_amount - $pay_amount; //$existing_bet_details->income;
-
+                if($pay_amount > 0){ #val
+                    $win_or_lost = 1;
+                    $entry_id = 2;
+                 }else{
+                    $win_or_lost = 0;
+                    $entry_id = 1;
+                 }
                 // if($pay_amount == $bet_amount){
                 //     $win_or_lost = 3;
                 // }
@@ -317,16 +324,15 @@ class KAGamingController extends Controller
                 ProviderHelper::updateGameTransaction($gamerecord, $pay_amount, $income, $win_or_lost, $entry_id,'game_trans_id',$bet_amount,$multi_bet=true);
             }else{
                 $pay_amount = $win_amount;
-                $existing_pay_amount = $check_bet_round; #val
                 $income = $bet_amount - $pay_amount;
-                if($existing_pay_amount > 0){ #val
+                if($win_amount > 0){
                    $win_or_lost = 1;
                    $entry_id = 2;
                 }else{
                    $win_or_lost = 0;
                    $entry_id = 1;
                 }
-                
+
                 // if($pay_amount == $bet_amount){
                 //     $win_or_lost = 3;
                 // }
