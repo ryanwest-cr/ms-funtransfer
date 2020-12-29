@@ -9,6 +9,7 @@ use App\Helpers\Helper;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use App\Helpers\ClientRequestHelper;
+use App\Helpers\AWSHelper;
 
 class PragmaticPLayController extends Controller
 {
@@ -140,7 +141,7 @@ class PragmaticPLayController extends Controller
             Helper::saveLog("PP hash error", $this->provider_id, json_encode($data), $response);
         }
 
-        Helper::saveLog('PP bet request', $this->provider_id,json_encode($data), "");
+        AWSHelper::saveLog('TPP bet recieved', $this->provider_id, $data, "recieved");
         $game_details = Helper::findGameDetails('game_code', $this->provider_id, $data->gameId);
         $playerId = ProviderHelper::explodeUsername('_',$data->userId);
         $client_details = ProviderHelper::getClientDetails('player_id',$playerId);
@@ -280,7 +281,7 @@ class PragmaticPLayController extends Controller
     
             ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
             $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $client_response->fundtransferresponse->balance]);
-            Helper::saveLog('PP bet', $this->provider_id,json_encode($data) , $response);
+            AWSHelper::saveLog('TPP bet response', $this->provider_id, $data, "response");
             return $response;
         } catch (\Exception $e) {
             $msg = array("status" => 'error',"message" => $e->getMessage());
@@ -322,7 +323,7 @@ class PragmaticPLayController extends Controller
         $json_encode = json_encode($data, true);
         $data = json_decode($json_encode);
 
-        Helper::saveLog('PP result request', $this->provider_id, json_encode($data) ,"result");
+        AWSHelper::saveLog('TPP bet recieved', $this->provider_id, $data, "recieved");
         
         // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
         $dataSort = json_decode($json_encode, true);
@@ -456,7 +457,7 @@ class PragmaticPLayController extends Controller
 
             $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, 'credit', false, $action_payload);
             $save_bal = DB::table("player_session_tokens")->where("token_id","=",$token_id)->update(["balance" => $balance]);
-            Helper::saveLog('PP result', $this->provider_id, json_encode($data) , $response);
+            AWSHelper::saveLog('TPP bet response', $this->provider_id, $data, "response");
             
             return $response;
 
