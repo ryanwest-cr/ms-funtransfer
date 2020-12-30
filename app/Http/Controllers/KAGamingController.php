@@ -297,6 +297,7 @@ class KAGamingController extends Controller
             $game_transextension_credit = KAHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $win_amount, 2);
             $client_response_credit = ClientRequestHelper::fundTransfer($client_details,abs($win_amount),$game_information->game_code,$game_information->game_name,$game_transextension_credit,$gamerecord, 'credit');
             $general_details['client']['after_balance'] = KAHelper::amountToFloat($client_response_credit->fundtransferresponse->balance);
+            ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response_credit->fundtransferresponse->balance);
             $response = [
                 "balance" => $this->formatBalance($client_response_credit->fundtransferresponse->balance),
                 "status" => "success",
