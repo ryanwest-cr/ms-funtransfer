@@ -64,7 +64,8 @@ class OryxGamingController extends Controller
 						];
 			
 			$client_details = ProviderHelper::getClientDetails('token', $token);
-			
+			$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+			ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->playerdetailsresponse->balance); 
 			if ($client_details) {
 
 				$http_status = 200;
@@ -72,7 +73,8 @@ class OryxGamingController extends Controller
 					"playerId" => "$client_details->player_id",
 					"currencyCode" => $client_details->default_currency, 
 					"languageCode" => "ENG",
-					"balance" => $this->_toPennies($client_details->balance),
+					"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance),
+					// "balance" => $this->_toPennies($client_details->balance),
 					"sessionToken" => $token
 				];
 
@@ -137,8 +139,8 @@ class OryxGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $player_id);
 
 			if ($client_details) {
-					// $client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
-					
+					$client_response = ClientRequestHelper::playerDetailsCall($client_details->player_token);
+					ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->playerdetailsresponse->balance); 
 					// if(isset($client_response->playerdetailsresponse->status->code) 
 					// && $client_response->playerdetailsresponse->status->code == "200") {
 					// 	$http_status = 200;
@@ -149,7 +151,7 @@ class OryxGamingController extends Controller
 
 					$http_status = 200;
 						$response = [
-							"balance" => $this->_toPennies($client_details->balance)
+							"balance" => $this->_toPennies($client_response->playerdetailsresponse->balance)
 					];
 			}
 		}
@@ -167,7 +169,7 @@ class OryxGamingController extends Controller
 		
 		if (array_key_exists('bet', $json_data) || array_key_exists('win', $json_data)) {
 			$transaction_id = (array_key_exists('bet', $json_data) == true ? $json_data['bet']['transactionId'] : $json_data['win']['transactionId']);
-			
+
 			if($this->_isCancelled($transaction_id)) {
 				// $playerdetails_response = Providerhelper::playerDetailsCall($json_data['sessionToken']);
 				// $http_status = 501;
