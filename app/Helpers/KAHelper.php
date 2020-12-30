@@ -34,7 +34,14 @@ class KAHelper{
 			"request_data" => json_encode(json_decode($request_data)),
 			"response_data" => json_encode($response_data)
 		];
-		return DB::table('seamless_request_logs')->insert($data);
+			
+		if(env('SAVELOG')){
+			if(env('Al_DEBUG')){
+				return DB::table('debug')->insert($data);
+			}else{
+				return DB::table('seamless_request_logs')->insert($data);
+			}
+		}
 	}
 
 	public static function createGameTransExtV2($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request = 'FAILED', $mw_response = 'FAILED', $mw_request = 'FAILED', $client_response = 'FAILED', $transaction_detail = 'FAILED', $general_details = null)
