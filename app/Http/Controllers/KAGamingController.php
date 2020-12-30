@@ -274,7 +274,7 @@ class KAGamingController extends Controller
           KAHelper::saveLog('KAGaming checkPlay CRID '.$gamerecord, $this->provider_db_id,json_encode($request->all()), $client_response);
            
         } catch (\Exception $e) {
-          $response = ["status" => "Server Timeout", "statusCode" =>  1];
+          $response = ["status" => "Not Enough Balance", "statusCode" =>  200];
             if(isset($gamerecord)){
                 if($check_bet_round == 'false'){
                     ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
@@ -354,7 +354,8 @@ class KAGamingController extends Controller
           $response = ["status" => "Low Balance", "statusCode" =>  200];
           ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data, 'FAILED', $client_response, 'FAILED', $general_details);
         }else{ // Unknown Response Code
-          $response = ["status" => "Client Error", "statusCode" =>  1];
+        //   $response = ["status" => "Client Error", "statusCode" =>  1];
+          $response = ["status" => "Not Enough Balance", "statusCode" =>  200];
           ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', 'FAILED', 'FAILED', $general_details);
           KAHelper::saveLog('KAGaming checkPlay - FATAL ERROR', $this->provider_db_id, $response, KAHelper::datesent());
         }  
