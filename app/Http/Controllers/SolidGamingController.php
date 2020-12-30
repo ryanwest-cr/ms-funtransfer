@@ -58,8 +58,8 @@ class SolidGamingController extends Controller
 		
 			if ($client_details) {
 				
-				// $client_response = $this->playerDetailsCall($client_details);
-				
+				$client_response = $this->playerDetailsCall($client_details);
+				ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->playerdetailsresponse->balance);
 				// if(isset($client_response->playerdetailsresponse->status->code) 
 				// 	&& $client_response->playerdetailsresponse->status->code == "200") {
 
@@ -75,7 +75,7 @@ class SolidGamingController extends Controller
 						"brand" => 'BETRNKMW',
 						"playerid" => "$client_details->player_id",
 						"currency" => $client_details->default_currency,
-						"balance" => $client_details->balance,
+						"balance" => $client_response->playerdetailsresponse->balance,
 						"testaccount" => ($client_details->test_player ? true : false),
 						"wallettoken" => "",
 						"country" => "",
@@ -122,7 +122,6 @@ class SolidGamingController extends Controller
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
-
 				// $client_response = $this->playerDetailsCall($client_details);		
 				
 				// if(isset($client_response->playerdetailsresponse->status->code) 
@@ -171,7 +170,8 @@ class SolidGamingController extends Controller
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 			if ($client_details) {
-
+				$client_response = $this->playerDetailsCall($client_details);
+				ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->playerdetailsresponse->balance);
 				// Check if the game is available for the client
 				/*$subscription = new GameSubscription();
 				$client_game_subscription = $subscription->check($client_details->client_id, 1, $json_data['gamecode']);
@@ -220,7 +220,7 @@ class SolidGamingController extends Controller
 						$response = [
 							"status" => "OK",
 							"currency" => $client_details->default_currency,
-							"balance" => $client_details->balance,
+							"balance" => $client_response->playerdetailsresponse->balance,
 						];
 					// }
 				/*}*/
