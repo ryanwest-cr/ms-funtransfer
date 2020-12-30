@@ -230,10 +230,12 @@ class AWSHelper{
 			];
 		// return DB::table('seamless_request_logs')->insertGetId($data);
 		// return DB::table('debug')->insertGetId($data);
-		if(env('Al_DEBUG')){
-			return DB::table('debug')->insert($data);
-		}else{
-			return DB::table('seamless_request_logs')->insert($data);
+		if(env('SAVELOG')){
+			if(env('Al_DEBUG')){
+				return DB::table('debug')->insert($data);
+			}else{
+				return DB::table('seamless_request_logs')->insert($data);
+			}
 		}
 	}
 
