@@ -351,13 +351,13 @@ class HabaneroController extends Controller
                     
                     // $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, $checkTrans[0]->game_trans_id, 'credit');
                     // $amounts = $getTrans[0]->bet_amount + $amount;
-                    
+                    $new_bal = $client_details->balance + $bet_amount;
                     $response = [
                         "fundtransferresponse" => [
                             "status" => [
                                 "success" => true,
                             ],
-                            "balance" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
+                            "balance" => floatval(number_format($new_bal, 2, '.', '')),
                             "currencycode" => $client_details->default_currency,
                             ]
                     ];
@@ -388,8 +388,8 @@ class HabaneroController extends Controller
                             "mw_response" => $response,
                         ]
                     ];
-                    $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $payout, $game_code, $game_name, $game_trans_ext_v2, 'credit', false, $action_payload);
-                    $save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $client_response->fundtransferresponse->balance]);
+                    $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, 'credit', false, $action_payload);
+                    $save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $new_bal]);
                     
                     Helper::saveLog('HBN trans win 1', 24, json_encode($details), $response);
                     return $response;
