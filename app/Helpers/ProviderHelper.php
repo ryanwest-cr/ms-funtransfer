@@ -925,7 +925,12 @@ class ProviderHelper{
 		$client_details = count($query);
 		return $client_details > 0 ? true : false;
 	}
-	
+	// RESTRICKPLAYER ALL GAME
+	public static function checkGameRestrictedV2($player_id){
+		$query = DB::select('select * from game_player_restriction where player_id = '.$player_id.' ');
+		$client_details = count($query);
+		return $client_details > 0 ? true : false;
+	}
 
 	public static function deleteGameRestricted($type, $identifier){
 		if($type == 'id'){
