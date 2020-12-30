@@ -26,7 +26,7 @@ use DB;
 
 class SolidGamingController extends Controller
 {
-	
+	public $prefix = 'SOLID'; 
     public function __construct(){
 		/*$this->middleware('oauth', ['except' => ['index']]);*/
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
@@ -55,13 +55,13 @@ class SolidGamingController extends Controller
 						];
 			
 			$client_details = ProviderHelper::getClientDetails('token', $json_data['token']);
-			
+		
 			if ($client_details) {
 				
-				$client_response = $this->playerDetailsCall($client_details);
+				// $client_response = $this->playerDetailsCall($client_details);
 				
-				if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
+				// if(isset($client_response->playerdetailsresponse->status->code) 
+				// 	&& $client_response->playerdetailsresponse->status->code == "200") {
 
 					// save player details if not exist
 					// $player_id = PlayerHelper::saveIfNotExist($client_details, $client_response);
@@ -75,14 +75,14 @@ class SolidGamingController extends Controller
 						"brand" => 'BETRNKMW',
 						"playerid" => "$client_details->player_id",
 						"currency" => $client_details->default_currency,
-						"balance" => $client_response->playerdetailsresponse->balance,
+						"balance" => $client_details->balance,
 						"testaccount" => ($client_details->test_player ? true : false),
 						"wallettoken" => "",
 						"country" => "",
 						"affiliatecode" => "",
-						"displayname" => $client_response->playerdetailsresponse->accountname,
+						"displayname" => $client_details->display_name,
 					];
-				}
+				// }
 				// else
 				// {
 				// 	// change token status to expired
@@ -100,7 +100,7 @@ class SolidGamingController extends Controller
 	public function getPlayerDetails(Request $request)
 	{
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		$client_code = RouteParam::get($request, 'brand_code');
+		// $client_code = RouteParam::get($request, 'brand_code');
 
 		if(!CallParameters::check_keys($json_data, 'playerid')) {
 				$http_status = 400;
@@ -118,14 +118,15 @@ class SolidGamingController extends Controller
 						];
 
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
+
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
 
-				$client_response = $this->playerDetailsCall($client_details);		
+				// $client_response = $this->playerDetailsCall($client_details);		
 				
-				if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
+				// if(isset($client_response->playerdetailsresponse->status->code) 
+				// 	&& $client_response->playerdetailsresponse->status->code == "200") {
 
 					$http_status = 200;
 					$response = [
@@ -135,9 +136,9 @@ class SolidGamingController extends Controller
 						"testaccount" => ($client_details->test_player ? true : false),
 						"country" => "",
 						"affiliatecode" => "",
-						"displayname" => $client_response->playerdetailsresponse->accountname,
+						"displayname" => $client_details->display_name,
 					];
-				}
+				// }
 			}
 		}
 
@@ -169,7 +170,6 @@ class SolidGamingController extends Controller
 			// Find the player and client details
 			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
-			
 			if ($client_details) {
 
 				// Check if the game is available for the client
@@ -211,18 +211,18 @@ class SolidGamingController extends Controller
 
 					$client_response = json_decode($guzzle_response->getBody()->getContents());*/
 
-					$client_response = $this->playerDetailsCall($client_details);
+					// $client_response = $this->playerDetailsCall($client_details);
 					
-					if(isset($client_response->playerdetailsresponse->status->code) 
-					&& $client_response->playerdetailsresponse->status->code == "200") {
+					// if(isset($client_response->playerdetailsresponse->status->code) 
+					// && $client_response->playerdetailsresponse->status->code == "200") {
 
 						$http_status = 200;
 						$response = [
 							"status" => "OK",
 							"currency" => $client_details->default_currency,
-							"balance" => $client_response->playerdetailsresponse->balance,
+							"balance" => $client_details->balance,
 						];
-					}
+					// }
 				/*}*/
 			}
 		}
@@ -240,10 +240,23 @@ class SolidGamingController extends Controller
 		$response = [];
 		$client_response = [];
 
-		if($this->_isIdempotent($json_data['transid'])) {
-			return $this->_isIdempotent($json_data['transid'])->mw_response;
-		}
+		// if($this->_isIdempotent($json_data['transid'])) {
+		// 	return $this->_isIdempotent($json_data['transid'])->mw_response;
+		// }
 
+		try{
+			ProviderHelper::idenpotencyTable($this->prefix.'_'.$json_data['transid']);
+		} catch(\Exception $e) {
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
+			$http_status = 200;
+			$response = [
+				"status" => "OK",
+				"currency" => $client_details->default_currency,
+				"balance" => $client_details->balance,
+			];
+			return response()->json($response, $http_status);
+		}
+		
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
 				$http_status = 400;
 				$response = [
@@ -263,6 +276,7 @@ class SolidGamingController extends Controller
 			/*$player_details = PlayerHelper::getPlayerDetails($json_data['playerid']);*/
 
 			if ($client_details) {
+				
 				GameRound::create($json_data['roundid'], $client_details->token_id);
 
 				// Check if the game is available for the client
@@ -279,16 +293,16 @@ class SolidGamingController extends Controller
 				}
 				else
 				{*/
-					if(!GameRound::check($json_data['roundid'])) {
-						$http_status = 400;
-						$response = [
-							"errorcode" =>  "ROUND_ENDED",
-							"errormessage" => "Game round have already been closed",
-							"httpstatus" => "404"
-						];
-					}
-					else
-					{
+					// if(!GameRound::check($json_data['roundid'])) {
+					// 	$http_status = 400;
+					// 	$response = [
+					// 		"errorcode" =>  "ROUND_ENDED",
+					// 		"errormessage" => "Game round have already been closed",
+					// 		"httpstatus" => "404"
+					// 	];
+					// }
+					// else
+					// {
 						$json_data['income'] = $json_data['amount'];
 
 						$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
@@ -301,7 +315,7 @@ class SolidGamingController extends Controller
 		                $client_response = ClientRequestHelper::fundTransfer($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, 'debit');
 						
 						if(isset($client_response->fundtransferresponse->status->code) 
-					&& $client_response->fundtransferresponse->status->code == "402") {
+							&& $client_response->fundtransferresponse->status->code == "402") {
 							$http_status = 402;
 							$response = [
 								"errorcode" =>  "NOT_SUFFICIENT_FUNDS",
@@ -311,7 +325,7 @@ class SolidGamingController extends Controller
 						else
 						{
 							if(isset($client_response->fundtransferresponse->status->code) 
-						&& $client_response->fundtransferresponse->status->code == "200") {
+								&& $client_response->fundtransferresponse->status->code == "200") {
 
 								if(array_key_exists("roundended", $json_data)) {
 									if ($json_data["roundended"] == "true") {
@@ -331,7 +345,7 @@ class SolidGamingController extends Controller
 
 						ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
 						
-					}
+					// }
 				/*}*/
 			}
 		}
@@ -349,8 +363,21 @@ class SolidGamingController extends Controller
 		$response = [];
 		$client_response = [];
 
-		if($this->_isIdempotent($json_data['transid'])) {
-			return $this->_isIdempotent($json_data['transid'])->mw_response;
+		// if($this->_isIdempotent($json_data['transid'])) {
+		// 	return $this->_isIdempotent($json_data['transid'])->mw_response;
+		// }
+
+		try{
+			ProviderHelper::idenpotencyTable($this->prefix.'_'.$json_data['transid']);
+		} catch(\Exception $e) {
+			$client_details = ProviderHelper::getClientDetails('player_id', $json_data['playerid']);
+			$http_status = 200;
+			$response = [
+				"status" => "OK",
+				"currency" => $client_details->default_currency,
+				"balance" => $client_details->balance,
+			];
+			return response()->json($response, $http_status);
 		}
 
 		if(!CallParameters::check_keys($json_data, 'playerid', 'roundid', 'gamecode', 'platform', 'transid', 'currency', 'amount', 'reason', 'roundended')) {
@@ -392,15 +419,15 @@ class SolidGamingController extends Controller
 				}
 				else
 				{*/
-					if(!GameRound::check($json_data['roundid'])) {
-						$http_status = 400;
-						$response = [
-							"errorcode" =>  "ROUND_ENDED",
-							"errormessage" => "Game round have already been closed",
-						];
-					}
-					else
-					{
+					// if(!GameRound::check($json_data['roundid'])) {
+					// 	$http_status = 400;
+					// 	$response = [
+					// 		"errorcode" =>  "ROUND_ENDED",
+					// 		"errormessage" => "Game round have already been closed",
+					// 	];
+					// }
+					// else
+					// {
 						$game_details = Game::find($json_data["gamecode"], config("providerlinks.solid.PROVIDER_ID"));
 						$json_data['income'] = $json_data["amount"];
 
@@ -458,7 +485,7 @@ class SolidGamingController extends Controller
 							$client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $json_data['amount'], $game_details->game_code, $game_details->game_name, $game_trans_ext_id, 'credit', false, $action_payload);
             				$save_bal = DB::table("player_session_tokens")->where("token_id","=",$client_details->token_id)->update(["balance" => $balance]);
 						// ProviderHelper::updatecreateGameTransExt($game_trans_ext_id, $json_data, $response, $client_response->requestoclient, $client_response, $json_data);
-					}
+					// }
 				/*}*/
 			}
 		}
