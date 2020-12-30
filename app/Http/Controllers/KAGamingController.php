@@ -274,7 +274,7 @@ class KAGamingController extends Controller
           KAHelper::saveLog('KAGaming checkPlay CRID '.$gamerecord, $this->provider_db_id,json_encode($request->all()), $client_response);
            
         } catch (\Exception $e) {
-          $response = ["status" => "Server Timeout", "statusCode" =>  1];
+          $response = ["status" => "Not Enough Balance", "statusCode" =>  200];
             if(isset($gamerecord)){
                 if($check_bet_round == 'false'){
                     ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
@@ -297,6 +297,7 @@ class KAGamingController extends Controller
             $game_transextension_credit = KAHelper::createGameTransExtV2($gamerecord,$provider_trans_id, $round_id, $win_amount, 2);
             $client_response_credit = ClientRequestHelper::fundTransfer($client_details,abs($win_amount),$game_information->game_code,$game_information->game_name,$game_transextension_credit,$gamerecord, 'credit');
             $general_details['client']['after_balance'] = KAHelper::amountToFloat($client_response_credit->fundtransferresponse->balance);
+            ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response_credit->fundtransferresponse->balance);
             $response = [
                 "balance" => $this->formatBalance($client_response_credit->fundtransferresponse->balance),
                 "status" => "success",
@@ -353,7 +354,8 @@ class KAGamingController extends Controller
           $response = ["status" => "Low Balance", "statusCode" =>  200];
           ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data, 'FAILED', $client_response, 'FAILED', $general_details);
         }else{ // Unknown Response Code
-          $response = ["status" => "Client Error", "statusCode" =>  1];
+        //   $response = ["status" => "Client Error", "statusCode" =>  1];
+          $response = ["status" => "Not Enough Balance", "statusCode" =>  200];
           ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $response, 'FAILED', 'FAILED', 'FAILED', $general_details);
           KAHelper::saveLog('KAGaming checkPlay - FATAL ERROR', $this->provider_db_id, $response, KAHelper::datesent());
         }  
