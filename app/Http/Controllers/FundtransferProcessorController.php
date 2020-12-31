@@ -243,7 +243,7 @@ class FundtransferProcessorController extends Controller
             ];
             $this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
             ProviderHelper::updateGameTransactionStatus($game_transaction_id, 2, 99);
-            ProviderHelper::createRestrictGame($game_details->game_id, $client_details->player_id, $game_trans_ext_id, $client_response->requestoclient);
+            // ProviderHelper::createRestrictGame($game_details->game_id, $client_details->player_id, $game_trans_ext_id, $client_response->requestoclient);
             Helper::saveLog('backgroundProcessDebitCreditFund', 88, json_encode($details), $response);
         }
     }
