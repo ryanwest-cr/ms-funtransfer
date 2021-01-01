@@ -303,7 +303,7 @@ class PragmaticPLayController extends Controller
             ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
             $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $client_response->fundtransferresponse->balance]);
             // $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $balance]);
-            AWSHelper::saveLog('TPP bet response', $this->provider_id, $data, "response");
+            AWSHelper::saveLog('TPP bet response', $this->provider_id, json_encode($data), "response");
             return $response;
         } catch (\Exception $e) {
             $msg = array("status" => 'error',"message" => $e->getMessage());
