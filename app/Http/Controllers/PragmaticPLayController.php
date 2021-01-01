@@ -448,7 +448,7 @@ class PragmaticPLayController extends Controller
             // $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $payout,"game_transaction_type" => $entry_id,"provider_request" => json_encode($data),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
             $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_code, $game_name, $game_trans_ext_v2, 'credit', false, $action_payload);
             $save_bal = DB::table("player_session_tokens")->where("token_id","=",$token_id)->update(["balance" => $balance]);
-            AWSHelper::saveLog('TPP result response', $this->provider_id, $data, "response");
+            AWSHelper::saveLog('TPP result response', $this->provider_id, json_encode($data), "response");
             return $response;
 
         } catch (\Exception $e) {
