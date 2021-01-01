@@ -33,7 +33,7 @@ class FundtransferProcessorController extends Controller
         }else{
             $game_transaction_type = 1;
         }
-        
+        // sleep(10);
         try{
             $gteid = ClientRequestHelper::generateGTEID(
                 $payload->request_body->fundtransferrequest->fundinfo->roundId,
@@ -97,23 +97,21 @@ class FundtransferProcessorController extends Controller
                 # NOTE DEBIT AND CREDIT SOMETIMES HAS DIFFERENT WAY OF UPDATING JUST USE YOUR CUSTOM!!
 
                 # You can add your own helper for custom gametransaction update like general_details etc!
+                # If you dont want to use custom update change payload type to general!
                 if($payload->action->type == 'custom'){
                     if($payload->action->custom->provider == 'allwayspin'){
                         # No need to update my gametransaction data :) 1 way flight, only the gametransaction extension
-                        $gteid = ClientRequestHelper::updateGTEID(
-                            $gteid, 
-                            $requesttocient, 
-                            $client_response,
-                            'success',
-                            'success'
-                        );
+                        $gteid = ClientRequestHelper::updateGTEID($gteid,$requesttocient,$client_response,'success','success' );
+                    }
+                    elseif($payload->action->custom->provider == 'evolution'){
+                        $gteid = ClientRequestHelper::updateGTEID($gteid,$requesttocient,$client_response,'success','success' );
                     }
                     if($payload->action->custom->provider == 'tpp'){
                         $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$payload->action->mwapi->roundId)->update(["amount" => $payload->request_body->fundtransferrequest->fundinfo->amount ,"game_transaction_type" => $game_transaction_type, "provider_request" => json_encode($payload->action->provider->provider_request),"mw_response" => json_encode($payload->action->mwapi->mw_response),"mw_request" => json_encode($requesttocient),"client_response" => json_encode($client_response),"transaction_detail" => "success" ]);
                     }
                 }else{
                     # Normal/general Update Game Transaction if you need to update your gametransaction you can add new param to the action payload!
-                    
+                    $gteid = ClientRequestHelper::updateGTEID($gteid,$requesttocient,$client_response,'success','success' );
                 }
 
             }elseif(isset($client_response->fundtransferresponse->status->code) 
