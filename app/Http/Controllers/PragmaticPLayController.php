@@ -268,7 +268,7 @@ class PragmaticPLayController extends Controller
 
         try {
            
-            // $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount,$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
+            $client_response = ClientRequestHelper::fundTransfer($client_details, $bet_amount,$game_details->game_code,$game_details->game_name,$game_transextension,$game_trans,'debit');
             // $balance = $client_details->balance - $bet_amount;
             $response = array(
                 "transactionId" => $game_trans,
@@ -298,11 +298,11 @@ class PragmaticPLayController extends Controller
             //         "mw_response" => $response,
             //     ]
             // ];
-            $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $game_transextension, 'credit', false, $action_payload);
+            // $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $game_transextension, 'credit', false, $action_payload);
             
-            // ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
-            // $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $client_response->fundtransferresponse->balance]);
-            $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $balance]);
+            ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
+            $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $client_response->fundtransferresponse->balance]);
+            // $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $balance]);
             AWSHelper::saveLog('TPP bet response', $this->provider_id, $data, "response");
             return $response;
         } catch (\Exception $e) {
