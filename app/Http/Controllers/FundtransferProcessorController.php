@@ -33,7 +33,7 @@ class FundtransferProcessorController extends Controller
         }else{
             $game_transaction_type = 1;
         }
-
+        
         try{
             $gteid = ClientRequestHelper::generateGTEID(
                 $payload->request_body->fundtransferrequest->fundinfo->roundId,
@@ -84,7 +84,7 @@ class FundtransferProcessorController extends Controller
             $guzzle_response = $client->post($payload->header->endpoint,
             [
                 'on_stats' => function (TransferStats $stats) use ($requesttocient){
-                    Helper::saveLog('TIME = '.$stats->getTransferTime() .' GEID = '.$requesttocient['fundtransferrequest']['fundinfo']['transactionId'].' '.$requesttocient['fundtransferrequest']['fundinfo']['transactiontype'], 999, json_encode($stats->getHandlerStats()), $requesttocient);
+                    ProviderHelper::saveLog('RID'.$requesttocient['fundtransferrequest']['fundinfo']['roundId']. 'TIME = '.$stats->getTransferTime(), 999, json_encode($stats->getHandlerStats()), $requesttocient);
                 },
                 'body' => json_encode($requesttocient)
             ],

@@ -71,7 +71,7 @@ class ClientRequestHelper{
             $guzzle_response = $client->post($client_details->fund_transfer_url,
             [
                 'on_stats' => function (TransferStats $stats) use ($requesttocient){
-                    Helper::saveLog('TIME = '.$stats->getTransferTime() .' GEID = '.$requesttocient['fundtransferrequest']['fundinfo']['transactionId'].' '.$requesttocient['fundtransferrequest']['fundinfo']['transactiontype'], 999, json_encode($stats->getHandlerStats()), $requesttocient);
+                    ProviderHelper::saveLog('RID'.$requesttocient['fundtransferrequest']['fundinfo']['roundId']. 'TIME = '.$stats->getTransferTime(), 999, json_encode($stats->getHandlerStats()), $requesttocient);
                 },
                 'body' => json_encode(
                     $requesttocient
@@ -179,7 +179,7 @@ class ClientRequestHelper{
      */
     // public static function fundTransfer_TG($client_details,$amount,$game_code,$game_name,$transactionId,$roundId,$type,$rollback=false,$action=array()){
     public static function fundTransfer_TG($client_details,$amount,$game_code,$game_name,$roundId,$type,$rollback=false,$action=array()){
-
+        Helper::saveLog('fundTransfer_TG', 999, json_encode([]), "fundTransfer_TG HIT");
         // if($type == 'credit'){
         //     $game_transaction_type = 2;
         // }else{
@@ -237,7 +237,7 @@ class ClientRequestHelper{
             $guzzle_response = $client->post(config('providerlinks.oauth_mw_api.mwurl').'/tigergames/fundtransfer',
                 [
                     'on_stats' => function (TransferStats $stats) use ($requesttocient) {
-                        Helper::saveLog('TIME = ' . $stats->getTransferTime() . ' GEID = ' . $requesttocient['request_body']['fundtransferrequest']['fundinfo']['transactionId'] . ' ' . $requesttocient['request_body']['fundtransferrequest']['fundinfo']['transactiontype'], 999, json_encode($stats->getHandlerStats()), $requesttocient);
+                        ProviderHelper::saveLog('RID'.$requesttocient['fundtransferrequest']['fundinfo']['roundId']. 'TIME = '.$stats->getTransferTime(), 999, json_encode($stats->getHandlerStats()), $requesttocient);
                     },
                     'timeout' => 0.10, # enough tobe received by the server!
                     'body' => json_encode($requesttocient)
