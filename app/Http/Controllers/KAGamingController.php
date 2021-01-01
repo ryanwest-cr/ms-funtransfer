@@ -101,12 +101,12 @@ class KAGamingController extends Controller
     public function gameStart(Request $request){
         KAHelper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = $request->getContent();
-        // if(!$request->input("hash") != ''){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
-        // if(!$this->verifyHash($request_body, $request->input("hash"))){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$request->input("hash") != ''){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
         $data = json_decode($request_body);
         // $session_check = KAHelper::getClientDetails('token',$data->token);
         // if($session_check == 'false'){
@@ -137,12 +137,12 @@ class KAGamingController extends Controller
         KAHelper::saveLog('KAGaming playerBalance - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $request_body = $request->getContent();
 
-        // if(!$request->input("hash") != ''){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
-        // if(!$this->verifyHash($request_body, $request->input("hash"))){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$request->input("hash") != ''){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
         $data = json_decode($request_body);
         // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
         // if($session_check == 'false'){
@@ -171,12 +171,12 @@ class KAGamingController extends Controller
         // $request_body = file_get_contents("php://input");
         $request_body = $request->getContent();
 
-        // if(!$request->input("hash") != ''){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
-        // if(!$this->verifyHash($request_body, $request->input("hash"))){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$request->input("hash") != ''){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
 
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
@@ -371,12 +371,12 @@ class KAGamingController extends Controller
         KAHelper::saveLog('KAGaming gameCredit - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
 
         $request_body = $request->getContent();
-        // if(!$request->input("hash") != ''){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
-        // if(!$this->verifyHash($request_body, $request->input("hash"))){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$request->input("hash") != ''){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
 
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
@@ -488,12 +488,12 @@ class KAGamingController extends Controller
     public function gameRevoke(Request $request){
         KAHelper::saveLog('KAGaming gameRevoke - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = $request->getContent();
-        // if(!$request->input("hash") != ''){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
-        // if(!$this->verifyHash($request_body, $request->input("hash"))){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$request->input("hash") != ''){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
         $game_code = $data->gameId;
@@ -628,12 +628,12 @@ class KAGamingController extends Controller
         KAHelper::saveLog('KAGaming gameEnd - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $request_body = $request->getContent();
 
-        // if(!$request->input("hash") != ''){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
-        // if(!$this->verifyHash($request_body, $request->input("hash"))){
-        //     return  $response = ["status" => "failed", "statusCode" =>  3];
-        // }
+        if(!$request->input("hash") != ''){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
+        if(!$this->verifyHash($request_body, $request->input("hash"))){
+            return  $response = ["status" => "failed", "statusCode" =>  3];
+        }
         $data = json_decode($request_body);
         // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
         // if($session_check == 'false'){
