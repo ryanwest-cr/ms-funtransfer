@@ -115,14 +115,14 @@ class GameLobbyController extends Controller
                  ->header('Content-Type', 'application/json');
             }
             // CLIENT SUBSCRIPTION FILTER
-            // $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
-            // if(!$subscription_checker){
-            //     $msg = array(
-            //         "game_code" => $request->input("game_code"),
-            //         "game_launch" => false
-            //     );
-            //     return $msg;
-            // }
+            $subscription_checker = $this->checkGameAccess($request->input("client_id"), $request->input("game_code"));
+            if(!$subscription_checker){
+                $msg = array(
+                    "game_code" => $request->input("game_code"),
+                    "game_launch" => false
+                );
+                return $msg;
+            }
             
             // Filters
             if(ClientHelper::checkClientID($request->all()) != 200){
@@ -767,49 +767,49 @@ class GameLobbyController extends Controller
             return $data;
     }
 
-    // public function checkGameAccess($client_id, $game_code){
+    public function checkGameAccess($client_id, $game_code){
 
-    //     $excludedlist = ClientGameSubscribe::with("selectedProvider")->with("gameExclude")->with("subProviderExcluded")->where("client_id",$client_id)->get();
-    //     if(count($excludedlist)>0){
-    //         $gamesexcludeId=array();
-    //         foreach($excludedlist[0]->gameExclude as $excluded){
-    //             array_push($gamesexcludeId,$excluded->game_id);
-    //         }
-    //         $subproviderexcludeId=array();
-    //         foreach($excludedlist[0]->subProviderExcluded as $excluded){
-    //             array_push($subproviderexcludeId,$excluded->sub_provider_id);
-    //         }
+        $excludedlist = ClientGameSubscribe::with("selectedProvider")->with("gameExclude")->with("subProviderExcluded")->where("client_id",$client_id)->get();
+        if(count($excludedlist)>0){
+            $gamesexcludeId=array();
+            foreach($excludedlist[0]->gameExclude as $excluded){
+                array_push($gamesexcludeId,$excluded->game_id);
+            }
+            $subproviderexcludeId=array();
+            foreach($excludedlist[0]->subProviderExcluded as $excluded){
+                array_push($subproviderexcludeId,$excluded->sub_provider_id);
+            }
            
-    //         $data = array();
-    //         $sub_providers = GameSubProvider::with(["games.game_type","games"=>function($q)use($gamesexcludeId){
-    //             $q->whereNotIn("game_id",$gamesexcludeId)->where("on_maintenance",0);
-    //         }])->whereNotIn("sub_provider_id",$subproviderexcludeId)->where("on_maintenance",0)->get(["sub_provider_id","sub_provider_name", "icon"]);
-    //         foreach($sub_providers as $sub_provider){
-    //             $subproviderdata = array(
-    //                 "provider_id" => "sp".$sub_provider->sub_provider_id,
-    //                 "provider_name" => $sub_provider->sub_provider_name,
-    //                 "icon" => $sub_provider->icon,
-    //                 "games_list" => array(),
-    //             );
-    //             foreach($sub_provider->games as $game){
-    //                 if($game->game_type){
-    //                     $game = array(
-    //                         "game_id" => $game->game_id,
-    //                         "game_name"=>$game->game_name,
-    //                         "game_code"=>$game->game_code,
-    //                         "game_provider"=>$sub_provider->sub_provider_name,
-    //                         "game_type" => $game->game_type->game_type_name,
-    //                         "game_icon" => $game->icon,
-    //                     );
-    //                     array_push($subproviderdata["games_list"],$game);
-    //                 }
-    //             }
-    //             array_push($data,$subproviderdata);
-    //             return $data;
-    //             return  in_array($game_code, $data) ? 1 : 0;
-    //         }
-    //         return false;
-    //     }
+            $data = array();
+            $sub_providers = GameSubProvider::with(["games.game_type","games"=>function($q)use($gamesexcludeId){
+                $q->whereNotIn("game_id",$gamesexcludeId)->where("on_maintenance",0);
+            }])->whereNotIn("sub_provider_id",$subproviderexcludeId)->where("on_maintenance",0)->get(["sub_provider_id","sub_provider_name", "icon"]);
+            foreach($sub_providers as $sub_provider){
+                $subproviderdata = array(
+                    "provider_id" => "sp".$sub_provider->sub_provider_id,
+                    "provider_name" => $sub_provider->sub_provider_name,
+                    "icon" => $sub_provider->icon,
+                    "games_list" => array(),
+                );
+                foreach($sub_provider->games as $game){
+                    if($game->game_type){
+                        $game = array(
+                            "game_id" => $game->game_id,
+                            "game_name"=>$game->game_name,
+                            "game_code"=>$game->game_code,
+                            "game_provider"=>$sub_provider->sub_provider_name,
+                            "game_type" => $game->game_type->game_type_name,
+                            "game_icon" => $game->icon,
+                        );
+                        array_push($subproviderdata["games_list"],$game);
+                    }
+                }
+                array_push($data,$subproviderdata);
+                return $data;
+                return  in_array($game_code, $data) ? 1 : 0;
+            }
+            return false;
+        }
 
         //  $excludedlist = ClientGameSubscribe::with("selectedProvider")->with("gameExclude")->with("subProviderExcluded")->where("client_id",$client_id)->get();
         //  if($excludedlist){
