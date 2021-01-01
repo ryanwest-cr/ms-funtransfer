@@ -101,12 +101,12 @@ class KAGamingController extends Controller
     public function gameStart(Request $request){
         KAHelper::saveLog('KAGaming gameStart - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = $request->getContent();
-        if(!$request->input("hash") != ''){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
-        if(!$this->verifyHash($request_body, $request->input("hash"))){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if(!$request->input("hash") != ''){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
+        // if(!$this->verifyHash($request_body, $request->input("hash"))){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         // $session_check = KAHelper::getClientDetails('token',$data->token);
         // if($session_check == 'false'){
@@ -137,12 +137,12 @@ class KAGamingController extends Controller
         KAHelper::saveLog('KAGaming playerBalance - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $request_body = $request->getContent();
 
-        if(!$request->input("hash") != ''){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
-        if(!$this->verifyHash($request_body, $request->input("hash"))){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if(!$request->input("hash") != ''){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
+        // if(!$this->verifyHash($request_body, $request->input("hash"))){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
         // if($session_check == 'false'){
@@ -171,12 +171,12 @@ class KAGamingController extends Controller
         // $request_body = file_get_contents("php://input");
         $request_body = $request->getContent();
 
-        if(!$request->input("hash") != ''){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
-        if(!$this->verifyHash($request_body, $request->input("hash"))){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if(!$request->input("hash") != ''){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
+        // if(!$this->verifyHash($request_body, $request->input("hash"))){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
 
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
@@ -233,9 +233,13 @@ class KAGamingController extends Controller
         }
 
 
+        // $all_round = $this->findAllGameExt($provider_trans_id, 'all', $round_id);
+        // dd($all_round);
         $game_ext_check = KAHelper::findGameExt($round_id, 1, 'round_id');
         if($game_ext_check != 'false'){ // Duplicate transaction
-            return  $response = ["status" => "Duplicate transaction", "statusCode" =>  1];
+            if($game_ext_check->transaction_detail != '"FAILED"' && $game_ext_check->transaction_detail != 'FAILED'){
+                return  $response = ["status" => "Duplicate transaction", "statusCode" =>  1];
+            }
         }
 
         # Insert Idenpotent
@@ -278,7 +282,7 @@ class KAGamingController extends Controller
             if(isset($gamerecord)){
                 if($check_bet_round == 'false'){
                     ProviderHelper::updateGameTransactionStatus($gamerecord, 2, 99);
-                    ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', json_encode($response), 'FAILED', $e->getMessage(), 'FAILED', $general_details);
+                    ProviderHelper::updatecreateGameTransExt($game_transextension, $data, json_encode($response), 'FAILED', $e->getMessage(), 'FAILED', $general_details);
                 }
             }
           KAHelper::saveLog('KAGaming checkPlay - FATAL ERROR', $this->provider_db_id, $response, KAHelper::datesent());
@@ -352,7 +356,7 @@ class KAGamingController extends Controller
                 endif;
             }
           $response = ["status" => "Low Balance", "statusCode" =>  200];
-          ProviderHelper::updatecreateGameTransExt($game_transextension, 'FAILED', $data, 'FAILED', $client_response, 'FAILED', $general_details);
+          ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response,'FAILED', $client_response, 'FAILED', $general_details);
         }else{ // Unknown Response Code
         //   $response = ["status" => "Client Error", "statusCode" =>  1];
           $response = ["status" => "Not Enough Balance", "statusCode" =>  200];
@@ -367,12 +371,12 @@ class KAGamingController extends Controller
         KAHelper::saveLog('KAGaming gameCredit - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
 
         $request_body = $request->getContent();
-        if(!$request->input("hash") != ''){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
-        if(!$this->verifyHash($request_body, $request->input("hash"))){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if(!$request->input("hash") != ''){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
+        // if(!$this->verifyHash($request_body, $request->input("hash"))){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
 
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
@@ -484,12 +488,12 @@ class KAGamingController extends Controller
     public function gameRevoke(Request $request){
         KAHelper::saveLog('KAGaming gameRevoke - EH', $this->provider_db_id, json_encode($request->all()), $request->input("hash"));
         $request_body = $request->getContent();
-        if(!$request->input("hash") != ''){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
-        if(!$this->verifyHash($request_body, $request->input("hash"))){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if(!$request->input("hash") != ''){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
+        // if(!$this->verifyHash($request_body, $request->input("hash"))){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         $general_details = ["aggregator" => [], "provider" => [], "client" => []];
         $game_code = $data->gameId;
@@ -512,10 +516,18 @@ class KAGamingController extends Controller
         if($game_information == null){ 
             return  $response = ["status" => "Game Not Found", "statusCode" =>  1];
         }
-        $transaction_details = KAHelper::findGameExt($provider_trans_id, 1, 'transaction_id');
+        $transaction_details = KAHelper::findGameExt($round_id, 1, 'round_id');
         if($transaction_details == 'false'){ // Duplicate transaction
             return  $response = ["status" => "revoke Transaction does not exist", "statusCode" =>  400];
         }
+        if($transaction_details->transaction_detail == '"FAILED"' || $transaction_details->transaction_detail == 'FAILED'){
+            $is_round_0 = explode('_', $transaction_details->round_id);
+            if((int)$is_round_0[1] == 0){
+              return  $response = ["status" => "Transaction no longer revocable", "statusCode" =>  401];
+            }   
+        }
+        $existing_bet = KAHelper::findGameTransaction($transaction_details->game_trans_id,'game_transaction');
+
         // $check_revoked = KAHelper::findGameExt($provider_trans_id, 3, 'transaction_id');
         $check_revoked = KAHelper::findGameExt($round_id, 3, 'round_id');
         if($check_revoked != 'false'){ // Duplicate transaction
@@ -524,23 +536,26 @@ class KAGamingController extends Controller
         $general_details['client']['before_balance'] = KAHelper::amountToFloat($client_details->balance);
         // $general_details['client']['before_balance'] = KAHelper::amountToFloat($player_details->playerdetailsresponse->balance);
 
+        // $all_round = $this->findAllGameExt($provider_trans_id, 'all', $round_id);
         $all_round = $this->findAllGameExt($provider_trans_id, 'all', $round_id);
         $bet_amounts = array();
         $win_amounts = array();
         if(count($all_round) != 0){
             foreach ($all_round as $key) {
-                if($key->game_transaction_type == 1){
-                    array_push($bet_amounts, $key->amount);
-                }elseif($key->game_transaction_type == 2){
-                    array_push($win_amounts, $key->amount);
+                $the_round = explode('_', $key->round_id);
+                if((int)$the_round[1] >= $data->round){
+                    if($key->game_transaction_type == 1){
+                        array_push($bet_amounts, $key->amount);
+                    }elseif($key->game_transaction_type == 2){
+                        array_push($win_amounts, $key->amount);
+                    }
                 }
             }
         }
         $refund_amount = array_sum($bet_amounts)-array_sum($win_amounts);
-        
         $method = $transaction_details->game_transaction_type;
         $entry_id = $transaction_details->game_transaction_type;
-        $win_or_lost = 4; // 0 lost,  5 processing
+        // $win_or_lost = 4; // 0 lost,  5 processing
         $payout_reason = 'Refund - Revoked';
         $game_code = $data->gameId;
 
@@ -553,15 +568,22 @@ class KAGamingController extends Controller
         if($refund_amount < 0){
            $transaction_type = 'debit';
            $pay_amount =  0; //abs($data['amount']);
-           $income = 0;
-        //    if(KAHelper::amountToFloat($player_details->playerdetailsresponse->balance) < abs($refund_amount)){
+           $pay_amount =  $existing_bet->pay_amount;
+           $income = $existing_bet->bet_amount - $existing_bet->pay_amount;
+           // if(KAHelper::amountToFloat($player_details->playerdetailsresponse->balance) < abs($refund_amount)){
            if(KAHelper::amountToFloat($client_details->balance) < abs($refund_amount)){
                  return  $response = ["status" => "Insufficient balance", "statusCode" =>  200];
            }
         }else{
            $transaction_type = 'credit';
-           $pay_amount =  0; //abs($data['amount']);
-           $income = 0;
+           $pay_amount =  $existing_bet->pay_amount;
+           $income = $existing_bet->bet_amount - $existing_bet->pay_amount;
+        }
+
+        if($pay_amount > 0){
+            $win_or_lost = 1; // 1 win,  5 processing
+        }else{
+            $win_or_lost = 4; // 4 refund,  5 processing
         }
 
         #1 DEBIT OPERATION
@@ -606,12 +628,12 @@ class KAGamingController extends Controller
         KAHelper::saveLog('KAGaming gameEnd - EH', $this->provider_db_id, json_encode($request->all()), 'ENDPOINT HIT');
         $request_body = $request->getContent();
 
-        if(!$request->input("hash") != ''){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
-        if(!$this->verifyHash($request_body, $request->input("hash"))){
-            return  $response = ["status" => "failed", "statusCode" =>  3];
-        }
+        // if(!$request->input("hash") != ''){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
+        // if(!$this->verifyHash($request_body, $request->input("hash"))){
+        //     return  $response = ["status" => "failed", "statusCode" =>  3];
+        // }
         $data = json_decode($request_body);
         // $session_check = KAHelper::getClientDetails('token',$data->sessionId);
         // if($session_check == 'false'){
@@ -1151,11 +1173,12 @@ class KAGamingController extends Controller
         }  
         if ($type == 'all') {
             $transaction_db->where([
-                ["gte.round_id", "=", $second_identifier],
+                // ["gte.round_id", "=", $second_identifier],
                 ["gte.provider_trans_id", "=", $provider_identifier],
             ]);
         }  
-        $result = $transaction_db->latest()->get();
+        // $result = $transaction_db->latest()->get();
+        $result = $transaction_db->get();
         return $result ? $result : 'false';
     }
 

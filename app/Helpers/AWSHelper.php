@@ -18,9 +18,21 @@ class AWSHelper{
 	 * 
 	 */
 
+
+	private static $DB1,$DB2;
+
+	// private static $DB1 = 'mysql';
+	// private static $DB2 = 'mysql2';
+
+	public function __construct()
+	{
+		self::$DB1 = config('double_db.DB1');
+		self::$DB2 = config('double_db.DB2');
+	}
+
 	public static function findMerchantIdByClientId($client_id){
 
-		$client_key = DB::table('clients')->where('client_id', $client_id)->first();
+		$client_key = DB::connection(self::$DB1)->table('clients')->where('client_id', $client_id)->first();
 		if(!$client_key){ return false; }
 		$operator_id =  $client_key->operator_id;
 		$aws_config = config('providerlinks.aws');
@@ -207,7 +219,7 @@ class AWSHelper{
 	 */
 	public static function getBalance($token_id){
 		// $balance_query = DB::connection('mysql2')->select("SELECT * FROM player_session_tokens WHERE token_id = '".$token_id."'");
-		$balance_query = DB::select("SELECT * FROM player_session_tokens WHERE token_id = '".$token_id."'");
+		$balance_query = DB::connection(self::$DB2)->select("SELECT * FROM player_session_tokens WHERE token_id = '".$token_id."'");
 		$data = count($balance_query);
 		return $data > 0 ?$balance_query[0]:null;
 	}
@@ -234,7 +246,7 @@ class AWSHelper{
 			if(env('Al_DEBUG')){
 				return DB::table('debug')->insert($data);
 			}else{
-				return DB::table('seamless_request_logs')->insert($data);
+				return DB::connection(self::$DB1)->table('seamless_request_logs')->insert($data);
 			}
 		}
 	}
@@ -242,22 +254,22 @@ class AWSHelper{
 	public static function createGameTransaction($token_id, $game_id, $bet_amount, $payout, $entry_id,  $win = 0, $transaction_reason = null, $payout_reason = null, $income = null, $provider_trans_id = null, $round_id = 1)
 	{
 
-		$query = DB::select("insert into `game_transactions` (`token_id`, `game_id`, `round_id`, `bet_amount`, `provider_trans_id`, `pay_amount`, `income`, `entry_id`, `win`, `transaction_reason`, `payout_reason`) values ($token_id, $game_id, '$round_id', $bet_amount, '$provider_trans_id', $payout, '$income', $entry_id, $win, '$transaction_reason', '$payout_reason')");
+		$query =DB::connection(self::$DB1)->select("insert into `game_transactions` (`token_id`, `game_id`, `round_id`, `bet_amount`, `provider_trans_id`, `pay_amount`, `income`, `entry_id`, `win`, `transaction_reason`, `payout_reason`) values ($token_id, $game_id, '$round_id', $bet_amount, '$provider_trans_id', $payout, '$income', $entry_id, $win, '$transaction_reason', '$payout_reason')");
 
-		return DB::connection()->getPdo()->lastInsertId();
+		return DB::connection(self::$DB1)->getPdo()->lastInsertId();
 	}
 
 	public static function updateBetTransaction($round_id, $pay_amount, $income, $win, $entry_id)
 	{
 		$reason = ProviderHelper::updateReason($win);
-		$update = DB::select("update `game_transactions` set `pay_amount` = $pay_amount, `income` = $income, `win` = $win, `entry_id` = $entry_id, `transaction_reason` = '$reason' where `game_trans_id` = $round_id");
+		$update = DB::connection(self::$DB1)->select("update `game_transactions` set `pay_amount` = $pay_amount, `income` = $income, `win` = $win, `entry_id` = $entry_id, `transaction_reason` = '$reason' where `game_trans_id` = $round_id");
 	}
 
 
 	public  static function updateGameTransactionStatus($game_trans_id, $win, $reason)
 	{
 		$reason = ProviderHelper::updateReason($reason);
-		$update = DB::select("update `game_transactions` set `win` = $win, `transaction_reason` = '$reason' where `game_trans_id` = $game_trans_id");
+		$update = DB::connection(self::$DB1)->select("update `game_transactions` set `win` = $win, `transaction_reason` = '$reason' where `game_trans_id` = $game_trans_id");
 	}
 
 	public static function createGameTransExtV2($game_trans_id, $provider_trans_id, $round_id, $amount, $game_type, $provider_request = 'FAILED', $mw_response = 'FAILED', $mw_request = 'FAILED', $client_response = 'FAILED', $transaction_detail = 'PENDING', $general_details = null)
@@ -269,9 +281,9 @@ class AWSHelper{
 		$transaction_detail = json_encode($transaction_detail);
 		$general_details = json_encode($general_details);
 
-		$query = DB::select("insert into `game_transaction_ext` (`game_trans_id`, `provider_trans_id`, `round_id`, `amount`, `game_transaction_type`, `provider_request`, `mw_response`, `mw_request`, `client_response`, `transaction_detail`, `general_details`) values ($game_trans_id,'$provider_trans_id','$round_id',$amount,$game_type,'$provider_request','$mw_response','$mw_request','$client_response','$transaction_detail','$general_details')");
+		$query = DB::connection(self::$DB2)->select("insert into `game_transaction_ext` (`game_trans_id`, `provider_trans_id`, `round_id`, `amount`, `game_transaction_type`, `provider_request`, `mw_response`, `mw_request`, `client_response`, `transaction_detail`, `general_details`) values ($game_trans_id,'$provider_trans_id','$round_id',$amount,$game_type,'$provider_request','$mw_response','$mw_request','$client_response','$transaction_detail','$general_details')");
 
-		return DB::connection()->getPdo()->lastInsertId();
+		return DB::connection(self::$DB1)->getPdo()->lastInsertId();
 	}
 
 	public  static function updatecreateGameTransExt($game_trans_ext_id, $provider_request, $mw_response, $mw_request, $client_response, $transaction_detail, $general_details = 'NO DATA')
@@ -282,7 +294,7 @@ class AWSHelper{
 		$client_response = json_encode($client_response);
 		$transaction_detail = json_encode($transaction_detail);
 		$general_details = json_encode($general_details);
-		$query = DB::select("update `game_transaction_ext` set `provider_request` = '$provider_request', `mw_response` = '$mw_response', `mw_request` = '$mw_request', `client_response` = '$client_response', `transaction_detail` = '$transaction_detail', `general_details` = '$general_details' where `game_trans_ext_id` = $game_trans_ext_id");
+		$query = DB::connection(self::$DB1)->select("update `game_transaction_ext` set `provider_request` = '$provider_request', `mw_response` = '$mw_response', `mw_request` = '$mw_request', `client_response` = '$client_response', `transaction_detail` = '$transaction_detail', `general_details` = '$general_details' where `game_trans_ext_id` = $game_trans_ext_id");
 	}
 
 	public static function playerDetailsCall($client_details, $refreshtoken = false)
@@ -346,7 +358,7 @@ class AWSHelper{
 
 		$filter = 'order by token_id desc LIMIT 1';
 		
-		$query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
+		$query = DB::connection(self::$DB2)->select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
 
 		 $client_details = count($query);
 		 return $client_details > 0 ? $query[0] : 'false';
@@ -354,7 +366,7 @@ class AWSHelper{
 
 
 	public static function checkTransactionExist($identifier, $transaction_type){
-		$query = DB::select('select `game_transaction_type` from game_transaction_ext where `provider_trans_id`  = "'.$identifier.'" AND `game_transaction_type` = "'.$transaction_type.'" LIMIT 1');
+		$query = DB::connection(self::$DB2)->select('select `game_transaction_type` from game_transaction_ext where `provider_trans_id`  = "'.$identifier.'" AND `game_transaction_type` = "'.$transaction_type.'" LIMIT 1');
     	$data = count($query);
 		return $data > 0 ? $query[0] : 'false';
 	}
@@ -373,13 +385,13 @@ class AWSHelper{
 		}
 	 	
 	 	$filter = 'LIMIT 1';
-    	$query = DB::select('select *, (select transaction_detail from game_transaction_ext where game_trans_id = gt.game_trans_id order by game_trans_id limit 1) as transaction_detail from game_transactions gt '.$where.' '.$filter.'');
+    	$query = DB::connection(self::$DB2)->select('select *, (select transaction_detail from game_transaction_ext where game_trans_id = gt.game_trans_id order by game_trans_id limit 1) as transaction_detail from game_transactions gt '.$where.' '.$filter.'');
     	$client_details = count($query);
 		return $client_details > 0 ? $query[0] : 'false';
     }
 
 	public static function findGameTransID($game_trans_id){
-		$query = DB::select('select `game_trans_id`,`token_id`, `provider_trans_id`, `round_id`, `bet_amount`, `win`, `pay_amount`, `income`, `entry_id` from game_transactions where `game_trans_id`  = '.$game_trans_id.' ');
+		$query =DB::connection(self::$DB2)->select('select `game_trans_id`,`token_id`, `provider_trans_id`, `round_id`, `bet_amount`, `win`, `pay_amount`, `income`, `entry_id` from game_transactions where `game_trans_id`  = '.$game_trans_id.' ');
     	$data = count($query);
 		return $data > 0 ? $query[0] : 'false';
 	}
@@ -402,7 +414,7 @@ class AWSHelper{
 
 		$filter = 'LIMIT 1';
 
-		$query = DB::select('select * from game_transaction_ext as gte ' . $where . ' ' . $filter . '');
+		$query = DB::connection(self::$DB2)->select('select * from game_transaction_ext as gte ' . $where . ' ' . $filter . '');
 		$data = count($query);
 		return $data > 0 ? $query[0] : 'false';
 	}
@@ -437,7 +449,7 @@ class AWSHelper{
 
 	public static function findGameDetails($type, $provider_id, $game_code)
 	{
-		$query = DB::Select("SELECT game_id,game_code,game_name FROM games WHERE game_code = '" . $game_code . "' AND provider_id = '" . $provider_id . "'");
+		$query = DB::connection(self::$DB2)->select("SELECT game_id,game_code,game_name FROM games WHERE game_code = '" . $game_code . "' AND provider_id = '" . $provider_id . "'");
 		$result = count($query);
 		return $result > 0 ? $query[0] : null;
 	}

@@ -72,10 +72,12 @@ class KAHelper{
 	public  static function findGameExt($provider_identifier, $game_transaction_type, $type)
 	{
 		if ($type == 'transaction_id') {
-			$where = 'where gte.provider_trans_id = "' . $provider_identifier . '" AND gte.game_transaction_type = ' . $game_transaction_type . ' AND gte.transaction_detail != "FAILED"';
+			$where = 'where gte.provider_trans_id = "' . $provider_identifier . '" AND gte.game_transaction_type = ' . $game_transaction_type . '';
+			// $where = 'where gte.provider_trans_id = "' . $provider_identifier . '" AND gte.game_transaction_type = ' . $game_transaction_type . ' AND gte.transaction_detail != "FAILED"';
 		}
 		if ($type == 'round_id') {
-			$where = 'where gte.round_id = "' . $provider_identifier . '" AND gte.game_transaction_type = ' . $game_transaction_type . ' AND gte.transaction_detail != "FAILED"';
+			$where = 'where gte.round_id = "' . $provider_identifier . '" AND gte.game_transaction_type = ' . $game_transaction_type.'';
+			// $where = 'where gte.round_id = "' . $provider_identifier . '" AND gte.game_transaction_type = ' . $game_transaction_type . ' AND gte.transaction_detail != "FAILED"';
 		}
 		if ($type == 'game_transaction_ext_id') {
 			$where = 'where gte.provider_trans_id = "' . $provider_identifier . '"';
