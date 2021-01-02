@@ -107,7 +107,7 @@ class OryxGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('oryx_authentication', 18, file_get_contents("php://input"), $response);
+		// Helper::saveLog('oryx_authentication', 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
@@ -115,7 +115,7 @@ class OryxGamingController extends Controller
 	
 	public function getBalance(Request $request) 
 	{
-		Helper::saveLog('getBalance', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
+		// Helper::saveLog('getBalance', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 		$json_data = json_decode(file_get_contents("php://input"), true);
 		$client_code = RouteParam::get($request, 'brand_code');
 		$player_id = RouteParam::get($request, 'player_id');
@@ -156,7 +156,7 @@ class OryxGamingController extends Controller
 			}
 		}
 
-		Helper::saveLog('oryx_balance', 18, file_get_contents("php://input"), $response);
+		// Helper::saveLog('oryx_balance', 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
@@ -165,7 +165,7 @@ class OryxGamingController extends Controller
 	{
 		$hit_time =  microtime(true);
 		$json_data = json_decode(file_get_contents("php://input"), true);
-		Helper::saveLog('ORYX GAMETRAN v1', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
+		// Helper::saveLog('ORYX GAMETRAN v1', 18, file_get_contents("php://input"), 'ENDPOINT HIT');
 		
 		if (array_key_exists('bet', $json_data) || array_key_exists('win', $json_data)) {
 			$transaction_id = (array_key_exists('bet', $json_data) == true ? $json_data['bet']['transactionId'] : $json_data['win']['transactionId']);
@@ -202,7 +202,7 @@ class OryxGamingController extends Controller
 					"responseCode" => "OK",
 					"balance" => $this->_toPennies($client_details->balance),
 				];
-				Helper::saveLog('idenpotencyTable', 18, file_get_contents("php://input"), $response);
+				// Helper::saveLog('idenpotencyTable', 18, file_get_contents("php://input"), $response);
 				return $response;
 			}
 			
@@ -315,9 +315,9 @@ class OryxGamingController extends Controller
 										"balance" => $this->_toPennies($balance)
 									];
 
-						       		$stoptime  = microtime(true);
-									$overall_time = ($stoptime - $hit_time) * 1000;
-									Helper::saveLog('ORYX GT1 - TIME - '.floor($overall_time), 18, file_get_contents("php://input"), $response);
+						   //     		$stoptime  = microtime(true);
+									// $overall_time = ($stoptime - $hit_time) * 1000;
+									// Helper::saveLog('ORYX GT1 - TIME - '.floor($overall_time), 18, file_get_contents("php://input"), $response);
 									return response()->json($response, $http_status);
 						       	}
 
@@ -394,9 +394,9 @@ class OryxGamingController extends Controller
 										"balance" => $this->_toPennies($balance)
 									];
 
-						       		$stoptime  = microtime(true);
-									$overall_time = ($stoptime - $hit_time) * 1000;
-									Helper::saveLog('ORYX GT1 - TIME - '.floor($overall_time), 18, file_get_contents("php://input"), $response);
+						   //     		$stoptime  = microtime(true);
+									// $overall_time = ($stoptime - $hit_time) * 1000;
+									// Helper::saveLog('ORYX GT1 - TIME - '.floor($overall_time), 18, file_get_contents("php://input"), $response);
 									return response()->json($response, $http_status);
 						       	}
 
@@ -516,9 +516,9 @@ class OryxGamingController extends Controller
 				/*}*/
 			}
 		}
-		$stoptime  = microtime(true);
-		$overall_time = ($stoptime - $hit_time) * 1000;
-		Helper::saveLog('ORYX GT1 - TIME - '.floor($overall_time), 18, file_get_contents("php://input"), $response);
+		// $stoptime  = microtime(true);
+		// $overall_time = ($stoptime - $hit_time) * 1000;
+		// Helper::saveLog('ORYX GT1 - TIME - '.floor($overall_time), 18, file_get_contents("php://input"), $response);
 		return response()->json($response, $http_status);
 
 	}
@@ -776,7 +776,7 @@ class OryxGamingController extends Controller
 		$details = json_decode(file_get_contents("php://input"), true);
 		
 		// $details = $request->all();
-		Helper::saveLog('readWriteProcess '. $details["type"], 18, json_encode($details), $response);
+		// Helper::saveLog('readWriteProcess '. $details["type"], 18, json_encode($details), $response);
 		$client_details = ProviderHelper::getClientDetails('token', $details["token"]);
 		
 		$provider_request = $details["provider_request"];
@@ -805,7 +805,7 @@ class OryxGamingController extends Controller
 	 			[ 'body' => json_encode($body_details), 'timeout' => '0.01']
 	 		);
        	} catch(\Exception $e){
-       		Helper::saveLog('readWriteProcess passing_data', 18, json_encode($details), $body_details);
+       		// Helper::saveLog('readWriteProcess passing_data', 18, json_encode($details), $body_details);
        	}
 
 	}
@@ -817,7 +817,7 @@ class OryxGamingController extends Controller
 		$details = json_decode(file_get_contents("php://input"), true);
 		
 		// $details = $request->all();
-		Helper::saveLog('fundTransfer hit', 18, json_encode($details), $response);
+		// Helper::saveLog('fundTransfer hit', 18, json_encode($details), $response);
 		$client_details = ProviderHelper::getClientDetails('token', $details["token"]);
 		
 		$provider_request = $details["provider_request"];
@@ -834,7 +834,7 @@ class OryxGamingController extends Controller
 			ProviderHelper::updateGameTransactionStatus($game_transaction_id, 2, 99);
 			$mw_payload = ProviderHelper::fundTransfer_requestBody($client_details,$amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$game_transaction_id,$details["type"]);
 			ProviderHelper::createRestrictGame($game_details->game_id, $client_details->player_id, $game_trans_ext_id, $mw_payload);
-			Helper::saveLog('fundTransfer FATAL ERROR', 18, json_encode($details),Helper::datesent());
+			// Helper::saveLog('fundTransfer FATAL ERROR', 18, json_encode($details),Helper::datesent());
 		}
 	     
 	    if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") 
@@ -852,7 +852,7 @@ class OryxGamingController extends Controller
 				"balance" => $this->_toPennies($client_response->fundtransferresponse->balance),
 			];
 			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
-			Helper::saveLog('fundTransfer done', 18,  json_encode($details), $response);
+			// Helper::saveLog('fundTransfer done', 18,  json_encode($details), $response);
 
 		} 
 		elseif (isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402")
@@ -866,7 +866,7 @@ class OryxGamingController extends Controller
 			$this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
 			ProviderHelper::updateGameTransactionStatus($game_transaction_id, 2, 99);
 			ProviderHelper::createRestrictGame($game_details->game_id, $client_details->player_id, $game_trans_ext_id, $client_response->requestoclient);
-			Helper::saveLog('fundTransfer 402', 18, json_encode($details),Helper::datesent());
+			// Helper::saveLog('fundTransfer 402', 18, json_encode($details),Helper::datesent());
 		}             
 		
 	}
