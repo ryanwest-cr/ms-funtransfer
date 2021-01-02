@@ -202,6 +202,7 @@ class OryxGamingController extends Controller
 					"responseCode" => "OK",
 					"balance" => $this->_toPennies($client_details->balance),
 				];
+				Helper::saveLog('idenpotencyTable', 18, file_get_contents("php://input"), $response);
 				return $response;
 			}
 			
