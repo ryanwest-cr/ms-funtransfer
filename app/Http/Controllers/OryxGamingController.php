@@ -775,7 +775,7 @@ class OryxGamingController extends Controller
 		$details = json_decode(file_get_contents("php://input"), true);
 		
 		// $details = $request->all();
-		Helper::saveLog('readWriteProcess hit', 18, json_encode($details), $response);
+		Helper::saveLog('readWriteProcess '. $details["type"], 18, json_encode($details), $response);
 		$client_details = ProviderHelper::getClientDetails('token', $details["token"]);
 		
 		$provider_request = $details["provider_request"];
