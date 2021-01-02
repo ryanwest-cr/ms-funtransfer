@@ -264,7 +264,7 @@ class PragmaticPLayController extends Controller
         
         $game_trans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, $bet_amount,  $bet_payout, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundId);
       
-        $game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $roundId, $bet_amount, 1);
+        // $game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $roundId, $bet_amount, 1);
 
         try {
            
@@ -291,14 +291,14 @@ class PragmaticPLayController extends Controller
                     "provider_round_id"=>$roundId,
                 ],
                 "mwapi" => [
-                    "roundId"=> $game_transextension,
+                    "roundId"=> $game_trans,
                     "type"=>2,
                     "game_id" => $game_details->game_id,
                     "player_id" => $client_details->player_id,
                     "mw_response" => $response,
                 ]
             ];
-            $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $game_transextension, 'credit', false, $action_payload);
+            $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $game_trans, 'debit', false, $action_payload);
             
             // ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
             // $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $client_response->fundtransferresponse->balance]);
@@ -322,7 +322,7 @@ class PragmaticPLayController extends Controller
         parse_str($enc_body, $data);
         $json_encode = json_encode($data, true); 
         $data = json_decode($json_encode);
-
+        
         AWSHelper::saveLog('TPP result recieved', $this->provider_id, json_encode($data), "recieved");
         
         // $hash = md5('amount='.$data->amount.'&gameId='.$data->gameId.'&providerId='.$data->providerId.'&reference='.$data->reference.'&roundDetails='.$data->roundDetails.'&roundId='.$data->roundId.'&timestamp='.$data->timestamp.'&userId='.$data->userId.$this->key);
@@ -350,7 +350,7 @@ class PragmaticPLayController extends Controller
                 "cash" => floatval(number_format($client_details->balance, 2, '.', '')),
                 "bonus" => 0,
                 "error" => 0,
-                "description" => "Success",
+                "description1" => "Success",
             );
             
             return $response_log;
@@ -392,7 +392,7 @@ class PragmaticPLayController extends Controller
                         "cash" => floatval(number_format($client_response->fundtransferresponse->balance, 2, '.', '')),
                         "bonus" => 0,
                         "error" => 0,
-                        "description" => "Success",
+                        "description2" => "Success",
                     );
                     
                     $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$game_trans_ext_v2)->update(["amount" => $payout,"game_transaction_type" => $entry_id,"provider_request" => json_encode($data),"mw_response" => json_encode($response),"mw_request" => json_encode($client_response->requestoclient),"client_response" => json_encode($client_response),"transaction_detail" => json_encode($response) ]);
@@ -424,7 +424,7 @@ class PragmaticPLayController extends Controller
                 "cash" => floatval(number_format($balance, 2, '.', '')),
                 "bonus" => 0,
                 "error" => 0,
-                "description" => "Success",
+                "description3" => "Success",
             );
 
             $action_payload = [

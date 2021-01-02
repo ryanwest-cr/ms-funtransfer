@@ -111,7 +111,7 @@ class FundtransferProcessorController extends Controller
                     }
                 }else{
                     # Normal/general Update Game Transaction if you need to update your gametransaction you can add new param to the action payload!
-                    $gteid = ClientRequestHelper::updateGTEID($gteid,$requesttocient,$client_response,'success','success' );
+                    // $gteid = ClientRequestHelper::updateGTEID($gteid,$requesttocient,$client_response,'success','success' );
                 }
 
             }elseif(isset($client_response->fundtransferresponse->status->code) 
