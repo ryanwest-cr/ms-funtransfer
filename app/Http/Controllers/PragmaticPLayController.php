@@ -264,7 +264,7 @@ class PragmaticPLayController extends Controller
         
         $game_trans = ProviderHelper::createGameTransaction($tokenId, $game_details->game_id, $bet_amount,  $bet_payout, $method, $win_or_lost, null, $payout_reason, $income, $provider_trans_id, $roundId);
       
-        // $game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $roundId, $bet_amount, 1);
+        $game_transextension = ProviderHelper::createGameTransExtV2($game_trans,$provider_trans_id, $roundId, $bet_amount, 1);
 
         try {
            
@@ -291,14 +291,14 @@ class PragmaticPLayController extends Controller
                     "provider_round_id"=>$roundId,
                 ],
                 "mwapi" => [
-                    "roundId"=> $game_trans,
+                    "roundId"=> $game_transextension,
                     "type"=>2,
                     "game_id" => $game_details->game_id,
                     "player_id" => $client_details->player_id,
                     "mw_response" => $response,
                 ]
             ];
-            $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $game_trans, 'debit', false, $action_payload);
+            $client_response2 = ClientRequestHelper::fundTransfer_TG($client_details, $bet_amount, $game_details->game_code, $game_details->game_name, $game_transextension, 'debit', false, $action_payload);
             
             // ProviderHelper::updatecreateGameTransExt($game_transextension, $data, $response, $client_response->requestoclient, $client_response, $response);
             // $save_bal = DB::table("player_session_tokens")->where("token_id","=",$tokenId)->update(["balance" => $client_response->fundtransferresponse->balance]);
@@ -433,7 +433,7 @@ class PragmaticPLayController extends Controller
                     "provider" => 'tpp',
                 ],
                 "provider" => [
-                    "provider_request" => json_encode($data),
+                    "provider_request" => $data,
                     "provider_trans_id"=>$provider_trans_id,
                     "provider_round_id"=>$round_id,
                 ],

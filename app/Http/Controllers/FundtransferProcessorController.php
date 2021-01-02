@@ -35,15 +35,19 @@ class FundtransferProcessorController extends Controller
         }
         // sleep(10);
         try{
-            $gteid = ClientRequestHelper::generateGTEID(
-                $payload->request_body->fundtransferrequest->fundinfo->roundId,
-                $payload->action->provider->provider_trans_id, 
-                $payload->action->provider->provider_round_id, 
-                $payload->request_body->fundtransferrequest->fundinfo->amount,
-                $game_transaction_type, 
-                $payload->action->provider->provider_request, 
-                $payload->action->mwapi->mw_response
-            );
+            if($payload->action->custom->provider == 'tpp'){
+                $gteid = $payload->action->mwapi->roundId;
+            }else{
+                $gteid = ClientRequestHelper::generateGTEID(
+                    $payload->request_body->fundtransferrequest->fundinfo->roundId,
+                    $payload->action->provider->provider_trans_id, 
+                    $payload->action->provider->provider_round_id, 
+                    $payload->request_body->fundtransferrequest->fundinfo->amount,
+                    $game_transaction_type, 
+                    $payload->action->provider->provider_request, 
+                    $payload->action->mwapi->mw_response
+                );
+            }
         }catch(\Exception $e){
             Helper::saveLog('fundTransfer generateGTEID', 888, json_encode([]), $e->getMessage().' '.$e->getLine().' '.$e->getFile());
         }
@@ -107,7 +111,7 @@ class FundtransferProcessorController extends Controller
                         $gteid = ClientRequestHelper::updateGTEID($gteid,$requesttocient,$client_response,'success','success' );
                     }
                     if($payload->action->custom->provider == 'tpp'){
-                        $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$payload->action->mwapi->roundId)->update(["amount" => $payload->request_body->fundtransferrequest->fundinfo->amount ,"game_transaction_type" => $game_transaction_type, "provider_request" => json_encode($payload->action->provider->provider_request),"mw_response" => json_encode($payload->action->mwapi->mw_response),"mw_request" => json_encode($requesttocient),"client_response" => json_encode($client_response),"transaction_detail" => "success" ]);
+                        $updateGameTransExt = DB::table('game_transaction_ext')->where('game_trans_ext_id','=',$gteid)->update(["amount" => $payload->request_body->fundtransferrequest->fundinfo->amount ,"game_transaction_type" => $game_transaction_type, "provider_request" => json_encode($payload->action->provider->provider_request),"mw_response" => json_encode($payload->action->mwapi->mw_response),"mw_request" => json_encode($requesttocient),"client_response" => json_encode($client_response),"transaction_detail" => "success" ]);
                     }
                 }else{
                     # Normal/general Update Game Transaction if you need to update your gametransaction you can add new param to the action payload!
