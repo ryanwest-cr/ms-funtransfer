@@ -135,7 +135,6 @@ class FundtransferProcessorController extends Controller
 
 
     /**
-     * HI GUYZZZ LEGENDARY MARVIN HERE
      * THIS METHOD FROM TWO CALLBACK DEBIT AND CREDIT AND FUNDSTRANFER PROCESS 
      * METHOD USE INSERT/UPDATE/FUNDSTRANFER
      * REQUEST FORMAT EXAMPLE
@@ -209,7 +208,50 @@ class FundtransferProcessorController extends Controller
             Helper::updateGameTransaction($existing_bet,$request_data,$type);
         }
         
+        $body_details = [
+            "type" => $type,
+            "token" => $client_details->player_token,
+            "rollback" => false,
+            "game_details" => [
+                "game_id" => $game_details->game_id
+            ],
+            "game_transaction" => [
+                "provider_trans_id" => $provider_trans_id,
+                "round_id" => $round_id,
+                "amount" => $amount
+            ],
+            "provider_request" => $provider_request,
+            "game_trans_ext_id" => $game_trans_ext_id,
+            "game_transaction_id" => $game_transaction_id
+        ];
+       
+        try{
+            $client = new Client();
+            $guzzle_response = $client->post(config('providerlinks.oauth_mw_api.mwurl') . '/tigergames/bg-fundtransfer',
+                [ 'body' => json_encode($body_details), 'timeout' => '0.01']
+            );
+        } catch(\Exception $e){
+            Helper::saveLog('readWriteProcess passing_data', 88, json_encode($details), $body_details);
+        }
 
+       
+    }
+
+    public function bgFundTransfer(Request $request){
+        $response = [];
+        $details = json_decode(file_get_contents("php://input"), true);
+        Helper::saveLog('backgroundProcesstFund', 88, json_encode($details), "ENDPOINT HIT");
+        $client_details = ProviderHelper::getClientDetails('token', $details["token"]);
+        $game_details = Game::findbyid($details["game_details"]["game_id"]);
+
+        $provider_trans_id = $details["game_transaction"]["provider_trans_id"];
+        $round_id =  $details["game_transaction"]["round_id"];
+        $amount = $details["game_transaction"]["amount"]; // amount should be fixed after sending data
+        $provider_request = $details["provider_request"];  
+
+        $game_trans_ext_id = $details["game_trans_ext_id"];
+        $game_transaction_id = $details["game_transaction_id"];
+        $type = $details["type"];
         try {
             $client_response = ClientRequestHelper::fundTransfer($client_details, $amount, $game_details->game_code, $game_details->game_name, $game_trans_ext_id, $game_transaction_id, $type, $details["rollback"]);
         } catch (\Exception $e) {
@@ -217,7 +259,7 @@ class FundtransferProcessorController extends Controller
             ProviderHelper::updateGameTransactionStatus($game_transaction_id, 2, 99);
             $mw_payload = ProviderHelper::fundTransfer_requestBody($client_details,$amount,$game_details->game_code,$game_details->game_name,$game_trans_ext_id,$game_transaction_id,$type);
             ProviderHelper::createRestrictGame($game_details->game_id, $client_details->player_id, $game_trans_ext_id, $mw_payload);
-            Helper::saveLog('backgroundProcessDebitCreditFund FATAL ERROR', 88, json_encode($details), Helper::datesent());
+            Helper::saveLog('backgroundProcesstFund FATAL ERROR', 88, json_encode($details), Helper::datesent());
         }
        
         if(isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "200") 
@@ -234,7 +276,7 @@ class FundtransferProcessorController extends Controller
                 "balance" => $client_response->fundtransferresponse->balance,
             ];
             $this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
-            Helper::saveLog('backgroundProcessDebitCreditFund', 88, json_encode($details), $response);
+            Helper::saveLog('backgroundProcesstFund', 88, json_encode($details), $response);
         } 
         elseif (isset($client_response->fundtransferresponse->status->code) && $client_response->fundtransferresponse->status->code == "402")
         {
@@ -246,7 +288,7 @@ class FundtransferProcessorController extends Controller
             $this->updateGameTransactionExt($game_trans_ext_id,$client_response->requestoclient,$client_response->fundtransferresponse,$response);
             ProviderHelper::updateGameTransactionStatus($game_transaction_id, 2, 99);
             // ProviderHelper::createRestrictGame($game_details->game_id, $client_details->player_id, $game_trans_ext_id, $client_response->requestoclient);
-            Helper::saveLog('backgroundProcessDebitCreditFund', 88, json_encode($details), $response);
+            Helper::saveLog('backgroundProcesstFund', 88, json_encode($details), $response);
         }
     }
 

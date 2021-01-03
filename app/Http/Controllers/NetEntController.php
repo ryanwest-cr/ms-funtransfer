@@ -33,7 +33,7 @@ class NetEntController extends Controller
 			return response($response,200)
 				->header('Content-Type', 'application/json');
 		} catch(\Exception $e){
-			$reponse = array (
+			$response = array (
 				'responseCode' => 99,
 				'responseMessage' => 'Retry exception',
 				'balance' => 0,
@@ -66,6 +66,7 @@ class NetEntController extends Controller
 				->header('Content-Type', 'application/json');
 			}
 			$player_details = NetEntHelper::playerDetailsCall($getClientDetails);
+			ProviderHelper::_insertOrUpdate($getClientDetails->token_id, $player_details->playerdetailsresponse->balance); 
 			$num = $player_details->playerdetailsresponse->balance;
 			$balance = floatval(number_format((float)$num, 6, '.', ''));
 			$response = [
