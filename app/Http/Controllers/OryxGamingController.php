@@ -34,13 +34,10 @@ class OryxGamingController extends Controller
 		/*$this->middleware('oauth', ['except' => ['index']]);*/
 		/*$this->middleware('authorize:' . __CLASS__, ['except' => ['index', 'store']]);*/
 		$this->middleware_api = config('providerlinks.oauth_mw_api.mwurl'); 
+		
 	}
 
 	public function show(Request $request) { }
-
-
-
-	
 
 	public function authPlayer(Request $request)
 	{
@@ -869,21 +866,6 @@ class OryxGamingController extends Controller
 			// Helper::saveLog('fundTransfer 402', 18, json_encode($details),Helper::datesent());
 		}             
 		
-	}
-
-	public function endpoint(Request $request){
-
-       	try{
-       		$client = new Client();
-	 		$guzzle_response = $client->post('localhost:9090/api/oryx/fund',
-	 			[ 'timeout' => '0.01']
-	 		);
-       	} catch(\Exception $e){
-       		return [ 'msg' => 'sdafadsfdsaf'];
-       	}
-       
-       	return 1;
-
 	}
 
 	public static function updateGameTransactionExt($gametransextid,$mw_request,$mw_response,$client_response){
