@@ -261,8 +261,7 @@ class OryxGamingController extends Controller
 							GameRound::create($json_data['roundId'], $client_details->token_id);
 							
 							if(array_key_exists('bet', $json_data)) {
-								
-								if($client_details->balance > $this->_toDollars($json_data['bet']["amount"]) ){
+								if($client_details->balance < $this->_toDollars($json_data['bet']["amount"]) ){
 									$response = [
 										"responseCode" =>  "OUT_OF_MONEY",
 										"errorDescription" => "Player ran out of money.",
@@ -849,7 +848,8 @@ class OryxGamingController extends Controller
 	    {
 			// updateting balance
 			ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance); 
-			
+			Helper::saveLog('update balance hit', 18, json_encode($client_response), $client_response->fundtransferresponse->balance);
+
 			if(array_key_exists("roundAction", $provider_request)) {
 				if ($provider_request["roundAction"] == "CLOSE") {
 					GameRound::end($provider_request['roundId']);
