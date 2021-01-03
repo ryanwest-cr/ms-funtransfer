@@ -258,18 +258,11 @@ class OryxGamingController extends Controller
 					else
 					{*/
 						if(array_key_exists('bet', $json_data) || array_key_exists('win', $json_data)) {
+
 							GameRound::create($json_data['roundId'], $client_details->token_id);
-							
+
 							if(array_key_exists('bet', $json_data)) {
-								
-								if($client_details->balance > $this->_toDollars($json_data['bet']["amount"]) ){
-									$response = [
-										"responseCode" =>  "OUT_OF_MONEY",
-										"errorDescription" => "Player ran out of money.",
-										"balance" => $this->_toPennies($client_details->balance)
-									];
-									return $response;
-								}
+
 								// check if this is a free round
 								if(array_key_exists('freeRoundId', $json_data)) {
 									$amount = 0;
@@ -337,7 +330,7 @@ class OryxGamingController extends Controller
 										"errorDescription" => "Player ran out of money.",
 										"balance" => $this->_toPennies($client_response->fundtransferresponse->balance)
 									];
-									// ProviderHelper::updateGameTransactionStatus($game_transaction_id, 2, 99);
+									ProviderHelper::updateGameTransactionStatus($game_transaction_id, 2, 99);
 								}
 								else
 								{
