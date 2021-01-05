@@ -146,7 +146,7 @@ class EvolutionController extends Controller
                     if(!$game_transaction){
                         $transactionId=EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,1);
                     }
-                    
+                    return json_encode($client->details);
                     $msg = array(
                         "status"=>"OK",
                         "balance"=>$client_details->balance-round($data["transaction"]["amount"],2),
