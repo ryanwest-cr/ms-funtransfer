@@ -111,19 +111,19 @@ class EVGHelper
         }
 	}
 	public static function getGameTransaction($game_round){
-		$game = DB::table("game_transactions")
+		$game = DB::connection('mysql2')->table("game_transactions")
 				->where("round_id",$game_round)
 				->first();
 		return $game;
 	}
 	public static function getGameDetails($game_code,$game_type=null,$env){
 		if($env=='test'){
-			$game = DB::table("games")
+			$game = DB::connection('mysql2')->table("games")
 				->where("game_code",$game_code."_".$game_type)
 				->first();
 		}
 		if($env=='production'){
-			$game = DB::table("games")
+			$game = DB::connection('mysql2')->table("games")
 				->where("game_code",$game_code)
 				->first();
 		}
