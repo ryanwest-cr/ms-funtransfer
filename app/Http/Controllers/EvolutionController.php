@@ -176,12 +176,13 @@ class EvolutionController extends Controller
                     // $client_response = ClientRequestHelper::fundTransfer_TG($client_details,round($data["transaction"]["amount"],2),$game_details->game_code,$game_details->game_name,$transactionId,$gametransactionid,"credit");
             		$client_response = ClientRequestHelper::fundTransfer_TG($client_details,round($data["transaction"]["amount"],2),$game_details->game_code,$game_details->game_name,$gametransactionid,'debit',false,$action_payload);
                     $client_response_time = microtime(true) - $sendtoclient;
+                    $balance = number_format($client_response->fundtransferresponse->balance,2,'.', '');
                     if(isset($client_response->fundtransferresponse->status->code) 
                     && $client_response->fundtransferresponse->status->code == "200"){
                         ProviderHelper::_insertOrUpdate($client_details->token_id, $client_response->fundtransferresponse->balance);
                         $msg = array(
                             "status"=>"OK",
-                            "balance"=>$client_details->balance-round($data["transaction"]["amount"],2),
+                            "balance"=>(float)$balance,
                             "uuid"=>$data["uuid"],
                         );
                         //Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
