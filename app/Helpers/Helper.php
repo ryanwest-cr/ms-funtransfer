@@ -99,7 +99,6 @@ class Helper
 	}
 
 	public static function saveLog($method, $provider_id = 0, $request_data, $response_data) {
-			
 		if(env('SAVELOG')){
 				$data = [
 					"method_name" => $method,
