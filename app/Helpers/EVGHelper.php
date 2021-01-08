@@ -4,6 +4,7 @@ use DB;
 use GuzzleHttp\Client;
 use App\Services\AES;
 use App\Helpers\Helper;
+use Illuminate\Database\QueryException;
 class EVGHelper
 {
     public static function createEVGGameTransactionExt($gametransaction_id,$provider_request,$mw_request,$mw_response,$client_response,$game_transaction_type){
@@ -111,23 +112,51 @@ class EVGHelper
         }
 	}
 	public static function getGameTransaction($game_round){
-		$game = DB::connection('mysql2')->table("game_transactions")
+		// try{
+            
+        // }catch(QueryException $ex){
+
+		// }
+		try{
+			$game = DB::connection('mysql2')->table("game_transactions")
 				->where("round_id",$game_round)
 				->first();
-		return $game;
+			return $game;
+        }catch(QueryException $ex){
+			$game = DB::table("game_transactions")
+				->where("round_id",$game_round)
+				->first();
+			return $game;
+        }
+		
 	}
 	public static function getGameDetails($game_code,$game_type=null,$env){
-		if($env=='test'){
-			$game = DB::connection('mysql2')->table("games")
-				->where("game_code",$game_code."_".$game_type)
-				->first();
+		
+		try{
+			if($env=='test'){
+				$game = DB::connection('mysql2')->table("games")
+					->where("game_code",$game_code."_".$game_type)
+					->first();
+			}
+			if($env=='production'){
+				$game = DB::connection('mysql2')->table("games")
+					->where("game_code",$game_code)
+					->first();
+			}
+			return $game ? $game : false; 
+        }catch(QueryException $ex){
+			if($env=='test'){
+				$game = DB::table("games")
+					->where("game_code",$game_code."_".$game_type)
+					->first();
+			}
+			if($env=='production'){
+				$game = DB::table("games")
+					->where("game_code",$game_code)
+					->first();
+			}
+			return $game ? $game : false;
 		}
-		if($env=='production'){
-			$game = DB::connection('mysql2')->table("games")
-				->where("game_code",$game_code)
-				->first();
-		}
-		return $game ? $game : false;
 	}
     public static function _getClientDetails($type = "", $value = "") {
 

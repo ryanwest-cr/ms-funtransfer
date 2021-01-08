@@ -7,6 +7,7 @@ use App\Helpers\ClientRequestHelper;
 use App\Helpers\EVGHelper;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
+use Illuminate\Database\QueryException;
 use DB;
 class EvolutionController extends Controller
 {
@@ -603,19 +604,43 @@ class EvolutionController extends Controller
     }
 
     public  function getGameTransaction($player_token,$game_round){
-        DB::enableQueryLog();
-		$game = DB::connection('mysql2')->select("SELECT
-						entry_id,bet_amount,game_trans_id,pay_amount
-						FROM game_transactions g
-						INNER JOIN player_session_tokens USING (token_id)
-						WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
-        $result = count($game);
-		return $result > 0 ? $game[0] : null;
+        // try{
+            
+        // }catch(QueryException $ex){
+
+        // }
+        try{
+            DB::enableQueryLog();
+            $game = DB::connection('mysql2')->select("SELECT
+                            entry_id,bet_amount,game_trans_id,pay_amount
+                            FROM game_transactions g
+                            INNER JOIN player_session_tokens USING (token_id)
+                            WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
+            $result = count($game);
+            return $result > 0 ? $game[0] : null;    
+        }catch(QueryException $ex){
+            DB::enableQueryLog();
+            $game = DB::select("SELECT
+                            entry_id,bet_amount,game_trans_id,pay_amount
+                            FROM game_transactions g
+                            INNER JOIN player_session_tokens USING (token_id)
+                            WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
+            $result = count($game);
+            return $result > 0 ? $game[0] : null;
+        }
+        
     }
     public function getGameTransactionbyround($game_round){
-		$game = DB::connection('mysql2')->select("SELECT * FROM game_transactions WHERE round_id = '".$game_round."'");
-        $result = count($game);
-		return $result > 0 ? $game[0] : null;
+        try{
+            $game = DB::connection('mysql2')->select("SELECT * FROM game_transactions WHERE round_id = '".$game_round."'");
+            $result = count($game);
+            return $result > 0 ? $game[0] : null;
+        }catch(QueryException $ex){
+            $game = DB::select("SELECT * FROM game_transactions WHERE round_id = '".$game_round."'");
+            $result = count($game);
+            return $result > 0 ? $game[0] : null;
+        }
+		
     }
     /**
 	 * GLOBAL
@@ -626,37 +651,71 @@ class EvolutionController extends Controller
 	 * 
 	 */
     public function getClientDetails($type = "", $value = "", $gg=1, $providerfilter='all') {
-    	// DB::enableQueryLog();
-	    if ($type == 'token') {
-		 	$where = 'where pst.player_token = "'.$value.'"';
-		}
-		if($providerfilter=='fachai'){
-		    if ($type == 'player_id') {
-				$where = 'where '.$type.' = "'.$value.'" AND pst.status_id = 1 ORDER BY pst.token_id desc';
-			}
-		}else{
-	        if ($type == 'player_id') {
-			   $where = 'where '.$type.' = "'.$value.'"';
-			}
+    	try{
+            // DB::enableQueryLog();
+            if ($type == 'token') {
+                    $where = 'where pst.player_token = "'.$value.'"';
+            }
+            if($providerfilter=='fachai'){
+                if ($type == 'player_id') {
+                    $where = 'where '.$type.' = "'.$value.'" AND pst.status_id = 1 ORDER BY pst.token_id desc';
+                }
+            }else{
+                if ($type == 'player_id') {
+                    $where = 'where '.$type.' = "'.$value.'"';
+                }
+            }
+            if ($type == 'username') {
+                    $where = 'where p.username = "'.$value.'"';
+            }
+            if ($type == 'token_id') {
+                $where = 'where pst.token_id = "'.$value.'"';
+            }
+            if($providerfilter=='fachai'){
+                    $filter = 'LIMIT 1';
+            }else{
+                // $result= $query->latest('token_id')->first();
+                $filter = 'order by token_id desc LIMIT 1';
+            }
+
+            $query = DB::connection('mysql2')->select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
+
+                $client_details = count($query);
+                // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
+                return $client_details > 0 ? $query[0] : null;
+        }catch(QueryException $ex){
+            // DB::enableQueryLog();
+            if ($type == 'token') {
+                    $where = 'where pst.player_token = "'.$value.'"';
+            }
+            if($providerfilter=='fachai'){
+                if ($type == 'player_id') {
+                    $where = 'where '.$type.' = "'.$value.'" AND pst.status_id = 1 ORDER BY pst.token_id desc';
+                }
+            }else{
+                if ($type == 'player_id'){
+                    $where = 'where '.$type.' = "'.$value.'"';
+                }
+            }
+            if ($type == 'username') {
+                    $where = 'where p.username = "'.$value.'"';
+            }
+            if ($type == 'token_id') {
+                $where = 'where pst.token_id = "'.$value.'"';
+            }
+            if($providerfilter=='fachai'){
+                    $filter = 'LIMIT 1';
+            }else{
+                // $result= $query->latest('token_id')->first();
+                $filter = 'order by token_id desc LIMIT 1';
+            }
+
+            $query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
+
+            $client_details = count($query);
+            // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
+            return $client_details > 0 ? $query[0] : null;
         }
-		if ($type == 'username') {
-		 	$where = 'where p.username = "'.$value.'"';
-		}
-		if ($type == 'token_id') {
-			$where = 'where pst.token_id = "'.$value.'"';
-		}
-		if($providerfilter=='fachai'){
-		 	$filter = 'LIMIT 1';
-		}else{
-		    // $result= $query->latest('token_id')->first();
-		    $filter = 'order by token_id desc LIMIT 1';
-		}
-
-		$query = DB::connection('mysql2')->select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
-
-		 $client_details = count($query);
-		 // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
-		 return $client_details > 0 ? $query[0] : null;
     }
     /**
 	 * GLOBAL
