@@ -231,20 +231,20 @@ class ClientRequestHelper{
         if(count($action) > 0){
             $requesttocient["action"] = $action;
         }
-
-        try{
-            # This will call our server for async request! Cut The Connection within 10ms and leave it to the server!
-            $guzzle_response = $client->post(config('providerlinks.oauth_mw_api.mwurl').'/tigergames/fundtransfer',
-                [
-                    'on_stats' => function (TransferStats $stats) use ($requesttocient) {
-                        ProviderHelper::saveLog('RID'.$requesttocient['fundtransferrequest']['fundinfo']['roundId']. 'TIME = '.$stats->getTransferTime(), 999, json_encode($stats->getHandlerStats()), $requesttocient);
-                    },
-                    'timeout' => 0.10, # enough tobe received by the server!
-                    'body' => json_encode($requesttocient)
-                ],
-                ['defaults' => ['exceptions' => false]]
-            );
-        }catch(\Exception $e){
+        //starts here
+        // try{
+        //     # This will call our server for async request! Cut The Connection within 10ms and leave it to the server!
+        //     $guzzle_response = $client->post(config('providerlinks.oauth_mw_api.mwurl').'/tigergames/fundtransfer',
+        //         [
+        //             'on_stats' => function (TransferStats $stats) use ($requesttocient) {
+        //                 ProviderHelper::saveLog('RID'.$requesttocient['fundtransferrequest']['fundinfo']['roundId']. 'TIME = '.$stats->getTransferTime(), 999, json_encode($stats->getHandlerStats()), $requesttocient);
+        //             },
+        //             'timeout' => 0.10, # enough tobe received by the server!
+        //             'body' => json_encode($requesttocient)
+        //         ],
+        //         ['defaults' => ['exceptions' => false]]
+        //     );
+        // }catch(\Exception $e){
 
             if($type == 'debit'){
                 $balance = $client_details->balance - $amount;
@@ -264,7 +264,8 @@ class ClientRequestHelper{
             $client_reponse = json_decode(json_encode($response));
             $client_reponse->requestoclient = $requesttocient;
             return $client_reponse;
-        }
+        //}
+        //endhere
         // $client_reponse = json_decode($guzzle_response->getBody()->getContents());
         // $client_response_time = microtime(true) - $sendtoclient;
         // Helper::saveLog('fundTransfer(ClientRequestHelper)', 12, json_encode(["type"=>"funtransfer","game"=>$game_name]), ["clientresponse"=>$client_response_time,"client_reponse_data"=>$client_reponse,"client_request"=>$requesttocient]);
