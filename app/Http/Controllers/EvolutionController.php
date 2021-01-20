@@ -111,7 +111,7 @@ class EvolutionController extends Controller
     }
     public function debit(Request $request){
         $data = json_decode($request->getContent(),TRUE);
-        //$game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
+        $game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
         $msg = array(
             "status"=>"OK",
             "balance"=>10000,
@@ -234,7 +234,7 @@ class EvolutionController extends Controller
 
     public function credit(Request $request){
         $data = json_decode($request->getContent(),TRUE);
-        //$game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
+        $game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
         $msg = array(
             "status"=>"OK",
             "balance"=>10000,
@@ -842,12 +842,12 @@ class EvolutionController extends Controller
 			// 	->where('round_id',$round_id)
 			// 	->where('game_transaction_type',$type)
 			// 	->first();
-			$game = DB::connection('mysql2')->select("SELECT game_transaction_type
+			$game = DB::select("SELECT game_transaction_type
 								FROM game_transaction_ext
 								WHERE round_id = '".$round_id."' AND provider_trans_id='".$provider_transaction_id."' AND game_transaction_type = ".$type."");
 		}
 		else{
-			$game = DB::connection('mysql2')->select("SELECT game_trans_ext_id
+			$game = DB::select("SELECT game_trans_ext_id
 			FROM game_transaction_ext
 			where provider_trans_id='".$provider_transaction_id."' limit 1");
 		}
