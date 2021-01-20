@@ -111,7 +111,7 @@ class EvolutionController extends Controller
     }
     public function debit(Request $request){
         $data = json_decode($request->getContent(),TRUE);
-        $game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
+        //$game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
         $msg = array(
             "status"=>"OK",
             "balance"=>10000,
@@ -234,7 +234,7 @@ class EvolutionController extends Controller
 
     public function credit(Request $request){
         $data = json_decode($request->getContent(),TRUE);
-        $game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
+        //$game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
         $msg = array(
             "status"=>"OK",
             "balance"=>10000,
