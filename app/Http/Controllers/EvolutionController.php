@@ -828,5 +828,8 @@ class EvolutionController extends Controller
 			where provider_trans_id='".$provider_transaction_id."' limit 1");
 		}
 		return $game ? true :false;
-	}
+    }
+    public function __destruct(){
+        \DB::disconnect();
+    }
 }

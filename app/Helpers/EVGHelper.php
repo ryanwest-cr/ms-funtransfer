@@ -184,6 +184,9 @@ class EVGHelper
 				 $result= $query->first();
 
 		return $result;
+	}
+	public function __destruct(){
+        \DB::disconnect();
     }
 
 }
