@@ -1073,17 +1073,12 @@ class ProviderHelper{
 
 	public static function _insertOrUpdate($token_id,$balance){
 		$balance_query = DB::select("SELECT * FROM player_session_tokens WHERE token_id = '".$token_id."'");
-		DB::disconnect();
 		$data = count($balance_query);
 		if($data > 0){
-			$update=DB::select("UPDATE player_session_tokens SET balance=".$balance." WHERE token_id ='".$token_id."'");
-			DB::disconnect();
-			return $update;
+			return DB::select("UPDATE player_session_tokens SET balance=".$balance." WHERE token_id ='".$token_id."'");
 		}
 		else{
-			$insert=DB::select("INSERT INTO  player_session_tokens (token_id,balance) VALUEs ('".$token_id."',".$balance.")");
-			DB::disconnect();
-			return $insert;
+			return DB::select("INSERT INTO  player_session_tokens (token_id,balance) VALUEs ('".$token_id."',".$balance.")");
 		}
 	}
 
@@ -1091,7 +1086,7 @@ class ProviderHelper{
 		return DB::select("INSERT INTO  transaction_idempotent (provider_trans_id) VALUEs ('".$provider_trans_id."')");
 	}
 	public function __destruct(){
-        \DB::disconnect();
+        DB::disconnect();
     }
 
 }

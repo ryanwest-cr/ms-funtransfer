@@ -619,7 +619,6 @@ class EvolutionController extends Controller
                             INNER JOIN player_session_tokens USING (token_id)
                             WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
             $result = count($game);
-            DB::disconnect();
             return $result > 0 ? $game[0] : null;    
         }catch(QueryException $ex){
             DB::enableQueryLog();
@@ -629,7 +628,6 @@ class EvolutionController extends Controller
                             INNER JOIN player_session_tokens USING (token_id)
                             WHERE player_token = '".$player_token."' and round_id = '".$game_round."'");
             $result = count($game);
-            DB::disconnect();
             return $result > 0 ? $game[0] : null;
         }
         
@@ -638,12 +636,10 @@ class EvolutionController extends Controller
         try{
             $game = DB::select("SELECT * FROM game_transactions WHERE round_id = '".$game_round."'");
             $result = count($game);
-            DB::disconnect();
             return $result > 0 ? $game[0] : null;
         }catch(QueryException $ex){
             $game = DB::select("SELECT * FROM game_transactions WHERE round_id = '".$game_round."'");
             $result = count($game);
-            DB::disconnect();
             return $result > 0 ? $game[0] : null;
         }
 		
@@ -685,10 +681,10 @@ class EvolutionController extends Controller
             }
 
             $query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
-            DB::disconnect();
-            $client_details = count($query);
-            // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
-            return $client_details > 0 ? $query[0] : null;
+
+                $client_details = count($query);
+                // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
+                return $client_details > 0 ? $query[0] : null;
         }catch(QueryException $ex){
             // DB::enableQueryLog();
             if ($type == 'token') {
@@ -717,7 +713,7 @@ class EvolutionController extends Controller
             }
 
             $query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
-            DB::disconnect();
+
             $client_details = count($query);
             // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
             return $client_details > 0 ? $query[0] : null;
@@ -757,8 +753,7 @@ class EvolutionController extends Controller
 
 			// Filter Player If Disabled
 			$player= DB::table('players')->where('client_id', $client_details->client_id)
-                    ->where('player_id', $client_details->player_id)->first();
-                    DB::disconnect();
+					->where('player_id', $client_details->player_id)->first();
 			if(isset($player->player_status)){
 				if($player != '' || $player != null){
 					if($player->player_status == 3){
@@ -784,8 +779,7 @@ class EvolutionController extends Controller
 	                        array('player_id' => $client_details->player_id, 
 	                        	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
 	                        	  'status_id' => '1')
-                            );
-                            DB::disconnect();
+	                        );
 						}
 					}
 					// Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
@@ -799,8 +793,7 @@ class EvolutionController extends Controller
 		                        array('player_id' => $client_details->player_id, 
 		                        	  'player_token' =>  $client_response->playerdetailsresponse->refreshtoken, 
 		                        	  'status_id' => '1')
-                            );
-                            DB::disconnect();
+		                    );
 						}
 					}
 					// Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
@@ -810,7 +803,6 @@ class EvolutionController extends Controller
             }catch (\Exception $e){
                // Helper::saveLog('PLAYER DETAILS LOG', 999, json_encode(DB::getQueryLog()), "TIME PLAYERDETAILS");
                Helper::saveLog('ALDEBUG client_player_id = '.$client_details->client_player_id,  99, json_encode($datatosend), $e->getMessage());
-               DB::disconnect();
                return 'false';
             }
 		}else{
@@ -834,11 +826,10 @@ class EvolutionController extends Controller
 			$game = DB::select("SELECT game_trans_ext_id
 			FROM game_transaction_ext
 			where provider_trans_id='".$provider_transaction_id."' limit 1");
-        }
-        DB::disconnect();
+		}
 		return $game ? true :false;
     }
     public function __destruct(){
-        
+        DB::disconnect();
     }
 }
