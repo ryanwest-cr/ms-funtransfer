@@ -16,9 +16,6 @@ return [
             'collation' => 'utf8_unicode_ci',
             'prefix'    => '',
             'strict'    => false,
-            'options' => [
-                \PDO::ATTR_PERSISTENT => true
-            ]
          ],
 
         'mysql2' => [

@@ -185,8 +185,5 @@ class EVGHelper
 
 		return $result;
 	}
-	public function __destruct(){
-        DB::disconnect();
-    }
 
 }

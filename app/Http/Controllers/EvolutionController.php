@@ -829,7 +829,4 @@ class EvolutionController extends Controller
 		}
 		return $game ? true :false;
     }
-    public function __destruct(){
-        DB::disconnect();
-    }
 }

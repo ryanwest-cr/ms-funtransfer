@@ -1085,8 +1085,6 @@ class ProviderHelper{
 	public static function idenpotencyTable($provider_trans_id){
 		return DB::select("INSERT INTO  transaction_idempotent (provider_trans_id) VALUEs ('".$provider_trans_id."')");
 	}
-	public function __destruct(){
-        DB::disconnect();
-    }
+	
 
 }
