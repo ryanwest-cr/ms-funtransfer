@@ -263,6 +263,7 @@ class ClientRequestHelper{
             );
             $client_reponse = json_decode(json_encode($response));
             $client_reponse->requestoclient = $requesttocient;
+            DB::disconnect();
             return $client_reponse;
         }
         //endhere

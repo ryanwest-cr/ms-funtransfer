@@ -1073,12 +1073,17 @@ class ProviderHelper{
 
 	public static function _insertOrUpdate($token_id,$balance){
 		$balance_query = DB::select("SELECT * FROM player_session_tokens WHERE token_id = '".$token_id."'");
+		DB::disconnect();
 		$data = count($balance_query);
 		if($data > 0){
-			return DB::select("UPDATE player_session_tokens SET balance=".$balance." WHERE token_id ='".$token_id."'");
+			$update=DB::select("UPDATE player_session_tokens SET balance=".$balance." WHERE token_id ='".$token_id."'");
+			DB::disconnect();
+			return $update;
 		}
 		else{
-			return DB::select("INSERT INTO  player_session_tokens (token_id,balance) VALUEs ('".$token_id."',".$balance.")");
+			$insert=DB::select("INSERT INTO  player_session_tokens (token_id,balance) VALUEs ('".$token_id."',".$balance.")");
+			DB::disconnect();
+			return $insert;
 		}
 	}
 
