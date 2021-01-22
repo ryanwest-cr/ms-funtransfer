@@ -613,7 +613,7 @@ class EvolutionController extends Controller
         // }
         try{
             DB::enableQueryLog();
-            $game = DB::connection('mysql2')->select("SELECT
+            $game = DB::select("SELECT
                             entry_id,bet_amount,game_trans_id,pay_amount
                             FROM game_transactions g
                             INNER JOIN player_session_tokens USING (token_id)
@@ -634,7 +634,7 @@ class EvolutionController extends Controller
     }
     public function getGameTransactionbyround($game_round){
         try{
-            $game = DB::connection('mysql2')->select("SELECT * FROM game_transactions WHERE round_id = '".$game_round."'");
+            $game = DB::select("SELECT * FROM game_transactions WHERE round_id = '".$game_round."'");
             $result = count($game);
             return $result > 0 ? $game[0] : null;
         }catch(QueryException $ex){
@@ -680,7 +680,7 @@ class EvolutionController extends Controller
                 $filter = 'order by token_id desc LIMIT 1';
             }
 
-            $query = DB::connection('mysql2')->select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
+            $query = DB::select('select `p`.`client_id`, `p`.`player_id`, `p`.`email`, `p`.`client_player_id`,`p`.`language`, `p`.`currency`, `p`.`test_player`, `p`.`username`,`p`.`created_at`,`pst`.`token_id`,`pst`.`player_token`,`pst`.`balance`,`c`.`client_url`,`c`.`default_currency`,`pst`.`status_id`,`p`.`display_name`,`op`.`client_api_key`,`op`.`client_code`,`op`.`client_access_token`,`ce`.`player_details_url`,`ce`.`fund_transfer_url`,`p`.`created_at` from player_session_tokens pst inner join players as p using(player_id) inner join clients as c using (client_id) inner join client_endpoints as ce using (client_id) inner join operator as op using (operator_id) '.$where.' '.$filter.'');
 
                 $client_details = count($query);
                 // Helper::saveLog('GET CLIENT LOG', 999, json_encode(DB::getQueryLog()), "TIME GET CLIENT");
@@ -752,7 +752,7 @@ class EvolutionController extends Controller
 			];
 
 			// Filter Player If Disabled
-			$player= DB::connection('mysql2')->table('players')->where('client_id', $client_details->client_id)
+			$player= DB::table('players')->where('client_id', $client_details->client_id)
 					->where('player_id', $client_details->player_id)->first();
 			if(isset($player->player_status)){
 				if($player != '' || $player != null){

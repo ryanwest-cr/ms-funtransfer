@@ -118,7 +118,7 @@ class EVGHelper
 
 		// }
 		try{
-			$game = DB::connection('mysql2')->table("game_transactions")
+			$game = DB::table("game_transactions")
 				->where("round_id",$game_round)
 				->first();
 			return $game;
@@ -134,12 +134,12 @@ class EVGHelper
 		
 		try{
 			if($env=='test'){
-				$game = DB::connection('mysql2')->table("games")
+				$game = DB::table("games")
 					->where("game_code",$game_code."_".$game_type)
 					->first();
 			}
 			if($env=='production'){
-				$game = DB::connection('mysql2')->table("games")
+				$game = DB::table("games")
 					->where("game_code",$game_code)
 					->first();
 			}
