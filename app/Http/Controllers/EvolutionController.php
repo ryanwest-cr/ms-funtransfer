@@ -180,7 +180,7 @@ class EvolutionController extends Controller
                             "uuid"=>$data["uuid"],
                         );
                         //Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
-                        //Helper::saveLog('responseTime(EVG)', 12, json_encode(["type"=>"debitproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
+                        Helper::saveLog('responseTime(EVG)', 12, json_encode(["type"=>"debitproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
                         return response($msg,200)
                             ->header('Content-Type', 'application/json');
                     }
@@ -305,7 +305,7 @@ class EvolutionController extends Controller
                             "uuid"=>$data["uuid"],
                         );
                         // Helper::updateGameTransactionExt($transactionId,$client_response->requestoclient,$msg,$client_response);
-                        //Helper::saveLog('responseTime(EVG)', 12, json_encode(["type"=>"creditproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
+                        Helper::saveLog('responseTime(EVG)', 12, json_encode(["type"=>"creditproccess","stating"=>$startTime,"response"=>microtime(true)]), ["response"=>microtime(true) - $startTime,"mw_response"=> microtime(true) - $startTime - $client_response_time,"clientresponse"=>$client_response_time]);
                         return response($msg,200)
                             ->header('Content-Type', 'application/json');
                     }
