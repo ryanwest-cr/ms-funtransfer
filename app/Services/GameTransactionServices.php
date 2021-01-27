@@ -33,7 +33,11 @@ class GameTransactionServices{
      * @return void Response from the MicroServices
      */
     public function checkGameTransactionExt($type,$data){
-        return json_decode($this->performRequest('GET',"/api/v1/gametransactionext/{$type}/{$data}"));
+        $data = array(
+            "to_search" => $type,
+            "value" => $data
+        );
+        return json_decode($this->performRequest('POST',"/api/v1/gametransactionext/search",$data));
     }    
     /**
      * checkGameTransaction
@@ -43,7 +47,11 @@ class GameTransactionServices{
      * @return void Response from the MicroServices
      */
     public function checkGameTransaction($type,$data){
-        return json_decode($this->performRequest('GET',"/api/v1/gametransaction/{$type}/{$data}"));
+        $data = array(
+            "to_search" => $type,
+            "value" => $data
+        );
+        return json_decode($this->performRequest('POST',"/api/v1/gametransaction/search",$data));
     } 
     /**
      * createGameTransaction
