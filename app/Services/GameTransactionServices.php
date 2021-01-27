@@ -51,7 +51,7 @@ class GameTransactionServices{
             "to_search" => $type,
             "value" => $data
         );
-        return json_decode($this->performRequest('POST',"/gametransaction/search",$data));
+        return json_decode($this->performRequest('POST',"/public/gametransaction/search",$data));
     } 
     /**
      * createGameTransaction
