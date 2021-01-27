@@ -37,7 +37,7 @@ class GameTransactionServices{
             "to_search" => $type,
             "value" => $data
         );
-        return json_decode($this->performRequest('POST',"/gametransactionext/search",$data));
+        return json_decode($this->performRequest('POST',"/public/gametransactionext/search",$data));
     }    
     /**
      * checkGameTransaction
@@ -74,7 +74,7 @@ class GameTransactionServices{
             'income' => 0,
             'entry_id' => 1,
         );
-        return json_decode($this->performRequest('POST',"/gametransaction",$data));
+        return json_decode($this->performRequest('POST',"/public/gametransaction",$data));
     }
     /**
      * createGameTransaction
@@ -118,7 +118,7 @@ class GameTransactionServices{
 			break;
 			default:
 		}
-        return json_decode($this->performRequest('PUT',"/gametransaction",$data));
+        return json_decode($this->performRequest('PUT',"/public/gametransaction",$data));
     }    
     /**
      * createGameTransactionExt
@@ -127,7 +127,7 @@ class GameTransactionServices{
      * @return Object gameTransactionExtId
      */
     public function createGameTransactionExt($data){
-        return json_decode($this->performRequest('POST',"/gametransactionext",$data));
+        return json_decode($this->performRequest('POST',"/public/gametransactionext",$data));
     }    
     /**
      * updateGameTransactionExt
@@ -137,7 +137,7 @@ class GameTransactionServices{
      * 
      */
     public function updateGameTransactionExt($data){
-        return json_decode($this->performRequest('PUT',"/gametransactionext",$data));
+        return json_decode($this->performRequest('PUT',"/public/gametransactionext",$data));
     }
 
 }
