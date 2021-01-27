@@ -8,11 +8,15 @@ use App\Helpers\EVGHelper;
 use App\Helpers\Helper;
 use App\Helpers\ProviderHelper;
 use Illuminate\Database\QueryException;
+use App\Services\GameTransactionServices;
 use DB;
 class EvolutionController extends Controller
 {
+    public $gameTransaction;
     //
-
+    public function __construct(GameTransactionServices $gameTransaction){
+        $this->gameTransaction = $gameTransaction;
+    }
     public function authentication(Request $request){
         if($request->has("authToken")&& $request->authToken == config("providerlinks.evolution.owAuthToken")){
             $data = json_decode($request->getContent(),TRUE);
@@ -115,8 +119,8 @@ class EvolutionController extends Controller
             $data = json_decode($request->getContent(),TRUE);
             $client_details = $this->getClientDetails("player_id",$data["userId"]);
             if($client_details){
-                $game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
-                if($game_transaction){
+                $game_transaction = $this->gameTransaction->checkGameTransactionExt("providertransactionid",$data["transaction"]["id"]);
+                if($game_transaction->data){
                     $msg = array(
                         "status"=>"BET_ALREADY_EXIST",
                         "uuid"=>$data["uuid"],
@@ -137,9 +141,10 @@ class EvolutionController extends Controller
                         "amount" => round($data["transaction"]["amount"],2),
                         "roundid" => $data["transaction"]["refId"]
                     );
-                    if(!$game_transaction){
-                        $gametransactionid=EVGHelper::createGameTransaction('debit', $json_data, $game_details, $client_details); 
-                        $transactionId=EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,1);
+                    if(!$game_transaction->data){
+                        $gametransaction = $this->gameTransaction->createGameTransaction('debit', $json_data, $game_details, $client_details); 
+                        $gametransactionid = $gametransaction->data;
+                        //$transactionId=EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,1);
                     }
                     $msg = array(
                         "status"=>"OK",
@@ -224,8 +229,8 @@ class EvolutionController extends Controller
             $data = json_decode($request->getContent(),TRUE);
             $client_details = $this->getClientDetails("player_id",$data["userId"]);
             if($client_details){
-                $game_transaction = $this->checkGameTransaction($data["transaction"]["id"]);
-                if($game_transaction){
+                $game_transaction =  $this->gameTransaction->checkGameTransactionExt("providertransactionid",$data["transaction"]["id"]);
+                if($game_transaction->data){
                     $msg = array(
                         "status"=>"BET_ALREADY_SETTLED",
                         "uuid"=>$data["uuid"],
@@ -247,8 +252,8 @@ class EvolutionController extends Controller
                         "payout_reason" => null,
                         "win" => $win,
                     );
-                    $game = $this->getGameTransactionbyround($data["transaction"]["refId"]);
-                    if(!$game){
+                    $game = $this->gameTransaction->checkGameTransaction("roundid",$data["transaction"]["refId"]);
+                    if(!$game->data){
                         //$gametransactionid=Helper::createGameTransaction('credit', $json_data, $game_details, $client_details); 
                         $msg = array(
                             "status"=>"BET_DOES_NOT_EXIST",
@@ -258,11 +263,11 @@ class EvolutionController extends Controller
                     }
                     else{
                         if($win == 0){
-                            $gameupdate = Helper::updateGameTransaction($game,$json_data,"debit");
+                            $gameupdate = $this->gameTransaction->updateGameTransaction($game->data[0],$json_data,"debit");
                         }else{
-                            $gameupdate = Helper::updateGameTransaction($game,$json_data,"credit");
+                            $gameupdate = $this->gameTransaction->updateGameTransaction($game->data[0],$json_data,"credit");
                         }
-                        $gametransactionid = $game->game_trans_id;
+                        $gametransactionid = $game->data[0]->game_trans_id;
                     }
                     // $transactionId= EVGHelper::createEVGGameTransactionExt($gametransactionid,$data,null,null,null,2);
 

@@ -99,7 +99,7 @@ class Helper
 	}
 
 	public static function saveLog($method, $provider_id = 0, $request_data, $response_data) {
-		if(env('SAVELOG')){
+		// if(env('SAVELOG')){
 				$data = [
 					"method_name" => $method,
 					"provider_id" => $provider_id,
@@ -107,9 +107,9 @@ class Helper
 					"response_data" => json_encode($response_data)
 				];
 			return DB::table('seamless_request_logs')->insertGetId($data);
-		}else{
-			return true;
-		}
+		// }else{
+		// 	return true;
+		// }
 	}
 
 	public static function saveClientLog($method, $provider_id = 0, $sent_data, $response_data) {

@@ -7,6 +7,7 @@ use App\Helpers\Helper;
 use App\Helpers\GameLobby;
 use App\Helpers\ProviderHelper;
 use App\Payment;
+use App\Services\GameTransactionServices;
 use DB;
 use ErrorException;
 
@@ -298,22 +299,35 @@ class ClientRequestHelper{
             // "mw_request"=>json_encode($mw_request), 
             // "general_details" =>json_encode($general_details)
         );
-        $gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
-        return $gamestransaction_ext_ID;
+
+        $gameTransaction = new GameTransactionServices();
+        $gameTransactionExt = $gameTransaction->createGameTransactionExt($gametransactionext);
+        // $gamestransaction_ext_ID = DB::table("game_transaction_ext")->insertGetId($gametransactionext);
+        return $gameTransactionExt->data;
     }
         
     /**
      * NOTE ONLY FOR WIN!
      */
     public static function updateGTEID($game_trans_ext_id, $mw_request, $client_response,$transaction_detail='success',$general_details='custom'){
-        $update = DB::table('game_transaction_ext')
-        ->where('game_trans_ext_id', $game_trans_ext_id)
-        ->update([
+        // $update = DB::table('game_transaction_ext')
+        // ->where('game_trans_ext_id', $game_trans_ext_id)
+        // ->update([
+        //     "mw_request"=>json_encode($mw_request),
+        //     "client_response" =>json_encode($client_response),
+        //     "transaction_detail" =>json_encode($transaction_detail),
+        //     "general_details" =>json_encode($general_details)
+        // ]);
+        $gametransactionext = array(
+            "updateby" => "gametransactionextid", //table col to use for update
+            "value" => $game_trans_ext_id,// the value of the data to update
             "mw_request"=>json_encode($mw_request),
             "client_response" =>json_encode($client_response),
             "transaction_detail" =>json_encode($transaction_detail),
             "general_details" =>json_encode($general_details)
-        ]);
+        );
+        $gameTransaction = new GameTransactionServices();
+        $gameTransactionExt = $gameTransaction->updateGameTransactionExt($gametransactionext);
         // Helper::saveLog('updatecreateGameTransExt', 999, json_encode(DB::getQueryLog()), "TIME updatecreateGameTransExt");
         return ($update ? true : false);
     }
