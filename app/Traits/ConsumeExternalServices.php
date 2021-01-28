@@ -19,8 +19,7 @@ trait ConsumeExternalServices{
             return $response->getBody()->getContents();
         }
         catch(\Exception $e){
-            $response = $e->getResponse();
-            Helper::saveLog('ConsumeExternalServices', 888, json_encode(["request"=>$e->getRequest(),"response"=>$e->getResponse()]), "");
+            Helper::saveLog('ConsumeExternalServices', 888, json_encode([]), $e->getMessage().' '.$e->getLine().' '.$e->getFile());
         }
     }
 
