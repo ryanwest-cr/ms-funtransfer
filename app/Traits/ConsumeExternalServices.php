@@ -2,17 +2,26 @@
 
 namespace App\Traits;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use App\Helpers\Helper;
 trait ConsumeExternalServices{
 
     public function performRequest($method,$requestUrl,$formParams=[],$headers=[]){
-        $client = new Client([
-            'base_uri' => 'https://svr-test01.betrnk.games',
-        ]);
-        $response = $client->request($method, $requestUrl, [
-            'form_params' => $formParams,
-            'headers' => $headers
-        ]);
-        return $response->getBody()->getContents();
+        try{
+            $client = new Client([
+                'base_uri' => $this->baseUri,
+            ]);
+            $response = $client->request($method, $requestUrl, [
+                'form_params' => $formParams,
+                'headers' => $headers
+            ]);
+    
+            return $response->getBody()->getContents();
+        }
+        catch(ClientException $e){
+            $response = $e->getResponse();
+            Helper::saveLog('ConsumeExternalServices', 888, json_encode(["response"=>$e->getResponse()]), $e->getBody()->getContents());
+        }
     }
 
 }
